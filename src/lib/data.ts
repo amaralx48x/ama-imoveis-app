@@ -26,6 +26,8 @@ export type Review = {
   avatar: string;
 };
 
+// This data is now considered legacy mock data.
+// The app will primarily use Firestore.
 const properties: Property[] = [
   {
     id: '1',
@@ -65,63 +67,6 @@ const properties: Property[] = [
     featured: true,
     address: 'Rua das Orquídeas, 345, Bairro das Flores, Campinas - SP',
   },
-  {
-    id: '3',
-    title: 'Casa de Praia com Vista para o Mar',
-    description: 'Viva o sonho de morar na praia nesta casa incrível com acesso direto à areia e uma vista espetacular para o mar. Com 5 suítes, piscina privativa e um design moderno e arejado, é o refúgio perfeito.',
-    price: 2500000,
-    bedrooms: 5,
-    bathrooms: 6,
-    garage: 5,
-    rooms: 10,
-    builtArea: 300,
-    totalArea: 500,
-    images: ['property-3-1'],
-    imageUrls: ['property-3-1'],
-    city: 'Ubatuba',
-    type: 'Casa',
-    operation: 'Venda',
-    featured: true,
-    address: 'Avenida da Praia, 789, Praia Grande, Ubatuba - SP',
-  },
-  {
-    id: '4',
-    title: 'Apartamento Aconchegante para Alugar',
-    description: 'Apartamento de 2 quartos totalmente mobiliado e pronto para morar. Localizado em uma área central, com fácil acesso a transporte público, restaurantes e lojas. Condomínio com portaria 24h.',
-    price: 2500,
-    bedrooms: 2,
-    bathrooms: 1,
-    garage: 1,
-    rooms: 4,
-    builtArea: 60,
-    totalArea: 60,
-    images: ['property-4-1'],
-    imageUrls: ['property-4-1'],
-    city: 'São Paulo',
-    type: 'Apartamento',
-    operation: 'Aluguel',
-    featured: true,
-    address: 'Rua Augusta, 900, Consolação, São Paulo - SP',
-  },
-  {
-    id: '5',
-    title: 'Terreno Amplo para Construção',
-    description: 'Excelente terreno plano com 1000m², ideal para construção da casa dos seus sonhos ou para investimento. Localizado em um condomínio fechado com segurança e infraestrutura completa.',
-    price: 500000,
-    bedrooms: 0,
-    bathrooms: 0,
-    garage: 0,
-    rooms: 0,
-    builtArea: 0,
-    totalArea: 1000,
-    images: ['property-5-1'],
-    imageUrls: ['property-5-1'],
-    city: 'Campinas',
-    type: 'Terreno',
-    operation: 'Venda',
-    featured: false,
-    address: 'Rua do Lago, Lote 12, Condomínio Colinas, Campinas - SP',
-  },
 ];
 
 const reviews: Review[] = [
@@ -145,9 +90,6 @@ const reviews: Review[] = [
   },
 ];
 
-export const getAllProperties = () => properties;
-export const getFeaturedProperties = () => properties.filter(p => p.featured);
-export const getPropertyById = (id: string) => properties.find(p => p.id === id);
 export const getReviews = () => reviews;
-export const getPropertyCities = () => [...new Set(properties.map(p => p.city))];
-export const getPropertyTypes = () => [...new Set(properties.map(p => p.type))];
+export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba'];
+export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Terreno'];

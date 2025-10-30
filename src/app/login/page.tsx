@@ -18,9 +18,10 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from '@/firebase';
+import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useFirestore } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
+import { setDoc, doc } from 'firebase/firestore';
 
 
 const loginSchema = z.object({
@@ -42,6 +43,7 @@ const signUpSchema = z.object({
 export default function LoginPage() {
     const { toast } = useToast();
     const auth = useAuth();
+    const firestore = useFirestore();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
 
@@ -104,11 +106,22 @@ export default function LoginPage() {
     }
 
     async function handleSignUp(values: z.infer<typeof signUpSchema>) {
-        if (!auth) return;
+        if (!auth || !firestore) return;
         setIsLoading(true);
         try {
-            await createUserWithEmailAndPassword(auth, values.email, values.password);
-            // Here you would typically also save the siteName to Firestore
+            const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+            const user = userCredential.user;
+
+            // Save agent info to Firestore
+            const agentRef = doc(firestore, "agents", user.uid);
+            await setDoc(agentRef, {
+                id: user.uid,
+                name: values.siteName,
+                email: values.email,
+                creci: '000000-F', // Placeholder
+                photoUrl: '', // Placeholder
+            });
+            
             toast({
                 title: "Conta criada com sucesso!",
                 description: "Redirecionando para o seu painel...",
@@ -172,7 +185,7 @@ export default function LoginPage() {
                             <Form {...signUpForm}>
                                 <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4">
                                      <FormField control={signUpForm.control} name="siteName" render={({ field }) => (
-                                        <FormItem><FormLabel>Nome do Site</FormLabel><FormControl><Input placeholder="Ex: Imobiliária Silva" {...field} /></FormControl><FormMessage /></FormItem>
+                                        <FormItem><FormLabel>Nome do Site/Corretor</FormLabel><FormControl><Input placeholder="Ex: Imobiliária Silva" {...field} /></FormControl><FormMessage /></FormItem>
                                     )} />
                                     <FormField control={signUpForm.control} name="email" render={({ field }) => (
                                         <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="seu.email@exemplo.com" {...field} /></FormControl><FormMessage /></FormItem>
