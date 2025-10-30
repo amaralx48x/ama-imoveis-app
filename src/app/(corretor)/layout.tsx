@@ -36,7 +36,7 @@ export default function CorretorLayout({
     { href: '/inbox', label: 'Caixa de Entrada', icon: Mail },
     { href: '/imoveis', label: 'Meus Imóveis', icon: Briefcase },
     { href: '/imoveis/novo', label: 'Adicionar Imóvel', icon: PlusCircle },
-    { href: '/perfil', label: 'Meu Site', icon: User },
+    { href: '/', label: 'Meu Site', icon: User },
     { href: '/avaliacoes', label: 'Avaliações', icon: Star },
     { href: '/configuracoes/comissoes', label: 'Comissões', icon: BarChart },
     { href: '/configuracoes/aparencia', label: 'Aparência', icon: Palette },
@@ -73,7 +73,7 @@ export default function CorretorLayout({
                     children: item.label,
                   }}
                 >
-                  <Link href={item.href}>
+                  <Link href={item.href} target={item.href === '/' ? '_blank' : undefined}>
                     <item.icon />
                     <span>{item.label}</span>
                   </Link>
