@@ -4,6 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Home, FileText, Plus, Minus, Pencil } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import type { Agent } from '@/lib/data';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const MotionCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <div className={`transition-all duration-500 ease-out hover:scale-105 hover:shadow-primary/20 ${className}`}>
@@ -16,6 +20,15 @@ export default function DashboardPage() {
     const [isEditingCommission, setIsEditingCommission] = useState(false);
     const [commissionValue, setCommissionValue] = useState(12500.00);
     const [greeting, setGreeting] = useState('');
+    
+    const { user } = useUser();
+    const firestore = useFirestore();
+
+    const agentRef = useMemoFirebase(
+        () => (firestore && user ? doc(firestore, 'agents', user.uid) : null),
+        [firestore, user]
+    );
+    const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
 
     useEffect(() => {
         const getGreeting = () => {
@@ -27,12 +40,13 @@ export default function DashboardPage() {
         setGreeting(getGreeting());
     }, []);
 
+    const displayName = agentData?.displayName?.split(' ')[0] || 'Corretor(a)';
 
     return (
         <div className="space-y-8">
             <div className="animate-fade-in-up">
                 <h1 className="text-3xl font-bold font-headline">
-                    {greeting}, <span className="text-gradient">Ana Maria</span>!
+                    {greeting}, <span className="text-gradient">{isAgentLoading ? <Skeleton className="h-8 w-32 inline-block" /> : displayName}</span>!
                 </h1>
                 <p className="text-muted-foreground">Aqui está um resumo da sua atividade hoje.</p>
             </div>

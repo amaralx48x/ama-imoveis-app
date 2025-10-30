@@ -34,15 +34,18 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Agent",
       "type": "object",
-      "description": "Represents a real estate agent.",
+      "description": "Represents a real estate agent or agency.",
       "properties": {
         "id": { "type": "string", "description": "Unique identifier for the agent, usually from Firebase Auth UID." },
-        "name": { "type": "string", "description": "Name of the agent or their site." },
+        "displayName": { "type": "string", "description": "The full name of the agent for display in the dashboard." },
+        "name": { "type": "string", "description": "Name of the agent's site or agency name." },
+        "accountType": { "type": "string", "enum": ["corretor", "imobiliaria"], "description": "The type of account, either an individual agent or an agency." },
+        "description": { "type": "string", "description": "A public-facing description of the agent or agency." },
         "creci": { "type": "string", "description": "CRECI number of the agent." },
         "photoUrl": { "type": "string", "description": "URL of the agent's photo." },
         "email": { "type": "string", "description": "Contact email for the agent." }
       },
-      "required": ["id", "name", "email"]
+      "required": ["id", "displayName", "name", "accountType", "email"]
     },
     "Lead": {
       "$schema": "http://json-schema.org/draft-07/schema#",

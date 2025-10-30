@@ -19,6 +19,17 @@ export type Property = {
   agentId?: string; // Added this
 };
 
+export type Agent = {
+    id: string;
+    displayName: string;
+    name: string; // Site name
+    accountType: 'corretor' | 'imobiliaria';
+    description: string;
+    email: string;
+    creci: string;
+    photoUrl: string;
+}
+
 export type Review = {
   id: string;
   name: string;

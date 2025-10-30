@@ -22,6 +22,7 @@ import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, us
 import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { setDoc, doc } from 'firebase/firestore';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 
 const loginSchema = z.object({
@@ -30,7 +31,9 @@ const loginSchema = z.object({
 });
 
 const signUpSchema = z.object({
+    displayName: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
     siteName: z.string().min(3, { message: "O nome do site deve ter pelo menos 3 caracteres." }),
+    accountType: z.enum(["corretor", "imobiliaria"], { required_error: "Selecione um tipo de conta."}),
     email: z.string().email({ message: "Por favor, insira um email válido." }),
     password: z.string().min(8, { message: "A senha deve ter pelo menos 8 caracteres." }),
     confirmPassword: z.string(),
@@ -54,7 +57,7 @@ export default function LoginPage() {
 
     const signUpForm = useForm<z.infer<typeof signUpSchema>>({
         resolver: zodResolver(signUpSchema),
-        defaultValues: { siteName: "", email: "", password: "", confirmPassword: "" },
+        defaultValues: { displayName: "", siteName: "", email: "", password: "", confirmPassword: "" },
     });
     
     const handleAuthError = (error: FirebaseError) => {
@@ -73,7 +76,7 @@ export default function LoginPage() {
                 break;
             case 'auth/weak-password':
                 title = "Senha Fraca";
-                description = "Sua senha precisa ter pelo menos 6 caracteres.";
+                description = "Sua senha precisa ter pelo menos 8 caracteres.";
                 break;
             case 'auth/invalid-email':
                 title = "E-mail Inválido";
@@ -116,7 +119,10 @@ export default function LoginPage() {
             const agentRef = doc(firestore, "agents", user.uid);
             await setDoc(agentRef, {
                 id: user.uid,
+                displayName: values.displayName,
                 name: values.siteName,
+                accountType: values.accountType,
+                description: "Edite sua descrição na seção Perfil do seu painel.",
                 email: values.email,
                 creci: '000000-F', // Placeholder
                 photoUrl: '', // Placeholder
@@ -184,11 +190,48 @@ export default function LoginPage() {
                             </CardHeader>
                             <Form {...signUpForm}>
                                 <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4">
-                                     <FormField control={signUpForm.control} name="siteName" render={({ field }) => (
-                                        <FormItem><FormLabel>Nome do Site/Corretor</FormLabel><FormControl><Input placeholder="Ex: Imobiliária Silva" {...field} /></FormControl><FormMessage /></FormItem>
+                                     <FormField control={signUpForm.control} name="displayName" render={({ field }) => (
+                                        <FormItem><FormLabel>Seu Nome Completo</FormLabel><FormControl><Input placeholder="Ex: Ana Maria" {...field} /></FormControl><FormMessage /></FormItem>
                                     )} />
+                                     <FormField control={signUpForm.control} name="siteName" render={({ field }) => (
+                                        <FormItem><FormLabel>Nome do Site/Imobiliária</FormLabel><FormControl><Input placeholder="Ex: Imobiliária Silva" {...field} /></FormControl><FormMessage /></FormItem>
+                                    )} />
+                                     <FormField
+                                        control={signUpForm.control}
+                                        name="accountType"
+                                        render={({ field }) => (
+                                            <FormItem className="space-y-3">
+                                            <FormLabel>Tipo de Conta</FormLabel>
+                                            <FormControl>
+                                                <RadioGroup
+                                                onValueChange={field.onChange}
+                                                defaultValue={field.value}
+                                                className="flex flex-row space-x-4"
+                                                >
+                                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                                    <FormControl>
+                                                    <RadioGroupItem value="corretor" />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal">
+                                                    Corretor(a)
+                                                    </FormLabel>
+                                                </FormItem>
+                                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                                    <FormControl>
+                                                    <RadioGroupItem value="imobiliaria" />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal">
+                                                    Imobiliária
+                                                    </FormLabel>
+                                                </FormItem>
+                                                </RadioGroup>
+                                            </FormControl>
+                                            <FormMessage />
+                                            </FormItem>
+                                        )}
+                                        />
                                     <FormField control={signUpForm.control} name="email" render={({ field }) => (
-                                        <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="seu.email@exemplo.com" {...field} /></FormControl><FormMessage /></FormItem>
+                                        <FormItem><FormLabel>Email de Acesso</FormLabel><FormControl><Input placeholder="seu.email@exemplo.com" {...field} /></FormControl><FormMessage /></FormItem>
                                     )} />
                                     <FormField control={signUpForm.control} name="password" render={({ field }) => (
                                         <FormItem><FormLabel>Senha</FormLabel><FormControl><Input type="password" placeholder="Mínimo 8 caracteres" {...field} /></FormControl><FormMessage /></FormItem>
