@@ -34,7 +34,7 @@ export function PropertyInfo({ property }: PropertyInfoProps) {
         <div className="grid grid-cols-3 gap-4 text-center">
             <div className="flex flex-col items-center justify-center gap-1">
                 <Ruler className="w-6 h-6 text-primary/80" />
-                <span className="font-semibold text-lg">{property.area} m²</span>
+                <span className="font-semibold text-lg">{property.builtArea} m²</span>
                 <span className="text-xs text-muted-foreground">Área</span>
             </div>
              <div className="flex flex-col items-center justify-center gap-1">

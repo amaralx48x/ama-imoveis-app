@@ -57,7 +57,7 @@ export function PropertyCard({ property, imagePlaceholder }: PropertyCardProps) 
           </div>
           <div className="flex items-center gap-2">
             <Ruler className="w-5 h-5 text-primary/70" />
-            <span>{property.area} m²</span>
+            <span>{property.builtArea} m²</span>
           </div>
         </div>
       </CardContent>

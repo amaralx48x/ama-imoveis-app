@@ -3,9 +3,12 @@ export type Property = {
   title: string;
   description: string;
   price: number;
-  area: number;
   bedrooms: number;
   bathrooms: number;
+  garage: number;
+  rooms: number;
+  builtArea: number;
+  totalArea: number;
   images: string[];
   city: string;
   type: 'Apartamento' | 'Casa' | 'Terreno';
@@ -27,9 +30,12 @@ const properties: Property[] = [
     title: 'Apartamento Luxuoso no Centro',
     description: 'Um deslumbrante apartamento de luxo no coração da cidade, com vistas panorâmicas e acabamentos de alta qualidade. Ideal para quem busca conforto e sofisticação. Com 3 quartos, sendo 2 suítes, sala de estar ampla com varanda gourmet e cozinha planejada. O condomínio oferece lazer completo com piscina, academia e salão de festas.',
     price: 1200000,
-    area: 150,
     bedrooms: 3,
     bathrooms: 3,
+    garage: 2,
+    rooms: 7,
+    builtArea: 150,
+    totalArea: 150,
     images: ['property-1-1', 'property-1-2', 'property-1-3'],
     city: 'São Paulo',
     type: 'Apartamento',
@@ -42,9 +48,12 @@ const properties: Property[] = [
     title: 'Casa Espaçosa com Quintal',
     description: 'Casa familiar espaçosa em bairro tranquilo, com um grande quintal perfeito para crianças e animais de estimação. Possui 4 quartos, cozinha americana e área de churrasqueira. Próxima a escolas, parques e comércios locais.',
     price: 850000,
-    area: 250,
     bedrooms: 4,
     bathrooms: 3,
+    garage: 4,
+    rooms: 9,
+    builtArea: 250,
+    totalArea: 400,
     images: ['property-2-1', 'property-2-2'],
     city: 'Campinas',
     type: 'Casa',
@@ -57,9 +66,12 @@ const properties: Property[] = [
     title: 'Casa de Praia com Vista para o Mar',
     description: 'Viva o sonho de morar na praia nesta casa incrível com acesso direto à areia e uma vista espetacular para o mar. Com 5 suítes, piscina privativa e um design moderno e arejado, é o refúgio perfeito.',
     price: 2500000,
-    area: 300,
     bedrooms: 5,
     bathrooms: 6,
+    garage: 5,
+    rooms: 10,
+    builtArea: 300,
+    totalArea: 500,
     images: ['property-3-1'],
     city: 'Ubatuba',
     type: 'Casa',
@@ -72,9 +84,12 @@ const properties: Property[] = [
     title: 'Apartamento Aconchegante para Alugar',
     description: 'Apartamento de 2 quartos totalmente mobiliado e pronto para morar. Localizado em uma área central, com fácil acesso a transporte público, restaurantes e lojas. Condomínio com portaria 24h.',
     price: 2500,
-    area: 60,
     bedrooms: 2,
     bathrooms: 1,
+    garage: 1,
+    rooms: 4,
+    builtArea: 60,
+    totalArea: 60,
     images: ['property-4-1'],
     city: 'São Paulo',
     type: 'Apartamento',
@@ -87,9 +102,12 @@ const properties: Property[] = [
     title: 'Terreno Amplo para Construção',
     description: 'Excelente terreno plano com 1000m², ideal para construção da casa dos seus sonhos ou para investimento. Localizado em um condomínio fechado com segurança e infraestrutura completa.',
     price: 500000,
-    area: 1000,
     bedrooms: 0,
     bathrooms: 0,
+    garage: 0,
+    rooms: 0,
+    builtArea: 0,
+    totalArea: 1000,
     images: ['property-5-1'],
     city: 'Campinas',
     type: 'Terreno',

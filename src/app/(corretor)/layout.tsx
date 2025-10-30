@@ -1,6 +1,6 @@
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, Mail, User, Settings, Palette, Star, BarChart, FileText, Building2 } from 'lucide-react';
+import { Home, Briefcase, Mail, User, Settings, Palette, Star, BarChart, FileText, Building2, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -15,6 +15,7 @@ export default function CorretorLayout({
     { href: '/dashboard', label: 'Dashboard', icon: Home },
     { href: '/inbox', label: 'Caixa de Entrada', icon: Mail },
     { href: '/imoveis', label: 'Meus Imóveis', icon: Briefcase },
+    { href: '/imoveis/novo', label: 'Adicionar Imóvel', icon: PlusCircle },
     { href: '/perfil', label: 'Meu Site', icon: User },
     { href: '/avaliacoes', label: 'Avaliações', icon: Star },
     { href: '/configuracoes/comissoes', label: 'Comissões', icon: BarChart },
@@ -39,7 +40,7 @@ export default function CorretorLayout({
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === item.href}
+                  isActive={pathname === item.href || (item.href === '/imoveis' && pathname.startsWith('/imoveis/'))}
                   tooltip={{
                     children: item.label,
                   }}
