@@ -17,8 +17,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, useDoc, useMemoFirebase, useAuth } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useAuth, setDocumentNonBlocking } from '@/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 import { useEffect } from 'react';
 import type { Agent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -73,26 +73,20 @@ export default function PerfilPage() {
       });
       return;
     }
-
-    try {
-      await updateDoc(agentRef, {
+    
+    const dataToSave = {
         displayName: values.displayName,
         name: values.siteName,
         description: values.description,
         accountType: values.accountType,
-      });
-      toast({
+    };
+
+    setDocumentNonBlocking(agentRef, dataToSave, { merge: true });
+
+    toast({
         title: 'Perfil Atualizado!',
         description: 'Suas informações foram salvas com sucesso.',
-      });
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: 'Erro ao Salvar',
-        description: 'Não foi possível atualizar suas informações. Tente novamente.',
-        variant: 'destructive',
-      });
-    }
+    });
   }
 
   if (isAgentLoading) {
