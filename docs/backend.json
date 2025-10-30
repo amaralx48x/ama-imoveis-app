@@ -1,0 +1,265 @@
+{
+  "entities": {
+    "Property": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Property",
+      "type": "object",
+      "description": "Represents a property listing.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the property."
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the property listing."
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the property."
+        },
+        "price": {
+          "type": "number",
+          "description": "Price of the property."
+        },
+        "area": {
+          "type": "number",
+          "description": "Area of the property in square meters."
+        },
+        "bedrooms": {
+          "type": "number",
+          "description": "Number of bedrooms in the property."
+        },
+        "bathrooms": {
+          "type": "number",
+          "description": "Number of bathrooms in the property."
+        },
+        "propertyType": {
+          "type": "string",
+          "description": "Type of the property (e.g., apartment, house)."
+        },
+        "operationType": {
+          "type": "string",
+          "description": "Type of operation (e.g., rent, sale)."
+        },
+        "city": {
+          "type": "string",
+          "description": "City where the property is located."
+        },
+        "imageUrls": {
+          "type": "array",
+          "description": "Array of URLs for property images.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "agentId": {
+          "type": "string",
+          "description": "Reference to Agent. (Relationship: Agent 1:N Property)"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "price",
+        "area",
+        "bedrooms",
+        "bathrooms",
+        "propertyType",
+        "operationType",
+        "city",
+        "imageUrls",
+        "agentId"
+      ]
+    },
+    "Agent": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Agent",
+      "type": "object",
+      "description": "Represents a real estate agent.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the agent."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the agent."
+        },
+        "creci": {
+          "type": "string",
+          "description": "CRECI number of the agent."
+        },
+        "photoUrl": {
+          "type": "string",
+          "description": "URL of the agent's photo."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "creci",
+        "photoUrl"
+      ]
+    },
+    "ClientReview": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ClientReview",
+      "type": "object",
+      "description": "Represents a client review for an agent.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the review."
+        },
+        "agentId": {
+          "type": "string",
+          "description": "Reference to Agent. (Relationship: Agent 1:N ClientReview)"
+        },
+        "clientName": {
+          "type": "string",
+          "description": "Name of the client providing the review."
+        },
+        "reviewText": {
+          "type": "string",
+          "description": "Text of the client review."
+        },
+        "rating": {
+          "type": "number",
+          "description": "Rating given by the client (e.g., 1-5 stars)."
+        }
+      },
+      "required": [
+        "id",
+        "agentId",
+        "clientName",
+        "reviewText",
+        "rating"
+      ]
+    },
+    "Lead": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Lead",
+      "type": "object",
+      "description": "Represents a lead generated from the contact form.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the lead."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the person submitting the form."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the person submitting the form.",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number of the person submitting the form."
+        },
+        "message": {
+          "type": "string",
+          "description": "Message content from the contact form."
+        },
+        "propertyId": {
+          "type": "string",
+          "description": "Reference to Property. (Optional, if the lead is related to a specific property.)"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "phone",
+        "message"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/agents/{agentId}",
+        "definition": {
+          "entityName": "Agent",
+          "schema": {
+            "$ref": "#/backend/entities/Agent"
+          },
+          "description": "Stores real estate agent profiles. Includes denormalized 'id' from auth.uid for authorization independence.",
+          "params": [
+            {
+              "name": "agentId",
+              "description": "The unique identifier of the agent."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/agents/{agentId}/properties/{propertyId}",
+        "definition": {
+          "entityName": "Property",
+          "schema": {
+            "$ref": "#/backend/entities/Property"
+          },
+          "description": "Stores properties associated with a specific agent. Includes denormalized 'agentId' for authorization independence.",
+          "params": [
+            {
+              "name": "agentId",
+              "description": "The unique identifier of the agent."
+            },
+            {
+              "name": "propertyId",
+              "description": "The unique identifier of the property."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/agents/{agentId}/clientReviews/{reviewId}",
+        "definition": {
+          "entityName": "ClientReview",
+          "schema": {
+            "$ref": "#/backend/entities/ClientReview"
+          },
+          "description": "Stores client reviews for a specific agent. Includes denormalized 'agentId' for authorization independence.",
+          "params": [
+            {
+              "name": "agentId",
+              "description": "The unique identifier of the agent."
+            },
+            {
+              "name": "reviewId",
+              "description": "The unique identifier of the review."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/leads/{leadId}",
+        "definition": {
+          "entityName": "Lead",
+          "schema": {
+            "$ref": "#/backend/entities/Lead"
+          },
+          "description": "Stores leads generated from the contact form.",
+          "params": [
+            {
+              "name": "leadId",
+              "description": "The unique identifier of the lead."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore database structure is designed to manage real estate properties, agents, client reviews, and leads. It utilizes path-based ownership for properties and agents to ensure data isolation and clear ownership.  Client reviews are stored as a subcollection of agents to easily retrieve reviews for a specific agent. Leads are stored in a top-level collection. This structure allows for simple and robust security rules.\n\n**Authorization Independence:**\n\n*   `properties`: The `agentId` field within each property document denormalizes the relationship between properties and agents. Security rules can directly check if the authenticated user ID matches the `agentId` without needing to perform a `get()` operation on the `agents` collection.\n*   `clientReviews`: The `agentId` field is included in each review, allowing security rules to easily associate reviews with agents.\n\n**QAPs Support:**\n\n*   The use of the `/agents/{agentId}/properties/{propertyId}` and `/agents/{agentId}/clientReviews/{reviewId}` patterns ensures that only the agent can `list`, `create`, `update`, or `delete` data owned by them."
+  }
+}
