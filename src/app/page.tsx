@@ -5,6 +5,8 @@ import { FeaturedProperties } from "@/components/featured-properties";
 import { Hero } from "@/components/hero";
 import { getFeaturedProperties, getReviews } from "@/lib/data";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 
 export default function Home() {
   const featuredProperties = getFeaturedProperties();
@@ -25,11 +27,15 @@ export default function Home() {
 
   return (
     <>
-      <Hero heroImage={heroImage} />
-      <FeaturedProperties properties={featuredProperties} images={propertyImages} />
-      <AgentProfile agentImage={agentImage} />
-      <ClientReviews reviews={reviews} avatars={reviewAvatars} />
-      <ContactForm />
+      <Header />
+      <main className="min-h-[calc(100vh-theme(spacing.14)-theme(spacing.32))]">
+        <Hero heroImage={heroImage} />
+        <FeaturedProperties properties={featuredProperties} images={propertyImages} />
+        <AgentProfile agentImage={agentImage} />
+        <ClientReviews reviews={reviews} avatars={reviewAvatars} />
+        <ContactForm />
+      </main>
+      <Footer />
     </>
   );
 }
