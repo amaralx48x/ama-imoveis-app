@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -12,23 +12,22 @@ import {
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
 import { getPropertyCities, getPropertyTypes } from '@/lib/data';
+import { useState } from 'react';
 
 export function PropertySearchForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  // In a real app, these would come from an API.
-  // We get them from mock data for this example.
   const cities = getPropertyCities();
   const types = getPropertyTypes();
 
+  const [operation, setOperation] = useState('');
+  const [city, setCity] = useState('');
+  const [type, setType] = useState('');
+
+
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const operation = formData.get('operation') as string;
-    const city = formData.get('city') as string;
-    const type = formData.get('type') as string;
-
+    
     const params = new URLSearchParams();
     if (operation) params.set('operation', operation);
     if (city) params.set('city', city);
@@ -41,7 +40,7 @@ export function PropertySearchForm() {
     <Card className="bg-background/80 backdrop-blur-sm border-white/20 shadow-lg">
       <CardContent className="p-4">
         <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-          <Select name="operation" defaultValue={searchParams.get('operation') || ''}>
+          <Select name="operation" onValueChange={setOperation} defaultValue={operation}>
             <SelectTrigger className="w-full text-base h-12">
               <SelectValue placeholder="Operação" />
             </SelectTrigger>
@@ -51,7 +50,7 @@ export function PropertySearchForm() {
             </SelectContent>
           </Select>
 
-          <Select name="city" defaultValue={searchParams.get('city') || ''}>
+          <Select name="city" onValueChange={setCity} defaultValue={city}>
             <SelectTrigger className="w-full text-base h-12">
               <SelectValue placeholder="Cidade" />
             </SelectTrigger>
@@ -60,7 +59,7 @@ export function PropertySearchForm() {
             </SelectContent>
           </Select>
 
-          <Select name="type" defaultValue={searchParams.get('type') || ''}>
+          <Select name="type" onValueChange={setType} defaultValue={type}>
             <SelectTrigger className="w-full text-base h-12">
               <SelectValue placeholder="Tipo de Imóvel" />
             </SelectTrigger>
