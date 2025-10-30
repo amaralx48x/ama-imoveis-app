@@ -40,7 +40,7 @@ const formSchema = z.object({
   rooms: z.coerce.number().int().min(0),
   builtArea: z.coerce.number().positive("A área construída deve ser positiva."),
   totalArea: z.coerce.number().positive("A área total deve ser positiva."),
-  images: z.array(z.object({ url: z.string().url("URL da imagem inválida.") })).min(1, "Adicione pelo menos uma imagem."),
+  images: z.array(z.object({ url: z.string().url("URL da imagem inválida.") })).optional(),
   featured: z.boolean().default(false),
 });
 
@@ -285,3 +285,5 @@ export default function NovoImovelPage() {
     </Card>
   );
 }
+
+    
