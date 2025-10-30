@@ -18,17 +18,20 @@ export function PropertyCard({ property, imagePlaceholder }: PropertyCardProps) 
     currency: 'BRL',
   }).format(property.price);
 
+  const imageUrl = imagePlaceholder?.imageUrl || "https://picsum.photos/seed/default/600/400";
+  const imageHint = imagePlaceholder?.imageHint || "house exterior";
+
   return (
     <Card className="w-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 flex flex-col h-full bg-card">
       <CardHeader className="p-0 relative">
         <Link href={`/imovel/${property.id}`} className="block">
           <Image
-            src={imagePlaceholder.imageUrl}
+            src={imageUrl}
             alt={property.title}
             width={600}
             height={400}
             className="w-full h-56 object-cover"
-            data-ai-hint={imagePlaceholder.imageHint}
+            data-ai-hint={imageHint}
           />
         </Link>
         <Badge className="absolute top-3 right-3 bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] text-primary-foreground border-none">

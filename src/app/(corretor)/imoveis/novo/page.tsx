@@ -22,6 +22,10 @@ import { getPropertyCities, getPropertyTypes } from "@/lib/data";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuth, useFirestore, useMemoFirebase } from "@/firebase";
+import { addDocumentNonBlocking } from "@/firebase";
+import { collection } from "firebase/firestore";
+import { v4 as uuidv4 } from 'uuid';
 
 
 const formSchema = z.object({
@@ -40,7 +44,7 @@ const formSchema = z.object({
   rooms: z.coerce.number().int().min(0),
   builtArea: z.coerce.number().positive("A área construída deve ser positiva."),
   totalArea: z.coerce.number().positive("A área total deve ser positiva."),
-  images: z.array(z.object({ url: z.string().url("URL da imagem inválida.") })).optional(),
+  images: z.array(z.object({ url: z.string().url("URL da imagem inválida.").or(z.literal('')) })).optional(),
   featured: z.boolean().default(false),
 });
 
@@ -49,6 +53,11 @@ export default function NovoImovelPage() {
   const router = useRouter();
   const cities = getPropertyCities();
   const types = getPropertyTypes();
+  const firestore = useFirestore();
+  const auth = useAuth();
+  
+  // Hardcoded agentId for now, will be replaced with logged in user
+  const agentId = 'ana-maria-almeida';
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -73,15 +82,45 @@ export default function NovoImovelPage() {
     name: "images",
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    toast({
-      title: "Imóvel Adicionado!",
-      description: `${values.title} foi cadastrado com sucesso.`,
-    });
-    // Here you would typically send the data to your API
-    // For now, we just redirect back to the properties list
-    router.push('/imoveis');
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!firestore) return;
+
+    const propertyId = uuidv4();
+    const imageUrls = values.images?.map(img => img.url).filter(url => url) || [];
+    
+    if (imageUrls.length === 0) {
+      imageUrls.push('property-1-1'); // Default image
+    }
+
+    const newProperty = {
+      ...values,
+      id: propertyId,
+      agentId,
+      imageUrls: imageUrls,
+      // Dummies for missing fields in form
+      address: `${values.city}`,
+      area: values.totalArea,
+      propertyType: values.type,
+      operationType: values.operation
+    };
+    
+    const propertiesCollection = collection(firestore, `agents/${agentId}/properties`);
+    
+    try {
+        await addDocumentNonBlocking(propertiesCollection, newProperty);
+        toast({
+          title: "Imóvel Adicionado!",
+          description: `${values.title} foi cadastrado com sucesso.`,
+        });
+        router.push('/imoveis');
+    } catch(e) {
+        console.error("Error adding document: ", e);
+        toast({
+            title: "Erro ao adicionar imóvel",
+            description: "Ocorreu um erro ao salvar os dados. Tente novamente.",
+            variant: "destructive"
+        });
+    }
   }
 
   return (
@@ -219,7 +258,7 @@ export default function NovoImovelPage() {
             {/* Imagens */}
             <div>
               <FormLabel>Imagens do Imóvel</FormLabel>
-              <FormDescription>Adicione URLs para as imagens. A primeira será a imagem de capa.</FormDescription>
+              <FormDescription>Adicione URLs para as imagens. A primeira será a imagem de capa. (Opcional para teste)</FormDescription>
               <div className="space-y-4 mt-2">
                 {fields.map((field, index) => (
                   <div key={field.id} className="flex items-center gap-2">
@@ -285,5 +324,3 @@ export default function NovoImovelPage() {
     </Card>
   );
 }
-
-    

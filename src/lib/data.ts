@@ -10,11 +10,13 @@ export type Property = {
   builtArea: number;
   totalArea: number;
   images: string[];
+  imageUrls: string[]; // Added this
   city: string;
   type: 'Apartamento' | 'Casa' | 'Terreno';
   operation: 'Venda' | 'Aluguel';
   featured: boolean;
   address: string;
+  agentId?: string; // Added this
 };
 
 export type Review = {
@@ -37,6 +39,7 @@ const properties: Property[] = [
     builtArea: 150,
     totalArea: 150,
     images: ['property-1-1', 'property-1-2', 'property-1-3'],
+    imageUrls: ['property-1-1', 'property-1-2', 'property-1-3'],
     city: 'São Paulo',
     type: 'Apartamento',
     operation: 'Venda',
@@ -55,6 +58,7 @@ const properties: Property[] = [
     builtArea: 250,
     totalArea: 400,
     images: ['property-2-1', 'property-2-2'],
+    imageUrls: ['property-2-1', 'property-2-2'],
     city: 'Campinas',
     type: 'Casa',
     operation: 'Venda',
@@ -73,6 +77,7 @@ const properties: Property[] = [
     builtArea: 300,
     totalArea: 500,
     images: ['property-3-1'],
+    imageUrls: ['property-3-1'],
     city: 'Ubatuba',
     type: 'Casa',
     operation: 'Venda',
@@ -91,6 +96,7 @@ const properties: Property[] = [
     builtArea: 60,
     totalArea: 60,
     images: ['property-4-1'],
+    imageUrls: ['property-4-1'],
     city: 'São Paulo',
     type: 'Apartamento',
     operation: 'Aluguel',
@@ -109,6 +115,7 @@ const properties: Property[] = [
     builtArea: 0,
     totalArea: 1000,
     images: ['property-5-1'],
+    imageUrls: ['property-5-1'],
     city: 'Campinas',
     type: 'Terreno',
     operation: 'Venda',
