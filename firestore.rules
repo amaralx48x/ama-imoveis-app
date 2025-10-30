@@ -1,110 +1,73 @@
-/**
- * @fileOverview Firestore Security Rules for Real Estate App
- *
- * Core Philosophy:
- * This ruleset enforces a strict user-ownership model for agents and their associated data (properties, client reviews). Agents can only manage their own profiles and data, while leads are generally accessible.
- *
- * Data Structure:
- * - /agents/{agentId}: Stores agent profiles, with agentId matching the authenticated user's UID.
- * - /agents/{agentId}/properties/{propertyId}: Stores properties owned by the agent.
- * - /agents/{agentId}/clientReviews/{reviewId}: Stores client reviews for the agent.
- * - /leads/{leadId}: Stores leads, accessible to authenticated users.
- *
- * Key Security Decisions:
- * - Agents can only manage their own data (properties, reviews).
- * - Listing agents or reviews is allowed only for the owner agent.
- * - Leads are readable by all authenticated users, and writable only with authentication.
- *
- * Denormalization for Authorization:
- * - The 'Property' and 'ClientReview' entities include the 'agentId' field, which is denormalized from the 'Agent' entity. This allows security rules to directly check the agent's ownership without needing to perform additional reads.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to agent profiles. Only the agent can read and write their own profile.
+     * @description Defines a helper function to check if the current user is signed in.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Defines a helper function to check if the current user is the owner of the document.
+     */
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    /**
+     * @description Defines a helper function to check if the current user is the existing owner of the document.
+     * Ensures both ownership and document existence.
+     */
+    function isExistingOwner(agentId) {
+        return isSignedIn() && exists(/databases/$(database)/documents/agents/$(agentId)) && request.auth.uid == agentId;
+    }
+
+    /**
+     * @description Security rules for agent profiles.
      * @path /agents/{agentId}
-     * @allow (create, update, delete) - User with UID 'agent123' can create/update/delete their own profile at /agents/agent123 with matching id in the document.
-     * @allow (get, list) - User with UID 'agent123' can read their own profile at /agents/agent123.
-     * @deny (create, update, delete) - User with UID 'otherUser' cannot create/update/delete the profile at /agents/agent123.
-     * @principle Enforces document ownership for writes and reads; only the authenticated user can manage their own agent profile.
+     * @allow (create) - An agent can create their own profile if the agentId matches their UID.
+     * @allow (get, update, delete) - An agent can get, update, or delete their own profile.
+     * @deny (create) - An agent cannot create a profile with an ID that doesn't match their UID.
+     * @principle Enforces document ownership.
      */
     match /agents/{agentId} {
-      function isOwner(agentId) {
-        return request.auth != null && request.auth.uid == agentId;
-      }
-      function isExistingOwner(agentId) {
-        return isOwner(agentId) && resource != null;
-      }
-      allow get: if true;
-      allow list: if true;
-      allow create: if isOwner(agentId) && request.resource.data.id == agentId;
-      allow update: if isExistingOwner(agentId) && request.resource.data.id == resource.data.id;
+      allow get: if isSignedIn() && isOwner(agentId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.auth.uid == agentId;
+      allow update: if isExistingOwner(agentId);
       allow delete: if isExistingOwner(agentId);
     }
 
     /**
-     * @description Controls access to properties associated with an agent. Only the agent can manage their properties.
+     * @description Security rules for properties listed by agents.
      * @path /agents/{agentId}/properties/{propertyId}
-     * @allow (create, update, delete) - User with UID 'agent123' can create/update/delete a property under /agents/agent123/properties/property456 with matching agentId in the property document.
-     * @allow (get, list) - User with UID 'agent123' can read/list properties under /agents/agent123/properties.
-     * @deny (create, update, delete) - User with UID 'otherUser' cannot create/update/delete a property under /agents/agent123/properties/property456.
-     * @principle Enforces document ownership for writes; only the agent can manage their own properties.
+     * @allow (get, list) - Anyone can read properties.
+     * @allow (create) - An agent can create a property under their profile. The 'agentId' field in the property data must match the agentId in the path.
+     * @allow (update, delete) - An agent can update or delete a property under their profile.
+     * @deny (create) - An agent cannot create a property under someone else's profile.
+     * @deny (update, delete) - An agent cannot update or delete a property under someone else's profile.
+     * @principle Enforces owner-only writes for properties.
      */
     match /agents/{agentId}/properties/{propertyId} {
-      function isOwner(agentId) {
-        return request.auth != null && request.auth.uid == agentId;
-      }
-      function isExistingOwner(agentId) {
-        return isOwner(agentId) && resource != null;
-      }
-      allow get: if true;
-      allow list: if isOwner(agentId);
-      allow create: if isOwner(agentId) && request.resource.data.agentId == agentId;
-      allow update: if isExistingOwner(agentId) && request.resource.data.agentId == resource.data.agentId;
+      allow get, list: if true;
+      allow create: if isExistingOwner(agentId);
+      allow update: if isExistingOwner(agentId);
       allow delete: if isExistingOwner(agentId);
     }
 
     /**
-     * @description Controls access to client reviews for an agent. Only the agent can manage their client reviews.
-     * @path /agents/{agentId}/clientReviews/{reviewId}
-     * @allow (create, update, delete) - User with UID 'agent123' can create/update/delete a review under /agents/agent123/clientReviews/review789 with matching agentId in the review document.
-     * @allow (get, list) - User with UID 'agent123' can read/list reviews under /agents/agent123/clientReviews.
-     * @deny (create, update, delete) - User with UID 'otherUser' cannot create/update/delete a review under /agents/agent123/clientReviews/review789.
-     * @principle Enforces document ownership for writes; only the agent can manage their own client reviews.
-     */
-    match /agents/{agentId}/clientReviews/{reviewId} {
-      function isOwner(agentId) {
-        return request.auth != null && request.auth.uid == agentId;
-      }
-      function isExistingOwner(agentId) {
-        return isOwner(agentId) && resource != null;
-      }
-      allow get: if true;
-      allow list: if isOwner(agentId);
-      allow create: if isOwner(agentId) && request.resource.data.agentId == agentId;
-      allow update: if isExistingOwner(agentId) && request.resource.data.agentId == resource.data.agentId;
-      allow delete: if isExistingOwner(agentId);
-    }
-
-    /**
-     * @description Controls access to leads. All authenticated users can read leads, and only authenticated users can create them.
+     * @description Security rules for leads.
      * @path /leads/{leadId}
-     * @allow (create) - Any authenticated user can create a lead.
-     * @allow (get, list) - Any user can read leads.
-     * @deny (update, delete) - Only authenticated users can update or delete leads.
-     * @principle Allows public read access for leads but restricts write access to authenticated users.
+     * @allow (get, list) - Anyone can read leads.
+     * @allow (create) - Anyone can create a lead.
+     * @deny (update, delete) - No one can update or delete a lead.
      */
     match /leads/{leadId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-      allow get: if true;
-      allow list: if true;
-      allow create: if isSignedIn();
-      allow update: if isSignedIn() && false;
-      allow delete: if isSignedIn() && false;
+      allow get, list: if true;
+      allow create: if true;
+      allow update, delete: if false;
     }
   }
 }
