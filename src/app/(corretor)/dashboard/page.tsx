@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Home, FileText, Plus, Minus, Pencil } from 'lucide-react';
@@ -15,19 +15,24 @@ export default function DashboardPage() {
     const [newContracts, setNewContracts] = useState(5);
     const [isEditingCommission, setIsEditingCommission] = useState(false);
     const [commissionValue, setCommissionValue] = useState(12500.00);
+    const [greeting, setGreeting] = useState('');
 
-    const greeting = () => {
-        const hour = new Date().getHours();
-        if (hour < 12) return "Bom dia";
-        if (hour < 18) return "Boa tarde";
-        return "Boa noite";
-    }
+    useEffect(() => {
+        const getGreeting = () => {
+            const hour = new Date().getHours();
+            if (hour < 12) return "Bom dia";
+            if (hour < 18) return "Boa tarde";
+            return "Boa noite";
+        }
+        setGreeting(getGreeting());
+    }, []);
+
 
     return (
         <div className="space-y-8">
             <div className="animate-fade-in-up">
                 <h1 className="text-3xl font-bold font-headline">
-                    {greeting()}, <span className="text-gradient">Ana Maria</span>!
+                    {greeting}, <span className="text-gradient">Ana Maria</span>!
                 </h1>
                 <p className="text-muted-foreground">Aqui está um resumo da sua atividade hoje.</p>
             </div>
