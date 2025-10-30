@@ -22,8 +22,8 @@ import { getPropertyCities, getPropertyTypes } from "@/lib/data";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useAuth, useFirestore, useMemoFirebase } from "@/firebase";
-import { addDocumentNonBlocking } from "@/firebase";
+import { useAuth, useFirestore, useUser, useMemoFirebase } from "@/firebase";
+import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { collection } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -54,11 +54,8 @@ export default function NovoImovelPage() {
   const cities = getPropertyCities();
   const types = getPropertyTypes();
   const firestore = useFirestore();
-  const auth = useAuth();
+  const { user } = useUser();
   
-  // Hardcoded agentId for now, will be replaced with logged in user
-  const agentId = 'ana-maria-almeida';
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -83,7 +80,14 @@ export default function NovoImovelPage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!firestore) return;
+    if (!firestore || !user) {
+        toast({
+            title: "Erro de Autenticação",
+            description: "Você precisa estar logado para adicionar um imóvel.",
+            variant: "destructive"
+        });
+        return;
+    }
 
     const propertyId = uuidv4();
     const imageUrls = values.images?.map(img => img.url).filter(url => url) || [];
@@ -95,7 +99,7 @@ export default function NovoImovelPage() {
     const newProperty = {
       ...values,
       id: propertyId,
-      agentId,
+      agentId: user.uid,
       imageUrls: imageUrls,
       // Dummies for missing fields in form
       address: `${values.city}`,
@@ -104,23 +108,14 @@ export default function NovoImovelPage() {
       operationType: values.operation
     };
     
-    const propertiesCollection = collection(firestore, `agents/${agentId}/properties`);
+    const propertiesCollection = collection(firestore, `agents/${user.uid}/properties`);
     
-    try {
-        await addDocumentNonBlocking(propertiesCollection, newProperty);
-        toast({
-          title: "Imóvel Adicionado!",
-          description: `${values.title} foi cadastrado com sucesso.`,
-        });
-        router.push('/imoveis');
-    } catch(e) {
-        console.error("Error adding document: ", e);
-        toast({
-            title: "Erro ao adicionar imóvel",
-            description: "Ocorreu um erro ao salvar os dados. Tente novamente.",
-            variant: "destructive"
-        });
-    }
+    addDocumentNonBlocking(propertiesCollection, newProperty);
+    toast({
+        title: "Imóvel Adicionado!",
+        description: `${values.title} foi cadastrado com sucesso.`,
+    });
+    router.push('/imoveis');
   }
 
   return (

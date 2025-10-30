@@ -1,11 +1,12 @@
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, Mail, User, Settings, Palette, Star, BarChart, FileText, Building2, PlusCircle } from 'lucide-react';
+import { Home, Briefcase, Mail, User, Settings, Palette, Star, BarChart, FileText, Building2, PlusCircle, LogOut } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/firebase';
-import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
 import { useEffect } from 'react';
+import { useUser } from '@/firebase/provider';
+import { Button } from '@/components/ui/button';
 
 export default function CorretorLayout({
   children,
@@ -14,12 +15,21 @@ export default function CorretorLayout({
 }) {
   const pathname = usePathname();
   const auth = useAuth();
+  const router = useRouter();
+  const { user, isUserLoading } = useUser();
 
   useEffect(() => {
-    if (auth) {
-      initiateAnonymousSignIn(auth);
+    if (!isUserLoading && !user) {
+      router.push('/login');
     }
-  }, [auth]);
+  }, [user, isUserLoading, router]);
+
+  const handleLogout = () => {
+    if(auth) {
+      auth.signOut();
+      router.push('/login');
+    }
+  };
 
   const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
@@ -32,6 +42,14 @@ export default function CorretorLayout({
     { href: '/configuracoes/aparencia', label: 'Aparência', icon: Palette },
     { href: '/configuracoes/documentos', label: 'Documentos', icon: FileText },
   ];
+  
+  if (isUserLoading || !user) {
+    return (
+        <div className="flex items-center justify-center h-screen bg-background">
+            <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
+        </div>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -64,6 +82,12 @@ export default function CorretorLayout({
             ))}
           </SidebarMenu>
         </SidebarContent>
+         <Sidebar.Footer className="p-2">
+            <Button variant="ghost" className="w-full justify-start gap-2" onClick={handleLogout}>
+                <LogOut />
+                <span className="group-data-[collapsible=icon]:hidden">Sair</span>
+            </Button>
+        </Sidebar.Footer>
       </Sidebar>
       <SidebarInset>
         <header className="flex items-center justify-between p-4 border-b">

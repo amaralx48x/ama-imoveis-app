@@ -5,7 +5,7 @@ import { PlusCircle, AlertTriangle } from 'lucide-react';
 import { PropertyCard } from '@/components/property-card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Link from 'next/link';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import type { Property } from '@/lib/data';
 import { collection } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -13,12 +13,12 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function ImoveisPage() {
     const firestore = useFirestore();
-    const agentId = 'ana-maria-almeida'; // Hardcoded for now
+    const { user } = useUser();
 
     const propertiesCollection = useMemoFirebase(() => {
-        if (!firestore) return null;
-        return collection(firestore, `agents/${agentId}/properties`);
-    }, [firestore, agentId]);
+        if (!firestore || !user) return null;
+        return collection(firestore, `agents/${user.uid}/properties`);
+    }, [firestore, user]);
 
     const { data: properties, isLoading, error } = useCollection<Property>(propertiesCollection);
     
