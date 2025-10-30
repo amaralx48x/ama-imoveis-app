@@ -3,6 +3,9 @@ import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, 
 import { Home, Briefcase, Mail, User, Settings, Palette, Star, BarChart, FileText, Building2, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/firebase';
+import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
+import { useEffect } from 'react';
 
 export default function CorretorLayout({
   children,
@@ -10,6 +13,13 @@ export default function CorretorLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const auth = useAuth();
+
+  useEffect(() => {
+    if (auth) {
+      initiateAnonymousSignIn(auth);
+    }
+  }, [auth]);
 
   const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
