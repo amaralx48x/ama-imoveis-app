@@ -9,8 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore } from '@/firebase';
-import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { useUser, useFirestore, setDocumentNonBlocking } from '@/firebase';
+import { doc, serverTimestamp } from 'firebase/firestore';
 import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -51,25 +51,19 @@ export default function NovoPostPage() {
     
     const postRef = doc(firestore, `agents/${user.uid}/blogPosts`, postId);
     
-    try {
-      await setDoc(postRef, {
+    setDocumentNonBlocking(postRef, {
         ...values,
         id: postId,
         agentId: user.uid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-      });
+    }, { merge: false });
 
-      toast({
-        title: "Post Criado!",
-        description: "Seu novo post foi publicado com sucesso.",
-      });
-      router.push('/blog');
-
-    } catch (error) {
-      console.error(error);
-      toast({ title: "Erro ao criar post", variant: "destructive" });
-    }
+    toast({
+    title: "Post Criado!",
+    description: "Seu novo post foi publicado com sucesso.",
+    });
+    router.push('/blog');
   }
 
   return (

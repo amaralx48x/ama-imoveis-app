@@ -9,12 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { doc, serverTimestamp } from 'firebase/firestore';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Newspaper } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import ImageUpload from '@/components/image-upload';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -67,38 +67,37 @@ export default function EditarPostPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!postRef) return;
     
-    try {
-      await updateDoc(postRef, {
+    updateDocumentNonBlocking(postRef, {
         ...values,
         updatedAt: serverTimestamp(),
-      });
+    });
 
-      toast({
-        title: "Post Atualizado!",
-        description: "Seu post foi atualizado com sucesso.",
-      });
-      router.push('/blog');
-
-    } catch (error) {
-      console.error(error);
-      toast({ title: "Erro ao atualizar post", variant: "destructive" });
-    }
+    toast({
+    title: "Post Atualizado!",
+    description: "Seu post foi atualizado com sucesso.",
+    });
+    router.push('/blog');
   }
   
   if(isPostLoading) {
       return (
          <div className="space-y-4">
-            <Skeleton className="h-10 w-48" />
+            <Button variant="outline" asChild>
+              <Link href="/blog">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar para o Blog
+              </Link>
+            </Button>
             <Card className="max-w-4xl mx-auto">
                 <CardHeader>
                     <Skeleton className="h-8 w-1/2" />
                     <Skeleton className="h-4 w-3/4" />
                 </CardHeader>
-                <CardContent className="space-y-8">
+                <CardContent className="space-y-8 pt-6">
                      <Skeleton className="h-10 w-full" />
-                     <Skeleton className="h-64 w-full" />
                      <Skeleton className="h-40 w-full" />
-                     <Skeleton className="h-12 w-full" />
+                     <Skeleton className="h-64 w-full" />
+                     <Skeleton className="h-12 w-32" />
                 </CardContent>
             </Card>
         </div>
