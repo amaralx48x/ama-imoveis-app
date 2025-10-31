@@ -5,16 +5,17 @@ import { Search, SlidersHorizontal, Building } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import type { Property } from "@/lib/data";
+import type { Property, Agent } from "@/lib/data";
 import { useRouter } from 'next/navigation';
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Label } from "./ui/label";
 
 interface PropertyFiltersProps {
   properties: Property[];
+  agent?: Agent; // Agent is now optional
 }
 
-export default function PropertyFilters({ properties }: PropertyFiltersProps) {
+export default function PropertyFilters({ properties, agent }: PropertyFiltersProps) {
   const [filters, setFilters] = useState({
     operation: "",
     city: "",
@@ -35,7 +36,8 @@ export default function PropertyFilters({ properties }: PropertyFiltersProps) {
     return values.sort((a, b) => a.localeCompare(b));
   };
   
-  const cities = uniqueValues('city');
+  // Use agent cities if available, otherwise derive from properties
+  const cities = agent?.cities?.length ? agent.cities.sort((a, b) => a.localeCompare(b)) : uniqueValues('city');
   const types = uniqueValues('type');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,10 +72,13 @@ export default function PropertyFilters({ properties }: PropertyFiltersProps) {
         </Select>
 
         {/* City */}
-        <Select name="city" onValueChange={handleSelectChange('city')}>
+        <Select name="city" onValueChange={handleSelectChange('city')} disabled={cities.length === 0}>
           <SelectTrigger><SelectValue placeholder="Cidade" /></SelectTrigger>
           <SelectContent>
-            {cities.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>)}
+            {cities.length > 0 ? 
+                cities.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>) :
+                <SelectItem value="none" disabled>Nenhuma cidade de atuação</SelectItem>
+            }
           </SelectContent>
         </Select>
 

@@ -105,7 +105,7 @@ export default function AgentPublicPage({ params }: Props) {
             <main className="min-h-screen">
                 <Hero heroImage={heroImage}>
                      <div className='absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-4'>
-                        <PropertyFilters properties={allProperties} />
+                        <PropertyFilters properties={allProperties} agent={agent} />
                     </div>
                 </Hero>
                 
