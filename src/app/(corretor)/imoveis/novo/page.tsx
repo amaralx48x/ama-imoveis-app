@@ -86,19 +86,19 @@ export default function NovoImovelPage() {
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/\D/g, '');
-    if (rawValue === '' || rawValue === '0') {
-      form.setValue('price', 0);
-      e.target.value = '';
-      return;
+    if (rawValue === '') {
+        form.setValue('price', 0);
+        e.target.value = '';
+        return;
     }
     const numberValue = Number(rawValue) / 100;
     form.setValue('price', numberValue);
     
     // Format for display
-    const formattedValue = new Intl.NumberFormat('pt-BR', {
-      minimumFractionDigits: 2,
+    e.target.value = new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
     }).format(numberValue);
-    e.target.value = formattedValue;
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -124,7 +124,8 @@ export default function NovoImovelPage() {
       ...values,
       id: propertyId,
       agentId: user.uid,
-      imageUrls: imageUrls
+      imageUrls: imageUrls,
+      createdAt: new Date().toISOString()
     };
     
     const propertyRef = doc(firestore, `agents/${user.uid}/properties`, propertyId);
@@ -246,7 +247,7 @@ export default function NovoImovelPage() {
                         <FormControl>
                             <Input 
                             type="text" 
-                            placeholder="850.000,00" 
+                            placeholder="R$ 850.000,00" 
                             onChange={handlePriceChange} 
                             />
                         </FormControl>
@@ -284,7 +285,7 @@ export default function NovoImovelPage() {
             
             <FormItem>
               <FormLabel>Imagens do Imóvel</FormLabel>
-              <FormDescription>Envie as fotos do seu imóvel. A primeira será a imagem de capa.</FormDescription>
+              <FormDescription>Envie até 20 fotos do seu imóvel. A primeira será a imagem de capa.</FormDescription>
                {user && (
                  <ImageUpload
                    agentId={user.uid}

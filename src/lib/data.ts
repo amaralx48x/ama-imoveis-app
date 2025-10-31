@@ -6,7 +6,7 @@ export type Property = {
   price: number;
   bedrooms: number;
   bathrooms: number;
-  garage: number;
+  garage: number; // Alterado para número de vagas
   rooms: number;
   builtArea: number;
   totalArea: number;
@@ -17,6 +17,7 @@ export type Property = {
   operation: 'Venda' | 'Aluguel';
   featured: boolean;
   agentId?: string; 
+  createdAt?: string;
 };
 
 export type Agent = {

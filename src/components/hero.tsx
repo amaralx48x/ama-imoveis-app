@@ -1,13 +1,15 @@
 import Image from "next/image";
 import type { ImagePlaceholder } from "@/lib/placeholder-images";
+import type { ReactNode } from "react";
 
 interface HeroProps {
   heroImage?: ImagePlaceholder;
+  children?: ReactNode;
 }
 
-export function Hero({ heroImage }: HeroProps) {
+export function Hero({ heroImage, children }: HeroProps) {
   return (
-    <section className="relative h-[70vh] min-h-[500px] flex items-center justify-center text-white">
+    <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center text-white">
       {heroImage && (
         <Image
           src={heroImage.imageUrl}
@@ -19,7 +21,7 @@ export function Hero({ heroImage }: HeroProps) {
         />
       )}
       <div className="absolute inset-0 bg-black/60 -z-10" />
-      <div className="container mx-auto px-4 text-center">
+      <div className="container mx-auto px-4 text-center mt-[-10rem]">
         <h1 className="text-4xl md:text-6xl font-extrabold font-headline mb-4 animate-fade-in-up">
           Encontre o <span className="text-gradient">Imóvel</span> dos Seus Sonhos
         </h1>
@@ -27,6 +29,7 @@ export function Hero({ heroImage }: HeroProps) {
           As melhores oportunidades do mercado imobiliário para você.
         </p>
       </div>
+      {children}
     </section>
   );
 }
