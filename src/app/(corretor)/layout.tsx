@@ -1,6 +1,7 @@
+
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, Mail, User, SlidersHorizontal, Star, LogOut, Share2, Building2 } from 'lucide-react';
+import { Home, Briefcase, Mail, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Newspaper } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/firebase';
@@ -36,6 +37,7 @@ export default function CorretorLayout({
   const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
     { href: '/imoveis', label: 'Meus Imóveis', icon: Briefcase },
+    { href: '/blog', label: 'Blog', icon: Newspaper },
     { href: '/perfil', label: 'Perfil', icon: User },
     { href: '/inbox', label: 'Caixa de Entrada', icon: Mail },
     { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' },
@@ -68,7 +70,7 @@ export default function CorretorLayout({
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === item.href || (item.href.startsWith('/imoveis') && pathname.startsWith('/imoveis')) || (item.href.startsWith('/configuracoes') && pathname.startsWith('/configuracoes')) || (item.href.startsWith('/avaliacoes') && pathname.startsWith('/avaliacoes'))}
+                  isActive={pathname.startsWith(item.href)}
                   tooltip={{
                     children: item.label,
                   }}

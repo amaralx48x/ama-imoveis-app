@@ -1,51 +1,55 @@
+
 'use client';
 import Link from "next/link";
-import { Building2 } from "lucide-react";
+import { Building2, Newspaper } from "lucide-react";
 import { Button } from "../ui/button";
 import type { Agent } from '@/lib/data';
+import { usePathname } from 'next/navigation';
 
 interface HeaderProps {
     agentName?: string;
+    agentId?: string;
 }
 
-export function Header({ agentName }: HeaderProps) {
+export function Header({ agentName, agentId }: HeaderProps) {
   
   const siteName = agentName || "AMA Imóveis";
+  const pathname = usePathname();
+  const agentBaseUrl = agentId ? `/corretor/${agentId}` : (pathname.split('/')[2] ? `/corretor/${pathname.split('/')[2]}` : '#');
+  const blogUrl = `${agentBaseUrl}/blog`;
+  
+  const navItems = [
+      { href: `${agentBaseUrl}#sobre`, label: "Sobre" },
+      { href: `${agentBaseUrl}#destaques`, label: "Destaques" },
+      { href: `${agentBaseUrl}#avaliacoes`, label: "Avaliações" },
+      { href: blogUrl, label: "Blog" },
+  ]
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center">
         <div className="mr-4 hidden md:flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
+          <Link href={agentBaseUrl} className="mr-6 flex items-center space-x-2">
             <span className="text-gradient">
               <Building2 className="h-6 w-6" />
             </span>
             <span className="font-bold font-headline text-lg">{siteName}</span>
           </Link>
           <nav className="flex items-center gap-6 text-sm">
-            <Link
-              href="#sobre"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
-            >
-              Sobre
-            </Link>
-            <Link
-              href="#destaques"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
-            >
-              Destaques
-            </Link>
-             <Link
-              href="#avaliacoes"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
-            >
-              Avaliações
-            </Link>
+            {navItems.map(item => (
+                 <Link
+                    key={item.href}
+                    href={item.href}
+                    className="transition-colors hover:text-foreground/80 text-foreground/60"
+                >
+                    {item.label}
+                </Link>
+            ))}
           </nav>
         </div>
         <div className="flex flex-1 items-center justify-end space-x-2">
           <Button asChild>
-            <Link href="#contato">Fale Conosco</Link>
+            <Link href={`${agentBaseUrl}#contato`}>Fale Conosco</Link>
           </Button>
            <Button asChild variant="outline">
               <Link href="/login">Área do Corretor</Link>
