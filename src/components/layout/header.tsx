@@ -24,12 +24,6 @@ export function Header({ agentName }: HeaderProps) {
           </Link>
           <nav className="flex items-center gap-6 text-sm">
             <Link
-              href="/search"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
-            >
-              Buscar Imóveis
-            </Link>
-            <Link
               href="#sobre"
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >

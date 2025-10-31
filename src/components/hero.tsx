@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { PropertySearchForm } from "./property-search-form";
 import type { ImagePlaceholder } from "@/lib/placeholder-images";
 
 interface HeroProps {
@@ -27,9 +26,6 @@ export function Hero({ heroImage }: HeroProps) {
         <p className="text-lg md:text-xl text-foreground/80 max-w-2xl mx-auto mb-8">
           As melhores oportunidades do mercado imobiliário para você.
         </p>
-        <div className="max-w-4xl mx-auto">
-          <PropertySearchForm />
-        </div>
       </div>
     </section>
   );
