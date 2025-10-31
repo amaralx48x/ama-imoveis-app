@@ -26,7 +26,8 @@ export default function PropertyPage({ params }: { params: { imovelId: string } 
 
   const { data: property, isLoading } = useDoc<Property>(propertyRef);
 
-  if (isLoading) {
+  // Show loading skeleton if we don't have agentId yet, or if useDoc is loading.
+  if (isLoading || !agentId) {
     return (
       <>
         <Header />
@@ -49,7 +50,8 @@ export default function PropertyPage({ params }: { params: { imovelId: string } 
     )
   }
 
-  if (!property && !isLoading) {
+  // After loading, if there's still no property, then it's a 404.
+  if (!property) {
     notFound();
   }
 
@@ -57,7 +59,10 @@ export default function PropertyPage({ params }: { params: { imovelId: string } 
     .map(id => PlaceHolderImages.find(img => img.id === id))
     .filter((img): img is NonNullable<typeof img> => img !== undefined);
   
-  if (!property) return null;
+  if (propertyImages.length === 0) {
+      const defaultImage = PlaceHolderImages.find(img => img.id === 'property-1-1');
+      if (defaultImage) propertyImages.push(defaultImage);
+  }
 
   return (
     <>
@@ -89,3 +94,4 @@ export default function PropertyPage({ params }: { params: { imovelId: string } 
     </>
   );
 }
+
