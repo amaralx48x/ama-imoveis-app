@@ -12,6 +12,7 @@ export type Property = {
   totalArea: number;
   imageUrls: string[];
   city: string;
+  neighborhood: string;
   type: 'Apartamento' | 'Casa' | 'Chácara' | 'Galpão' | 'Sala' | 'Kitnet' | 'Terreno' | 'Lote' | 'Alto Padrão';
   operation: 'Venda' | 'Aluguel';
   featured: boolean;
@@ -53,6 +54,7 @@ const properties: Property[] = [
     totalArea: 150,
     imageUrls: ['property-1-1', 'property-1-2', 'property-1-3'],
     city: 'São Paulo',
+    neighborhood: 'Centro',
     type: 'Apartamento',
     operation: 'Venda',
     featured: true,
@@ -70,6 +72,7 @@ const properties: Property[] = [
     totalArea: 400,
     imageUrls: ['property-2-1', 'property-2-2'],
     city: 'Campinas',
+    neighborhood: 'Taquaral',
     type: 'Casa',
     operation: 'Venda',
     featured: true,
@@ -98,6 +101,5 @@ const reviews: Review[] = [
 ];
 
 export const getReviews = () => reviews;
-export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Guarujá', 'Rio de Janeiro'];
-export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Terreno', 'Comercial'];
-
+export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Guarujá', 'Rio de Janeiro', 'Belo Horizonte', 'Curitiba', 'Porto Alegre'];
+export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];

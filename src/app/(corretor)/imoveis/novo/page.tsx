@@ -37,6 +37,7 @@ const formSchema = z.object({
   title: z.string().min(5, "O título deve ter pelo menos 5 caracteres."),
   description: z.string().min(20, "A descrição deve ter pelo menos 20 caracteres."),
   city: z.string().min(1, "A cidade é obrigatória."),
+  neighborhood: z.string().min(2, "O bairro deve ter pelo menos 2 caracteres."),
   type: z.enum(propertyTypes as [string, ...string[]]),
   operation: z.enum(["Venda", "Aluguel"]),
   price: z.number().positive("O preço deve ser um número positivo."),
@@ -67,6 +68,7 @@ export default function NovoImovelPage() {
       title: "",
       description: "",
       city: "",
+      neighborhood: "",
       price: 0,
       bedrooms: 0,
       bathrooms: 0,
@@ -220,6 +222,21 @@ export default function NovoImovelPage() {
                     </FormItem>
                     )}
                 />
+                 <FormField
+                  control={form.control}
+                  name="neighborhood"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bairro</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: Centro, Taquaral, etc." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+             </div>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                     control={form.control}
                     name="price"

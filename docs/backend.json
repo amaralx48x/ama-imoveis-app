@@ -19,6 +19,7 @@
         "totalArea": { "type": "number", "description": "Total area in square meters." },
         "imageUrls": { "type": "array", "items": { "type": "string" }, "description": "Array of URLs for property images." },
         "city": { "type": "string", "description": "City where the property is located." },
+        "neighborhood": { "type": "string", "description": "Neighborhood where the property is located." },
         "type": { "type": "string", "enum": ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"], "description": "Type of property." },
         "operation": { "type": "string", "enum": ["Venda", "Aluguel"], "description": "Type of operation." },
         "featured": { "type": "boolean", "description": "Indicates if the property is featured." },
@@ -26,7 +27,7 @@
       },
       "required": [
         "id", "title", "description", "price", "bedrooms", "bathrooms", "garage", "rooms", 
-        "builtArea", "totalArea", "imageUrls", "city", "type", "operation", "featured", "agentId"
+        "builtArea", "totalArea", "imageUrls", "city", "neighborhood", "type", "operation", "featured", "agentId"
       ]
     },
     "Agent": {
