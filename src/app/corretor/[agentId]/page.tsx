@@ -1,7 +1,7 @@
+
 'use client';
 
-import { getFirebaseServer } from '@/firebase/server-init';
-import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import type { Agent, Property } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { Header } from "@/components/layout/header";
@@ -24,8 +24,6 @@ type Props = {
   params: { agentId: string };
 };
 
-// We fetch the agent data on the server, but manage properties on the client
-// to allow for dynamic filtering without re-fetching from the server.
 export default function AgentPublicPage({ params }: Props) {
     const { agentId } = params;
     const [agent, setAgent] = useState<Agent | null>(null);
@@ -107,7 +105,7 @@ export default function AgentPublicPage({ params }: Props) {
             <main className="min-h-screen">
                 <Hero heroImage={heroImage}>
                      <div className='absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-4'>
-                        <PropertyFilters onFilter={handleFilter} properties={allProperties} />
+                        <PropertyFilters properties={allProperties} />
                     </div>
                 </Hero>
                 

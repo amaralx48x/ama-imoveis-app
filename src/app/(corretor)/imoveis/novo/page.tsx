@@ -39,7 +39,7 @@ const formSchema = z.object({
   city: z.string().min(1, "A cidade é obrigatória."),
   neighborhood: z.string().min(2, "O bairro deve ter pelo menos 2 caracteres."),
   type: z.enum(propertyTypes as [string, ...string[]]),
-  operation: z.enum(["Venda", "Aluguel"]),
+  operation: z.enum(["Comprar", "Alugar"]),
   price: z.number().positive("O preço deve ser um número positivo."),
   bedrooms: z.coerce.number().int().min(0),
   bathrooms: z.coerce.number().int().min(0),
@@ -170,11 +170,11 @@ export default function NovoImovelPage() {
                     <FormLabel>Operação</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger><SelectValue placeholder="Venda ou Aluguel" /></SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder="Comprar ou Alugar" /></SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Venda">Venda</SelectItem>
-                        <SelectItem value="Aluguel">Aluguel</SelectItem>
+                        <SelectItem value="Comprar">Comprar</SelectItem>
+                        <SelectItem value="Alugar">Alugar</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

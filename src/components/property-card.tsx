@@ -57,10 +57,10 @@ export function PropertyCard({ property }: PropertyCardProps) {
         </Link>
         <div className="flex items-center text-muted-foreground text-sm mt-1">
           <MapPin className="w-4 h-4 mr-1.5" />
-          <span>{property.city}</span>
+          <span>{property.neighborhood}, {property.city}</span>
         </div>
         <p className="text-2xl font-bold text-primary my-4">
-          {property.operation === 'Venda' ? formattedPrice : `${formattedPrice} /mês`}
+          {property.operation === 'Comprar' ? formattedPrice : `${formattedPrice} /mês`}
         </p>
         <div className="flex justify-around text-muted-foreground border-t border-b border-border py-3 text-sm">
           <div className="flex items-center gap-2">

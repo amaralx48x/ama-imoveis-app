@@ -1,6 +1,7 @@
+
 import type { Property } from "./data";
 
-type Filters = {
+export type Filters = {
     city?: string;
     neighborhood?: string;
     type?: string;
@@ -8,7 +9,7 @@ type Filters = {
     minPrice?: string;
     maxPrice?: string;
     bedrooms?: string;
-    garage?: boolean | string;
+    garage?: string;
     keyword?: string;
 }
 
@@ -26,7 +27,8 @@ export function filterProperties(properties: Property[], filters: Filters): Prop
     filtered = filtered.filter(p => 
         p.title.toLowerCase().includes(lowercasedKeyword) ||
         p.city.toLowerCase().includes(lowercasedKeyword) ||
-        p.neighborhood.toLowerCase().includes(lowercasedKeyword)
+        p.neighborhood.toLowerCase().includes(lowercasedKeyword) ||
+        p.description.toLowerCase().includes(lowercasedKeyword)
     );
   }
 
@@ -38,17 +40,7 @@ export function filterProperties(properties: Property[], filters: Filters): Prop
   if (minPrice) filtered = filtered.filter(p => p.price >= Number(minPrice));
   if (maxPrice) filtered = filtered.filter(p => p.price <= Number(maxPrice));
   if (bedrooms) filtered = filtered.filter(p => p.bedrooms >= Number(bedrooms));
-  if (garage === true) filtered = filtered.filter(p => p.garage > 0);
-  if (garage === false) filtered = filtered.filter(p => p.garage === 0);
-
-  // If after all filters there are no results, AND there was a keyword,
-  // do a secondary, broader search on the description.
-  if (filtered.length === 0 && keyword) {
-      const lowercasedKeyword = keyword.toLowerCase();
-      return properties.filter(p => 
-        p.description.toLowerCase().includes(lowercasedKeyword)
-      );
-  }
-
+  if (garage) filtered = filtered.filter(p => p.garage >= Number(garage));
+  
   return filtered;
 }

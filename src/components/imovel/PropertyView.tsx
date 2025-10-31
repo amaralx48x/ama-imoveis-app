@@ -68,12 +68,12 @@ export function PropertyView({ property }: PropertyViewProps) {
                                 <CardTitle className="text-3xl font-headline">{property.title}</CardTitle>
                                 <div className="flex items-center text-muted-foreground text-md mt-2">
                                     <MapPin className="w-5 h-5 mr-2" />
-                                    <span>{property.city}</span>
+                                    <span>{property.neighborhood}, {property.city}</span>
                                 </div>
                             </div>
                             <div className="text-right flex-shrink-0">
                                 <p className="text-3xl font-bold text-primary">
-                                    {property.operation === 'Venda' ? formattedPrice : `${formattedPrice} /mês`}
+                                    {property.operation === 'Comprar' ? formattedPrice : `${formattedPrice} /mês`}
                                 </p>
                             </div>
                         </div>

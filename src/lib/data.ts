@@ -6,7 +6,7 @@ export type Property = {
   price: number;
   bedrooms: number;
   bathrooms: number;
-  garage: number; // Alterado para número de vagas
+  garage: number; 
   rooms: number;
   builtArea: number;
   totalArea: number;
@@ -14,7 +14,7 @@ export type Property = {
   city: string;
   neighborhood: string;
   type: 'Apartamento' | 'Casa' | 'Chácara' | 'Galpão' | 'Sala' | 'Kitnet' | 'Terreno' | 'Lote' | 'Alto Padrão';
-  operation: 'Venda' | 'Aluguel';
+  operation: 'Comprar' | 'Alugar';
   featured: boolean;
   agentId?: string; 
   createdAt?: string;
@@ -57,7 +57,7 @@ const properties: Property[] = [
     city: 'São Paulo',
     neighborhood: 'Centro',
     type: 'Apartamento',
-    operation: 'Venda',
+    operation: 'Comprar',
     featured: true,
   },
   {
@@ -75,7 +75,7 @@ const properties: Property[] = [
     city: 'Campinas',
     neighborhood: 'Taquaral',
     type: 'Casa',
-    operation: 'Venda',
+    operation: 'Comprar',
     featured: true,
   },
 ];
