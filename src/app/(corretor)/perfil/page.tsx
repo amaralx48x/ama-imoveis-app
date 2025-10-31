@@ -17,31 +17,33 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, useDoc, useMemoFirebase, useAuth, setDocumentNonBlocking } from '@/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import { useEffect } from 'react';
 import type { Agent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import ImageUpload from '@/components/image-upload';
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, { message: 'O nome de exibição deve ter pelo menos 2 caracteres.' }),
   siteName: z.string().min(3, { message: 'O nome do site deve ter pelo menos 3 caracteres.' }),
   description: z.string().min(10, { message: 'A descrição deve ter pelo menos 10 caracteres.' }).max(500, { message: 'A descrição não pode ter mais de 500 caracteres.' }),
   accountType: z.enum(['corretor', 'imobiliaria'], { required_error: 'Selecione um tipo de conta.' }),
+  photoUrl: z.string().url().optional().or(z.literal('')),
 });
 
 export default function PerfilPage() {
   const { toast } = useToast();
   const firestore = useFirestore();
   const { user } = useUser();
-  const auth = useAuth();
   
   const agentRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, 'agents', user.uid) : null),
     [firestore, user]
   );
   
-  const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
+  const { data: agentData, isLoading: isAgentLoading, mutate: revalidateAgent } = useDoc<Agent>(agentRef);
 
   const form = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
@@ -50,6 +52,7 @@ export default function PerfilPage() {
       siteName: '',
       description: '',
       accountType: 'corretor',
+      photoUrl: '',
     },
   });
 
@@ -60,6 +63,7 @@ export default function PerfilPage() {
         siteName: agentData.name || '',
         description: agentData.description || '',
         accountType: agentData.accountType || 'corretor',
+        photoUrl: agentData.photoUrl || '',
       });
     }
   }, [agentData, form]);
@@ -79,6 +83,7 @@ export default function PerfilPage() {
         name: values.siteName,
         description: values.description,
         accountType: values.accountType,
+        photoUrl: values.photoUrl,
     };
 
     setDocumentNonBlocking(agentRef, dataToSave, { merge: true });
@@ -87,6 +92,19 @@ export default function PerfilPage() {
         title: 'Perfil Atualizado!',
         description: 'Suas informações foram salvas com sucesso.',
     });
+  }
+
+  const handleUploadComplete = (url: string) => {
+    if (!agentRef) return;
+    
+    setDocumentNonBlocking(agentRef, { photoUrl: url }, { merge: true });
+
+    toast({
+      title: 'Foto Atualizada!',
+      description: 'Sua foto de perfil foi alterada com sucesso.',
+    });
+    revalidateAgent();
+    form.setValue('photoUrl', url);
   }
 
   if (isAgentLoading) {
@@ -126,6 +144,33 @@ export default function PerfilPage() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <FormField
+              control={form.control}
+              name="photoUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Foto de Perfil</FormLabel>
+                  <FormControl>
+                    <div className='flex items-center gap-6'>
+                       <Avatar className='h-24 w-24'>
+                          <AvatarImage src={field.value} alt={form.getValues('displayName')} />
+                          <AvatarFallback>{form.getValues('displayName')?.charAt(0) || 'A'}</AvatarFallback>
+                        </Avatar>
+                        {user && (
+                           <ImageUpload 
+                            agentId={user.uid}
+                            onUploadComplete={handleUploadComplete}
+                           />
+                        )}
+                    </div>
+                  </FormControl>
+                  <FormDescription>Esta é a sua foto de perfil pública.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+
             <FormField
               control={form.control}
               name="displayName"
