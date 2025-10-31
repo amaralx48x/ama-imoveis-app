@@ -8,14 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useRouter } from 'next/navigation';
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Label } from "./ui/label";
+import type { Agent } from "@/lib/data";
 
 interface PropertyFiltersProps {
-    onFilter: (filters: any) => void;
-    cities: string[];
+    agent: Agent;
     propertyTypes: string[];
 }
 
-export default function PropertyFilters({ onFilter, cities, propertyTypes }: PropertyFiltersProps) {
+export default function PropertyFilters({ agent, propertyTypes }: PropertyFiltersProps) {
   const [filters, setFilters] = useState({
     operation: "",
     city: "",
@@ -27,6 +27,8 @@ export default function PropertyFilters({ onFilter, cities, propertyTypes }: Pro
     keyword: ""
   });
   const router = useRouter();
+
+  const cities = agent?.cities ?? [];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -44,6 +46,10 @@ export default function PropertyFilters({ onFilter, cities, propertyTypes }: Pro
         query.append(key, value);
       }
     });
+    // Add agentId to the query to allow global search to optionally filter by agent
+    if (agent?.id) {
+        query.append('agentId', agent.id);
+    }
     router.push(`/search?${query.toString()}`);
   }
 
