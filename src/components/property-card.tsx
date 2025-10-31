@@ -2,17 +2,22 @@
 import type { Property } from "@/lib/data";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
-import { BedDouble, Bath, Ruler, MapPin } from "lucide-react";
+import { BedDouble, Bath, Ruler, MapPin, MoreVertical, Pencil, Trash2, Link2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
 import Link from "next/link";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { useRouter } from "next/navigation";
 
 interface PropertyCardProps {
   property: Property;
+  onDelete?: (id: string) => void;
 }
 
-export function PropertyCard({ property }: PropertyCardProps) {
+export function PropertyCard({ property, onDelete }: PropertyCardProps) {
+  const router = useRouter();
+
   const formattedPrice = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
@@ -22,7 +27,6 @@ export function PropertyCard({ property }: PropertyCardProps) {
     return !!url && (url.startsWith('http://') || url.startsWith('https://'));
   }
 
-  // Use the first uploaded image, or a default placeholder if none exist or are invalid.
   const firstImageUrl = property.imageUrls?.[0];
   const imageUrl = isValidUrl(firstImageUrl) 
     ? firstImageUrl 
@@ -31,6 +35,23 @@ export function PropertyCard({ property }: PropertyCardProps) {
   const imageHint = "house exterior";
   
   const detailUrl = `/imovel/${property.id}?agentId=${property.agentId}`;
+
+  const handleEdit = () => {
+    // router.push(`/imoveis/editar/${property.id}`);
+    alert('Funcionalidade de edição em desenvolvimento.');
+  };
+  
+  const handleDelete = () => {
+    if (onDelete && window.confirm(`Tem certeza que deseja excluir o imóvel "${property.title}"?`)) {
+      onDelete(property.id);
+    }
+  };
+
+  const handleAssociation = () => {
+    router.push(`/imoveis/associar?propertyId=${property.id}`);
+  };
+
+  const isDashboard = !!onDelete;
 
   return (
     <Card className="w-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 flex flex-col h-full bg-card">
@@ -47,9 +68,34 @@ export function PropertyCard({ property }: PropertyCardProps) {
             />
           </div>
         </Link>
-        <Badge className="absolute top-3 right-3 bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] text-primary-foreground border-none">
-          {property.operation}
-        </Badge>
+        <div className="absolute top-3 flex justify-between w-full px-3">
+          <Badge className="bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] text-primary-foreground border-none">
+            {property.operation}
+          </Badge>
+           {isDashboard && (
+             <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-background/70 hover:bg-background">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleAssociation}>
+                  <Link2 className="mr-2 h-4 w-4" />
+                  Associar a Seções
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleEdit}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDelete} className="text-destructive">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Excluir
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+           )}
+        </div>
       </CardHeader>
       <CardContent className="p-4 flex-grow">
         <Link href={detailUrl}>

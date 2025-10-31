@@ -2,25 +2,37 @@
 'use client';
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, AlertTriangle, Upload } from 'lucide-react';
+import { PlusCircle, AlertTriangle, Upload, Trash2 } from 'lucide-react';
 import { PropertyCard } from '@/components/property-card';
 import Link from 'next/link';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import type { Property } from '@/lib/data';
-import { collection } from 'firebase/firestore';
+import { collection, doc, deleteDoc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
+import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+
 
 export default function ImoveisPage() {
     const firestore = useFirestore();
     const { user } = useUser();
+    const { toast } = useToast();
 
     const propertiesCollection = useMemoFirebase(() => {
         if (!firestore || !user) return null;
         return collection(firestore, `agents/${user.uid}/properties`);
     }, [firestore, user]);
 
-    const { data: properties, isLoading, error } = useCollection<Property>(propertiesCollection);
+    const { data: properties, isLoading, error, mutate } = useCollection<Property>(propertiesCollection);
+
+    const handleDeleteProperty = (id: string) => {
+        if (!firestore || !user) return;
+        const docRef = doc(firestore, `agents/${user.uid}/properties`, id);
+        deleteDocumentNonBlocking(docRef);
+        toast({ title: 'Imóvel excluído com sucesso!' });
+        mutate(); // Re-fetch the data to update the UI
+    };
     
     return (
         <div className="space-y-8">
@@ -85,7 +97,7 @@ export default function ImoveisPage() {
             {!isLoading && properties && properties.length > 0 && (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {properties.map((property) => (
-                      <PropertyCard key={property.id} property={property} />
+                      <PropertyCard key={property.id} property={property} onDelete={handleDeleteProperty} />
                   ))}
               </div>
             )}
