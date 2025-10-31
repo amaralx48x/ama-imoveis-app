@@ -34,13 +34,18 @@ async function getAgentProperties(agentId: string) {
     const q = query(propertiesRef, where("featured", "==", true));
     const propertiesSnap = await getDocs(q);
     
-    return propertiesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Property));
+    // Add agentId to each property
+    return propertiesSnap.docs.map(doc => ({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId: agentId }));
 }
 
 
 export default async function AgentPublicPage({ params }: Props) {
   const { agentId } = params;
   
+  if (!agentId) {
+    notFound();
+  }
+
   const agent = await getAgentData(agentId);
   if (!agent) {
     notFound();

@@ -32,7 +32,6 @@ export default async function PropertyPage({ params, searchParams }: Props) {
     }
   } catch (error) {
     console.error("Erro ao buscar imóvel:", error);
-    // Em caso de erro na busca, podemos optar por mostrar 'não encontrado' também.
     notFound();
   }
 
