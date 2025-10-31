@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import type { Property, Agent } from "@/lib/data";
+import { getPropertyTypes } from "@/lib/data";
 import { useRouter } from 'next/navigation';
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Label } from "./ui/label";
@@ -28,17 +29,9 @@ export default function PropertyFilters({ properties, agent }: PropertyFiltersPr
   });
   const router = useRouter();
 
-  const uniqueValues = (key: keyof Property) => {
-    if (!properties) return [];
-    const values = properties
-      .map(p => p[key])
-      .filter((value, index, self) => value && self.indexOf(value) === index) as string[];
-    return values.sort((a, b) => a.localeCompare(b));
-  };
-  
   // Use agent cities if available, otherwise derive from properties
-  const cities = agent?.cities?.length ? agent.cities.sort((a, b) => a.localeCompare(b)) : uniqueValues('city');
-  const types = uniqueValues('type');
+  const cities = agent?.cities?.length ? agent.cities.sort((a, b) => a.localeCompare(b)) : [];
+  const propertyTypes = getPropertyTypes();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -86,7 +79,7 @@ export default function PropertyFilters({ properties, agent }: PropertyFiltersPr
         <Select name="type" onValueChange={handleSelectChange('type')}>
           <SelectTrigger><SelectValue placeholder="Tipo de Imóvel" /></SelectTrigger>
           <SelectContent>
-            {types.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+            {propertyTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
           </SelectContent>
         </Select>
 
@@ -108,6 +101,10 @@ export default function PropertyFilters({ properties, agent }: PropertyFiltersPr
                             </p>
                         </div>
                         <div className="grid gap-2">
+                             <div className="grid grid-cols-2 items-center gap-4">
+                                <Label htmlFor="keyword">Busca Livre</Label>
+                                <Input id="keyword" name="keyword" placeholder="Ex: piscina" onChange={handleChange} value={filters.keyword} />
+                            </div>
                             <div className="grid grid-cols-2 items-center gap-4">
                                 <Label htmlFor="minPrice">Preço Mín.</Label>
                                 <Input id="minPrice" name="minPrice" type="number" placeholder="R$ 100.000" onChange={handleChange} value={filters.minPrice} />
@@ -123,10 +120,6 @@ export default function PropertyFilters({ properties, agent }: PropertyFiltersPr
                              <div className="grid grid-cols-2 items-center gap-4">
                                 <Label htmlFor="garage">Vagas Garagem</Label>
                                 <Input id="garage" name="garage" type="number" placeholder="2" onChange={handleChange} value={filters.garage} />
-                            </div>
-                             <div className="grid grid-cols-2 items-center gap-4">
-                                <Label htmlFor="keyword">Busca Livre</Label>
-                                <Input id="keyword" name="keyword" placeholder="Ex: piscina" onChange={handleChange} value={filters.keyword} />
                             </div>
                         </div>
                     </div>
