@@ -68,7 +68,7 @@ export default function CorretorLayout({
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === item.href || (item.href.startsWith('/imoveis') && pathname.startsWith('/imoveis')) || (item.href.startsWith('/configuracoes') && pathname.startsWith('/configuracoes'))}
+                  isActive={pathname === item.href || (item.href.startsWith('/imoveis') && pathname.startsWith('/imoveis')) || (item.href.startsWith('/configuracoes') && pathname.startsWith('/configuracoes')) || (item.href.startsWith('/avaliacoes') && pathname.startsWith('/avaliacoes'))}
                   tooltip={{
                     children: item.label,
                   }}

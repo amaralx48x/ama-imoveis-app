@@ -17,6 +17,18 @@ service cloud.firestore {
 
       // Only the authenticated owner of the agent profile can create, update, or delete it.
       allow write: if isOwner(agentId);
+
+      // Subcollection for reviews
+      match /reviews/{reviewId} {
+        // Anyone can create a review (public form submission)
+        allow create: if true;
+
+        // Public can ONLY read approved reviews
+        allow list, get: if resource.data.approved == true;
+
+        // The agent (owner) can read all of their reviews and can update/delete them
+        allow read, update, delete: if isOwner(agentId);
+      }
     }
 
     // This rule allows the global 'collectionGroup' query on 'properties'.
@@ -30,7 +42,6 @@ service cloud.firestore {
         allow write: if false; // Deny writes by default on this general rule.
     }
     
-
     // Properties are nested under agents. This rule secures write operations.
     match /agents/{agentId}/properties/{propertyId} {
       // The read rule is inherited from the collectionGroup rule above.

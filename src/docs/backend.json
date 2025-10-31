@@ -73,6 +73,22 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "name", "email", "message", "createdAt"]
+    },
+    "Review": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Review",
+      "type": "object",
+      "description": "Represents a client review for an agent.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "rating": { "type": "number", "minimum": 1, "maximum": 5 },
+        "comment": { "type": "string" },
+        "approved": { "type": "boolean", "default": false },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "rating", "approved", "createdAt"]
     }
   },
   "auth": {
@@ -88,7 +104,12 @@
       {
         "path": "/agents/{agentId}/properties/{propertyId}",
         "schema": { "$ref": "#/entities/Property" },
-        "description": "Stores properties listed by a specific agent. The `agentId` in the path ensures data ownership and simplifies security rules."
+        "description": "Stores properties listed by a specific agent."
+      },
+      {
+        "path": "/agents/{agentId}/reviews/{reviewId}",
+        "schema": { "$ref": "#/entities/Review" },
+        "description": "Stores client reviews for a specific agent."
       },
       {
         "path": "/leads/{leadId}",

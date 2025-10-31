@@ -42,8 +42,11 @@ export type Agent = {
 export type Review = {
   id: string;
   name: string;
-  review: string;
-  avatar: string;
+  email?: string | null;
+  rating: number;
+  comment?: string | null;
+  approved?: boolean;
+  createdAt?: any;
 };
 
 // This data is now considered legacy mock data.
@@ -87,27 +90,31 @@ const properties: Property[] = [
   },
 ];
 
-const reviews: Review[] = [
+const staticReviews: Review[] = [
   {
     id: '1',
     name: 'Carlos Silva',
-    review: 'Atendimento incrível e profissional. Encontrei o apartamento perfeito para minha família em tempo recorde. Recomendo a todos!',
-    avatar: 'client-1',
+    rating: 5,
+    comment: 'Atendimento incrível e profissional. Encontrei o apartamento perfeito para minha família em tempo recorde. Recomendo a todos!',
+    email: 'carlos@example.com'
   },
   {
     id: '2',
     name: 'Mariana Oliveira',
-    review: 'A corretora foi super atenciosa e paciente durante todo o processo. A experiência de compra foi muito mais tranquila graças a ela.',
-    avatar: 'client-2',
+    rating: 5,
+    comment: 'A corretora foi super atenciosa e paciente durante todo o processo. A experiência de compra foi muito mais tranquila graças a ela.',
+    email: 'mariana@example.com'
   },
   {
     id: '3',
     name: 'João Pereira',
-    review: 'Profissionalismo exemplar e conhecimento profundo do mercado. Consegui vender meu imóvel rapidamente e por um ótimo preço.',
-    avatar: 'client-3',
+    rating: 5,
+    comment: 'Profissionalismo exemplar e conhecimento profundo do mercado. Consegui vender meu imóvel rapidamente e por um ótimo preço.',
+    email: 'joao@example.com'
   },
 ];
 
-export const getReviews = () => reviews;
+
+export const getReviews = () => staticReviews;
 export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Guarujá', 'Rio de Janeiro', 'Belo Horizonte', 'Curitiba', 'Porto Alegre'];
 export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];

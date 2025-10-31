@@ -1,8 +1,8 @@
 
 'use client';
 import { useState, useEffect } from 'react';
-import { doc, getDoc, collection, getDocs, Query } from 'firebase/firestore';
-import type { Agent, Property } from '@/lib/data';
+import { doc, getDoc, collection, getDocs, Query, query, where, orderBy } from 'firebase/firestore';
+import type { Agent, Property, Review } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -10,15 +10,11 @@ import { Hero } from "@/components/hero";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FeaturedProperties } from '@/components/featured-properties';
 import { AgentProfile } from '@/components/agent-profile';
-import { ClientReviews } from '@/components/client-reviews';
-import { getReviews, getPropertyTypes } from '@/lib/data';
+import { ClientReviews, ReviewForm } from '@/components/client-reviews';
 import { ContactForm } from '@/components/contact-form';
 import { useFirestore } from '@/firebase';
 import PropertyFilters from '@/components/property-filters';
-import { filterProperties } from '@/lib/filter-logic';
-import { PropertyCard } from '@/components/property-card';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { getPropertyTypes } from '@/lib/data';
 
 
 type Props = {
@@ -31,8 +27,17 @@ export default function AgentPublicPage({ params }: Props) {
     
     const [agent, setAgent] = useState<Agent | null>(null);
     const [allProperties, setAllProperties] = useState<Property[]>([]);
+    const [reviews, setReviews] = useState<Review[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    const loadReviews = async () => {
+      if (!firestore) return;
+      const reviewsRef = collection(firestore, `agents/${agentId}/reviews`);
+      const q = query(reviewsRef, where('approved', '==', true), orderBy('createdAt', 'desc'));
+      const reviewsSnap = await getDocs(q);
+      setReviews(reviewsSnap.docs.map(doc => ({ ...(doc.data() as Omit<Review, 'id'>), id: doc.id })));
+    };
+    
     useEffect(() => {
         if (!firestore) return;
 
@@ -55,6 +60,10 @@ export default function AgentPublicPage({ params }: Props) {
                 const props = propertiesSnap.docs.map(doc => ({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId: agentId }));
 
                 setAllProperties(props);
+                
+                // Fetch approved reviews
+                await loadReviews();
+
             } catch (error) {
                 console.error("Error fetching agent data on client:", error);
                 // Optionally handle error state in UI
@@ -64,6 +73,7 @@ export default function AgentPublicPage({ params }: Props) {
         };
 
         fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [firestore, agentId]);
 
     if (isLoading) {
@@ -82,12 +92,6 @@ export default function AgentPublicPage({ params }: Props) {
             </div>
         )
     }
-
-    const reviews = getReviews();
-    const reviewAvatars = reviews.map(r => {
-        const avatar = PlaceHolderImages.find(img => img.id === r.avatar);
-        return avatar || PlaceHolderImages[0];
-    });
 
     const heroImage = PlaceHolderImages.find(img => img.id === 'hero-background');
     const featuredProperties = allProperties.filter(p => p.featured);
@@ -108,7 +112,12 @@ export default function AgentPublicPage({ params }: Props) {
                     <FeaturedProperties properties={featuredProperties} agentId={agentId} />
                 )}
                 <AgentProfile agent={agent} />
-                {showReviews && <ClientReviews reviews={reviews} avatars={reviewAvatars} />}
+                {showReviews && (
+                  <div id="avaliacoes" className="container mx-auto px-4 py-16 sm:py-24 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+                    <ClientReviews reviews={reviews} />
+                    <ReviewForm agentId={agentId} onReviewSubmitted={loadReviews} />
+                  </div>
+                )}
                 <ContactForm agentId={agent.id} />
             </main>
             <Footer />
