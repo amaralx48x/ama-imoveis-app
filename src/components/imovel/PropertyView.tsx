@@ -1,9 +1,5 @@
-
 'use client';
 
-import { useSearchParams, notFound } from 'next/navigation';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
 import type { Property } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { PropertyGallery } from '@/components/imovel/property-gallery';
@@ -29,28 +25,9 @@ export function LoadingSkeleton() {
   );
 }
 
-export function PropertyView({ imovelId }: { imovelId: string }) {
-  const firestore = useFirestore();
-  const searchParams = useSearchParams();
-  const agentId = searchParams.get('agentId');
 
-  const propertyRef = useMemoFirebase(() => {
-    // Only create the reference if all required IDs are present.
-    if (!firestore || !agentId || !imovelId) return null;
-    return doc(firestore, `agents/${agentId}/properties`, imovelId);
-  }, [firestore, agentId, imovelId]);
-
-  const { data: property, isLoading } = useDoc<Property>(propertyRef);
-
-  // If agentId isn't available from URL yet, or if useDoc is loading, show skeleton.
-  if (isLoading || !agentId) {
-    return <LoadingSkeleton />;
-  }
-
-  // After loading, if we have an agentId but still no property, then it's a 404.
-  if (!property) {
-    notFound();
-  }
+// This component is now a "dumb" client component that just displays data.
+export function PropertyView({ property }: { property: Property }) {
 
   const propertyImages = (property?.imageUrls || [])
     .map(id => PlaceHolderImages.find(img => img.id === id))
