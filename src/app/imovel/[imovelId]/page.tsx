@@ -28,14 +28,20 @@ export default function PropertyPage({ params }: { params: { imovelId: string } 
       const propertiesRef = collectionGroup(firestore, 'properties');
       const q = query(propertiesRef, where('id', '==', params.imovelId));
       
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        const propertyDoc = querySnapshot.docs[0];
-        setProperty(propertyDoc.data() as Property);
-      } else {
+      try {
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const propertyDoc = querySnapshot.docs[0];
+          setProperty(propertyDoc.data() as Property);
+        } else {
+          setProperty(null);
+        }
+      } catch (error) {
+        console.error("Error fetching property:", error);
         setProperty(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     findProperty();
