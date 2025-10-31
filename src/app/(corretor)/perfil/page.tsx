@@ -18,14 +18,16 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { setDoc, doc } from 'firebase/firestore';
-import { useEffect } from 'react';
+import { setDoc, doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
 import type { Agent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ImageUpload from '@/components/image-upload';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-
+import { setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { X, Plus } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, { message: 'O nome de exibição deve ter pelo menos 2 caracteres.' }),
@@ -45,7 +47,9 @@ export default function PerfilPage() {
     [firestore, user]
   );
   
-  const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
+  const { data: agentData, isLoading: isAgentLoading, mutate } = useDoc<Agent>(agentRef);
+
+  const [newCity, setNewCity] = useState('');
 
   const form = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
@@ -98,18 +102,30 @@ export default function PerfilPage() {
 
   const handleUploadComplete = (url: string) => {
     if (!agentRef) return;
-    
-    // Non-blocking update to Firestore
     setDocumentNonBlocking(agentRef, { photoUrl: url }, { merge: true });
-
-    // Optimistically update the form state to reflect the change instantly
     form.setValue('photoUrl', url);
-
     toast({
       title: 'Foto Atualizada!',
       description: 'Sua foto de perfil foi alterada.',
     });
   }
+
+  const handleAddCity = async () => {
+    if (!agentRef || !newCity.trim()) return;
+    if (agentData?.cities?.includes(newCity.trim())) {
+      toast({ title: "Cidade já existe", variant: "destructive" });
+      return;
+    }
+    updateDocumentNonBlocking(agentRef, { cities: arrayUnion(newCity.trim()) });
+    mutate(); // re-fetch data
+    setNewCity('');
+  };
+
+  const handleRemoveCity = async (cityToRemove: string) => {
+    if (!agentRef) return;
+    updateDocumentNonBlocking(agentRef, { cities: arrayRemove(cityToRemove) });
+     mutate(); // re-fetch data
+  };
 
   if (isAgentLoading) {
     return (
@@ -173,7 +189,6 @@ export default function PerfilPage() {
                 </FormItem>
               )}
             />
-
 
             <FormField
               control={form.control}
@@ -261,6 +276,33 @@ export default function PerfilPage() {
             </Button>
           </form>
         </Form>
+        <Separator className="my-8" />
+        <div>
+            <h3 className="text-xl font-bold font-headline mb-4">Minhas Cidades de Atuação</h3>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {agentData?.cities?.map((city) => (
+                <Badge key={city} variant="secondary" className="text-base py-1 pl-3 pr-2">
+                  {city}
+                  <button onClick={() => handleRemoveCity(city)} className="ml-2 rounded-full hover:bg-destructive/80 p-0.5">
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+               {agentData?.cities?.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma cidade adicionada ainda.</p>}
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={newCity}
+                onChange={(e) => setNewCity(e.target.value)}
+                placeholder="Ex: São Paulo"
+                onKeyDown={(e) => e.key === 'Enter' && handleAddCity()}
+              />
+              <Button onClick={handleAddCity}>
+                <Plus className="mr-2 h-4 w-4" /> Adicionar
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">Essas cidades aparecerão como opção ao cadastrar um novo imóvel.</p>
+        </div>
       </CardContent>
     </Card>
   );

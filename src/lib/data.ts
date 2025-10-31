@@ -12,10 +12,9 @@ export type Property = {
   totalArea: number;
   imageUrls: string[];
   city: string;
-  type: 'Apartamento' | 'Casa' | 'Terreno';
+  type: 'Apartamento' | 'Casa' | 'Chácara' | 'Galpão' | 'Sala' | 'Kitnet' | 'Terreno' | 'Lote' | 'Alto Padrão';
   operation: 'Venda' | 'Aluguel';
   featured: boolean;
-  address: string;
   agentId?: string; 
 };
 
@@ -28,6 +27,7 @@ export type Agent = {
     email: string;
     creci: string;
     photoUrl: string;
+    cities?: string[];
 }
 
 export type Review = {
@@ -56,7 +56,6 @@ const properties: Property[] = [
     type: 'Apartamento',
     operation: 'Venda',
     featured: true,
-    address: 'Avenida Paulista, 1578, Bela Vista, São Paulo - SP',
   },
   {
     id: '2',
@@ -74,7 +73,6 @@ const properties: Property[] = [
     type: 'Casa',
     operation: 'Venda',
     featured: true,
-    address: 'Rua das Orquídeas, 345, Bairro das Flores, Campinas - SP',
   },
 ];
 
@@ -102,3 +100,4 @@ const reviews: Review[] = [
 export const getReviews = () => reviews;
 export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Guarujá', 'Rio de Janeiro'];
 export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Terreno', 'Comercial'];
+

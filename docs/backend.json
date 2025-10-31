@@ -19,15 +19,14 @@
         "totalArea": { "type": "number", "description": "Total area in square meters." },
         "imageUrls": { "type": "array", "items": { "type": "string" }, "description": "Array of URLs for property images." },
         "city": { "type": "string", "description": "City where the property is located." },
-        "type": { "type": "string", "enum": ["Apartamento", "Casa", "Terreno"], "description": "Type of property." },
+        "type": { "type": "string", "enum": ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"], "description": "Type of property." },
         "operation": { "type": "string", "enum": ["Venda", "Aluguel"], "description": "Type of operation." },
         "featured": { "type": "boolean", "description": "Indicates if the property is featured." },
-        "address": { "type": "string", "description": "Full address of the property." },
         "agentId": { "type": "string", "description": "ID of the agent who listed the property." }
       },
       "required": [
         "id", "title", "description", "price", "bedrooms", "bathrooms", "garage", "rooms", 
-        "builtArea", "totalArea", "imageUrls", "city", "type", "operation", "featured", "address", "agentId"
+        "builtArea", "totalArea", "imageUrls", "city", "type", "operation", "featured", "agentId"
       ]
     },
     "Agent": {
@@ -43,7 +42,8 @@
         "description": { "type": "string", "description": "A public-facing description of the agent or agency." },
         "creci": { "type": "string", "description": "CRECI number of the agent." },
         "photoUrl": { "type": "string", "description": "URL of the agent's photo." },
-        "email": { "type": "string", "description": "Contact email for the agent." }
+        "email": { "type": "string", "description": "Contact email for the agent." },
+        "cities": { "type": "array", "items": { "type": "string" }, "description": "List of cities the agent operates in." }
       },
       "required": ["id", "displayName", "name", "accountType", "email"]
     },

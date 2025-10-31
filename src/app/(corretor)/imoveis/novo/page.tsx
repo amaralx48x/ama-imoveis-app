@@ -19,29 +19,27 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getPropertyCities, getPropertyTypes } from "@/lib/data";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "next/navigation";
-import { useFirestore, useUser } from "@/firebase";
+import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { collection } from "firebase/firestore";
+import { collection, doc } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 import ImageUpload from "@/components/image-upload";
 import { useState, useMemo } from "react";
 import Image from "next/image";
+import type { Agent } from "@/lib/data";
 
+
+const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
 
 const formSchema = z.object({
   title: z.string().min(5, "O título deve ter pelo menos 5 caracteres."),
   description: z.string().min(20, "A descrição deve ter pelo menos 20 caracteres."),
   city: z.string().min(1, "A cidade é obrigatória."),
-  address: z.string().min(5, "O endereço é obrigatório."),
-  type: z.enum(["Apartamento", "Casa", "Terreno"]),
+  type: z.enum(propertyTypes as [string, ...string[]]),
   operation: z.enum(["Venda", "Aluguel"]),
-  price: z.preprocess(
-    (a) => parseFloat(String(a).replace(/[^0-9,]/g, '').replace(',', '.')),
-    z.number().positive("O preço deve ser um número positivo.")
-  ),
+  price: z.number().positive("O preço deve ser um número positivo."),
   bedrooms: z.coerce.number().int().min(0),
   bathrooms: z.coerce.number().int().min(0),
   garage: z.coerce.number().int().min(0),
@@ -54,10 +52,11 @@ const formSchema = z.object({
 export default function NovoImovelPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const cities = getPropertyCities();
-  const types = getPropertyTypes();
   const firestore = useFirestore();
   const { user } = useUser();
+
+  const agentRef = useMemoFirebase(() => (firestore && user ? doc(firestore, 'agents', user.uid) : null), [firestore, user]);
+  const { data: agentData } = useDoc<Agent>(agentRef);
 
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const propertyId = useMemo(() => uuidv4(), []);
@@ -68,7 +67,6 @@ export default function NovoImovelPage() {
       title: "",
       description: "",
       city: "",
-      address: "",
       price: 0,
       bedrooms: 0,
       bathrooms: 0,
@@ -82,6 +80,23 @@ export default function NovoImovelPage() {
 
   const handleUploadComplete = (url: string) => {
     setImageUrls(prev => [...prev, url]);
+  }
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\D/g, '');
+    if (!rawValue) {
+      form.setValue('price', 0);
+      e.target.value = '';
+      return;
+    }
+    const numberValue = Number(rawValue) / 100;
+    form.setValue('price', numberValue);
+    
+    // Format for display
+    const formattedValue = new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+    }).format(numberValue);
+    e.target.value = formattedValue;
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -146,41 +161,6 @@ export default function NovoImovelPage() {
               )}
             />
 
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                    control={form.control}
-                    name="city"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Cidade</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                            <SelectTrigger><SelectValue placeholder="Selecione a cidade" /></SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            {cities.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>)}
-                        </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="address"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Endereço</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Ex: Rua das Flores, 123" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-             </div>
-
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                <FormField
                 control={form.control}
@@ -212,7 +192,7 @@ export default function NovoImovelPage() {
                         <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {types.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                        {propertyTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -221,24 +201,46 @@ export default function NovoImovelPage() {
               />
             </div>
             
-            <FormField
-              control={form.control}
-              name="price"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Preço (R$)</FormLabel>
-                  <FormControl>
-                    <Input type="text" placeholder="500.000,00" {...field} onChange={e => {
-                        const value = e.target.value.replace(/\D/g, '');
-                        const numberValue = Number(value) / 100;
-                        field.onChange(numberValue);
-                        e.target.value = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(numberValue).replace('R$', '').trim();
-                    }} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                    control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Cidade</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                            <SelectTrigger><SelectValue placeholder="Selecione a cidade de atuação" /></SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {agentData?.cities?.length ? 
+                                agentData.cities.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>) :
+                                <SelectItem value="none" disabled>Adicione cidades no seu perfil</SelectItem>
+                            }
+                        </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Preço (R$)</FormLabel>
+                        <FormControl>
+                            <Input 
+                            type="text" 
+                            placeholder="850.000,00" 
+                            onChange={handlePriceChange} 
+                            />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                <FormField control={form.control} name="bedrooms" render={({ field }) => (<FormItem><FormLabel>Quartos</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
@@ -274,6 +276,7 @@ export default function NovoImovelPage() {
                    agentId={user.uid}
                    propertyId={propertyId}
                    onUploadComplete={handleUploadComplete}
+                   multiple
                  />
                )}
                {imageUrls.length > 0 && (
