@@ -2,7 +2,7 @@
 'use client';
 import type { Review } from "@/lib/data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Star } from "lucide-react";
+import { Star, Smile } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -18,28 +17,41 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { useEffect, useState } from "react";
-import { Smile } from "lucide-react";
-
+import { useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
+import Image from "next/image";
 
 interface ClientReviewsProps {
   reviews: Review[];
+  agentId: string;
+  onReviewSubmitted: () => void;
 }
 
-export function ClientReviews({ reviews }: ClientReviewsProps) {
+export function ClientReviews({ reviews, agentId, onReviewSubmitted }: ClientReviewsProps) {
+  const clientAvatars = PlaceHolderImages.filter(img => img.id.startsWith('client-'));
+
+  const getAvatarForReview = (reviewId: string) => {
+    // Simple hash function to get a consistent avatar for a review
+    const hash = reviewId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return clientAvatars[hash % clientAvatars.length];
+  }
+
   return (
-    <div id="avaliacoes-lista">
-        <div className="mb-12">
-          <h2 className="text-4xl md:text-5xl font-extrabold font-headline">
-            O que nossos <span className="text-gradient">Clientes</span> dizem
-          </h2>
-          <p className="mt-4 text-lg text-muted-foreground max-w-2xl">
-            A satisfação dos nossos clientes é a nossa maior recompensa.
-          </p>
+    <div id="avaliacoes">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12">
+            <div className="mb-4 sm:mb-0">
+                <h2 className="text-4xl md:text-5xl font-extrabold font-headline">
+                    O que nossos <span className="text-gradient">Clientes</span> dizem
+                </h2>
+                <p className="mt-4 text-lg text-muted-foreground max-w-2xl">
+                    A satisfação dos nossos clientes é a nossa maior recompensa.
+                </p>
+            </div>
+            <ReviewFormDialog agentId={agentId} onReviewSubmitted={onReviewSubmitted} />
         </div>
 
         {reviews.length === 0 && (
@@ -53,50 +65,85 @@ export function ClientReviews({ reviews }: ClientReviewsProps) {
         )}
         
         <div className="space-y-6">
-          {reviews.map((review) => (
-            <Card key={review.id} className="bg-card border-border/50 flex flex-col">
-              <CardContent className="p-6">
-                <div className="flex text-yellow-400 mb-4">
-                  {[...Array(review.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-current" />
-                  ))}
-                  {[...Array(5 - review.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5" />
-                  ))}
-                </div>
-                {review.comment && <p className="text-muted-foreground italic">"{review.comment}"</p>}
-              </CardContent>
-              <CardHeader className="flex flex-row items-center gap-4 p-6 pt-0">
-                <div>
-                  <p className="font-semibold">{review.name}</p>
-                </div>
-              </CardHeader>
-            </Card>
-          ))}
+          {reviews.map((review) => {
+            const avatar = getAvatarForReview(review.id);
+            return (
+                <Card key={review.id} className="bg-card border-border/50 flex flex-col">
+                <CardContent className="p-6">
+                    <div className="flex text-yellow-400 mb-4">
+                    {[...Array(review.rating)].map((_, i) => (
+                        <Star key={i} className="w-5 h-5 fill-current" />
+                    ))}
+                    {[...Array(5 - review.rating)].map((_, i) => (
+                        <Star key={i} className="w-5 h-5" />
+                    ))}
+                    </div>
+                    {review.comment && <p className="text-muted-foreground italic">"{review.comment}"</p>}
+                </CardContent>
+                <CardHeader className="flex flex-row items-center gap-4 p-6 pt-0">
+                    {avatar && (
+                        <div className="relative h-12 w-12 rounded-full overflow-hidden">
+                             <Image src={avatar.imageUrl} alt={avatar.description} fill className="object-cover" />
+                        </div>
+                    )}
+                    <div>
+                    <p className="font-semibold">{review.name}</p>
+                    </div>
+                </CardHeader>
+                </Card>
+            )
+          })}
         </div>
     </div>
   );
 }
 
-
 const reviewFormSchema = z.object({
   name: z.string().min(2, { message: "O nome é obrigatório." }),
   email: z.string().email({ message: "Insira um e-mail válido." }).optional().or(z.literal('')),
-  rating: z.coerce.number().min(1).max(5),
+  rating: z.coerce.number().min(1, "A nota mínima é 1 estrela").max(5, "A nota máxima é 5 estrelas"),
   comment: z.string().optional(),
 });
 
-
-interface ReviewFormProps {
+interface ReviewFormDialogProps {
     agentId: string;
     onReviewSubmitted: () => void;
 }
 
-export function ReviewForm({ agentId, onReviewSubmitted }: ReviewFormProps) {
+function StarRating({ value, onChange }: { value: number, onChange: (value: number) => void }) {
+    const [hover, setHover] = useState(0);
+    return (
+        <div className="flex space-x-1">
+            {[...Array(5)].map((_, index) => {
+                const ratingValue = index + 1;
+                return (
+                    <label key={ratingValue} className="cursor-pointer">
+                        <input
+                            type="radio"
+                            name="rating"
+                            value={ratingValue}
+                            onClick={() => onChange(ratingValue)}
+                            className="hidden"
+                        />
+                        <Star
+                            className={`h-8 w-8 transition-colors ${
+                                ratingValue <= (hover || value) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                            }`}
+                            onMouseEnter={() => setHover(ratingValue)}
+                            onMouseLeave={() => setHover(0)}
+                        />
+                    </label>
+                );
+            })}
+        </div>
+    );
+}
+
+export function ReviewFormDialog({ agentId, onReviewSubmitted }: ReviewFormDialogProps) {
   const { toast } = useToast();
   const firestore = useFirestore();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'success'>('idle');
+  const [open, setOpen] = useState(false);
 
   const form = useForm<z.infer<typeof reviewFormSchema>>({
     resolver: zodResolver(reviewFormSchema),
@@ -123,7 +170,6 @@ export function ReviewForm({ agentId, onReviewSubmitted }: ReviewFormProps) {
     localStorage.setItem(`review_sent_${agentId}`, String(Date.now()));
   };
 
-
   async function onSubmit(values: z.infer<typeof reviewFormSchema>) {
     if (!firestore) {
       toast({ title: "Erro de conexão", variant: "destructive" });
@@ -149,7 +195,11 @@ export function ReviewForm({ agentId, onReviewSubmitted }: ReviewFormProps) {
         createdAt: serverTimestamp(),
       });
       markSent();
-      setSubmissionStatus('success');
+      toast({
+          title: "Obrigado!",
+          description: "Sua avaliação foi enviada e será exibida após aprovação."
+      })
+      setOpen(false); // Close dialog
       form.reset();
       onReviewSubmitted(); // Notify parent to reload reviews
     } catch (err) {
@@ -160,90 +210,71 @@ export function ReviewForm({ agentId, onReviewSubmitted }: ReviewFormProps) {
     }
   }
 
-  if (submissionStatus === 'success') {
-    return (
-      <Card className="sticky top-24">
-        <CardHeader>
-          <CardTitle>Obrigado!</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">Sua avaliação foi enviada e será exibida após a aprovação do corretor.</p>
-          <Button onClick={() => setSubmissionStatus('idle')} className="mt-4">Enviar outra avaliação</Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-
   return (
-    <Card className="sticky top-24">
-      <CardHeader>
-        <CardTitle>Deixe sua Avaliação</CardTitle>
-        <CardDescription>Compartilhe sua experiência para ajudar outros clientes.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-             <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Seu Nome</FormLabel>
-                  <FormControl><Input placeholder="Ex: João Silva" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="rating"
-              render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Nota</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
-                    <FormControl><SelectTrigger><SelectValue placeholder="Selecione uma nota" /></SelectTrigger></FormControl>
-                    <SelectContent>
-                        <SelectItem value="5">5 Estrelas — Excelente</SelectItem>
-                        <SelectItem value="4">4 Estrelas — Muito Bom</SelectItem>
-                        <SelectItem value="3">3 Estrelas — Bom</SelectItem>
-                        <SelectItem value="2">2 Estrelas — Regular</SelectItem>
-                        <SelectItem value="1">1 Estrela — Ruim</SelectItem>
-                    </SelectContent>
-                    </Select>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-             <FormField
-              control={form.control}
-              name="comment"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Comentário</FormLabel>
-                  <FormControl><Textarea placeholder="Descreva sua experiência..." {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Seu E-mail (Opcional)</FormLabel>
-                  <FormControl><Input placeholder="seu.email@exemplo.com" {...field} /></FormControl>
-                  <FormDescription className="text-xs">Seu e-mail não será exibido publicamente.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Enviando...' : 'Enviar Avaliação'}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+    <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+            <Button variant="outline">Deixar uma Avaliação</Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+                <DialogTitle>Deixe sua Avaliação</DialogTitle>
+                <DialogDescription>Compartilhe sua experiência para ajudar outros clientes.</DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="rating"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Nota</FormLabel>
+                                <FormControl>
+                                    <StarRating value={field.value} onChange={field.onChange} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Seu Nome</FormLabel>
+                            <FormControl><Input placeholder="Ex: João Silva" {...field} /></FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="comment"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Comentário (opcional)</FormLabel>
+                            <FormControl><Textarea placeholder="Descreva sua experiência..." {...field} /></FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Seu E-mail (Opcional)</FormLabel>
+                            <FormControl><Input placeholder="seu.email@exemplo.com" {...field} /></FormControl>
+                            <FormDescription className="text-xs">Seu e-mail não será exibido publicamente.</FormDescription>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ? 'Enviando...' : 'Enviar Avaliação'}
+                    </Button>
+                </form>
+            </Form>
+        </DialogContent>
+    </Dialog>
   );
 }

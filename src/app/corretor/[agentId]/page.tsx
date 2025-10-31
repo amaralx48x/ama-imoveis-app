@@ -1,7 +1,7 @@
 
 'use client';
 import { useState, useEffect } from 'react';
-import { doc, getDoc, collection, getDocs, Query, query, where, orderBy } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, Query, query, where, orderBy, limit } from 'firebase/firestore';
 import type { Agent, Property, Review } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { Header } from "@/components/layout/header";
@@ -10,7 +10,7 @@ import { Hero } from "@/components/hero";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FeaturedProperties } from '@/components/featured-properties';
 import { AgentProfile } from '@/components/agent-profile';
-import { ClientReviews, ReviewForm } from '@/components/client-reviews';
+import { ClientReviews } from '@/components/client-reviews';
 import { ContactForm } from '@/components/contact-form';
 import { useFirestore } from '@/firebase';
 import PropertyFilters from '@/components/property-filters';
@@ -33,7 +33,7 @@ export default function AgentPublicPage({ params }: Props) {
     const loadReviews = async () => {
       if (!firestore) return;
       const reviewsRef = collection(firestore, `agents/${agentId}/reviews`);
-      const q = query(reviewsRef, where('approved', '==', true), orderBy('createdAt', 'desc'));
+      const q = query(reviewsRef, where('approved', '==', true), orderBy('createdAt', 'desc'), limit(4));
       const reviewsSnap = await getDocs(q);
       setReviews(reviewsSnap.docs.map(doc => ({ ...(doc.data() as Omit<Review, 'id'>), id: doc.id })));
     };
@@ -61,12 +61,10 @@ export default function AgentPublicPage({ params }: Props) {
 
                 setAllProperties(props);
                 
-                // Fetch approved reviews
                 await loadReviews();
 
             } catch (error) {
                 console.error("Error fetching agent data on client:", error);
-                // Optionally handle error state in UI
             } finally {
                 setIsLoading(false);
             }
@@ -113,9 +111,8 @@ export default function AgentPublicPage({ params }: Props) {
                 )}
                 <AgentProfile agent={agent} />
                 {showReviews && (
-                  <div id="avaliacoes" className="container mx-auto px-4 py-16 sm:py-24 grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-                    <ClientReviews reviews={reviews} />
-                    <ReviewForm agentId={agentId} onReviewSubmitted={loadReviews} />
+                  <div className="container mx-auto px-4 py-16 sm:py-24">
+                    <ClientReviews reviews={reviews} agentId={agentId} onReviewSubmitted={loadReviews} />
                   </div>
                 )}
                 <ContactForm agentId={agent.id} />
