@@ -48,7 +48,7 @@ export default function PropertyFilters({ onFilter, cities, propertyTypes }: Pro
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 space-y-4">
+    <div className="bg-card rounded-xl shadow-lg p-6 space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Operation */}
         <Select name="operation" onValueChange={handleSelectChange('operation')}>
