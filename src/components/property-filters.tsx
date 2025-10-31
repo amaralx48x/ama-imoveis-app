@@ -8,14 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useRouter } from 'next/navigation';
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Label } from "./ui/label";
+import type { Agent } from "@/lib/data";
+import { getPropertyTypes } from "@/lib/data";
 
 interface PropertyFiltersProps {
-  onFilter: (filters: any) => void;
-  cities: string[];
-  propertyTypes: string[];
+  agent: Agent;
 }
 
-export default function PropertyFilters({ onFilter, cities, propertyTypes }: PropertyFiltersProps) {
+export default function PropertyFilters({ agent }: PropertyFiltersProps) {
   const [filters, setFilters] = useState({
     operation: "",
     city: "",
@@ -47,8 +47,11 @@ export default function PropertyFilters({ onFilter, cities, propertyTypes }: Pro
     router.push(`/search?${query.toString()}`);
   }
 
+  const cities = agent.cities || [];
+  const propertyTypes = getPropertyTypes();
+
   return (
-    <div className="bg-card rounded-xl shadow-lg p-6 space-y-4 border border-border/50">
+    <div className="bg-background/70 backdrop-blur-sm rounded-xl shadow-lg p-6 space-y-4 border border-border/50">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Operation */}
         <Select name="operation" onValueChange={handleSelectChange('operation')}>
