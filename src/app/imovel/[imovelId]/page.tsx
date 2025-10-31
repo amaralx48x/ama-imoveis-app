@@ -15,18 +15,18 @@ import type { Property } from "@/lib/data";
 import { Skeleton } from "@/components/ui/skeleton";
 
 
-export default function PropertyPage({ params }: { params: { imovelId: string } }) {
+export default function PropertyPage({ params: { imovelId } }: { params: { imovelId: string } }) {
   const firestore = useFirestore();
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!firestore || !params.imovelId) return;
+    if (!firestore || !imovelId) return;
 
     const findProperty = async () => {
       setLoading(true);
       const propertiesRef = collectionGroup(firestore, 'properties');
-      const q = query(propertiesRef, where('id', '==', params.imovelId));
+      const q = query(propertiesRef, where('id', '==', imovelId));
       
       try {
         const querySnapshot = await getDocs(q);
@@ -45,7 +45,7 @@ export default function PropertyPage({ params }: { params: { imovelId: string } 
     };
 
     findProperty();
-  }, [firestore, params.imovelId]);
+  }, [firestore, imovelId]);
 
 
   if (loading) {
