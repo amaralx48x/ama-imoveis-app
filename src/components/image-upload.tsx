@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { useFirebaseApp } from '@/firebase';
+import { useFirebaseApp, useUser } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -19,16 +19,30 @@ export default function ImageUpload({ agentId, propertyId, onUploadComplete }: P
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const firebaseApp = useFirebaseApp();
+  const { user } = useUser(); // Hook to get the authenticated user
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!file) {
+        toast({ title: "Nenhum arquivo selecionado", variant: "destructive" });
+        return;
+    }
+    if (!user) {
+        toast({ title: "Usuário não autenticado", description: "Faça login para enviar imagens.", variant: "destructive"});
+        return;
+    }
+    if (user.uid !== agentId) {
+        toast({ title: "Permissão Negada", description: "Você não tem permissão para fazer upload para este perfil.", variant: "destructive"});
+        return;
+    }
+
     setLoading(true);
     
     try {
       const storage = getStorage(firebaseApp);
 
+      // Path for profile picture (overwrite existing) or property picture (new file)
       const path = propertyId
-        ? `agents/${agentId}/properties/${propertyId}/${file.name}`
+        ? `agents/${agentId}/properties/${propertyId}/${Date.now()}_${file.name}`
         : `agents/${agentId}/profile.jpg`;
 
       const storageRef = ref(storage, path);
@@ -44,10 +58,12 @@ export default function ImageUpload({ agentId, propertyId, onUploadComplete }: P
       });
 
     } catch (err: any) {
-      console.error(err);
+      console.error("Firebase Storage Error:", err);
       toast({
         title: "Erro no Upload",
-        description: err.message || 'Não foi possível enviar a imagem. Verifique as permissões do Firebase Storage.',
+        description: err.code === 'storage/unauthorized' 
+            ? 'Permissão negada. Verifique as regras de segurança do Storage.'
+            : err.message,
         variant: 'destructive',
       });
     } finally {
@@ -57,7 +73,7 @@ export default function ImageUpload({ agentId, propertyId, onUploadComplete }: P
   };
 
   return (
-    <div className="flex flex-col gap-4 p-4 border rounded-lg max-w-sm">
+    <div className="flex flex-col gap-4 p-4 border rounded-lg max-w-sm bg-card/50">
       <Input 
         type="file" 
         accept="image/*" 
@@ -67,11 +83,12 @@ export default function ImageUpload({ agentId, propertyId, onUploadComplete }: P
        />
       <Button
         onClick={handleUpload}
-        disabled={!file || loading}
+        disabled={!file || loading || !user}
       >
         <Upload className="mr-2 h-4 w-4" />
         {loading ? 'Enviando...' : 'Enviar Imagem'}
       </Button>
+      {!user && <p className="text-xs text-destructive">Você precisa estar logado para fazer o upload.</p>}
     </div>
   );
 }

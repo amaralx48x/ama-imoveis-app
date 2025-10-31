@@ -17,13 +17,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { setDoc, doc } from 'firebase/firestore';
 import { useEffect } from 'react';
 import type { Agent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ImageUpload from '@/components/image-upload';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, { message: 'O nome de exibição deve ter pelo menos 2 caracteres.' }),
@@ -43,7 +45,7 @@ export default function PerfilPage() {
     [firestore, user]
   );
   
-  const { data: agentData, isLoading: isAgentLoading, mutate: revalidateAgent } = useDoc<Agent>(agentRef);
+  const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
 
   const form = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
@@ -97,14 +99,16 @@ export default function PerfilPage() {
   const handleUploadComplete = (url: string) => {
     if (!agentRef) return;
     
+    // Non-blocking update to Firestore
     setDocumentNonBlocking(agentRef, { photoUrl: url }, { merge: true });
+
+    // Optimistically update the form state to reflect the change instantly
+    form.setValue('photoUrl', url);
 
     toast({
       title: 'Foto Atualizada!',
-      description: 'Sua foto de perfil foi alterada com sucesso.',
+      description: 'Sua foto de perfil foi alterada.',
     });
-    revalidateAgent();
-    form.setValue('photoUrl', url);
   }
 
   if (isAgentLoading) {
