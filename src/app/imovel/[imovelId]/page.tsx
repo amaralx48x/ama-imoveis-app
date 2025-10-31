@@ -2,21 +2,9 @@ import { notFound } from 'next/navigation';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { PropertyView } from '@/components/imovel/PropertyView';
-import { getSdks } from '@/firebase'; // Using a server-compatible function
+import { getFirebaseServer } from '@/firebase/server-init'; // Import from the new server file
 import { doc, getDoc } from 'firebase/firestore';
-import { initializeApp, getApps } from 'firebase/app';
-import { firebaseConfig } from '@/firebase/config';
 import type { Property } from '@/lib/data';
-
-
-// Helper function to initialize Firebase admin-side without hooks
-function getFirebaseServer() {
-  if (getApps().length) {
-    return getSdks(getApps()[0]);
-  }
-  const app = initializeApp(firebaseConfig);
-  return getSdks(app);
-}
 
 // This is now a Server Component responsible for data fetching
 export default async function PropertyPage({
@@ -34,6 +22,7 @@ export default async function PropertyPage({
     notFound();
   }
 
+  // getFirebaseServer is now a pure server function
   const { firestore } = getFirebaseServer();
 
   const propertyRef = doc(firestore, `agents/${agentId}/properties`, imovelId);
@@ -43,7 +32,8 @@ export default async function PropertyPage({
     const propertySnap = await getDoc(propertyRef);
 
     if (propertySnap.exists()) {
-      property = { id: propertySnap.id, ...propertySnap.data() } as Property;
+      // Adding agentId to the property object for the client component
+      property = { id: propertySnap.id, ...propertySnap.data(), agentId } as Property;
     }
   } catch (error) {
     console.error("Error fetching property:", error);
