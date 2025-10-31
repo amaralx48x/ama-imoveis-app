@@ -92,6 +92,7 @@ export default function AgentPublicPage({ params }: Props) {
     const heroImage = PlaceHolderImages.find(img => img.id === 'hero-background');
     const featuredProperties = allProperties.filter(p => p.featured);
     const propertyTypes = getPropertyTypes();
+    const showReviews = agent.siteSettings?.showReviews ?? true;
 
     return (
         <>
@@ -107,7 +108,7 @@ export default function AgentPublicPage({ params }: Props) {
                     <FeaturedProperties properties={featuredProperties} agentId={agentId} />
                 )}
                 <AgentProfile agent={agent} />
-                <ClientReviews reviews={reviews} avatars={reviewAvatars} />
+                {showReviews && <ClientReviews reviews={reviews} avatars={reviewAvatars} />}
                 <ContactForm agentId={agent.id} />
             </main>
             <Footer />

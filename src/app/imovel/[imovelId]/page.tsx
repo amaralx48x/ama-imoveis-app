@@ -2,8 +2,8 @@
 'use client';
 
 import { getFirebaseServer } from '@/firebase/server-init';
-import { doc, getDoc } from 'firebase/firestore';
-import type { Property } from '@/lib/data';
+import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
+import type { Property, Agent } from '@/lib/data';
 import { notFound, useRouter } from 'next/navigation';
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -32,6 +32,7 @@ export default function PropertyPage({ params, searchParams }: Props) {
   const { imovelId } = params;
   const agentId = searchParams.agentId as string;
   const [propertyData, setPropertyData] = useState<Property | null>(null);
+  const [agentData, setAgentData] = useState<Agent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const firestore = useFirestore();
 
@@ -42,26 +43,39 @@ export default function PropertyPage({ params, searchParams }: Props) {
         return;
     }
 
-    const fetchProperty = async () => {
+    const fetchPropertyAndAgent = async () => {
         setIsLoading(true);
         try {
+            const agentRef = doc(firestore, 'agents', agentId);
             const propertyRef = doc(firestore, `agents/${agentId}/properties`, imovelId);
-            const docSnap = await getDoc(propertyRef);
+            
+            const [agentSnap, propertySnap] = await Promise.all([
+              getDoc(agentRef),
+              getDoc(propertyRef)
+            ]);
 
-            if (docSnap.exists()) {
-                setPropertyData({ id: docSnap.id, ...(docSnap.data() as Omit<Property, 'id'>), agentId: agentId });
+            if (propertySnap.exists()) {
+                setPropertyData({ id: propertySnap.id, ...(propertySnap.data() as Omit<Property, 'id'>), agentId: agentId });
             } else {
                 setPropertyData(null);
             }
+
+            if (agentSnap.exists()) {
+                setAgentData({ id: agentSnap.id, ...(agentSnap.data() as Omit<Agent, 'id'>) });
+            } else {
+                setAgentData(null);
+            }
+
         } catch (error) {
-            console.error("Erro ao buscar imóvel:", error);
+            console.error("Erro ao buscar imóvel e corretor:", error);
             setPropertyData(null);
+            setAgentData(null);
         } finally {
             setIsLoading(false);
         }
     };
     
-    fetchProperty();
+    fetchPropertyAndAgent();
 
   }, [firestore, agentId, imovelId]);
 
@@ -79,7 +93,7 @@ export default function PropertyPage({ params, searchParams }: Props) {
     );
   }
 
-  if (!propertyData) {
+  if (!propertyData || !agentData) {
     notFound();
   }
 
@@ -88,7 +102,7 @@ export default function PropertyPage({ params, searchParams }: Props) {
       <Header />
       <main className="min-h-[calc(100vh-theme(spacing.14)-theme(spacing.32))] container mx-auto px-4 py-8">
         <BackButton />
-        <PropertyView property={propertyData} />
+        <PropertyView property={propertyData} agent={agentData} />
       </main>
       <Footer />
     </>

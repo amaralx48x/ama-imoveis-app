@@ -45,7 +45,15 @@
         "creci": { "type": "string", "description": "CRECI number of the agent." },
         "photoUrl": { "type": "string", "description": "URL of the agent's photo." },
         "email": { "type": "string", "description": "Contact email for the agent." },
-        "cities": { "type": "array", "items": { "type": "string" }, "description": "List of cities the agent operates in." }
+        "cities": { "type": "array", "items": { "type": "string" }, "description": "List of cities the agent operates in." },
+        "siteSettings": {
+          "type": "object",
+          "description": "Settings to control the visibility of sections on the public site.",
+          "properties": {
+            "showFinancing": { "type": "boolean", "description": "Show or hide the financing simulation button." },
+            "showReviews": { "type": "boolean", "description": "Show or hide the client reviews section." }
+          }
+        }
       },
       "required": ["id", "displayName", "name", "accountType", "email"]
     },

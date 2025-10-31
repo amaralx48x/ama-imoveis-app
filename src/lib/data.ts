@@ -20,6 +20,11 @@ export type Property = {
   createdAt?: string;
 };
 
+export type SiteSettings = {
+    showFinancing?: boolean;
+    showReviews?: boolean;
+}
+
 export type Agent = {
     id: string;
     displayName: string;
@@ -30,6 +35,7 @@ export type Agent = {
     creci: string;
     photoUrl: string;
     cities?: string[];
+    siteSettings?: SiteSettings;
 }
 
 export type Review = {

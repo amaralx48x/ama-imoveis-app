@@ -1,8 +1,7 @@
 
-
 'use client';
 
-import type { Property } from "@/lib/data";
+import type { Property, Agent } from "@/lib/data";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Image from "next/image";
@@ -26,9 +25,10 @@ const XIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 interface PropertyViewProps {
     property: Property;
+    agent: Agent;
 }
 
-export function PropertyView({ property }: PropertyViewProps) {
+export function PropertyView({ property, agent }: PropertyViewProps) {
 
     const isValidUrl = (url: string | undefined): boolean => {
         return !!url && (url.startsWith('http://') || url.startsWith('https://'));
@@ -44,6 +44,8 @@ export function PropertyView({ property }: PropertyViewProps) {
 
     const iptu = property.price * 0.0006; // Example: 0.06% of property value
     const totalPrice = property.operation === 'Alugar' ? property.price + iptu : property.price;
+
+    const showFinancingButton = agent.siteSettings?.showFinancing ?? true;
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -169,11 +171,14 @@ export function PropertyView({ property }: PropertyViewProps) {
                         </Button>
 
                         <Separator className="my-4"/>
+                        
+                        {showFinancingButton && (
+                            <Button className="w-full" size="lg" variant="outline">
+                                <Search className="mr-2"/>
+                                Simule o Financiamento
+                            </Button>
+                        )}
 
-                         <Button className="w-full" size="lg" variant="outline">
-                            <Search className="mr-2"/>
-                            Simule o Financiamento
-                        </Button>
 
                         <div className="text-center pt-4">
                             <p className="text-sm font-semibold mb-3">COMPARTILHAR</p>

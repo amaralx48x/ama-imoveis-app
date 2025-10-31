@@ -40,9 +40,7 @@ export default function CorretorLayout({
     { href: '/inbox', label: 'Caixa de Entrada', icon: Mail },
     { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' },
     { href: '/avaliacoes', label: 'Avaliações', icon: Star },
-    { href: '/configuracoes/comissoes', label: 'Comissões', icon: BarChart },
     { href: '/configuracoes/aparencia', label: 'Aparência', icon: Palette },
-    { href: '/configuracoes/documentos', label: 'Documentos', icon: FileText },
   ];
   
   if (isUserLoading || !user) {
@@ -70,7 +68,7 @@ export default function CorretorLayout({
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === item.href || (item.href.startsWith('/imoveis') && pathname.startsWith('/imoveis'))}
+                  isActive={pathname === item.href || (item.href.startsWith('/imoveis') && pathname.startsWith('/imoveis')) || (item.href.startsWith('/configuracoes') && pathname.startsWith('/configuracoes'))}
                   tooltip={{
                     children: item.label,
                   }}
