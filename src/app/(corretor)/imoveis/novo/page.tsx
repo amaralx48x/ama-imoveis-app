@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -21,12 +21,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getPropertyCities, getPropertyTypes } from "@/lib/data";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useAuth, useFirestore, useUser, useMemoFirebase } from "@/firebase";
+import { useFirestore, useUser } from "@/firebase";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { collection } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
+import ImageUpload from "@/components/image-upload";
+import { useState, useMemo } from "react";
+import Image from "next/image";
 
 
 const formSchema = z.object({
@@ -46,7 +48,6 @@ const formSchema = z.object({
   rooms: z.coerce.number().int().min(0),
   builtArea: z.coerce.number().positive("A área construída deve ser positiva."),
   totalArea: z.coerce.number().positive("A área total deve ser positiva."),
-  images: z.array(z.object({ url: z.string().url("URL da imagem inválida.").or(z.literal('')) })).optional(),
   featured: z.boolean().default(false),
 });
 
@@ -57,6 +58,9 @@ export default function NovoImovelPage() {
   const types = getPropertyTypes();
   const firestore = useFirestore();
   const { user } = useUser();
+
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const propertyId = useMemo(() => uuidv4(), []);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -72,15 +76,13 @@ export default function NovoImovelPage() {
       rooms: 0,
       builtArea: 0,
       totalArea: 0,
-      images: [],
       featured: false,
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "images",
-  });
+  const handleUploadComplete = (url: string) => {
+    setImageUrls(prev => [...prev, url]);
+  }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!firestore || !user) {
@@ -91,12 +93,14 @@ export default function NovoImovelPage() {
         });
         return;
     }
-
-    const propertyId = uuidv4();
-    const imageUrls = values.images?.map(img => img.url).filter(url => url) || [];
     
     if (imageUrls.length === 0) {
-      imageUrls.push('property-1-1'); // Default image
+      toast({
+        title: "Nenhuma imagem enviada",
+        description: "Por favor, adicione pelo menos uma imagem para o imóvel.",
+        variant: "destructive"
+      });
+      return;
     }
 
     const newProperty = {
@@ -262,40 +266,26 @@ export default function NovoImovelPage() {
               )}
             />
             
-            <div>
+            <FormItem>
               <FormLabel>Imagens do Imóvel</FormLabel>
-              <FormDescription>Adicione URLs para as imagens. A primeira será a imagem de capa. (Opcional para teste)</FormDescription>
-              <div className="space-y-4 mt-2">
-                {fields.map((field, index) => (
-                  <div key={field.id} className="flex items-center gap-2">
-                     <FormField
-                        control={form.control}
-                        name={`images.${index}.url`}
-                        render={({ field }) => (
-                            <FormItem className="flex-grow">
-                            <FormControl>
-                                <Input placeholder="https://exemplo.com/imagem.jpg" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                    <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
-                      <Trash className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => append({ url: "" })}
-                >
-                  Adicionar URL de Imagem
-                </Button>
-                <FormMessage>{form.formState.errors.images?.message}</FormMessage>
-              </div>
-            </div>
+              <FormDescription>Envie as fotos do seu imóvel. A primeira será a imagem de capa.</FormDescription>
+               {user && (
+                 <ImageUpload
+                   agentId={user.uid}
+                   propertyId={propertyId}
+                   onUploadComplete={handleUploadComplete}
+                 />
+               )}
+               {imageUrls.length > 0 && (
+                <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                  {imageUrls.map((url, index) => (
+                    <div key={index} className="relative aspect-square rounded-md overflow-hidden">
+                      <Image src={url} alt={`Imagem do imóvel ${index + 1}`} fill className="object-cover" />
+                    </div>
+                  ))}
+                </div>
+               )}
+            </FormItem>
 
              <FormField
                 control={form.control}
@@ -329,3 +319,5 @@ export default function NovoImovelPage() {
     </Card>
   );
 }
+
+    
