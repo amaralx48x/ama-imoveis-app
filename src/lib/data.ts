@@ -1,3 +1,4 @@
+
 export type Property = {
   id: string;
   title: string;
@@ -9,14 +10,13 @@ export type Property = {
   rooms: number;
   builtArea: number;
   totalArea: number;
-  images: string[];
-  imageUrls: string[]; // Added this
+  imageUrls: string[];
   city: string;
   type: 'Apartamento' | 'Casa' | 'Terreno';
   operation: 'Venda' | 'Aluguel';
   featured: boolean;
   address: string;
-  agentId?: string; // Added this
+  agentId?: string; 
 };
 
 export type Agent = {
@@ -51,7 +51,6 @@ const properties: Property[] = [
     rooms: 7,
     builtArea: 150,
     totalArea: 150,
-    images: ['property-1-1', 'property-1-2', 'property-1-3'],
     imageUrls: ['property-1-1', 'property-1-2', 'property-1-3'],
     city: 'São Paulo',
     type: 'Apartamento',
@@ -70,7 +69,6 @@ const properties: Property[] = [
     rooms: 9,
     builtArea: 250,
     totalArea: 400,
-    images: ['property-2-1', 'property-2-2'],
     imageUrls: ['property-2-1', 'property-2-2'],
     city: 'Campinas',
     type: 'Casa',
@@ -102,5 +100,5 @@ const reviews: Review[] = [
 ];
 
 export const getReviews = () => reviews;
-export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba'];
-export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Terreno'];
+export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Guarujá', 'Rio de Janeiro'];
+export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Terreno', 'Comercial'];

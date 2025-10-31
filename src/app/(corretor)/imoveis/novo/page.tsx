@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm, useFieldArray } from "react-hook-form";
@@ -32,6 +33,7 @@ const formSchema = z.object({
   title: z.string().min(5, "O título deve ter pelo menos 5 caracteres."),
   description: z.string().min(20, "A descrição deve ter pelo menos 20 caracteres."),
   city: z.string().min(1, "A cidade é obrigatória."),
+  address: z.string().min(5, "O endereço é obrigatório."),
   type: z.enum(["Apartamento", "Casa", "Terreno"]),
   operation: z.enum(["Venda", "Aluguel"]),
   price: z.preprocess(
@@ -62,6 +64,7 @@ export default function NovoImovelPage() {
       title: "",
       description: "",
       city: "",
+      address: "",
       price: 0,
       bedrooms: 0,
       bathrooms: 0,
@@ -101,8 +104,6 @@ export default function NovoImovelPage() {
       id: propertyId,
       agentId: user.uid,
       imageUrls: imageUrls,
-      // Dummies for missing fields in form
-      address: `${values.city}`,
       area: values.totalArea,
       propertyType: values.type,
       operationType: values.operation
@@ -127,7 +128,6 @@ export default function NovoImovelPage() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            {/* Título */}
             <FormField
               control={form.control}
               name="title"
@@ -142,8 +142,42 @@ export default function NovoImovelPage() {
               )}
             />
 
-            {/* Operação, Cidade, Tipo */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                    control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Cidade</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                            <SelectTrigger><SelectValue placeholder="Selecione a cidade" /></SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {cities.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>)}
+                        </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Endereço</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Ex: Rua das Flores, 123" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+             </div>
+
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                <FormField
                 control={form.control}
                 name="operation"
@@ -157,24 +191,6 @@ export default function NovoImovelPage() {
                       <SelectContent>
                         <SelectItem value="Venda">Venda</SelectItem>
                         <SelectItem value="Aluguel">Aluguel</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="city"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cidade</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger><SelectValue placeholder="Selecione a cidade" /></SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {cities.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>)}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -201,7 +217,6 @@ export default function NovoImovelPage() {
               />
             </div>
             
-            {/* Preço */}
             <FormField
               control={form.control}
               name="price"
@@ -221,7 +236,6 @@ export default function NovoImovelPage() {
               )}
             />
 
-            {/* Quartos, Banheiros, Garagem, Cômodos */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                <FormField control={form.control} name="bedrooms" render={({ field }) => (<FormItem><FormLabel>Quartos</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                <FormField control={form.control} name="bathrooms" render={({ field }) => (<FormItem><FormLabel>Banheiros</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
@@ -229,13 +243,11 @@ export default function NovoImovelPage() {
                <FormField control={form.control} name="rooms" render={({ field }) => (<FormItem><FormLabel>Cômodos</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
             </div>
 
-            {/* Área Construída, Área Total */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField control={form.control} name="builtArea" render={({ field }) => (<FormItem><FormLabel>Área Construída (m²)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                 <FormField control={form.control} name="totalArea" render={({ field }) => (<FormItem><FormLabel>Área Total (m²)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
             </div>
             
-            {/* Descrição */}
             <FormField
               control={form.control}
               name="description"
@@ -250,7 +262,6 @@ export default function NovoImovelPage() {
               )}
             />
             
-            {/* Imagens */}
             <div>
               <FormLabel>Imagens do Imóvel</FormLabel>
               <FormDescription>Adicione URLs para as imagens. A primeira será a imagem de capa. (Opcional para teste)</FormDescription>
@@ -286,7 +297,6 @@ export default function NovoImovelPage() {
               </div>
             </div>
 
-             {/* Destaque */}
              <FormField
                 control={form.control}
                 name="featured"

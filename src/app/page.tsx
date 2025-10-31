@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AgentProfile } from "@/components/agent-profile";
@@ -11,26 +12,30 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import type { Property } from '@/lib/data';
-import { collection } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { Skeleton }from "@/components/ui/skeleton";
 
 export default function Home() {
   const firestore = useFirestore();
-  const { user } = useUser();
+  // In a multi-tenant app, you would get agentId from domain/subdomain, not logged-in user.
+  // This is a simplified approach for the MVP.
+  const { user } = useUser(); 
   
   const propertiesCollection = useMemoFirebase(() => {
-      if (!firestore || !user) return null;
+      // For the public site, we might want to query all properties or by a specific public agent ID.
+      // For this MVP, we link it to the logged-in user to demonstrate multi-tenancy concept.
+      if (!firestore || !user) return null; 
+      // This will show properties of the logged-in agent on the homepage.
       return collection(firestore, `agents/${user.uid}/properties`);
   }, [firestore, user]);
 
   const { data: properties, isLoading } = useCollection<Property>(propertiesCollection);
   
   const featuredProperties = properties?.filter(p => p.featured) || [];
-
   const reviews = getReviews();
 
   const propertyImages = featuredProperties.map(p => {
-    const imageId = p.imageUrls && p.imageUrls.length > 0 ? p.imageUrls[0] : p.images?.[0];
+    const imageId = p.imageUrls && p.imageUrls.length > 0 ? p.imageUrls[0] : 'property-1-1';
     const image = PlaceHolderImages.find(img => img.id === imageId);
     return image || PlaceHolderImages[0];
   });
@@ -50,6 +55,10 @@ export default function Home() {
         <Hero heroImage={heroImage} />
         {isLoading ? (
            <div className="container mx-auto px-4 py-16 sm:py-24">
+              <div className="text-center mb-12">
+                <Skeleton className="h-12 w-1/2 mx-auto" />
+                <Skeleton className="h-6 w-3/4 mx-auto mt-4" />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {[...Array(3)].map((_, i) => (
                   <div key={i} className="flex flex-col space-y-3">

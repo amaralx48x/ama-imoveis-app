@@ -1,3 +1,4 @@
+
 'use client';
 import { notFound } from "next/navigation";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -68,7 +69,7 @@ export default function PropertyPage({ params }: { params: { imovelId: string } 
     notFound();
   }
 
-  const propertyImages = (property.imageUrls || property.images)
+  const propertyImages = (property.imageUrls || [])
     .map(id => PlaceHolderImages.find(img => img.id === id))
     .filter((img): img is NonNullable<typeof img> => img !== undefined);
   

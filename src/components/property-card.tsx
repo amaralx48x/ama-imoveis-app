@@ -1,3 +1,4 @@
+
 import type { Property } from "@/lib/data";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import Image from "next/image";

@@ -1,3 +1,4 @@
+
 'use client';
 import React from 'react';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ export default function ImoveisPage() {
     const { data: properties, isLoading, error } = useCollection<Property>(propertiesCollection);
     
     const propertyImages = (p: Property) => {
-      const imageId = p.imageUrls && p.imageUrls.length > 0 ? p.imageUrls[0] : p.images?.[0];
+      const imageId = p.imageUrls && p.imageUrls.length > 0 ? p.imageUrls[0] : 'property-1-1';
       return PlaceHolderImages.find(img => img.id === imageId) || PlaceHolderImages[0];
     }
 
