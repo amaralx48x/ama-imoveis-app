@@ -16,17 +16,26 @@ export default async function PropertyPage({ params, searchParams }: Props) {
   const { imovelId } = params;
   const agentId = searchParams.agentId as string;
 
+  if (!agentId || !imovelId) {
+    notFound();
+  }
+  
   const { firestore } = getFirebaseServer();
   let propertyData: Property | null = null;
 
-  if (agentId && imovelId) {
+  try {
     const propertyRef = doc(firestore, `agents/${agentId}/properties`, imovelId);
     const docSnap = await getDoc(propertyRef);
 
     if (docSnap.exists()) {
       propertyData = { id: docSnap.id, ...(docSnap.data() as Omit<Property, 'id'>), agentId: agentId };
     }
+  } catch (error) {
+    console.error("Erro ao buscar imóvel:", error);
+    // Em caso de erro na busca, podemos optar por mostrar 'não encontrado' também.
+    notFound();
   }
+
 
   if (!propertyData) {
     notFound();
