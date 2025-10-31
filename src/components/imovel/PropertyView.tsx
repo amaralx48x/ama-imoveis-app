@@ -6,10 +6,11 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { BedDouble, Bath, Ruler, MapPin, Car, Home, Phone, Mail, Share2, Printer, MessageCircle, CalendarPlus, Search } from "lucide-react";
+import { BedDouble, Bath, Ruler, MapPin, Car, Home, Phone, Mail, Share2, Printer, MessageCircle, CalendarPlus, Search, Link as LinkIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
 
 // Simple inline SVG for WhatsApp and Facebook as they are not in lucide-react
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -46,6 +47,8 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
     const totalPrice = property.operation === 'Alugar' ? property.price + iptu : property.price;
 
     const showFinancingButton = agent.siteSettings?.showFinancing ?? true;
+    const financingLink = agent.siteSettings?.financingLink;
+    const isFinancingButtonActionable = showFinancingButton && financingLink && isValidUrl(financingLink);
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -173,9 +176,11 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                         <Separator className="my-4"/>
                         
                         {showFinancingButton && (
-                            <Button className="w-full" size="lg" variant="outline">
-                                <Search className="mr-2"/>
-                                Simule o Financiamento
+                             <Button asChild className="w-full" size="lg" variant="outline" disabled={!isFinancingButtonActionable}>
+                                <Link href={financingLink || '#'} target="_blank" rel="noopener noreferrer">
+                                    <LinkIcon className="mr-2"/>
+                                    Simule o Financiamento
+                                </Link>
                             </Button>
                         )}
 

@@ -1,0 +1,100 @@
+
+{
+  "entities": {
+    "Property": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Property",
+      "type": "object",
+      "description": "Represents a property listing.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the property." },
+        "title": { "type": "string", "description": "Title of the property listing." },
+        "description": { "type": "string", "description": "Detailed description of the property." },
+        "price": { "type": "number", "description": "Price of the property." },
+        "bedrooms": { "type": "number", "description": "Number of bedrooms." },
+        "bathrooms": { "type": "number", "description": "Number of bathrooms." },
+        "garage": { "type": "number", "description": "Number of garage spaces." },
+        "rooms": { "type": "number", "description": "Total number of rooms." },
+        "builtArea": { "type": "number", "description": "Built area in square meters." },
+        "totalArea": { "type": "number", "description": "Total area in square meters." },
+        "imageUrls": { "type": "array", "items": { "type": "string" }, "description": "Array of URLs for property images." },
+        "city": { "type": "string", "description": "City where the property is located." },
+        "neighborhood": { "type": "string", "description": "Neighborhood where the property is located." },
+        "type": { "type": "string", "enum": ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"], "description": "Type of property." },
+        "operation": { "type": "string", "enum": ["Venda", "Aluguel"], "description": "Type of operation." },
+        "featured": { "type": "boolean", "description": "Indicates if the property is featured." },
+        "agentId": { "type": "string", "description": "ID of the agent who listed the property." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was created." }
+      },
+      "required": [
+        "id", "title", "description", "price", "bedrooms", "bathrooms", "garage", "rooms", 
+        "builtArea", "totalArea", "imageUrls", "city", "neighborhood", "type", "operation", "featured", "agentId", "createdAt"
+      ]
+    },
+    "Agent": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Agent",
+      "type": "object",
+      "description": "Represents a real estate agent or agency.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the agent, usually from Firebase Auth UID." },
+        "displayName": { "type": "string", "description": "The full name of the agent for display in the dashboard." },
+        "name": { "type": "string", "description": "Name of the agent's site or agency name." },
+        "accountType": { "type": "string", "enum": ["corretor", "imobiliaria"], "description": "The type of account, either an individual agent or an agency." },
+        "description": { "type": "string", "description": "A public-facing description of the agent or agency." },
+        "creci": { "type": "string", "description": "CRECI number of the agent." },
+        "photoUrl": { "type": "string", "description": "URL of the agent's photo." },
+        "email": { "type": "string", "description": "Contact email for the agent." },
+        "cities": { "type": "array", "items": { "type": "string" }, "description": "List of cities the agent operates in." },
+        "siteSettings": {
+          "type": "object",
+          "description": "Settings to control the visibility of sections on the public site.",
+          "properties": {
+            "showFinancing": { "type": "boolean", "description": "Show or hide the financing simulation button." },
+            "financingLink": { "type": "string", "description": "Custom URL for the financing button." },
+            "showReviews": { "type": "boolean", "description": "Show or hide the client reviews section." }
+          }
+        }
+      },
+      "required": ["id", "displayName", "name", "accountType", "email"]
+    },
+    "Lead": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Lead",
+      "type": "object",
+      "description": "Represents a lead from a contact form.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "message": { "type": "string" },
+        "propertyId": { "type": "string", "description": "Optional ID of the property the lead is interested in." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "email", "message", "createdAt"]
+    }
+  },
+  "auth": {
+    "providers": ["password", "anonymous"]
+  },
+  "firestore": {
+    "collections": [
+      {
+        "path": "/agents/{agentId}",
+        "schema": { "$ref": "#/entities/Agent" },
+        "description": "Stores agent profile information. The document ID is the agent's Firebase Auth UID."
+      },
+      {
+        "path": "/agents/{agentId}/properties/{propertyId}",
+        "schema": { "$ref": "#/entities/Property" },
+        "description": "Stores properties listed by a specific agent. The `agentId` in the path ensures data ownership and simplifies security rules."
+      },
+      {
+        "path": "/leads/{leadId}",
+        "schema": { "$ref": "#/entities/Lead" },
+        "description": "Stores leads generated from the contact forms on the website."
+      }
+    ]
+  }
+}

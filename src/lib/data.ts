@@ -22,6 +22,7 @@ export type Property = {
 
 export type SiteSettings = {
     showFinancing?: boolean;
+    financingLink?: string;
     showReviews?: boolean;
 }
 

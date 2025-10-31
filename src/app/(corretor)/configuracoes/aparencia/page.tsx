@@ -10,10 +10,32 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { Palette } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { useState, useEffect, useCallback } from 'react';
 
-function SettingToggle({ id, label, description, isChecked, onCheckedChange, isLoading }: { id: string, label: string, description: string, isChecked: boolean, onCheckedChange: (checked: boolean) => void, isLoading: boolean }) {
+function SettingToggle({ 
+    id, 
+    label, 
+    description, 
+    isChecked, 
+    onCheckedChange, 
+    isLoading,
+    linkValue,
+    onLinkChange,
+    linkPlaceholder
+}: { 
+    id: string, 
+    label: string, 
+    description: string, 
+    isChecked: boolean, 
+    onCheckedChange: (checked: boolean) => void, 
+    isLoading: boolean,
+    linkValue?: string,
+    onLinkChange?: (e: React.ChangeEvent<HTMLInputElement>) => void,
+    linkPlaceholder?: string
+}) {
     if (isLoading) {
         return (
             <div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
@@ -27,19 +49,36 @@ function SettingToggle({ id, label, description, isChecked, onCheckedChange, isL
     }
     
     return (
-        <div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
-            <div className="flex flex-col space-y-1.5">
-                <Label htmlFor={id} className="text-base font-medium">{label}</Label>
-                <p id={`${id}-description`} className="text-sm text-muted-foreground">
-                    {description}
-                </p>
+        <div className="rounded-lg border p-4 space-y-4">
+            <div className="flex items-center justify-between space-x-2">
+                <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor={id} className="text-base font-medium">{label}</Label>
+                    <p id={`${id}-description`} className="text-sm text-muted-foreground">
+                        {description}
+                    </p>
+                </div>
+                <Switch
+                    id={id}
+                    checked={isChecked}
+                    onCheckedChange={onCheckedChange}
+                    aria-describedby={`${id}-description`}
+                />
             </div>
-            <Switch
-                id={id}
-                checked={isChecked}
-                onCheckedChange={onCheckedChange}
-                aria-describedby={`${id}-description`}
-            />
+            {onLinkChange && (
+                 <div className="space-y-2">
+                    <Label htmlFor={`${id}-link`} className="text-sm font-medium">Link Personalizado</Label>
+                    <Input
+                        id={`${id}-link`}
+                        type="url"
+                        placeholder={linkPlaceholder || "https://seu-link.com"}
+                        value={linkValue}
+                        onChange={onLinkChange}
+                        disabled={!isChecked}
+                        className="text-sm"
+                    />
+                     <p className="text-xs text-muted-foreground">Insira o link completo (ex: WhatsApp, página de financiamento, etc).</p>
+                </div>
+            )}
         </div>
     )
 }
@@ -55,8 +94,15 @@ export default function AparênciaPage() {
     );
 
     const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
+    const [financingLink, setFinancingLink] = useState(agentData?.siteSettings?.financingLink || '');
 
-    const handleSettingChange = (key: string) => (value: boolean) => {
+     useEffect(() => {
+        if (agentData?.siteSettings?.financingLink) {
+            setFinancingLink(agentData.siteSettings.financingLink);
+        }
+    }, [agentData]);
+
+    const handleSettingChange = (key: string) => (value: boolean | string) => {
         if (!agentRef) return;
         
         const updatePath = `siteSettings.${key}`;
@@ -68,12 +114,17 @@ export default function AparênciaPage() {
         });
     };
 
+    const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFinancingLink(e.target.value);
+        handleSettingChange('financingLink')(e.target.value);
+    }
+
     const siteSettings = agentData?.siteSettings;
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2"><Palette/> Aparência do Site</CardTitle>
+                <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2"><SlidersHorizontal/> Controle de Exibição</CardTitle>
                 <CardDescription>
                     Controle quais seções e elementos aparecem no seu site público. As alterações são salvas automaticamente.
                 </CardDescription>
@@ -85,10 +136,13 @@ export default function AparênciaPage() {
                         <SettingToggle
                             id="showFinancing"
                             label="Botão 'Simular Financiamento'"
-                            description="Exibe um botão na página de detalhes do imóvel para simular o financiamento."
+                            description="Exibe um botão na página de detalhes do imóvel para uma ação personalizada."
                             isChecked={siteSettings?.showFinancing ?? true}
                             onCheckedChange={handleSettingChange('showFinancing')}
                             isLoading={isAgentLoading}
+                            linkValue={financingLink}
+                            onLinkChange={handleLinkChange}
+                            linkPlaceholder="https://wa.me/5511999999999"
                         />
                     </div>
                 </div>
