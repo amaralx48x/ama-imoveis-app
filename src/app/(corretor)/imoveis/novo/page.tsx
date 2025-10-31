@@ -23,12 +23,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "next/navigation";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { collection, doc } from "firebase/firestore";
+import { doc } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 import ImageUpload from "@/components/image-upload";
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import type { Agent } from "@/lib/data";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 
 const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
@@ -139,201 +141,209 @@ export default function NovoImovelPage() {
   }
 
   return (
-    <Card className="max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-3xl font-bold font-headline">Adicionar Novo Imóvel</CardTitle>
-        <CardDescription>Preencha os detalhes abaixo para cadastrar um novo imóvel no seu portfólio.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Título do Anúncio</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Casa Espaçosa com 3 Quartos em..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+    <div className="space-y-4">
+        <Button variant="outline" asChild>
+            <Link href="/imoveis">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar para Meus Imóveis
+            </Link>
+        </Button>
+        <Card className="max-w-4xl mx-auto">
+        <CardHeader>
+            <CardTitle className="text-3xl font-bold font-headline">Adicionar Novo Imóvel</CardTitle>
+            <CardDescription>Preencha os detalhes abaixo para cadastrar um novo imóvel no seu portfólio.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Título do Anúncio</FormLabel>
+                    <FormControl>
+                        <Input placeholder="Ex: Casa Espaçosa com 3 Quartos em..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <FormField
-                control={form.control}
-                name="operation"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Operação</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger><SelectValue placeholder="Comprar ou Alugar" /></SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Comprar">Comprar</SelectItem>
-                        <SelectItem value="Alugar">Alugar</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tipo de Imóvel</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {propertyTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                     control={form.control}
-                    name="city"
+                    name="operation"
                     render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Cidade</FormLabel>
+                        <FormLabel>Operação</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                            <SelectTrigger><SelectValue placeholder="Selecione a cidade de atuação" /></SelectTrigger>
+                            <SelectTrigger><SelectValue placeholder="Comprar ou Alugar" /></SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                            {agentData?.cities?.length ? 
-                                agentData.cities.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>) :
-                                <SelectItem value="none" disabled>Adicione cidades no seu perfil</SelectItem>
-                            }
+                            <SelectItem value="Comprar">Comprar</SelectItem>
+                            <SelectItem value="Alugar">Alugar</SelectItem>
                         </SelectContent>
                         </Select>
                         <FormMessage />
                     </FormItem>
                     )}
                 />
-                 <FormField
-                  control={form.control}
-                  name="neighborhood"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bairro</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: Centro, Taquaral, etc." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-             </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                     control={form.control}
-                    name="price"
+                    name="type"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Tipo de Imóvel</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                            <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {propertyTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                        </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Cidade</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                                <SelectTrigger><SelectValue placeholder="Selecione a cidade de atuação" /></SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {agentData?.cities?.length ? 
+                                    agentData.cities.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>) :
+                                    <SelectItem value="none" disabled>Adicione cidades no seu perfil</SelectItem>
+                                }
+                            </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="neighborhood"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Preço (R$)</FormLabel>
+                        <FormLabel>Bairro</FormLabel>
                         <FormControl>
-                            <Input 
-                            type="text" 
-                            placeholder="R$ 850.000,00" 
-                            onChange={handlePriceChange} 
-                            />
+                            <Input placeholder="Ex: Centro, Taquaral, etc." {...field} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
                     )}
-                />
-             </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-               <FormField control={form.control} name="bedrooms" render={({ field }) => (<FormItem><FormLabel>Quartos</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-               <FormField control={form.control} name="bathrooms" render={({ field }) => (<FormItem><FormLabel>Banheiros</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-               <FormField control={form.control} name="garage" render={({ field }) => (<FormItem><FormLabel>Vagas Garagem</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-               <FormField control={form.control} name="rooms" render={({ field }) => (<FormItem><FormLabel>Cômodos</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField control={form.control} name="builtArea" render={({ field }) => (<FormItem><FormLabel>Área Construída (m²)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={form.control} name="totalArea" render={({ field }) => (<FormItem><FormLabel>Área Total (m²)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-            </div>
-            
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição Completa</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Descreva os detalhes do imóvel..." className="min-h-[150px]" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormItem>
-              <FormLabel>Imagens do Imóvel</FormLabel>
-              <FormDescription>Envie até 20 fotos do seu imóvel. A primeira será a imagem de capa.</FormDescription>
-               {user && (
-                 <ImageUpload
-                   agentId={user.uid}
-                   propertyId={propertyId}
-                   onUploadComplete={handleUploadComplete}
-                   multiple
-                 />
-               )}
-               {imageUrls.length > 0 && (
-                <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                  {imageUrls.map((url, index) => (
-                    <div key={index} className="relative aspect-square rounded-md overflow-hidden">
-                      <Image src={url} alt={`Imagem do imóvel ${index + 1}`} fill className="object-cover" />
-                    </div>
-                  ))}
+                    />
                 </div>
-               )}
-            </FormItem>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                        control={form.control}
+                        name="price"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Preço (R$)</FormLabel>
+                            <FormControl>
+                                <Input 
+                                type="text" 
+                                placeholder="R$ 850.000,00" 
+                                onChange={handlePriceChange} 
+                                />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
 
-             <FormField
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <FormField control={form.control} name="bedrooms" render={({ field }) => (<FormItem><FormLabel>Quartos</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={form.control} name="bathrooms" render={({ field }) => (<FormItem><FormLabel>Banheiros</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={form.control} name="garage" render={({ field }) => (<FormItem><FormLabel>Vagas Garagem</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={form.control} name="rooms" render={({ field }) => (<FormItem><FormLabel>Cômodos</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField control={form.control} name="builtArea" render={({ field }) => (<FormItem><FormLabel>Área Construída (m²)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="totalArea" render={({ field }) => (<FormItem><FormLabel>Área Total (m²)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                </div>
+                
+                <FormField
                 control={form.control}
-                name="featured"
+                name="description"
                 render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormItem>
+                    <FormLabel>Descrição Completa</FormLabel>
                     <FormControl>
-                        <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        />
+                        <Textarea placeholder="Descreva os detalhes do imóvel..." className="min-h-[150px]" {...field} />
                     </FormControl>
-                    <div className="space-y-1 leading-none">
-                        <FormLabel>
-                        Marcar como Destaque
-                        </FormLabel>
-                        <FormDescription>
-                        Imóveis em destaque aparecem na seção principal do seu site.
-                        </FormDescription>
-                    </div>
+                    <FormMessage />
                     </FormItem>
                 )}
                 />
+                
+                <FormItem>
+                <FormLabel>Imagens do Imóvel</FormLabel>
+                <FormDescription>Envie até 20 fotos do seu imóvel. A primeira será a imagem de capa.</FormDescription>
+                {user && (
+                    <ImageUpload
+                    agentId={user.uid}
+                    propertyId={propertyId}
+                    onUploadComplete={handleUploadComplete}
+                    multiple
+                    />
+                )}
+                {imageUrls.length > 0 && (
+                    <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                    {imageUrls.map((url, index) => (
+                        <div key={index} className="relative aspect-square rounded-md overflow-hidden">
+                        <Image src={url} alt={`Imagem do imóvel ${index + 1}`} fill className="object-cover" />
+                        </div>
+                    ))}
+                    </div>
+                )}
+                </FormItem>
 
-            <Button type="submit" size="lg" className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
-              Salvar Imóvel
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+                <FormField
+                    control={form.control}
+                    name="featured"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                            <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                            <FormLabel>
+                            Marcar como Destaque
+                            </FormLabel>
+                            <FormDescription>
+                            Imóveis em destaque aparecem na seção principal do seu site.
+                            </FormDescription>
+                        </div>
+                        </FormItem>
+                    )}
+                    />
+
+                <Button type="submit" size="lg" className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
+                Salvar Imóvel
+                </Button>
+            </form>
+            </Form>
+        </CardContent>
+        </Card>
+    </div>
   );
 }
