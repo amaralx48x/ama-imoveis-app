@@ -19,7 +19,7 @@ export function PropertyView({ property }: PropertyViewProps) {
 
     const images = property.imageUrls && property.imageUrls.length > 0 
         ? property.imageUrls 
-        : [PlaceHolderImages.find(img => img.id === 'property-1-1')?.imageUrl || "https://picsum.photos/seed/default/600/400"];
+        : [PlaceHolderImages.find(img => img.id === 'property-1-1')?.imageUrl || "https://picsum.photos/seed/default/1280/720"];
 
     const formattedPrice = new Intl.NumberFormat('pt-BR', {
         style: 'currency',

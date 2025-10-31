@@ -29,14 +29,20 @@ export function PropertyCard({ property }: PropertyCardProps) {
       <CardHeader className="p-0 relative">
         <Link href={detailUrl} className="block cursor-pointer">
           <div className="relative w-full h-56">
-            <Image
-              src={imageUrl}
-              alt={property.title}
-              fill
-              className="object-cover"
-              data-ai-hint={imageHint}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
+            {imageUrl ? (
+                <Image
+                src={imageUrl}
+                alt={property.title}
+                fill
+                className="object-cover"
+                data-ai-hint={imageHint}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+            ) : (
+                <div className="w-full h-full bg-muted flex items-center justify-center">
+                    <span className="text-sm text-muted-foreground">Sem imagem</span>
+                </div>
+            )}
           </div>
         </Link>
         <Badge className="absolute top-3 right-3 bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] text-primary-foreground border-none">
