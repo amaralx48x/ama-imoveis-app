@@ -10,64 +10,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Defines a helper function to check if the current user is the owner of the document.
+     * @description Development rules: Allow any signed-in user to read/write anywhere.
+     * This is insecure for production but useful for development.
      */
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    /**
-     * @description Defines a helper function to check if the current user is the existing owner of the document.
-     * Ensures both ownership and document existence.
-     */
-    function isExistingOwner(agentId) {
-        return isSignedIn() && exists(/databases/$(database)/documents/agents/$(agentId)) && request.auth.uid == agentId;
-    }
-
-    /**
-     * @description Security rules for agent profiles.
-     * @path /agents/{agentId}
-     * @allow (create) - An agent can create their own profile if the agentId matches their UID.
-     * @allow (get, update, delete) - An agent can get, update, or delete their own profile.
-     * @deny (create) - An agent cannot create a profile with an ID that doesn't match their UID.
-     * @principle Enforces document ownership.
-     */
-    match /agents/{agentId} {
-      allow get: if isSignedIn() && isOwner(agentId);
-      allow list: if false;
-      allow create: if isSignedIn() && request.auth.uid == agentId;
-      allow update: if isExistingOwner(agentId);
-      allow delete: if isExistingOwner(agentId);
-    }
-
-    /**
-     * @description Security rules for properties listed by agents.
-     * @path /agents/{agentId}/properties/{propertyId}
-     * @allow (get, list) - Anyone can read properties.
-     * @allow (create) - An agent can create a property under their profile. The 'agentId' field in the property data must match the agentId in the path.
-     * @allow (update, delete) - An agent can update or delete a property under their profile.
-     * @deny (create) - An agent cannot create a property under someone else's profile.
-     * @deny (update, delete) - An agent cannot update or delete a property under someone else's profile.
-     * @principle Enforces owner-only writes for properties.
-     */
-    match /agents/{agentId}/properties/{propertyId} {
-      allow get, list: if true;
-      allow create: if isExistingOwner(agentId);
-      allow update: if isExistingOwner(agentId);
-      allow delete: if isExistingOwner(agentId);
-    }
-
-    /**
-     * @description Security rules for leads.
-     * @path /leads/{leadId}
-     * @allow (get, list) - Anyone can read leads.
-     * @allow (create) - Anyone can create a lead.
-     * @deny (update, delete) - No one can update or delete a lead.
-     */
-    match /leads/{leadId} {
-      allow get, list: if true;
-      allow create: if true;
-      allow update, delete: if false;
+    match /{document=**} {
+      allow read, write: if isSignedIn();
     }
   }
 }
