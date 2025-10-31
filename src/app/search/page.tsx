@@ -35,6 +35,8 @@ function SearchResults() {
       if (type) conditions.push(where('type', '==', type));
 
       if (conditions.length > 0) {
+        // Firestore requires a composite index for this query. 
+        // The error message in the browser console will provide a link to create it.
         propertiesQuery = query(collectionGroup(firestore, 'properties'), ...conditions);
       }
 
@@ -44,7 +46,9 @@ function SearchResults() {
         // Here we include the agentId from the parent document path
         const parentPath = doc.ref.parent.parent;
         const agentId = parentPath ? parentPath.id : undefined;
-        props.push({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId });
+        if(agentId){
+          props.push({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId });
+        }
       });
 
       setProperties(props);

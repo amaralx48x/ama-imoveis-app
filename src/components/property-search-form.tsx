@@ -17,6 +17,7 @@ import { useState } from 'react';
 export function PropertySearchForm() {
   const router = useRouter();
 
+  // These lists are for the UI only. The actual search happens on the search page.
   const cities = getPropertyCities();
   const types = getPropertyTypes();
 
