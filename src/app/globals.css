@@ -78,7 +78,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    zoom: 0.85;
+    zoom: 0.94;
   }
   .text-gradient {
     @apply bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] bg-clip-text text-transparent;
