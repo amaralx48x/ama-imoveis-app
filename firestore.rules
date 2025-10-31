@@ -3,18 +3,36 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Defines a helper function to check if the current user is signed in.
+     * Helper function to check if the user is the owner of the agent document.
+     * The agent's document ID is the same as their authentication UID.
      */
-    function isSignedIn() {
-      return request.auth != null;
+    function isOwner(agentId) {
+      return request.auth != null && request.auth.uid == agentId;
     }
 
-    /**
-     * @description Development rules: Allow any signed-in user to read/write anywhere.
-     * This is insecure for production but useful for development.
-     */
-    match /{document=**} {
-      allow read, write: if isSignedIn();
+    // Agent profiles
+    match /agents/{agentId} {
+      // Anyone can read agent profiles for the public website.
+      allow read: if true;
+
+      // Only the authenticated owner of the agent profile can create, update, or delete it.
+      allow write: if isOwner(agentId);
+    }
+
+    // Properties listed by a specific agent
+    match /agents/{agentId}/properties/{propertyId} {
+      // Anyone can read property details for the public website.
+      allow read: if true;
+      
+      // Only the authenticated owner can write (create, update, delete) properties.
+      allow write: if isOwner(agentId);
+    }
+
+    // Leads can be created by anyone (from the contact form)
+    // but should only be readable by the relevant agent (future enhancement).
+    match /leads/{leadId} {
+        allow create: if true;
+        allow read, update, delete: if request.auth != null; // Placeholder: restrict to agent later
     }
   }
 }
