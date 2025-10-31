@@ -17,9 +17,15 @@ interface PropertyViewProps {
 
 export function PropertyView({ property }: PropertyViewProps) {
 
-    const images = property.imageUrls && property.imageUrls.length > 0 
+    const isValidUrl = (url: string | undefined): boolean => {
+        return !!url && (url.startsWith('http://') || url.startsWith('https://'));
+    }
+
+    const defaultImage = PlaceHolderImages.find(img => img.id === 'property-1-1')?.imageUrl || "https://picsum.photos/seed/default/1280/720";
+    
+    const images = property.imageUrls && property.imageUrls.length > 0 && property.imageUrls.every(isValidUrl)
         ? property.imageUrls 
-        : [PlaceHolderImages.find(img => img.id === 'property-1-1')?.imageUrl || "https://picsum.photos/seed/default/1280/720"];
+        : [defaultImage];
 
     const formattedPrice = new Intl.NumberFormat('pt-BR', {
         style: 'currency',

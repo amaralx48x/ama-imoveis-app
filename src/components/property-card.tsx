@@ -18,8 +18,16 @@ export function PropertyCard({ property }: PropertyCardProps) {
     currency: 'BRL',
   }).format(property.price);
 
-  // Use the first uploaded image, or a default placeholder if none exist.
-  const imageUrl = property.imageUrls?.[0] || PlaceHolderImages.find(p => p.id === 'property-1-1')?.imageUrl || "https://picsum.photos/seed/default/600/400";
+  const isValidUrl = (url: string | undefined): boolean => {
+    return !!url && (url.startsWith('http://') || url.startsWith('https://'));
+  }
+
+  // Use the first uploaded image, or a default placeholder if none exist or are invalid.
+  const firstImageUrl = property.imageUrls?.[0];
+  const imageUrl = isValidUrl(firstImageUrl) 
+    ? firstImageUrl 
+    : PlaceHolderImages.find(p => p.id === 'property-1-1')?.imageUrl || "https://picsum.photos/seed/default/600/400";
+  
   const imageHint = "house exterior";
   
   const detailUrl = `/imovel/${property.id}?agentId=${property.agentId}`;
@@ -29,20 +37,14 @@ export function PropertyCard({ property }: PropertyCardProps) {
       <CardHeader className="p-0 relative">
         <Link href={detailUrl} className="block cursor-pointer">
           <div className="relative w-full h-56">
-            {imageUrl ? (
-                <Image
-                src={imageUrl}
-                alt={property.title}
-                fill
-                className="object-cover"
-                data-ai-hint={imageHint}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-            ) : (
-                <div className="w-full h-full bg-muted flex items-center justify-center">
-                    <span className="text-sm text-muted-foreground">Sem imagem</span>
-                </div>
-            )}
+            <Image
+              src={imageUrl}
+              alt={property.title}
+              fill
+              className="object-cover"
+              data-ai-hint={imageHint}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
           </div>
         </Link>
         <Badge className="absolute top-3 right-3 bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] text-primary-foreground border-none">
