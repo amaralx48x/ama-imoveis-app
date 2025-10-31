@@ -13,7 +13,8 @@ import { doc } from "firebase/firestore";
 import type { Property } from "@/lib/data";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function PropertyPage({ params: { imovelId } }: { params: { imovelId: string } }) {
+export default function PropertyPage({ params }: { params: { imovelId: string } }) {
+  const { imovelId } = params;
   const firestore = useFirestore();
   const searchParams = useSearchParams();
   const agentId = searchParams.get('agentId');
