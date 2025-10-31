@@ -1,0 +1,4 @@
+title,description,price,bedrooms,bathrooms,garage,rooms,builtArea,totalArea,city,neighborhood,type,operation,featured,imageUrls
+"Casa Ampla no Taquaral","Uma bela casa com 3 quartos, suíte e piscina. Perfeita para sua família. Acabamento de primeira linha e área de lazer completa.",850000,3,4,2,8,220,300,"Campinas","Taquaral","Casa","Venda",true,"https://images.unsplash.com/photo-1598228723793-52759bba239c,https://images.unsplash.com/photo-1634316888962-75074307f81c"
+"Apartamento no Centro","Apartamento moderno e bem localizado, a poucos passos do metrô e comércios. Ideal para quem busca praticidade.",450000,2,2,1,5,75,75,"São Paulo","Centro","Apartamento","Venda",false,""
+"Chácara para Fim de Semana","Chácara com muito verde, piscina e churrasqueira. Ótima para relaxar com a família e amigos.",3500,"","","","",150,1000,"Atibaia","Boa Vista","Chácara","Aluguel",false,""
