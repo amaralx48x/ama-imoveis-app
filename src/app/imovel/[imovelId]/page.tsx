@@ -1,6 +1,6 @@
 
 'use client';
-import { notFound } from "next/navigation";
+import { notFound, useSearchParams } from "next/navigation";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { PropertyGallery } from "@/components/imovel/property-gallery";
 import { PropertyInfo } from "@/components/imovel/property-info";
@@ -9,46 +9,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
-import { doc, collectionGroup, query, where, getDocs } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { doc } from "firebase/firestore";
 import type { Property } from "@/lib/data";
 import { Skeleton } from "@/components/ui/skeleton";
 
-
 export default function PropertyPage({ params: { imovelId } }: { params: { imovelId: string } }) {
   const firestore = useFirestore();
-  const [property, setProperty] = useState<Property | null>(null);
-  const [loading, setLoading] = useState(true);
+  const searchParams = useSearchParams();
+  const agentId = searchParams.get('agentId');
 
-  useEffect(() => {
-    if (!firestore || !imovelId) return;
+  const propertyRef = useMemoFirebase(() => {
+    if (!firestore || !agentId || !imovelId) return null;
+    return doc(firestore, `agents/${agentId}/properties`, imovelId);
+  }, [firestore, agentId, imovelId]);
 
-    const findProperty = async () => {
-      setLoading(true);
-      const propertiesRef = collectionGroup(firestore, 'properties');
-      const q = query(propertiesRef, where('id', '==', imovelId));
-      
-      try {
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          const propertyDoc = querySnapshot.docs[0];
-          setProperty(propertyDoc.data() as Property);
-        } else {
-          setProperty(null);
-        }
-      } catch (error) {
-        console.error("Error fetching property:", error);
-        setProperty(null);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data: property, isLoading } = useDoc<Property>(propertyRef);
 
-    findProperty();
-  }, [firestore, imovelId]);
-
-
-  if (loading) {
+  if (isLoading) {
     return (
       <>
         <Header />
@@ -71,14 +48,16 @@ export default function PropertyPage({ params: { imovelId } }: { params: { imove
     )
   }
 
-  if (!property) {
+  if (!property && !isLoading) {
     notFound();
   }
 
-  const propertyImages = (property.imageUrls || [])
+  const propertyImages = (property?.imageUrls || [])
     .map(id => PlaceHolderImages.find(img => img.id === id))
     .filter((img): img is NonNullable<typeof img> => img !== undefined);
   
+  if (!property) return null;
+
   return (
     <>
       <Header />

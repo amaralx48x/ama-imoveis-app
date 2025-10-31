@@ -21,11 +21,13 @@ export function PropertyCard({ property, imagePlaceholder }: PropertyCardProps) 
 
   const imageUrl = imagePlaceholder?.imageUrl || "https://picsum.photos/seed/default/600/400";
   const imageHint = imagePlaceholder?.imageHint || "house exterior";
+  
+  const propertyLink = `/imovel/${property.id}?agentId=${property.agentId}`;
 
   return (
     <Card className="w-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 flex flex-col h-full bg-card">
       <CardHeader className="p-0 relative">
-        <Link href={`/imovel/${property.id}`} className="block">
+        <Link href={propertyLink} className="block">
           <Image
             src={imageUrl}
             alt={property.title}
@@ -40,7 +42,7 @@ export function PropertyCard({ property, imagePlaceholder }: PropertyCardProps) 
         </Badge>
       </CardHeader>
       <CardContent className="p-4 flex-grow">
-        <Link href={`/imovel/${property.id}`}>
+        <Link href={propertyLink}>
           <h3 className="font-headline font-bold text-lg truncate hover:text-primary transition-colors">{property.title}</h3>
         </Link>
         <div className="flex items-center text-muted-foreground text-sm mt-1">
@@ -67,7 +69,7 @@ export function PropertyCard({ property, imagePlaceholder }: PropertyCardProps) 
       </CardContent>
       <CardFooter className="p-4 pt-0">
         <Button asChild className="w-full" variant="outline">
-          <Link href={`/imovel/${property.id}`}>
+          <Link href={propertyLink}>
             Ver Detalhes
           </Link>
         </Button>

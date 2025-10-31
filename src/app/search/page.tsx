@@ -1,3 +1,4 @@
+
 'use client';
 import { PropertyCard } from "@/components/property-card";
 import { PropertySearchForm } from "@/components/property-search-form";
@@ -41,7 +42,10 @@ function SearchResults() {
       const querySnapshot = await getDocs(propertiesQuery);
       const props: Property[] = [];
       querySnapshot.forEach((doc) => {
-        props.push(doc.data() as Property);
+        // Here we include the agentId from the parent document path
+        const parentPath = doc.ref.parent.parent;
+        const agentId = parentPath ? parentPath.id : undefined;
+        props.push({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId });
       });
 
       setProperties(props);
@@ -53,7 +57,7 @@ function SearchResults() {
 
 
   const propertyImages = (p: Property) => {
-    const imageId = p.imageUrls && p.imageUrls.length > 0 ? p.imageUrls[0] : p.images?.[0];
+    const imageId = p.imageUrls && p.imageUrls.length > 0 ? p.imageUrls[0] : undefined;
     return PlaceHolderImages.find(img => img.id === imageId) || PlaceHolderImages[0];
   }
 
