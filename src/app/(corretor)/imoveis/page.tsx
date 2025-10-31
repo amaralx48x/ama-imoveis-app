@@ -2,7 +2,7 @@
 'use client';
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, AlertTriangle } from 'lucide-react';
+import { PlusCircle, AlertTriangle, Upload } from 'lucide-react';
 import { PropertyCard } from '@/components/property-card';
 import Link from 'next/link';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
@@ -29,12 +29,20 @@ export default function ImoveisPage() {
                     <h1 className="text-3xl font-bold font-headline">Meus Imóveis</h1>
                     <p className="text-muted-foreground">Gerencie seu portfólio de imóveis.</p>
                 </div>
-                <Button asChild className="bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
-                    <Link href="/imoveis/novo">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Adicionar Imóvel
-                    </Link>
-                </Button>
+                <div className="flex gap-2">
+                    <Button asChild variant="outline">
+                         <Link href="/imoveis/importar">
+                            <Upload className="mr-2 h-4 w-4" />
+                            Importar CSV
+                        </Link>
+                    </Button>
+                    <Button asChild className="bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
+                        <Link href="/imoveis/novo">
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Adicionar Imóvel
+                        </Link>
+                    </Button>
+                </div>
             </div>
 
             {isLoading && (
