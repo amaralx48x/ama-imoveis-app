@@ -4,7 +4,6 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import Image from "next/image";
 import { BedDouble, Bath, Ruler, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
 import { Button } from "./ui/button";
 import type { ImagePlaceholder } from "@/lib/placeholder-images";
 
@@ -22,12 +21,12 @@ export function PropertyCard({ property, imagePlaceholder }: PropertyCardProps) 
   const imageUrl = imagePlaceholder?.imageUrl || "https://picsum.photos/seed/default/600/400";
   const imageHint = imagePlaceholder?.imageHint || "house exterior";
   
-  const propertyLink = `/imovel/${property.id}?agentId=${property.agentId}`;
+  // Links removidos para desativar a página de detalhes
 
   return (
     <Card className="w-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 flex flex-col h-full bg-card">
       <CardHeader className="p-0 relative">
-        <Link href={propertyLink} className="block">
+        <div className="block cursor-pointer">
           <Image
             src={imageUrl}
             alt={property.title}
@@ -36,15 +35,13 @@ export function PropertyCard({ property, imagePlaceholder }: PropertyCardProps) 
             className="w-full h-56 object-cover"
             data-ai-hint={imageHint}
           />
-        </Link>
+        </div>
         <Badge className="absolute top-3 right-3 bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] text-primary-foreground border-none">
           {property.operation}
         </Badge>
       </CardHeader>
       <CardContent className="p-4 flex-grow">
-        <Link href={propertyLink}>
-          <h3 className="font-headline font-bold text-lg truncate hover:text-primary transition-colors">{property.title}</h3>
-        </Link>
+        <h3 className="font-headline font-bold text-lg truncate hover:text-primary transition-colors cursor-pointer">{property.title}</h3>
         <div className="flex items-center text-muted-foreground text-sm mt-1">
           <MapPin className="w-4 h-4 mr-1.5" />
           <span>{property.city}</span>
@@ -68,10 +65,8 @@ export function PropertyCard({ property, imagePlaceholder }: PropertyCardProps) 
         </div>
       </CardContent>
       <CardFooter className="p-4 pt-0">
-        <Button asChild className="w-full" variant="outline">
-          <Link href={propertyLink}>
+        <Button className="w-full" variant="outline" disabled>
             Ver Detalhes
-          </Link>
         </Button>
       </CardFooter>
     </Card>
