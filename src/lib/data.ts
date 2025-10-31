@@ -49,16 +49,6 @@ export type Review = {
   createdAt?: any;
 };
 
-export type BlogPost = {
-  id: string;
-  agentId: string;
-  title: string;
-  content: string;
-  coverImageUrl?: string;
-  createdAt?: any;
-  updatedAt?: any;
-}
-
 
 // This data is now considered legacy mock data.
 // The app will primarily use Firestore.

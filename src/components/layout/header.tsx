@@ -1,7 +1,7 @@
 
 'use client';
 import Link from "next/link";
-import { Building2, Newspaper } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { Button } from "../ui/button";
 import type { Agent } from '@/lib/data';
 import { usePathname } from 'next/navigation';
@@ -16,13 +16,11 @@ export function Header({ agentName, agentId }: HeaderProps) {
   const siteName = agentName || "AMA Imóveis";
   const pathname = usePathname();
   const agentBaseUrl = agentId ? `/corretor/${agentId}` : (pathname.split('/')[2] ? `/corretor/${pathname.split('/')[2]}` : '#');
-  const blogUrl = `${agentBaseUrl}/blog`;
   
   const navItems = [
       { href: `${agentBaseUrl}#sobre`, label: "Sobre" },
       { href: `${agentBaseUrl}#destaques`, label: "Destaques" },
       { href: `${agentBaseUrl}#avaliacoes`, label: "Avaliações" },
-      { href: blogUrl, label: "Blog" },
   ]
 
   return (

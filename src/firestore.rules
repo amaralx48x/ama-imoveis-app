@@ -30,14 +30,6 @@ service cloud.firestore {
         // The agent (owner) can read all of their reviews and can update/delete them
         allow read, update, delete: if isOwner(agentId);
       }
-
-      // Subcollection for blog posts
-      match /blogPosts/{postId} {
-        // Public can read all blog posts
-        allow read: if true;
-        // The agent (owner) can create, update, and delete their own blog posts.
-        allow write: if isOwner(agentId);
-      }
     }
 
     // This rule allows the global 'collectionGroup' query on 'properties'.
