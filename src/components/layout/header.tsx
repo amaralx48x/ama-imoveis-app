@@ -2,24 +2,15 @@
 import Link from "next/link";
 import { Building2 } from "lucide-react";
 import { Button } from "../ui/button";
-import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
 import type { Agent } from '@/lib/data';
-import { Skeleton } from "../ui/skeleton";
 
-export function Header() {
-  const { user } = useUser();
-  const firestore = useFirestore();
+interface HeaderProps {
+    agentName?: string;
+}
 
-  // This is a simplification. In a real multi-tenant app, you'd get the agent ID from the URL/domain.
-  // Here, we'll just show the currently logged-in user's site info if they are logged in.
-  const agentRef = useMemoFirebase(
-      () => (firestore && user ? doc(firestore, 'agents', user.uid) : null),
-      [firestore, user]
-  );
-  const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
+export function Header({ agentName }: HeaderProps) {
   
-  const siteName = agentData?.name || "AMA Imóveis";
+  const siteName = agentName || "AMA Imóveis";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -29,11 +20,7 @@ export function Header() {
             <span className="text-gradient">
               <Building2 className="h-6 w-6" />
             </span>
-            {isAgentLoading ? (
-              <Skeleton className="h-5 w-32" />
-            ) : (
-              <span className="font-bold font-headline text-lg">{siteName}</span>
-            )}
+            <span className="font-bold font-headline text-lg">{siteName}</span>
           </Link>
           <nav className="flex items-center gap-6 text-sm">
             <Link
@@ -43,13 +30,19 @@ export function Header() {
               Buscar Imóveis
             </Link>
             <Link
-              href="/#sobre"
+              href="#sobre"
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
               Sobre
             </Link>
             <Link
-              href="/#avaliacoes"
+              href="#destaques"
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+            >
+              Destaques
+            </Link>
+             <Link
+              href="#avaliacoes"
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
               Avaliações
@@ -58,7 +51,10 @@ export function Header() {
         </div>
         <div className="flex flex-1 items-center justify-end space-x-2">
           <Button asChild>
-            <Link href="/#contato">Fale Conosco</Link>
+            <Link href="#contato">Fale Conosco</Link>
+          </Button>
+           <Button asChild variant="outline">
+              <Link href="/login">Área do Corretor</Link>
           </Button>
         </div>
       </div>

@@ -16,6 +16,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { useFirestore } from "@/firebase";
+import { collection, serverTimestamp } from "firebase/firestore";
+import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { v4 as uuidv4 } from "uuid";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
@@ -24,8 +28,15 @@ const formSchema = z.object({
   message: z.string().min(10, { message: "A mensagem deve ter pelo menos 10 caracteres." }),
 });
 
-export function ContactForm() {
+interface ContactFormProps {
+    agentId: string;
+    propertyId?: string;
+}
+
+export function ContactForm({ agentId, propertyId }: ContactFormProps) {
   const { toast } = useToast();
+  const firestore = useFirestore();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -37,7 +48,22 @@ export function ContactForm() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+    if (!firestore) {
+        toast({ title: "Erro", description: "Não foi possível conectar ao banco de dados.", variant: "destructive" });
+        return;
+    }
+
+    const leadsCollection = collection(firestore, 'leads');
+    const newLead = {
+        ...values,
+        id: uuidv4(),
+        agentId: agentId,
+        propertyId: propertyId || null,
+        createdAt: serverTimestamp(),
+    }
+    
+    addDocumentNonBlocking(leadsCollection, newLead);
+
     toast({
       title: "Mensagem Enviada!",
       description: "Obrigado por entrar em contato. Retornaremos em breve.",

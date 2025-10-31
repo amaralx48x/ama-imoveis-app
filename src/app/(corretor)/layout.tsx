@@ -1,6 +1,6 @@
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, Mail, User, Settings, Palette, Star, BarChart, FileText, Building2, PlusCircle, LogOut } from 'lucide-react';
+import { Home, Briefcase, Mail, User, Settings, Palette, Star, BarChart, FileText, Building2, PlusCircle, LogOut, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/firebase';
@@ -31,13 +31,15 @@ export default function CorretorLayout({
     }
   };
 
+  const agentSiteUrl = user ? `/corretor/${user.uid}` : '/';
+
   const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
     { href: '/perfil', label: 'Perfil', icon: User },
     { href: '/inbox', label: 'Caixa de Entrada', icon: Mail },
     { href: '/imoveis', label: 'Meus Imóveis', icon: Briefcase },
     { href: '/imoveis/novo', label: 'Adicionar Imóvel', icon: PlusCircle },
-    { href: '/', label: 'Meu Site', icon: Building2 },
+    { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' },
     { href: '/avaliacoes', label: 'Avaliações', icon: Star },
     { href: '/configuracoes/comissoes', label: 'Comissões', icon: BarChart },
     { href: '/configuracoes/aparencia', label: 'Aparência', icon: Palette },
@@ -69,12 +71,12 @@ export default function CorretorLayout({
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === item.href || (item.href === '/imoveis' && pathname.startsWith('/imoveis/'))}
+                  isActive={pathname === item.href || (item.href.startsWith('/imoveis') && pathname.startsWith('/imoveis'))}
                   tooltip={{
                     children: item.label,
                   }}
                 >
-                  <Link href={item.href} target={item.href === '/' ? '_blank' : undefined}>
+                  <Link href={item.href} target={item.target}>
                     <item.icon />
                     <span>{item.label}</span>
                   </Link>
