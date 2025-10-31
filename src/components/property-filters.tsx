@@ -1,22 +1,21 @@
 
 'use client';
 import { useState } from "react";
-import { Search, SlidersHorizontal, Building } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import type { Property, Agent } from "@/lib/data";
-import { getPropertyTypes } from "@/lib/data";
 import { useRouter } from 'next/navigation';
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Label } from "./ui/label";
 
 interface PropertyFiltersProps {
-  properties: Property[];
-  agent?: Agent; // Agent is now optional
+  onFilter: (filters: any) => void;
+  cities: string[];
+  propertyTypes: string[];
 }
 
-export default function PropertyFilters({ properties, agent }: PropertyFiltersProps) {
+export default function PropertyFilters({ onFilter, cities, propertyTypes }: PropertyFiltersProps) {
   const [filters, setFilters] = useState({
     operation: "",
     city: "",
@@ -28,10 +27,6 @@ export default function PropertyFilters({ properties, agent }: PropertyFiltersPr
     keyword: ""
   });
   const router = useRouter();
-
-  // Use agent cities if available, otherwise derive from properties
-  const cities = agent?.cities?.length ? agent.cities.sort((a, b) => a.localeCompare(b)) : [];
-  const propertyTypes = getPropertyTypes();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

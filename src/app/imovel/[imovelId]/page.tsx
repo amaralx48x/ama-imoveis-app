@@ -32,7 +32,7 @@ export default async function PropertyPage({ params, searchParams }: Props) {
     }
   } catch (error) {
     console.error("Erro ao buscar imóvel:", error);
-    notFound();
+    // Let the flow continue to notFound()
   }
 
 
