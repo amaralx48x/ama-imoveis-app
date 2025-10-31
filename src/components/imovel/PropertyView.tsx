@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Property } from "@/lib/data";
@@ -6,7 +5,7 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { BedDouble, Bath, Ruler, MapPin, Garage, Home, Phone, Mail } from "lucide-react";
+import { BedDouble, Bath, Ruler, MapPin, Car, Home, Phone, Mail } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -86,7 +85,7 @@ export function PropertyView({ property }: PropertyViewProps) {
                                 <span className="text-xs text-muted-foreground">Banheiros</span>
                             </div>
                              <div className="flex flex-col items-center gap-2 p-2 rounded-lg bg-muted/50">
-                                <Garage className="w-7 h-7 text-primary" />
+                                <Car className="w-7 h-7 text-primary" />
                                 <span className="font-semibold">{property.garage}</span>
                                 <span className="text-xs text-muted-foreground">Vagas</span>
                             </div>
@@ -138,4 +137,3 @@ export function PropertyView({ property }: PropertyViewProps) {
         </div>
     );
 }
-
