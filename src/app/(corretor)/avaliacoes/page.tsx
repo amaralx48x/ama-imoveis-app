@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -8,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Star, ThumbsUp, Trash2, AlertTriangle, Smile } from 'lucide-react';
+import { Star, ThumbsUp, Trash2, AlertTriangle, Smile, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -113,6 +114,8 @@ export default function AvaliacoesPage() {
             toast({ title: "Erro ao remover", variant: "destructive" });
         }
     };
+    
+    const hasApprovedReviews = reviews.some(r => r.approved);
 
     return (
         <Card>
@@ -123,6 +126,16 @@ export default function AvaliacoesPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+                {!loading && !hasApprovedReviews && (
+                    <Alert>
+                        <Info className="h-4 w-4" />
+                        <AlertTitle>Site Público</AlertTitle>
+                        <AlertDescription>
+                            Enquanto você não tiver avaliações aprovadas, seu site público exibirá exemplos genéricos para manter uma aparência profissional.
+                        </AlertDescription>
+                    </Alert>
+                )}
+
                 {loading && (
                     <div className="space-y-4">
                         {[...Array(3)].map((_, i) => (

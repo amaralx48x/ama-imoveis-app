@@ -14,7 +14,7 @@ import { ClientReviews } from '@/components/client-reviews';
 import { ContactForm } from '@/components/contact-form';
 import { useFirestore } from '@/firebase';
 import PropertyFilters from '@/components/property-filters';
-import { getPropertyTypes } from '@/lib/data';
+import { getPropertyTypes, getReviews as getStaticReviews } from '@/lib/data';
 
 
 type Props = {
@@ -35,7 +35,12 @@ export default function AgentPublicPage({ params }: Props) {
       const reviewsRef = collection(firestore, `agents/${agentId}/reviews`);
       const q = query(reviewsRef, where('approved', '==', true), orderBy('createdAt', 'desc'), limit(4));
       const reviewsSnap = await getDocs(q);
-      setReviews(reviewsSnap.docs.map(doc => ({ ...(doc.data() as Omit<Review, 'id'>), id: doc.id })));
+
+      if (reviewsSnap.empty) {
+        setReviews(getStaticReviews());
+      } else {
+        setReviews(reviewsSnap.docs.map(doc => ({ ...(doc.data() as Omit<Review, 'id'>), id: doc.id })));
+      }
     };
     
     useEffect(() => {
