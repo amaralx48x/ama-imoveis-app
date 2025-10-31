@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import type { Property } from "@/lib/data";
@@ -6,10 +7,22 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { BedDouble, Bath, Ruler, MapPin, Car, Home, Phone, Mail } from "lucide-react";
+import { BedDouble, Bath, Ruler, MapPin, Car, Home, Phone, Mail, Share2, Printer, MessageCircle, CalendarPlus, Search } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+
+// Simple inline SVG for WhatsApp and Facebook as they are not in lucide-react
+const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 32 32" className="w-5 h-5" {...props}><path d=" M19.11 17.205c-.372 0-1.088 1.39-1.088 1.39s-1.088-1.39-1.088-1.39c-1.615 0-2.822-1.207-2.822-2.822s1.207-2.822 2.822-2.822c.433 0 .837.103 1.188.29l-1.188-1.188-1.188 1.188c-.35-.187-.755-.29-1.188-.29-1.615 0-2.822 1.207-2.822 2.822s1.207 2.822 2.822 2.822c.372 0 1.088-1.39 1.088-1.39s1.088 1.39 1.088 1.39c1.615 0 2.822-1.207 2.822-2.822s-1.207-2.822-2.822-2.822c-.433 0-.837.103-1.188.29l1.188-1.188-1.188 1.188c.35-.187.755-.29 1.188-.29 1.615 0 2.822 1.207 2.822 2.822s-1.207 2.822-2.822-2.822z" fill="currentColor"></path></svg>
+);
+const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" className="w-5 h-5" {...props}><path d="M12 2.04c-5.5 0-10 4.49-10 10s4.5 10 10 10 10-4.49 10-10-4.5-10-10-10zm1.5 10.96h-2v6h-3v-6h-1.5v-2.5h1.5v-2c0-1.2.7-2.5 2.5-2.5h2v2.5h-1.5c-.2 0-.5.2-.5.5v1.5h2l-.5 2.5z" fill="currentColor"></path></svg>
+);
+const XIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" className="w-5 h-5" {...props}><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" fill="currentColor"></path></svg>
+);
+
 
 interface PropertyViewProps {
     property: Property;
@@ -27,10 +40,10 @@ export function PropertyView({ property }: PropertyViewProps) {
         ? property.imageUrls 
         : [defaultImage];
 
-    const formattedPrice = new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-    }).format(property.price);
+    const formattedPrice = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+    const iptu = property.price * 0.0006; // Example: 0.06% of property value
+    const totalPrice = property.operation === 'Alugar' ? property.price + iptu : property.price;
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -73,7 +86,7 @@ export function PropertyView({ property }: PropertyViewProps) {
                             </div>
                             <div className="text-right flex-shrink-0">
                                 <p className="text-3xl font-bold text-primary">
-                                    {property.operation === 'Comprar' ? formattedPrice : `${formattedPrice} /mês`}
+                                    {property.operation === 'Comprar' ? formattedPrice(property.price) : `${formattedPrice(property.price)} /mês`}
                                 </p>
                             </div>
                         </div>
@@ -121,23 +134,57 @@ export function PropertyView({ property }: PropertyViewProps) {
             {/* Coluna lateral com contato */}
             <div className="lg:col-span-1">
                  <Card className="sticky top-24">
-                    <CardHeader>
-                        <CardTitle className="font-headline text-xl">Ficou interessado?</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <p className="text-muted-foreground">Entre em contato para agendar uma visita ou tirar suas dúvidas.</p>
-                        <Button className="w-full" size="lg" asChild>
-                            <a href="tel:+5511999999999">
-                                <Phone className="mr-2 h-5 w-5" />
-                                Ligar Agora
-                            </a>
+                    <CardContent className="pt-6 space-y-3">
+                         <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">{property.operation === 'Alugar' ? 'Locação' : 'Valor'}</span>
+                                <span className="font-semibold">{formattedPrice(property.price)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">IPTU (aprox.)</span>
+                                <span className="font-semibold">{formattedPrice(iptu)}</span>
+                            </div>
+                             <Separator className="my-2"/>
+                            <div className="flex justify-between font-bold text-base">
+                                <span>Total</span>
+                                <span>{formattedPrice(totalPrice)}</span>
+                            </div>
+                        </div>
+
+                        <Button className="w-full bg-green-500 hover:bg-green-600 text-white" size="lg">
+                            <WhatsAppIcon className="mr-2"/>
+                            WhatsApp
                         </Button>
-                        <Button className="w-full" size="lg" variant="outline" asChild>
-                           <a href="mailto:contato@amaimoveis.com">
-                                <Mail className="mr-2 h-5 w-5" />
-                                Enviar E-mail
-                           </a>
+                        <Button className="w-full" size="lg" variant="outline">
+                            <Phone className="mr-2" />
+                            Ligar
                         </Button>
+                        <Button className="w-full" size="lg" variant="outline">
+                             <MessageCircle className="mr-2"/>
+                            Fale com o corretor
+                        </Button>
+                        <Button className="w-full" size="lg" variant="outline">
+                            <CalendarPlus className="mr-2"/>
+                            Agendar uma visita
+                        </Button>
+
+                        <Separator className="my-4"/>
+
+                         <Button className="w-full" size="lg" variant="outline">
+                            <Search className="mr-2"/>
+                            Simule o Financiamento
+                        </Button>
+
+                        <div className="text-center pt-4">
+                            <p className="text-sm font-semibold mb-3">COMPARTILHAR</p>
+                            <div className="flex justify-center gap-3">
+                                <Button variant="outline" size="icon" className="rounded-full h-11 w-11"><WhatsAppIcon /></Button>
+                                <Button variant="outline" size="icon" className="rounded-full h-11 w-11"><FacebookIcon /></Button>
+                                <Button variant="outline" size="icon" className="rounded-full h-11 w-11"><XIcon /></Button>
+                                <Button variant="outline" size="icon" className="rounded-full h-11 w-11"><Mail /></Button>
+                                <Button variant="outline" size="icon" className="rounded-full h-11 w-11"><Printer /></Button>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
