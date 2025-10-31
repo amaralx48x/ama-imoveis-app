@@ -27,19 +27,26 @@ export default function AgentPublicPage({ params }: Props) {
     
     const [agent, setAgent] = useState<Agent | null>(null);
     const [allProperties, setAllProperties] = useState<Property[]>([]);
-    const [reviews, setReviews] = useState<Review[]>([]);
+    const [reviews, setReviews] = useState<Review[]>(getStaticReviews());
     const [isLoading, setIsLoading] = useState(true);
 
     const loadReviews = async () => {
       if (!firestore) return;
       const reviewsRef = collection(firestore, `agents/${agentId}/reviews`);
       const q = query(reviewsRef, where('approved', '==', true), orderBy('createdAt', 'desc'), limit(4));
-      const reviewsSnap = await getDocs(q);
-
-      if (reviewsSnap.empty) {
+      
+      try {
+        const reviewsSnap = await getDocs(q);
+        if (reviewsSnap.empty) {
+          // If no approved reviews are found in Firestore, keep the static ones.
+          setReviews(getStaticReviews());
+        } else {
+          // If approved reviews are found, replace the static ones.
+          setReviews(reviewsSnap.docs.map(doc => ({ ...(doc.data() as Omit<Review, 'id'>), id: doc.id })));
+        }
+      } catch (error) {
+        console.error("Error loading reviews, falling back to static reviews:", error);
         setReviews(getStaticReviews());
-      } else {
-        setReviews(reviewsSnap.docs.map(doc => ({ ...(doc.data() as Omit<Review, 'id'>), id: doc.id })));
       }
     };
     
