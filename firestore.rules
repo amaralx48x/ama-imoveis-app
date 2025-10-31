@@ -19,12 +19,15 @@ service cloud.firestore {
       allow write: if isOwner(agentId);
     }
 
-    // Properties listed by a specific agent
+    // Properties are nested under agents, but we also want to query them globally.
+    // The rule below allows anyone to read properties from any agent, which is necessary
+    // for the global search page.
     match /agents/{agentId}/properties/{propertyId} {
       // Anyone can read property details for the public website.
       allow read: if true;
       
       // Only the authenticated owner can write (create, update, delete) properties.
+      // This ensures that even though reads are public, only the agent can manage their listings.
       allow write: if isOwner(agentId);
     }
 
@@ -32,7 +35,9 @@ service cloud.firestore {
     // but should only be readable by the relevant agent (future enhancement).
     match /leads/{leadId} {
         allow create: if true;
-        allow read, update, delete: if request.auth != null; // Placeholder: restrict to agent later
+        // For now, only authenticated users (agents) can see leads.
+        // This should be refined to only allow the specific agent related to the lead.
+        allow read, update, delete: if request.auth != null; 
     }
   }
 }
