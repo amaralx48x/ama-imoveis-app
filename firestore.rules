@@ -19,15 +19,25 @@ service cloud.firestore {
       allow write: if isOwner(agentId);
     }
 
-    // Properties are nested under agents, but we also want to query them globally.
-    // The rule below allows anyone to read properties from any agent, which is necessary
-    // for the global search page.
+    // This rule allows the global 'collectionGroup' query on 'properties'.
+    // It's necessary for the public search page to find properties across all agents.
+    match /{path=**}/properties/{propertyId} {
+        // Anyone can read property details for the public website.
+        allow read: if true;
+
+        // Write operations are still restricted by the more specific rule below.
+        // This ensures that only the agent can modify their own listings.
+        allow write: if false; // Deny writes by default on this general rule.
+    }
+    
+
+    // Properties are nested under agents. This rule secures write operations.
     match /agents/{agentId}/properties/{propertyId} {
-      // Anyone can read property details for the public website.
-      allow read: if true;
+      // The read rule is inherited from the collectionGroup rule above.
+      // We only need to define the write rule here.
+      allow read; // This inherits the "allow read: if true" from the collection group rule.
       
       // Only the authenticated owner can write (create, update, delete) properties.
-      // This ensures that even though reads are public, only the agent can manage their listings.
       allow write: if isOwner(agentId);
     }
 
