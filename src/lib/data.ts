@@ -49,6 +49,14 @@ export type Review = {
   createdAt?: any;
 };
 
+export type CustomSection = {
+  id: string;
+  title: string;
+  propertyIds: string[];
+  order: number;
+  createdAt: any;
+};
+
 
 // This data is now considered legacy mock data.
 // The app will primarily use Firestore.

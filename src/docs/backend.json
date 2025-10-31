@@ -89,6 +89,20 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "name", "rating", "approved", "createdAt"]
+    },
+    "CustomSection": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Custom Section",
+      "type": "object",
+      "description": "Represents a custom section of properties on the agent's site.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "description": "The title of the custom section." },
+        "propertyIds": { "type": "array", "items": { "type": "string" }, "description": "List of property IDs to display in this section." },
+        "order": { "type": "number", "description": "The display order of the section on the page." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "order", "createdAt"]
     }
   },
   "auth": {
@@ -110,6 +124,11 @@
         "path": "/agents/{agentId}/reviews/{reviewId}",
         "schema": { "$ref": "#/entities/Review" },
         "description": "Stores client reviews for a specific agent."
+      },
+      {
+        "path": "/agents/{agentId}/customSections/{sectionId}",
+        "schema": { "$ref": "#/entities/CustomSection" },
+        "description": "Stores custom property sections for the agent's public site."
       },
       {
         "path": "/leads/{leadId}",

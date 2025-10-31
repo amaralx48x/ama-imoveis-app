@@ -1,12 +1,14 @@
+
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, Mail, User, SlidersHorizontal, Star, LogOut, Share2, Building2 } from 'lucide-react';
+import { Home, Briefcase, Mail, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/firebase';
 import { useEffect } from 'react';
 import { useUser } from '@/firebase/provider';
 import { Button } from '@/components/ui/button';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 export default function CorretorLayout({
   children,
@@ -40,8 +42,12 @@ export default function CorretorLayout({
     { href: '/inbox', label: 'Caixa de Entrada', icon: Mail },
     { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' },
     { href: '/avaliacoes', label: 'Avaliações', icon: Star },
-    { href: '/configuracoes/aparencia', label: 'Controle de Exibição', icon: SlidersHorizontal },
   ];
+
+  const settingsItems = [
+      { href: '/configuracoes/aparencia', label: 'Controle de Exibição', icon: SlidersHorizontal },
+      { href: '/configuracoes/secoes', label: 'Gerenciar Seções', icon: Folder },
+  ]
   
   if (isUserLoading || !user) {
     return (
@@ -68,7 +74,7 @@ export default function CorretorLayout({
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname.startsWith(item.href)}
+                  isActive={pathname === item.href}
                   tooltip={{
                     children: item.label,
                   }}
@@ -80,6 +86,35 @@ export default function CorretorLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
+             <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item-1" className="border-none">
+                <AccordionTrigger className="[&[data-state=open]>svg]:rotate-180 flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>svg:last-child]:ms-auto">
+                    <Settings/>
+                    <span className="group-data-[collapsible=icon]:hidden">Configurações</span>
+                </AccordionTrigger>
+                <AccordionContent className="p-0 pl-7">
+                   <SidebarMenu>
+                    {settingsItems.map((item) => (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                          asChild
+                          size="sm"
+                          isActive={pathname.startsWith(item.href)}
+                           tooltip={{
+                            children: item.label,
+                          }}
+                        >
+                          <Link href={item.href}>
+                            <item.icon />
+                            <span>{item.label}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </SidebarMenu>
         </SidebarContent>
          <Sidebar.Footer className="p-2">
