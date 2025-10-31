@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "next/navigation";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
-import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { collection, doc } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 import ImageUpload from "@/components/image-upload";
@@ -78,13 +78,13 @@ export default function NovoImovelPage() {
     },
   });
 
-  const handleUploadComplete = (url: string) => {
-    setImageUrls(prev => [...prev, url]);
+  const handleUploadComplete = (urls: string[]) => {
+    setImageUrls(prev => [...prev, ...urls]);
   }
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/\D/g, '');
-    if (!rawValue) {
+    if (rawValue === '' || rawValue === '0') {
       form.setValue('price', 0);
       e.target.value = '';
       return;
@@ -122,15 +122,12 @@ export default function NovoImovelPage() {
       ...values,
       id: propertyId,
       agentId: user.uid,
-      imageUrls: imageUrls,
-      area: values.totalArea,
-      propertyType: values.type,
-      operationType: values.operation
+      imageUrls: imageUrls
     };
     
-    const propertiesCollection = collection(firestore, `agents/${user.uid}/properties`);
+    const propertyRef = doc(firestore, `agents/${user.uid}/properties`, propertyId);
     
-    addDocumentNonBlocking(propertiesCollection, newProperty);
+    setDocumentNonBlocking(propertyRef, newProperty, { merge: false });
     toast({
         title: "Imóvel Adicionado!",
         description: `${values.title} foi cadastrado com sucesso.`,
@@ -322,5 +319,3 @@ export default function NovoImovelPage() {
     </Card>
   );
 }
-
-    
