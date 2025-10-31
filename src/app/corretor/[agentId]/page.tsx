@@ -17,6 +17,8 @@ import { useFirestore } from '@/firebase';
 import PropertyFilters from '@/components/property-filters';
 import { filterProperties } from '@/lib/filter-logic';
 import { PropertyCard } from '@/components/property-card';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 
 type Props = {
@@ -110,8 +112,8 @@ export default function AgentPublicPage({ params }: Props) {
                 </Hero>
                 
                  <section className="py-16 sm:py-24 bg-background" id="imoveis">
-                    <div className="container mx-auto px-4">
-                         <div className="text-center mb-12">
+                    <div className="container mx-auto px-4 text-center">
+                        <div className="mb-12">
                             <h2 className="text-4xl md:text-5xl font-extrabold font-headline">
                                 Nossos <span className="text-gradient">Imóveis</span>
                             </h2>
@@ -119,18 +121,12 @@ export default function AgentPublicPage({ params }: Props) {
                                 Explore nosso portfólio completo de propriedades disponíveis.
                             </p>
                         </div>
-                        {filteredProperties.length > 0 ? (
-                             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                {filteredProperties.map((property) => (
-                                    <PropertyCard key={property.id} property={property} />
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center py-16 rounded-lg border-2 border-dashed">
-                                <h2 className="text-2xl font-bold mb-2">Nenhum imóvel encontrado</h2>
-                                <p className="text-muted-foreground">Tente ajustar seus filtros ou limpar a busca.</p>
-                            </div>
-                        )}
+                        
+                        <Button asChild size="lg">
+                            <Link href={`/search?agentId=${agentId}`}>
+                                Ver Todos os Imóveis
+                            </Link>
+                        </Button>
                     </div>
                 </section>
                 
