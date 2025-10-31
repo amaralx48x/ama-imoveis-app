@@ -35,10 +35,9 @@ export default function CorretorLayout({
 
   const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
+    { href: '/imoveis', label: 'Meus Imóveis', icon: Briefcase },
     { href: '/perfil', label: 'Perfil', icon: User },
     { href: '/inbox', label: 'Caixa de Entrada', icon: Mail },
-    { href: '/imoveis', label: 'Meus Imóveis', icon: Briefcase },
-    { href: '/imoveis/novo', label: 'Adicionar Imóvel', icon: PlusCircle },
     { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' },
     { href: '/avaliacoes', label: 'Avaliações', icon: Star },
     { href: '/configuracoes/comissoes', label: 'Comissões', icon: BarChart },
