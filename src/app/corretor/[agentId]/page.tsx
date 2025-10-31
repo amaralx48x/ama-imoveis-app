@@ -34,7 +34,6 @@ async function getAgentProperties(agentId: string) {
     const q = query(propertiesRef, where("featured", "==", true));
     const propertiesSnap = await getDocs(q);
     
-    // Add agentId to each property
     return propertiesSnap.docs.map(doc => ({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId: agentId }));
 }
 
@@ -53,12 +52,6 @@ export default async function AgentPublicPage({ params }: Props) {
 
   const featuredProperties = await getAgentProperties(agentId);
   const reviews = getReviews();
-
-  const propertyImages = featuredProperties.map(p => {
-    const imageId = p.imageUrls && p.imageUrls.length > 0 ? p.imageUrls[0] : 'property-1-1';
-    const image = PlaceHolderImages.find(img => img.id === imageId);
-    return image || PlaceHolderImages[0];
-  });
   
   const reviewAvatars = reviews.map(r => {
     const avatar = PlaceHolderImages.find(img => img.id === r.avatar);
@@ -73,7 +66,7 @@ export default async function AgentPublicPage({ params }: Props) {
       <main className="min-h-screen">
         <Hero heroImage={heroImage} />
         {featuredProperties.length > 0 && (
-            <FeaturedProperties properties={featuredProperties} images={propertyImages} />
+            <FeaturedProperties properties={featuredProperties} />
         )}
         <AgentProfile agent={agent} />
         <ClientReviews reviews={reviews} avatars={reviewAvatars} />

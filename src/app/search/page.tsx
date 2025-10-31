@@ -2,7 +2,6 @@
 'use client';
 import { PropertyCard } from "@/components/property-card";
 import { PropertySearchForm } from "@/components/property-search-form";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import type { Property } from "@/lib/data";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -56,11 +55,6 @@ function SearchResults() {
   }, [firestore, searchParams]);
 
 
-  const propertyImages = (p: Property) => {
-    const imageId = p.imageUrls && p.imageUrls.length > 0 ? p.imageUrls[0] : undefined;
-    return PlaceHolderImages.find(img => img.id === imageId) || PlaceHolderImages[0];
-  }
-
   if (loading) {
     return (
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -80,7 +74,7 @@ function SearchResults() {
   return properties.length > 0 ? (
     <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {properties.map((property) => (
-        <PropertyCard key={property.id} property={property} imagePlaceholder={propertyImages(property)} />
+        <PropertyCard key={property.id} property={property} />
       ))}
     </div>
   ) : (

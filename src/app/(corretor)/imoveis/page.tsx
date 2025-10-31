@@ -4,7 +4,6 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, AlertTriangle } from 'lucide-react';
 import { PropertyCard } from '@/components/property-card';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Link from 'next/link';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import type { Property } from '@/lib/data';
@@ -23,11 +22,6 @@ export default function ImoveisPage() {
 
     const { data: properties, isLoading, error } = useCollection<Property>(propertiesCollection);
     
-    const propertyImages = (p: Property) => {
-      const imageId = p.imageUrls && p.imageUrls.length > 0 ? p.imageUrls[0] : 'property-1-1';
-      return PlaceHolderImages.find(img => img.id === imageId) || PlaceHolderImages[0];
-    }
-
     return (
         <div className="space-y-8">
             <div className="flex justify-between items-center animate-fade-in-up">
@@ -83,7 +77,7 @@ export default function ImoveisPage() {
             {!isLoading && properties && properties.length > 0 && (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {properties.map((property) => (
-                      <PropertyCard key={property.id} property={property} imagePlaceholder={propertyImages(property)} />
+                      <PropertyCard key={property.id} property={property} />
                   ))}
               </div>
             )}

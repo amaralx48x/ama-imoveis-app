@@ -5,22 +5,22 @@ import Image from "next/image";
 import { BedDouble, Bath, Ruler, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
-import type { ImagePlaceholder } from "@/lib/placeholder-images";
 import Link from "next/link";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 interface PropertyCardProps {
   property: Property;
-  imagePlaceholder: ImagePlaceholder;
 }
 
-export function PropertyCard({ property, imagePlaceholder }: PropertyCardProps) {
+export function PropertyCard({ property }: PropertyCardProps) {
   const formattedPrice = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
   }).format(property.price);
 
-  const imageUrl = imagePlaceholder?.imageUrl || "https://picsum.photos/seed/default/600/400";
-  const imageHint = imagePlaceholder?.imageHint || "house exterior";
+  // Use the first uploaded image, or a default placeholder if none exist.
+  const imageUrl = property.imageUrls?.[0] || PlaceHolderImages.find(p => p.id === 'property-1-1')?.imageUrl || "https://picsum.photos/seed/default/600/400";
+  const imageHint = "house exterior";
   
   const detailUrl = `/imovel/${property.id}?agentId=${property.agentId}`;
 
@@ -28,14 +28,16 @@ export function PropertyCard({ property, imagePlaceholder }: PropertyCardProps) 
     <Card className="w-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 flex flex-col h-full bg-card">
       <CardHeader className="p-0 relative">
         <Link href={detailUrl} className="block cursor-pointer">
-          <Image
-            src={imageUrl}
-            alt={property.title}
-            width={600}
-            height={400}
-            className="w-full h-56 object-cover"
-            data-ai-hint={imageHint}
-          />
+          <div className="relative w-full h-56">
+            <Image
+              src={imageUrl}
+              alt={property.title}
+              fill
+              className="object-cover"
+              data-ai-hint={imageHint}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </div>
         </Link>
         <Badge className="absolute top-3 right-3 bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] text-primary-foreground border-none">
           {property.operation}

@@ -1,3 +1,4 @@
+
 import type { Property } from "@/lib/data";
 import {
   Carousel,
@@ -7,14 +8,12 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { PropertyCard } from "./property-card";
-import type { ImagePlaceholder } from "@/lib/placeholder-images";
 
 interface FeaturedPropertiesProps {
   properties: Property[];
-  images: ImagePlaceholder[];
 }
 
-export function FeaturedProperties({ properties, images }: FeaturedPropertiesProps) {
+export function FeaturedProperties({ properties }: FeaturedPropertiesProps) {
   return (
     <section className="py-16 sm:py-24 bg-background" id="destaques">
       <div className="container mx-auto px-4">
@@ -35,10 +34,10 @@ export function FeaturedProperties({ properties, images }: FeaturedPropertiesPro
           className="w-full"
         >
           <CarouselContent>
-            {properties.map((property, index) => (
+            {properties.map((property) => (
               <CarouselItem key={property.id} className="md:basis-1/2 lg:basis-1/3">
                 <div className="p-1">
-                  <PropertyCard property={property} imagePlaceholder={images[index]} />
+                  <PropertyCard property={property} />
                 </div>
               </CarouselItem>
             ))}

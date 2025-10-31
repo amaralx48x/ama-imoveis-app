@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Property } from "@/lib/data";
@@ -16,10 +17,9 @@ interface PropertyViewProps {
 
 export function PropertyView({ property }: PropertyViewProps) {
 
-    const images = property.imageUrls.map(id => PlaceHolderImages.find(img => img.id === id) || PlaceHolderImages[0]);
-    if (images.length === 0) {
-        images.push(PlaceHolderImages.find(img => img.id === 'property-1-1') || PlaceHolderImages[0]);
-    }
+    const images = property.imageUrls && property.imageUrls.length > 0 
+        ? property.imageUrls 
+        : [PlaceHolderImages.find(img => img.id === 'property-1-1')?.imageUrl || "https://picsum.photos/seed/default/600/400"];
 
     const formattedPrice = new Intl.NumberFormat('pt-BR', {
         style: 'currency',
@@ -34,15 +34,16 @@ export function PropertyView({ property }: PropertyViewProps) {
                     {/* Carrossel de Imagens */}
                     <Carousel className="w-full">
                         <CarouselContent>
-                            {images.map((image, index) => (
+                            {images.map((imageUrl, index) => (
                                 <CarouselItem key={index}>
                                     <div className="aspect-video relative rounded-lg overflow-hidden border">
                                         <Image
-                                            src={image.imageUrl}
+                                            src={imageUrl}
                                             alt={`${property.title} - Imagem ${index + 1}`}
                                             fill
                                             className="object-cover"
-                                            data-ai-hint={image.imageHint}
+                                            data-ai-hint="house interior"
+                                            sizes="(max-width: 1200px) 90vw, 66vw"
                                         />
                                     </div>
                                 </CarouselItem>
@@ -61,7 +62,7 @@ export function PropertyView({ property }: PropertyViewProps) {
                                 <CardTitle className="text-3xl font-headline">{property.title}</CardTitle>
                                 <div className="flex items-center text-muted-foreground text-md mt-2">
                                     <MapPin className="w-5 h-5 mr-2" />
-                                    <span>{property.address}</span>
+                                    <span>{property.city}</span>
                                 </div>
                             </div>
                             <div className="text-right flex-shrink-0">
