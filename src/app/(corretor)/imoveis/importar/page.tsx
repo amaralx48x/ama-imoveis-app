@@ -26,7 +26,7 @@ type StagedProperty = {
 
 const requiredFields = ['title', 'description', 'price', 'bedrooms', 'bathrooms', 'garage', 'rooms', 'builtArea', 'totalArea', 'city', 'neighborhood', 'type', 'operation'];
 const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
-const operationTypes = ["Comprar", "Alugar"];
+const operationTypes = ["Venda", "Aluguel"]; // Aceita "Venda" e "Aluguel"
 
 export default function ImportImoveisPage() {
   const [stagedProperties, setStagedProperties] = useState<StagedProperty[]>([]);
@@ -54,7 +54,7 @@ export default function ImportImoveisPage() {
             
             // Validate required fields
             for (const field of requiredFields) {
-                if (!row[field] || row[field].trim() === '') {
+                if (!row[field] || String(row[field]).trim() === '') {
                     errors.push(`Campo obrigatório ausente: ${field}`);
                 }
             }
@@ -62,7 +62,7 @@ export default function ImportImoveisPage() {
             // Validate numeric fields
             const numericFields = ['price', 'bedrooms', 'bathrooms', 'garage', 'rooms', 'builtArea', 'totalArea'];
             for (const field of numericFields) {
-                if (isNaN(Number(row[field]))) {
+                if (row[field] && isNaN(Number(row[field]))) {
                      errors.push(`Campo '${field}' deve ser um número.`);
                 }
             }
@@ -74,6 +74,8 @@ export default function ImportImoveisPage() {
             if (row.operation && !operationTypes.includes(row.operation)) {
                 errors.push(`Operação inválida: '${row.operation}'.`);
             }
+
+            const operation = row.operation === 'Venda' ? 'Comprar' : row.operation;
 
             const propertyData: Partial<Property> = {
                 title: row.title,
@@ -88,7 +90,7 @@ export default function ImportImoveisPage() {
                 city: row.city,
                 neighborhood: row.neighborhood,
                 type: row.type,
-                operation: row.operation,
+                operation: operation, // Use a versão corrigida
                 featured: row.featured?.toLowerCase() === 'true',
                 imageUrls: row.imageUrls ? row.imageUrls.split(',').map((url: string) => url.trim()) : [],
             };
@@ -212,7 +214,7 @@ export default function ImportImoveisPage() {
                                 </TableCell>
                                 <TableCell className="font-medium">{p.data.title || 'N/A'}</TableCell>
                                 <TableCell>{p.data.city || 'N/A'}</TableCell>
-                                <TableCell>{p.data.price ? p.data.price.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) : 'N/A'}</TableCell>
+                                <TableCell>{p.data.price ? Number(p.data.price).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) : 'N/A'}</TableCell>
                                 <TableCell className="text-xs text-destructive">{p.errors.join(', ')}</TableCell>
                             </TableRow>
                         ))}
@@ -240,3 +242,5 @@ export default function ImportImoveisPage() {
     </Card>
   );
 }
+
+    
