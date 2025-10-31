@@ -31,7 +31,6 @@ export default function AgentPublicPage({ params }: Props) {
     
     const [agent, setAgent] = useState<Agent | null>(null);
     const [allProperties, setAllProperties] = useState<Property[]>([]);
-    const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -56,7 +55,6 @@ export default function AgentPublicPage({ params }: Props) {
                 const props = propertiesSnap.docs.map(doc => ({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId: agentId }));
 
                 setAllProperties(props);
-                setFilteredProperties(props);
             } catch (error) {
                 console.error("Error fetching agent data on client:", error);
                 // Optionally handle error state in UI
@@ -67,11 +65,6 @@ export default function AgentPublicPage({ params }: Props) {
 
         fetchData();
     }, [firestore, agentId]);
-
-    const handleFilter = (filters: any) => {
-        const result = filterProperties(allProperties, filters);
-        setFilteredProperties(result);
-    };
 
     if (isLoading) {
          return (
@@ -98,7 +91,6 @@ export default function AgentPublicPage({ params }: Props) {
 
     const heroImage = PlaceHolderImages.find(img => img.id === 'hero-background');
     const featuredProperties = allProperties.filter(p => p.featured);
-    const cities = agent.cities || [];
     const propertyTypes = getPropertyTypes();
 
     return (
@@ -107,31 +99,12 @@ export default function AgentPublicPage({ params }: Props) {
             <main className="min-h-screen">
                 <Hero heroImage={heroImage}>
                     <div className='absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-4'>
-                       <PropertyFilters onFilter={handleFilter} cities={cities} propertyTypes={propertyTypes} />
+                       <PropertyFilters agent={agent} propertyTypes={propertyTypes} />
                     </div>
                 </Hero>
                 
-                 <section className="py-16 sm:py-24 bg-background" id="imoveis">
-                    <div className="container mx-auto px-4 text-center">
-                        <div className="mb-12">
-                            <h2 className="text-4xl md:text-5xl font-extrabold font-headline">
-                                Nossos <span className="text-gradient">Imóveis</span>
-                            </h2>
-                            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-                                Explore nosso portfólio completo de propriedades disponíveis.
-                            </p>
-                        </div>
-                        
-                        <Button asChild size="lg">
-                            <Link href={`/search?agentId=${agentId}`}>
-                                Ver Todos os Imóveis
-                            </Link>
-                        </Button>
-                    </div>
-                </section>
-                
                 {featuredProperties.length > 0 && (
-                    <FeaturedProperties properties={featuredProperties} />
+                    <FeaturedProperties properties={featuredProperties} agentId={agentId} />
                 )}
                 <AgentProfile agent={agent} />
                 <ClientReviews reviews={reviews} avatars={reviewAvatars} />
