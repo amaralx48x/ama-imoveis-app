@@ -10,6 +10,7 @@ import { collection, doc } from 'firebase/firestore';
 import type { Agent, Property } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { isSameMonth } from 'date-fns';
+import { MonthlyPerformanceChart } from '@/components/dashboard/monthly-chart';
 
 const MotionCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <div className={`transition-all duration-500 ease-out hover:scale-105 hover:shadow-primary/20 ${className}`}>
@@ -147,7 +148,8 @@ export default function DashboardPage() {
                     </Card>
                 </MotionCard>
             </div>
-             {/* O restante dos componentes (Inbox, etc.) virá aqui */}
+            
+            <MonthlyPerformanceChart properties={properties || []} isLoading={isLoading} />
         </div>
     );
 }
