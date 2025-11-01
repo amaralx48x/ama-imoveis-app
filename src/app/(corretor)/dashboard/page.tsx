@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -46,7 +47,7 @@ export default function DashboardPage() {
 
     const displayName = agentData?.displayName?.split(' ')[0] || 'Corretor(a)';
 
-    const activePropertiesCount = properties?.filter(p => p.status === 'ativo').length || 0;
+    const activePropertiesCount = properties?.filter(p => p.status !== 'vendido' && p.status !== 'alugado').length || 0;
 
     const commissionsThisMonth = properties
         ?.filter(p => {
