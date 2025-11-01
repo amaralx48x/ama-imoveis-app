@@ -59,6 +59,7 @@ export function ContactForm({ agentId, propertyId }: ContactFormProps) {
         id: uuidv4(),
         agentId: agentId,
         propertyId: propertyId || null,
+        status: 'novo' as const,
         createdAt: serverTimestamp(),
     }
     

@@ -1,7 +1,7 @@
 
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, Mail, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent } from 'lucide-react';
+import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/firebase';
@@ -38,10 +38,10 @@ export default function CorretorLayout({
   const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
     { href: '/imoveis', label: 'Meus Imóveis', icon: Briefcase },
-    { href: '/perfil', label: 'Perfil', icon: User },
     { href: '/inbox', label: 'Caixa de Entrada', icon: Mail },
-    { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' },
+    { href: '/perfil', label: 'Perfil', icon: User },
     { href: '/avaliacoes', label: 'Avaliações', icon: Star },
+    { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' },
   ];
 
   const settingsItems = [
