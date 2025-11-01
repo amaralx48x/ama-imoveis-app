@@ -3,13 +3,13 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import type { Lead } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Mail, Inbox, Archive, Check, AlertTriangle } from 'lucide-react';
+import { Mail, Inbox, Archive, Check, AlertTriangle, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -18,7 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type LeadWithId = Lead & { id: string };
 
-function LeadCard({ lead, onStatusChange }: { lead: LeadWithId, onStatusChange: (id: string, status: 'lido' | 'arquivado') => void }) {
+function LeadCard({ lead, onStatusChange, onDelete }: { lead: LeadWithId, onStatusChange: (id: string, status: 'lido' | 'arquivado') => void, onDelete: (id: string) => void }) {
     const createdAt = lead.createdAt?.toDate ? format(lead.createdAt.toDate(), "d MMM, yyyy 'às' HH:mm", { locale: ptBR }) : 'Data indisponível';
 
     return (
@@ -47,6 +47,9 @@ function LeadCard({ lead, onStatusChange }: { lead: LeadWithId, onStatusChange: 
                             <Archive className="mr-2 h-4 w-4" /> Arquivar
                         </Button>
                     )}
+                     <Button size="sm" variant="destructive" onClick={() => onDelete(lead.id)}>
+                        <Trash2 className="mr-2 h-4 w-4" /> Remover
+                    </Button>
                 </div>
             </CardContent>
         </Card>
@@ -117,6 +120,23 @@ export default function InboxPage() {
             toast({ title: "Erro ao atualizar status", variant: "destructive" });
         }
     };
+
+    const handleDelete = async (id: string) => {
+        if (!user || !firestore) return;
+
+        if (!window.confirm("Tem certeza que deseja excluir esta mensagem? Esta ação não pode ser desfeita.")) {
+            return;
+        }
+
+        const ref = doc(firestore, 'leads', id);
+        try {
+            await deleteDoc(ref);
+            toast({ title: "Mensagem removida com sucesso!" });
+        } catch (err) {
+            console.error(err);
+            toast({ title: "Erro ao remover a mensagem", variant: "destructive" });
+        }
+    };
     
     const filteredLeads = useMemo(() => {
         return leads.filter(lead => lead.status === activeTab);
@@ -164,7 +184,7 @@ export default function InboxPage() {
         return (
             <div className="space-y-4">
                 {leadList.map(lead => (
-                    <LeadCard key={lead.id} lead={lead} onStatusChange={handleStatusChange} />
+                    <LeadCard key={lead.id} lead={lead} onStatusChange={handleStatusChange} onDelete={handleDelete} />
                 ))}
             </div>
         );
