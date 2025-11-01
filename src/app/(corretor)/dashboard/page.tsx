@@ -1,4 +1,3 @@
-
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -9,7 +8,7 @@ import { useDoc, useFirestore, useUser, useMemoFirebase, useCollection } from '@
 import { collection, doc } from 'firebase/firestore';
 import type { Agent, Property } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
-import { isSameMonth, parseISO } from 'date-fns';
+import { isSameMonth } from 'date-fns';
 
 const MotionCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <div className={`transition-all duration-500 ease-out hover:scale-105 hover:shadow-primary/20 ${className}`}>
@@ -51,12 +50,19 @@ export default function DashboardPage() {
 
     const commissionsThisMonth = properties
         ?.filter(p => {
-            if (!['vendido', 'alugado'].includes(p.status) || !p.soldAt) return false;
+            if (!['vendido', 'alugado'].includes(p.status || '') || !p.soldAt) return false;
             
             const soldDate = p.soldAt.toDate();
             return isSameMonth(soldDate, new Date());
         })
         .reduce((sum, p) => sum + (p.commissionValue || 0), 0) || 0;
+    
+    const dealsThisMonthCount = properties
+        ?.filter(p => {
+            if (!['vendido', 'alugado'].includes(p.status || '') || !p.soldAt) return false;
+            const soldDate = p.soldAt.toDate();
+            return isSameMonth(soldDate, new Date());
+        }).length || 0;
 
     const isLoading = isAgentLoading || arePropertiesLoading;
 
@@ -131,7 +137,7 @@ export default function DashboardPage() {
                             ) : (
                                 <>
                                     <div className="text-4xl font-bold">
-                                        {properties?.filter(p => p.status !== 'ativo' && p.soldAt && isSameMonth(p.soldAt.toDate(), new Date())).length || 0}
+                                        {dealsThisMonthCount}
                                     </div>
                                     <p className="text-xs text-muted-foreground">Imóveis vendidos ou alugados</p>
                                 </>
