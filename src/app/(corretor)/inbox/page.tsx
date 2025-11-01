@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import type { Lead } from '@/lib/data';
@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Mail, Inbox, Archive, Check, AlertTriangle, Trash2 } from 'lucide-react';
+import { Mail, Inbox, Archive, Check, AlertTriangle, Trash2, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -18,7 +18,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type LeadWithId = Lead & { id: string };
 
-function LeadCard({ lead, onStatusChange, onDelete }: { lead: LeadWithId, onStatusChange: (id: string, status: 'lido' | 'arquivado') => void, onDelete: (id: string) => void }) {
+function LeadCard({ 
+    lead, 
+    onStatusChange, 
+    onDelete,
+    isProcessing 
+}: { 
+    lead: LeadWithId, 
+    onStatusChange: (id: string, status: 'lido' | 'arquivado') => void, 
+    onDelete: (id: string) => void,
+    isProcessing: boolean,
+}) {
     const createdAt = lead.createdAt?.toDate ? format(lead.createdAt.toDate(), "d MMM, yyyy 'às' HH:mm", { locale: ptBR }) : 'Data indisponível';
 
     return (
@@ -38,17 +48,17 @@ function LeadCard({ lead, onStatusChange, onDelete }: { lead: LeadWithId, onStat
                 </div>
                  <div className="flex justify-end items-center gap-2 mt-4 pt-4 border-t">
                     {lead.status === 'novo' && (
-                        <Button size="sm" variant="outline" onClick={() => onStatusChange(lead.id, 'lido')}>
-                            <Check className="mr-2 h-4 w-4" /> Marcar como Lido
+                        <Button size="sm" variant="outline" onClick={() => onStatusChange(lead.id, 'lido')} disabled={isProcessing}>
+                            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Check className="mr-2 h-4 w-4" />} Marcar como Lido
                         </Button>
                     )}
                     {lead.status !== 'arquivado' && (
-                        <Button size="sm" variant="ghost" onClick={() => onStatusChange(lead.id, 'arquivado')}>
-                            <Archive className="mr-2 h-4 w-4" /> Arquivar
+                        <Button size="sm" variant="ghost" onClick={() => onStatusChange(lead.id, 'arquivado')} disabled={isProcessing}>
+                            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Archive className="mr-2 h-4 w-4" />} Arquivar
                         </Button>
                     )}
-                     <Button size="sm" variant="destructive" onClick={() => onDelete(lead.id)}>
-                        <Trash2 className="mr-2 h-4 w-4" /> Remover
+                     <Button size="sm" variant="destructive" onClick={() => onDelete(lead.id)} disabled={isProcessing}>
+                        {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Trash2 className="mr-2 h-4 w-4" />} Remover
                     </Button>
                 </div>
             </CardContent>
@@ -65,6 +75,7 @@ export default function InboxPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'novo' | 'lido' | 'arquivado'>('novo');
+    const [processingId, setProcessingId] = useState<string | null>(null);
 
     const leadsQuery = useMemoFirebase(
         () => (user && firestore ? query(collection(firestore, 'leads'), where('agentId', '==', user.uid)) : null),
@@ -82,7 +93,6 @@ export default function InboxPage() {
             (snapshot) => {
                 const fetchedLeads = snapshot.docs.map(d => ({ id: d.id, ...d.data() }) as LeadWithId);
                 
-                // Sort on the client to avoid composite index requirement
                 const sortedLeads = fetchedLeads.sort((a, b) => {
                     const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
                     const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
@@ -104,6 +114,7 @@ export default function InboxPage() {
 
     const handleStatusChange = async (id: string, status: 'lido' | 'arquivado') => {
         if (!user || !firestore) return;
+        setProcessingId(id);
         
         const ref = doc(firestore, 'leads', id);
         try {
@@ -115,8 +126,10 @@ export default function InboxPage() {
             await updateDoc(ref, { status: status });
             toast({ title: `Mensagem movida para '${status}s'!` });
         } catch (err) {
-            console.error(err);
+            console.error("Erro ao atualizar status:", err);
             toast({ title: "Erro ao atualizar status", description: "Ocorreu um problema ao tentar atualizar a mensagem.", variant: "destructive" });
+        } finally {
+            setProcessingId(null);
         }
     };
 
@@ -127,13 +140,16 @@ export default function InboxPage() {
             return;
         }
 
+        setProcessingId(id);
         const ref = doc(firestore, 'leads', id);
         try {
             await deleteDoc(ref);
             toast({ title: "Mensagem removida com sucesso!" });
         } catch (err) {
-            console.error(err);
+            console.error("Erro ao remover a mensagem:", err);
             toast({ title: "Erro ao remover a mensagem", variant: "destructive" });
+        } finally {
+            setProcessingId(null);
         }
     };
     
@@ -183,7 +199,13 @@ export default function InboxPage() {
         return (
             <div className="space-y-4">
                 {leadList.map(lead => (
-                    <LeadCard key={lead.id} lead={lead} onStatusChange={handleStatusChange} onDelete={handleDelete} />
+                    <LeadCard 
+                        key={lead.id} 
+                        lead={lead} 
+                        onStatusChange={handleStatusChange} 
+                        onDelete={handleDelete}
+                        isProcessing={processingId === lead.id}
+                    />
                 ))}
             </div>
         );
@@ -198,7 +220,7 @@ export default function InboxPage() {
                     <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2">
                         <Mail /> Caixa de Entrada
                     </CardTitle>
-                    {newLeadsCount > 0 && <Badge>{newLeadsCount} Nova(s)</Badge>}
+                    {!loading && newLeadsCount > 0 && <Badge>{newLeadsCount} Nova(s)</Badge>}
                 </div>
                 <CardDescription>
                     Gerencie as mensagens e contatos recebidos através do seu site.
