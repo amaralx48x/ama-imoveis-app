@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -16,10 +17,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { useFirestore } from "@/firebase";
-import { collection, serverTimestamp } from "firebase/firestore";
-import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { v4 as uuidv4 } from "uuid";
+import { useFirestore, useFirebaseApp } from "@/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
@@ -36,6 +37,7 @@ interface ContactFormProps {
 export function ContactForm({ agentId, propertyId }: ContactFormProps) {
   const { toast } = useToast();
   const firestore = useFirestore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -47,29 +49,40 @@ export function ContactForm({ agentId, propertyId }: ContactFormProps) {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!firestore) {
         toast({ title: "Erro", description: "Não foi possível conectar ao banco de dados.", variant: "destructive" });
         return;
     }
 
-    const leadsCollection = collection(firestore, 'leads');
-    const newLead = {
+    setIsSubmitting(true);
+
+    try {
+      await addDoc(collection(firestore, 'leads'), {
         ...values,
-        id: uuidv4(),
         agentId: agentId,
         propertyId: propertyId || null,
-        status: 'novo' as const,
+        lida: false,
+        arquivada: false,
         createdAt: serverTimestamp(),
-    }
-    
-    addDocumentNonBlocking(leadsCollection, newLead);
+      });
 
-    toast({
-      title: "Mensagem Enviada!",
-      description: "Obrigado por entrar em contato. Retornaremos em breve.",
-    });
-    form.reset();
+      toast({
+        title: "Mensagem Enviada!",
+        description: "Obrigado por entrar em contato. Retornaremos em breve.",
+      });
+      form.reset();
+
+    } catch (error) {
+      console.error("Erro ao enviar mensagem:", error);
+      toast({
+        title: "Erro ao Enviar",
+        description: "Não foi possível enviar sua mensagem. Tente novamente mais tarde.",
+        variant: "destructive"
+      });
+    } finally {
+        setIsSubmitting(false);
+    }
   }
 
   return (
@@ -144,8 +157,15 @@ export function ContactForm({ agentId, propertyId }: ContactFormProps) {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" size="lg" className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
-                    Enviar Mensagem
+                  <Button type="submit" size="lg" className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Enviando...
+                        </>
+                    ) : (
+                        "Enviar Mensagem"
+                    )}
                   </Button>
                 </form>
               </Form>

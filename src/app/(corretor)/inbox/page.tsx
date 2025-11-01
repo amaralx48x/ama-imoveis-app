@@ -1,68 +1,79 @@
 
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
-import { useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc, deleteDoc } from 'firebase/firestore';
+import { useEffect, useState, useMemo } from 'react';
+import { useFirestore, useUser } from '@/firebase';
+import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import type { Lead } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Mail, Inbox, Archive, Check, AlertTriangle, Trash2, Loader2 } from 'lucide-react';
+import { Mail, Inbox, Archive, Check, AlertTriangle, Trash2, Loader2, ArchiveRestore, Undo2, Eye, EyeOff } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AnimatePresence, motion } from "framer-motion";
 
 type LeadWithId = Lead & { id: string };
 
 function LeadCard({ 
     lead, 
-    onStatusChange, 
+    onUpdate,
     onDelete,
     isProcessing 
 }: { 
     lead: LeadWithId, 
-    onStatusChange: (id: string, status: 'lido' | 'arquivado') => void, 
+    onUpdate: (id: string, field: 'lida' | 'arquivada', value: boolean) => void,
     onDelete: (id: string) => void,
     isProcessing: boolean,
 }) {
     const createdAt = lead.createdAt?.toDate ? format(lead.createdAt.toDate(), "d MMM, yyyy 'às' HH:mm", { locale: ptBR }) : 'Data indisponível';
 
     return (
-        <Card className={`transition-all ${lead.status === 'novo' ? 'bg-primary/5 border-primary/40' : 'bg-card'}`}>
-            <CardContent className="p-4">
-                <div className="flex justify-between items-start gap-4">
-                    <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-4">
-                            <h4 className="font-bold text-lg">{lead.name}</h4>
-                            <Badge variant={lead.status === 'novo' ? 'default' : 'secondary'}>{lead.status}</Badge>
+        <motion.div
+            layout
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+        >
+            <Card className={`transition-all hover:shadow-md ${!lead.lida ? 'bg-primary/5 border-primary/40' : 'bg-card'}`}>
+                <CardContent className="p-4">
+                    <div className="flex justify-between items-start gap-4">
+                        <div className="flex-1 space-y-2">
+                            <div className="flex items-center gap-4">
+                                <h4 className="font-bold text-lg">{lead.name}</h4>
+                                <div className="flex gap-2">
+                                  {!lead.lida && <Badge variant="default">Nova</Badge>}
+                                  {lead.arquivada && <Badge variant="secondary">Arquivada</Badge>}
+                                </div>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{lead.email} {lead.phone && `• ${lead.phone}`}</p>
+                            <p className="text-md pt-2">{lead.message}</p>
+                            {lead.propertyId && <p className="text-xs text-muted-foreground pt-2">Interesse no imóvel ID: {lead.propertyId}</p>}
+                            <span className="text-xs text-muted-foreground">{createdAt}</span>
                         </div>
-                        <p className="text-sm text-muted-foreground">{lead.email} {lead.phone && `• ${lead.phone}`}</p>
-                        <p className="text-md pt-2">{lead.message}</p>
-                         {lead.propertyId && <p className="text-xs text-muted-foreground pt-2">Interesse no imóvel ID: {lead.propertyId}</p>}
-                        <span className="text-xs text-muted-foreground">{createdAt}</span>
                     </div>
-                </div>
-                 <div className="flex justify-end items-center gap-2 mt-4 pt-4 border-t">
-                    {lead.status === 'novo' && (
-                        <Button size="sm" variant="outline" onClick={() => onStatusChange(lead.id, 'lido')} disabled={isProcessing}>
-                            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Check className="mr-2 h-4 w-4" />} Marcar como Lido
+                    <div className="flex justify-end items-center gap-2 mt-4 pt-4 border-t">
+                        <Button size="sm" variant="outline" onClick={() => onUpdate(lead.id, 'lida', !lead.lida)} disabled={isProcessing}>
+                            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : (lead.lida ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />)}
+                            {lead.lida ? 'Não Lido' : 'Lido'}
                         </Button>
-                    )}
-                    {lead.status !== 'arquivado' && (
-                        <Button size="sm" variant="ghost" onClick={() => onStatusChange(lead.id, 'arquivado')} disabled={isProcessing}>
-                            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Archive className="mr-2 h-4 w-4" />} Arquivar
+                        <Button size="sm" variant="ghost" onClick={() => onUpdate(lead.id, 'arquivada', !lead.arquivada)} disabled={isProcessing}>
+                            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : (lead.arquivada ? <ArchiveRestore className="mr-2 h-4 w-4" /> : <Archive className="mr-2 h-4 w-4" />)}
+                            {lead.arquivada ? 'Desarquivar' : 'Arquivar'}
                         </Button>
-                    )}
-                     <Button size="sm" variant="destructive" onClick={() => onDelete(lead.id)} disabled={isProcessing}>
-                        {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Trash2 className="mr-2 h-4 w-4" />} Remover
-                    </Button>
-                </div>
-            </CardContent>
-        </Card>
+                        <Button size="sm" variant="destructive" onClick={() => onDelete(lead.id)} disabled={isProcessing}>
+                            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Trash2 className="mr-2 h-4 w-4" />} 
+                            Remover
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        </motion.div>
     );
 }
 
@@ -71,48 +82,36 @@ export default function InboxPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
     
-    const [leads, setLeads] = useState<LeadWithId[]>([]);
+    const [allLeads, setAllLeads] = useState<LeadWithId[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'novo' | 'lido' | 'arquivado'>('novo');
+    const [activeTab, setActiveTab] = useState<'novas' | 'arquivadas' | 'todas'>('novas');
     const [processingId, setProcessingId] = useState<string | null>(null);
 
-    const leadsQuery = useMemoFirebase(
-        () => (user && firestore ? query(collection(firestore, 'leads'), where('agentId', '==', user.uid)) : null),
-        [user, firestore]
-    );
-
     useEffect(() => {
-        if (!leadsQuery) {
-            setLoading(false);
-            return;
-        };
+        if (!user || !firestore) return;
 
+        const leadsCollection = collection(firestore, 'leads');
+        const q = query(leadsCollection, where('agentId', '==', user.uid), orderBy('createdAt', 'desc'));
+        
         setLoading(true);
-        const unsubscribe = onSnapshot(leadsQuery, 
+        const unsubscribe = onSnapshot(q, 
             (snapshot) => {
                 const fetchedLeads = snapshot.docs.map(d => ({ id: d.id, ...d.data() }) as LeadWithId);
-                
-                const sortedLeads = fetchedLeads.sort((a, b) => {
-                    const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
-                    const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
-                    return dateB - dateA;
-                });
-                
-                setLeads(sortedLeads);
+                setAllLeads(fetchedLeads);
                 setLoading(false);
             },
             (err) => {
                 console.error(err);
-                setError('Erro ao carregar mensagens. Você pode precisar criar um índice no Firestore se o erro persistir.');
+                setError('Erro ao carregar mensagens. Pode ser necessário criar um índice no Firestore: (leads, agentId, createdAt DESC).');
                 setLoading(false);
             }
         );
 
         return () => unsubscribe();
-    }, [leadsQuery]);
+    }, [user, firestore]);
 
-    const handleStatusChange = async (id: string, status: 'lido' | 'arquivado') => {
+    const handleUpdate = async (id: string, field: 'lida' | 'arquivada', value: boolean) => {
         if (!user || !firestore) return;
         setProcessingId(id);
         
@@ -123,11 +122,11 @@ export default function InboxPage() {
                  toast({ title: "A mensagem não existe mais", description: "Ela pode ter sido excluída.", variant: "destructive" });
                  return;
             }
-            await updateDoc(ref, { status: status });
-            toast({ title: `Mensagem movida para '${status}s'!` });
+            await updateDoc(ref, { [field]: value });
+            toast({ title: `Mensagem atualizada!` });
         } catch (err) {
             console.error("Erro ao atualizar status:", err);
-            toast({ title: "Erro ao atualizar status", description: "Ocorreu um problema ao tentar atualizar a mensagem.", variant: "destructive" });
+            toast({ title: "Erro ao atualizar", description: "Ocorreu um problema ao tentar atualizar a mensagem.", variant: "destructive" });
         } finally {
             setProcessingId(null);
         }
@@ -154,23 +153,18 @@ export default function InboxPage() {
     };
     
     const filteredLeads = useMemo(() => {
-        return leads.filter(lead => lead.status === activeTab);
-    }, [leads, activeTab]);
+        if (activeTab === 'novas') return allLeads.filter(l => !l.lida && !l.arquivada);
+        if (activeTab === 'arquivadas') return allLeads.filter(l => l.arquivada);
+        return allLeads; // 'todas'
+    }, [allLeads, activeTab]);
+
+    const newLeadsCount = useMemo(() => allLeads.filter(l => !l.lida && !l.arquivada).length, [allLeads]);
 
     const renderLeadList = (leadList: LeadWithId[], emptyMessage: string) => {
         if (loading) {
             return (
                 <div className="space-y-4">
-                    {[...Array(3)].map((_, i) => (
-                       <div key={i} className="flex space-x-4 border rounded-lg p-4">
-                           <div className="flex-1 space-y-3">
-                               <Skeleton className="h-5 w-1/4" />
-                               <Skeleton className="h-4 w-3/4" />
-                               <Skeleton className="h-4 w-1/2" />
-                           </div>
-                           <Skeleton className="h-10 w-24" />
-                       </div>
-                    ))}
+                    {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-48 w-full rounded-lg" />)}
                 </div>
             )
         }
@@ -186,33 +180,35 @@ export default function InboxPage() {
 
         if (leadList.length === 0) {
             return (
-                <div className="text-center py-16 rounded-lg border-2 border-dashed">
-                    <Inbox className="mx-auto h-12 w-12 text-muted-foreground" />
-                    <h2 className="text-2xl font-bold mt-4">{emptyMessage}</h2>
-                    <p className="text-muted-foreground mt-2">
-                       Novas mensagens de clientes aparecerão aqui.
-                    </p>
-                </div>
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    <div className="text-center py-16 rounded-lg border-2 border-dashed">
+                        <Inbox className="mx-auto h-12 w-12 text-muted-foreground" />
+                        <h2 className="text-2xl font-bold mt-4">{emptyMessage}</h2>
+                        <p className="text-muted-foreground mt-2">
+                           Novas mensagens de clientes aparecerão aqui.
+                        </p>
+                    </div>
+                </motion.div>
             );
         }
 
         return (
             <div className="space-y-4">
+              <AnimatePresence>
                 {leadList.map(lead => (
                     <LeadCard 
                         key={lead.id} 
                         lead={lead} 
-                        onStatusChange={handleStatusChange} 
+                        onUpdate={handleUpdate} 
                         onDelete={handleDelete}
                         isProcessing={processingId === lead.id}
                     />
                 ))}
+              </AnimatePresence>
             </div>
         );
     }
     
-    const newLeadsCount = leads.filter(l => l.status === 'novo').length;
-
     return (
         <Card>
             <CardHeader>
@@ -229,17 +225,17 @@ export default function InboxPage() {
             <CardContent className="space-y-4">
                 <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
                     <TabsList>
-                        <TabsTrigger value="novo">Novas</TabsTrigger>
-                        <TabsTrigger value="lido">Lidas</TabsTrigger>
-                        <TabsTrigger value="arquivado">Arquivadas</TabsTrigger>
+                        <TabsTrigger value="novas">Novas</TabsTrigger>
+                        <TabsTrigger value="todas">Todas</TabsTrigger>
+                        <TabsTrigger value="arquivadas">Arquivadas</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="novo" className="mt-6">
+                    <TabsContent value="novas" className="mt-6">
                         {renderLeadList(filteredLeads, 'Nenhuma mensagem nova')}
                     </TabsContent>
-                    <TabsContent value="lido" className="mt-6">
-                         {renderLeadList(filteredLeads, 'Nenhuma mensagem lida')}
+                    <TabsContent value="todas" className="mt-6">
+                         {renderLeadList(filteredLeads, 'Nenhuma mensagem para exibir')}
                     </TabsContent>
-                    <TabsContent value="arquivado" className="mt-6">
+                    <TabsContent value="arquivadas" className="mt-6">
                          {renderLeadList(filteredLeads, 'Nenhuma mensagem arquivada')}
                     </TabsContent>
                 </Tabs>

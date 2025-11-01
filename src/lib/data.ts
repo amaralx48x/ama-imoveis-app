@@ -45,6 +45,19 @@ export type Agent = {
     siteSettings?: SiteSettings;
 }
 
+export type Lead = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  message: string;
+  agentId: string;
+  propertyId?: string | null;
+  lida: boolean;
+  arquivada: boolean;
+  createdAt?: any;
+}
+
 export type Review = {
   id: string;
   name: string;

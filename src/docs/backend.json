@@ -76,10 +76,11 @@
         "message": { "type": "string" },
         "agentId": { "type": "string", "description": "The ID of the agent this lead is for." },
         "propertyId": { "type": "string", "description": "Optional ID of the property the lead is interested in." },
-        "status": { "type": "string", "enum": ["novo", "lido", "arquivado"], "description": "The status of the lead." },
+        "lida": { "type": "boolean", "default": false },
+        "arquivada": { "type": "boolean", "default": false },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "name", "email", "message", "agentId", "status", "createdAt"]
+      "required": ["id", "name", "email", "message", "agentId", "createdAt"]
     },
     "Review": {
       "$schema": "http://json-schema.org/draft-07/schema#",
