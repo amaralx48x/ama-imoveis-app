@@ -64,7 +64,7 @@ export default function AgentPublicPage({ }: Props) {
 
                 const [agentSnap, propertiesSnap, sectionsSnap] = await Promise.all([
                     getDoc(agentRef),
-                    getDocs(query(propertiesRef, where('status', '!=', 'vendido'), where('status', '!=', 'alugado'))),
+                    getDocs(propertiesRef), // Simplified query
                     getDocs(query(sectionsRef, orderBy('order', 'asc')))
                 ]);
 
@@ -76,7 +76,10 @@ export default function AgentPublicPage({ }: Props) {
                 const agentData = { id: agentSnap.id, ...agentSnap.data() } as Agent;
                 setAgent(agentData);
 
-                const props = propertiesSnap.docs.map(doc => ({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId: agentId }));
+                // Filter active properties on the client-side
+                const props = propertiesSnap.docs
+                    .map(doc => ({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId: agentId }))
+                    .filter(p => p.status !== 'vendido' && p.status !== 'alugado');
                 setAllProperties(props);
 
                 const sections = sectionsSnap.docs.map(doc => ({ ...(doc.data() as Omit<CustomSection, 'id'>), id: doc.id }));
