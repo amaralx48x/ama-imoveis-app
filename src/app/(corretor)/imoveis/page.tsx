@@ -1,17 +1,16 @@
 
 'use client';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, AlertTriangle, Upload, Trash2 } from 'lucide-react';
 import { PropertyCard } from '@/components/property-card';
 import Link from 'next/link';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import type { Property } from '@/lib/data';
-import { collection, query, where, doc, getDocs } from 'firebase/firestore';
+import { collection, query, where, doc, getDocs, deleteDoc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
@@ -101,7 +100,7 @@ export default function ImoveisPage() {
         return collection(firestore, `agents/${user.uid}/properties`);
     }, [firestore, user]);
 
-    const fetchProperties = async () => {
+    const fetchProperties = useCallback(async () => {
         if (!propertiesCollection) return;
         setIsLoading(true);
         setError(null);
@@ -114,28 +113,38 @@ export default function ImoveisPage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [propertiesCollection]);
     
     useEffect(() => {
         fetchProperties();
-    }, [propertiesCollection]);
+    }, [fetchProperties]);
     
     const filteredProperties = useMemo(() => {
         if (activeTab === 'ativo') {
             // Includes properties explicitly set to 'ativo' or without a status field (for backward compatibility)
-            return allProperties.filter(p => p.status === 'ativo' || !p.status);
+            return allProperties.filter(p => !p.status || p.status === 'ativo');
         }
         return allProperties.filter(p => p.status === activeTab);
     }, [allProperties, activeTab]);
 
     
-    const handleDeleteProperty = (id: string) => {
+    const handleDeleteProperty = async (id: string) => {
         if (!firestore || !user) return;
         const docRef = doc(firestore, `agents/${user.uid}/properties`, id);
-        deleteDocumentNonBlocking(docRef);
-        toast({ title: 'Imóvel excluído com sucesso!' });
-        // Optimistic update on UI
-        setAllProperties(prev => prev.filter(p => p.id !== id));
+        
+        try {
+            await deleteDoc(docRef);
+            toast({ title: 'Imóvel excluído com sucesso!' });
+            // Optimistic update on UI
+            setAllProperties(prev => prev.filter(p => p.id !== id));
+        } catch (error) {
+            console.error("Erro ao excluir imóvel: ", error);
+            toast({ 
+                title: 'Erro ao excluir',
+                description: 'Não foi possível remover o imóvel. Tente novamente.',
+                variant: 'destructive'
+            });
+        }
     };
     
     const handleStatusChange = () => {
