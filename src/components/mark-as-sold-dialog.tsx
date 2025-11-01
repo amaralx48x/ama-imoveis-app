@@ -15,9 +15,9 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, updateDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useUser, updateDocumentNonBlocking, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, serverTimestamp } from 'firebase/firestore';
-import type { Property } from '@/lib/data';
+import type { Agent, Property } from '@/lib/data';
 
 interface MarkAsSoldDialogProps {
   isOpen: boolean;
@@ -27,27 +27,38 @@ interface MarkAsSoldDialogProps {
 }
 
 export function MarkAsSoldDialog({ isOpen, onOpenChange, property, onConfirm }: MarkAsSoldDialogProps) {
-  const [transactionValue, setTransactionValue] = useState(property.price);
-  const [commissionPercent, setCommissionPercent] = useState(5); // Default commission
-  const [commissionValue, setCommissionValue] = useState(0);
-
   const { toast } = useToast();
   const firestore = useFirestore();
   const { user } = useUser();
 
+  const agentRef = useMemoFirebase(
+    () => (firestore && user ? doc(firestore, 'agents', user.uid) : null),
+    [firestore, user]
+  );
+  const { data: agentData } = useDoc<Agent>(agentRef);
+  
   const isForSale = property.operation === 'Comprar';
   const newStatus = isForSale ? 'vendido' : 'alugado';
+
+  const defaultCommission = isForSale 
+    ? (agentData?.siteSettings?.defaultSaleCommission ?? 5)
+    : (agentData?.siteSettings?.defaultRentCommission ?? 100);
+
+  const [transactionValue, setTransactionValue] = useState(property.price);
+  const [commissionPercent, setCommissionPercent] = useState(defaultCommission);
+  const [commissionValue, setCommissionValue] = useState(0);
+
+  useEffect(() => {
+    // When the dialog opens or property changes, reset the state
+    setTransactionValue(property.price);
+    setCommissionPercent(defaultCommission);
+  }, [isOpen, property, defaultCommission]);
 
   useEffect(() => {
     // Recalculate commission whenever the value or percent changes
     const calculated = (transactionValue * commissionPercent) / 100;
     setCommissionValue(calculated);
   }, [transactionValue, commissionPercent]);
-
-   useEffect(() => {
-    // Reset transaction value when property changes
-    setTransactionValue(property.price);
-  }, [property]);
 
   const handleConfirm = async () => {
     if (!firestore || !user || !user.uid) {
@@ -101,6 +112,11 @@ export function MarkAsSoldDialog({ isOpen, onOpenChange, property, onConfirm }: 
               onChange={(e) => setCommissionPercent(Number(e.target.value))}
               placeholder="Ex: 5"
             />
+             {isForSale ? (
+                <p className="text-xs text-muted-foreground">O valor padrão para venda é {agentData?.siteSettings?.defaultSaleCommission ?? 5}%.</p>
+             ) : (
+                <p className="text-xs text-muted-foreground">O valor padrão para aluguel é {agentData?.siteSettings?.defaultRentCommission ?? 100}% do primeiro mês.</p>
+             )}
           </div>
            <div className="space-y-2 rounded-md bg-muted p-4">
             <p className="text-sm font-medium text-muted-foreground">Comissão Calculada</p>

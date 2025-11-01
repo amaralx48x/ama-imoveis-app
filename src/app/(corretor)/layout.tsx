@@ -1,7 +1,7 @@
 
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, Mail, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings } from 'lucide-react';
+import { Home, Briefcase, Mail, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/firebase';
@@ -47,6 +47,7 @@ export default function CorretorLayout({
   const settingsItems = [
       { href: '/configuracoes/aparencia', label: 'Controle de Exibição', icon: SlidersHorizontal },
       { href: '/configuracoes/secoes', label: 'Gerenciar Seções', icon: Folder },
+      { href: '/configuracoes/metricas', label: 'Métricas e Comissões', icon: Percent },
   ]
   
   if (isUserLoading || !user) {

@@ -28,6 +28,8 @@ export type SiteSettings = {
     showFinancing?: boolean;
     financingLink?: string;
     showReviews?: boolean;
+    defaultSaleCommission?: number;
+    defaultRentCommission?: number;
 }
 
 export type Agent = {

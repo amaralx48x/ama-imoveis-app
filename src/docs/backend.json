@@ -55,7 +55,9 @@
           "properties": {
             "showFinancing": { "type": "boolean", "description": "Show or hide the financing simulation button." },
             "financingLink": { "type": "string", "description": "Custom URL for the financing button." },
-            "showReviews": { "type": "boolean", "description": "Show or hide the client reviews section." }
+            "showReviews": { "type": "boolean", "description": "Show or hide the client reviews section." },
+            "defaultSaleCommission": { "type": "number", "description": "Default commission percentage for sales." },
+            "defaultRentCommission": { "type": "number", "description": "Default commission percentage for rentals." }
           }
         }
       },
