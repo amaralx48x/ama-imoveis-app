@@ -2,7 +2,7 @@
 import type { Property } from "@/lib/data";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
-import { BedDouble, Bath, Ruler, MapPin, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { BedDouble, Bath, Ruler, MapPin, MoreVertical, Pencil, Trash2, FolderSymlink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
 import Link from "next/link";
@@ -77,7 +77,11 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={handleEdit}>
                   <Pencil className="mr-2 h-4 w-4" />
-                  Editar
+                  Editar Imóvel
+                </DropdownMenuItem>
+                 <DropdownMenuItem onClick={handleEdit}>
+                  <FolderSymlink className="mr-2 h-4 w-4" />
+                  Associar a Seção
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleDelete} className="text-destructive">
                   <Trash2 className="mr-2 h-4 w-4" />
@@ -122,5 +126,3 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
     </Card>
   );
 }
-
-    
