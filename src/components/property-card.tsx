@@ -2,7 +2,7 @@
 import type { Property } from "@/lib/data";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
-import { BedDouble, Bath, Ruler, MapPin, MoreVertical, Pencil, Trash2, FolderSymlink } from "lucide-react";
+import { BedDouble, Bath, Ruler, MapPin, MoreVertical, Pencil, Trash2, FolderSymlink, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
 import Link from "next/link";
@@ -51,6 +51,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
   };
 
   const isDashboard = !!onDelete;
+  const isForSale = property.operation === 'Comprar';
 
   return (
     <Card className="w-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 flex flex-col h-full bg-card">
@@ -79,6 +80,12 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                 {property.status === 'ativo' && (
+                  <DropdownMenuItem>
+                    <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
+                    {isForSale ? 'Marcar como Vendido' : 'Marcar como Alugado'}
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={handleEdit}>
                   <Pencil className="mr-2 h-4 w-4" />
                   Editar Imóvel

@@ -24,11 +24,14 @@
         "operation": { "type": "string", "enum": ["Venda", "Aluguel"], "description": "Type of operation." },
         "sectionIds": { "type": "array", "items": { "type": "string" }, "description": "Array of section IDs this property belongs to. Includes 'featured' for featured properties." },
         "agentId": { "type": "string", "description": "ID of the agent who listed the property." },
-        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was created." }
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was created." },
+        "status": { "type": "string", "enum": ["ativo", "vendido", "alugado"], "description": "The current status of the property.", "default": "ativo" },
+        "soldAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was sold or rented." },
+        "commissionValue": { "type": "number", "description": "The final commission value earned from the transaction." }
       },
       "required": [
         "id", "title", "description", "price", "bedrooms", "bathrooms", "garage", "rooms", 
-        "builtArea", "totalArea", "imageUrls", "city", "neighborhood", "type", "operation", "sectionIds", "agentId", "createdAt"
+        "builtArea", "totalArea", "imageUrls", "city", "neighborhood", "type", "operation", "sectionIds", "agentId", "createdAt", "status"
       ]
     },
     "Agent": {

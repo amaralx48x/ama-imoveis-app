@@ -138,7 +138,8 @@ export default function NovoImovelPage() {
       id: propertyId,
       agentId: user.uid,
       imageUrls: imageUrls,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      status: 'ativo' as const,
     };
     
     const propertyRef = doc(firestore, `agents/${user.uid}/properties`, propertyId);

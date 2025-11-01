@@ -1,4 +1,5 @@
 
+
 export type Property = {
   id: string;
   title: string;
@@ -15,9 +16,12 @@ export type Property = {
   neighborhood: string;
   type: 'Apartamento' | 'Casa' | 'Chácara' | 'Galpão' | 'Sala' | 'Kitnet' | 'Terreno' | 'Lote' | 'Alto Padrão';
   operation: 'Comprar' | 'Alugar';
-  sectionIds: string[]; // <-- Alterado de 'featured' para 'sectionIds'
+  sectionIds: string[];
   agentId?: string; 
-  createdAt?: string;
+  createdAt?: any;
+  status: 'ativo' | 'vendido' | 'alugado';
+  soldAt?: any; // ou rentedAt
+  commissionValue?: number;
 };
 
 export type SiteSettings = {
@@ -52,7 +56,6 @@ export type Review = {
 export type CustomSection = {
   id: string;
   title: string;
-  // propertyIds: string[]; <-- Removido
   order: number;
   createdAt: any;
 };
@@ -78,6 +81,7 @@ const properties: Property[] = [
     type: 'Apartamento',
     operation: 'Comprar',
     sectionIds: ['featured'],
+    status: 'ativo'
   },
   {
     id: '2',
@@ -96,6 +100,7 @@ const properties: Property[] = [
     type: 'Casa',
     operation: 'Comprar',
     sectionIds: ['featured'],
+    status: 'ativo'
   },
 ];
 
