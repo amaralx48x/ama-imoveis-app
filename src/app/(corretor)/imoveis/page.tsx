@@ -121,6 +121,7 @@ export default function ImoveisPage() {
     
     const filteredProperties = useMemo(() => {
         if (activeTab === 'ativo') {
+             // Retrocompatible: shows properties where status is 'ativo' OR status doesn't exist
             return allProperties.filter(p => p.status !== 'vendido' && p.status !== 'alugado');
         }
         return allProperties.filter(p => p.status === activeTab);
@@ -128,9 +129,15 @@ export default function ImoveisPage() {
 
     
     const handleDeleteProperty = async (id: string) => {
-        if (!firestore || !user) return;
+        if (!firestore || !user) {
+            toast({ 
+                title: 'Erro de Autenticação',
+                description: 'Você precisa estar logado para excluir um imóvel.',
+                variant: 'destructive'
+            });
+            return;
+        };
         
-        // This confirms with the user before proceeding
         if (!window.confirm("Tem certeza que deseja excluir este imóvel? Esta ação não pode ser desfeita.")) {
             return;
         }

@@ -1,10 +1,9 @@
 
 'use client';
 
-import { getFirebaseServer } from '@/firebase/server-init';
-import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import type { Property, Agent } from '@/lib/data';
-import { notFound, useRouter } from 'next/navigation';
+import { notFound, useRouter, useParams, useSearchParams } from 'next/navigation';
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { PropertyView } from '@/components/imovel/PropertyView';
@@ -28,9 +27,13 @@ type Props = {
   searchParams: { [key: string]: string | string[] | undefined };
 };
 
-export default function PropertyPage({ params, searchParams }: Props) {
-  const { imovelId } = params;
-  const agentId = searchParams.agentId as string;
+export default function PropertyPage({ }: Props) {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  
+  const imovelId = params.imovelId as string;
+  const agentId = searchParams.get('agentId');
+  
   const [propertyData, setPropertyData] = useState<Property | null>(null);
   const [agentData, setAgentData] = useState<Agent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -99,7 +102,7 @@ export default function PropertyPage({ params, searchParams }: Props) {
 
   return (
     <>
-      <Header />
+      <Header agentId={agentId} />
       <main className="min-h-[calc(100vh-theme(spacing.14)-theme(spacing.32))] container mx-auto px-4 py-8">
         <BackButton />
         <PropertyView property={propertyData} agent={agentData} />

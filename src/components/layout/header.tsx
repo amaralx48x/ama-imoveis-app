@@ -14,8 +14,8 @@ interface HeaderProps {
 export function Header({ agentName, agentId }: HeaderProps) {
   
   const siteName = agentName || "AMA Imóveis";
-  const pathname = usePathname();
-  const agentBaseUrl = agentId ? `/corretor/${agentId}` : (pathname.split('/')[2] ? `/corretor/${pathname.split('/')[2]}` : '#');
+  
+  const agentBaseUrl = agentId ? `/corretor/${agentId}` : '#';
   
   const navItems = [
       { href: `${agentBaseUrl}#sobre`, label: "Sobre" },

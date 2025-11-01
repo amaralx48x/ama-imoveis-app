@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { doc, getDoc, collection, getDocs, Query, query, where, orderBy, limit } from 'firebase/firestore';
 import type { Agent, Property, Review, CustomSection } from '@/lib/data';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Hero } from "@/components/hero";
@@ -22,8 +22,9 @@ type Props = {
   params: { agentId: string };
 };
 
-export default function AgentPublicPage({ params }: Props) {
-    const { agentId } = params;
+export default function AgentPublicPage({ }: Props) {
+    const params = useParams();
+    const agentId = params.agentId as string;
     const firestore = useFirestore();
     
     const [agent, setAgent] = useState<Agent | null>(null);
@@ -33,7 +34,7 @@ export default function AgentPublicPage({ params }: Props) {
     const [isLoading, setIsLoading] = useState(true);
 
     const loadReviews = useCallback(async () => {
-      if (!firestore) return;
+      if (!firestore || !agentId) return;
       const reviewsRef = collection(firestore, `agents/${agentId}/reviews`);
       const q = query(reviewsRef, where('approved', '==', true), orderBy('createdAt', 'desc'), limit(10));
       
@@ -51,7 +52,7 @@ export default function AgentPublicPage({ params }: Props) {
     }, [firestore, agentId]);
     
     useEffect(() => {
-        if (!firestore) return;
+        if (!firestore || !agentId) return;
 
         const fetchData = async () => {
             setIsLoading(true);
@@ -63,7 +64,7 @@ export default function AgentPublicPage({ params }: Props) {
 
                 const [agentSnap, propertiesSnap, sectionsSnap] = await Promise.all([
                     getDoc(agentRef),
-                    getDocs(propertiesRef),
+                    getDocs(query(propertiesRef, where('status', '!=', 'vendido'), where('status', '!=', 'alugado'))),
                     getDocs(query(sectionsRef, orderBy('order', 'asc')))
                 ]);
 
@@ -85,6 +86,23 @@ export default function AgentPublicPage({ params }: Props) {
 
             } catch (error) {
                 console.error("Error fetching agent data on client:", error);
+                 // If the complex query fails due to missing index, try a simpler one
+                if ((error as any)?.code === 'failed-precondition') {
+                    try {
+                        const agentRef = doc(firestore, 'agents', agentId);
+                        const propertiesRef = collection(firestore, `agents/${agentId}/properties`);
+                        const agentSnap = await getDoc(agentRef);
+                        const propertiesSnap = await getDocs(propertiesRef);
+                         if (agentSnap.exists()) {
+                            const agentData = { id: agentSnap.id, ...agentSnap.data() } as Agent;
+                            setAgent(agentData);
+                            const props = propertiesSnap.docs.map(doc => ({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId: agentId })).filter(p => p.status !== 'vendido' && p.status !== 'alugado');
+                            setAllProperties(props);
+                        }
+                    } catch (fallbackError) {
+                         console.error("Fallback data fetch also failed:", fallbackError);
+                    }
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -118,7 +136,7 @@ export default function AgentPublicPage({ params }: Props) {
 
     return (
         <>
-            <Header agentName={agent.name} />
+            <Header agentName={agent.name} agentId={agent.id}/>
             <main className="min-h-screen">
                 <Hero heroImage={heroImage}>
                     <div className='absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-4'>
