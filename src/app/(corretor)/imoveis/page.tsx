@@ -1,13 +1,13 @@
 
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, AlertTriangle, Upload, Trash2 } from 'lucide-react';
 import { PropertyCard } from '@/components/property-card';
 import Link from 'next/link';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import type { Property } from '@/lib/data';
-import { collection, query, where, doc } from 'firebase/firestore';
+import { collection, query, where, doc, getDocs } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
@@ -77,15 +77,9 @@ function PropertyList({
         )
     }
 
-    // Client-side filter for properties that are 'ativo' or have no status (for backward compatibility)
-    const activeProperties = properties ? properties.filter(p => p.status === 'ativo' || !p.status) : [];
-    
-    const displayedProperties = properties;
-
-
     return (
          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-6">
-            {displayedProperties && displayedProperties.map((property) => (
+            {properties && properties.map((property) => (
                 <PropertyCard key={property.id} property={property} onDelete={onDelete} onStatusChange={onStatusChange} />
             ))}
         </div>
@@ -98,33 +92,56 @@ export default function ImoveisPage() {
     const { toast } = useToast();
 
     const [activeTab, setActiveTab] = useState<'ativo' | 'vendido' | 'alugado'>('ativo');
+    const [allProperties, setAllProperties] = useState<Property[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
 
     const propertiesCollection = useMemoFirebase(() => {
         if (!firestore || !user) return null;
         return collection(firestore, `agents/${user.uid}/properties`);
     }, [firestore, user]);
 
-    const propertiesQuery = useMemoFirebase(() => {
-        if (!propertiesCollection) return null;
-        if (activeTab === 'ativo') {
-            // Firestore does not have a "not equal" query directly.
-            // The logic to get documents where 'status' is 'ativo' OR does not exist (for old data)
-            // is to query for everything that is NOT 'vendido' and NOT 'alugado'.
-            // This requires a "not-in" query, which correctly includes documents without the 'status' field.
-             return query(propertiesCollection, where('status', 'not-in', ['vendido', 'alugado']));
+    const fetchProperties = async () => {
+        if (!propertiesCollection) return;
+        setIsLoading(true);
+        setError(null);
+        try {
+            const snapshot = await getDocs(propertiesCollection);
+            const props = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Property));
+            setAllProperties(props);
+        } catch (e: any) {
+            setError(e);
+        } finally {
+            setIsLoading(false);
         }
-        return query(propertiesCollection, where('status', '==', activeTab));
-    }, [propertiesCollection, activeTab]);
+    };
+    
+    useEffect(() => {
+        fetchProperties();
+    }, [propertiesCollection]);
+    
+    const filteredProperties = useMemo(() => {
+        if (activeTab === 'ativo') {
+            // Includes properties explicitly set to 'ativo' or without a status field (for backward compatibility)
+            return allProperties.filter(p => p.status === 'ativo' || !p.status);
+        }
+        return allProperties.filter(p => p.status === activeTab);
+    }, [allProperties, activeTab]);
 
-    const { data: properties, isLoading, error, mutate } = useCollection<Property>(propertiesQuery);
     
     const handleDeleteProperty = (id: string) => {
         if (!firestore || !user) return;
         const docRef = doc(firestore, `agents/${user.uid}/properties`, id);
         deleteDocumentNonBlocking(docRef);
         toast({ title: 'Imóvel excluído com sucesso!' });
-        mutate();
+        // Optimistic update on UI
+        setAllProperties(prev => prev.filter(p => p.id !== id));
     };
+    
+    const handleStatusChange = () => {
+        // Just refetch all data to ensure UI is in sync
+        fetchProperties();
+    }
     
     return (
         <div className="space-y-8">
@@ -157,33 +174,33 @@ export default function ImoveisPage() {
                 </TabsList>
                 <TabsContent value="ativo">
                     <PropertyList 
-                        properties={properties}
+                        properties={filteredProperties}
                         isLoading={isLoading}
                         error={error}
                         onDelete={handleDeleteProperty}
-                        onStatusChange={mutate}
+                        onStatusChange={handleStatusChange}
                         emptyStateTitle="Nenhum imóvel ativo encontrado"
                         emptyStateDescription="Que tal adicionar seu primeiro imóvel agora?"
                     />
                 </TabsContent>
                 <TabsContent value="vendido">
                      <PropertyList 
-                        properties={properties}
+                        properties={filteredProperties}
                         isLoading={isLoading}
                         error={error}
                         onDelete={handleDeleteProperty}
-                        onStatusChange={mutate}
+                        onStatusChange={handleStatusChange}
                         emptyStateTitle="Nenhum imóvel vendido"
                         emptyStateDescription="Imóveis marcados como 'vendido' aparecerão aqui."
                     />
                 </TabsContent>
                 <TabsContent value="alugado">
                      <PropertyList 
-                        properties={properties}
+                        properties={filteredProperties}
                         isLoading={isLoading}
                         error={error}
                         onDelete={handleDeleteProperty}
-                        onStatusChange={mutate}
+                        onStatusChange={handleStatusChange}
                         emptyStateTitle="Nenhum imóvel alugado"
                         emptyStateDescription="Imóveis marcados como 'alugado' aparecerão aqui."
                     />
