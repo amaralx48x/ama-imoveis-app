@@ -63,8 +63,9 @@ export default function InboxPage() {
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'novo' | 'lido' | 'arquivado'>('novo');
 
+    // Consulta simplificada para evitar necessidade de índice composto
     const leadsQuery = useMemoFirebase(
-        () => (user && firestore ? query(collection(firestore, 'leads'), where('agentId', '==', user.uid), orderBy('createdAt', 'desc')) : null),
+        () => (user && firestore ? query(collection(firestore, 'leads'), where('agentId', '==', user.uid)) : null),
         [user, firestore]
     );
 
@@ -77,12 +78,21 @@ export default function InboxPage() {
         setLoading(true);
         const unsubscribe = onSnapshot(leadsQuery, 
             (snapshot) => {
-                setLeads(snapshot.docs.map(d => ({ id: d.id, ...d.data() }) as LeadWithId));
+                const fetchedLeads = snapshot.docs.map(d => ({ id: d.id, ...d.data() }) as LeadWithId);
+                
+                // Ordena os leads no lado do cliente
+                const sortedLeads = fetchedLeads.sort((a, b) => {
+                    const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+                    const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+                    return dateB - dateA; // Descendente (mais novo primeiro)
+                });
+                
+                setLeads(sortedLeads);
                 setLoading(false);
             },
             (err) => {
                 console.error(err);
-                setError('Erro ao carregar mensagens. Verifique os índices do Firestore se o erro persistir.');
+                setError('Erro ao carregar mensagens. Você pode precisar criar um índice no Firestore se o erro persistir.');
                 setLoading(false);
             }
         );
