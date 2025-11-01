@@ -19,6 +19,9 @@ function SearchResults() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     
+    const agentId = searchParams.get('agentId');
+    const sectionId = searchParams.get('sectionId');
+    
     const filters: Filters = {
         operation: searchParams.get('operation') || undefined,
         city: searchParams.get('city') || undefined,
@@ -37,13 +40,20 @@ function SearchResults() {
             setIsLoading(true);
             setError(null);
             try {
-                // Base query using collectionGroup to search across all agents' properties
                 let q: Query<DocumentData> = collectionGroup(firestore, 'properties');
+
+                // Apply server-side filters if possible
+                if (agentId) {
+                    q = query(q, where('agentId', '==', agentId));
+                }
+                if (sectionId) {
+                    q = query(q, where('sectionIds', 'array-contains', sectionId));
+                }
 
                 const initialPropertiesSnap = await getDocs(q);
                 let allProps = initialPropertiesSnap.docs.map(doc => ({ ...doc.data(), id: doc.id }) as Property);
 
-                // Apply client-side filtering
+                // Apply client-side filtering for the rest
                 const filtered = filterProperties(allProps, filters);
 
                 setProperties(filtered);
@@ -56,9 +66,9 @@ function SearchResults() {
         };
 
         fetchProperties();
-    }, [firestore, searchParams]);
+    }, [firestore, searchParams, agentId, sectionId]);
 
-    const hasFilters = Object.values(filters).some(v => v !== undefined);
+    const hasFilters = Object.values(filters).some(v => v !== undefined) || sectionId;
 
     return (
         <div className="container mx-auto px-4 py-8">

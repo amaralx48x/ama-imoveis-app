@@ -22,13 +22,13 @@
         "neighborhood": { "type": "string", "description": "Neighborhood where the property is located." },
         "type": { "type": "string", "enum": ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"], "description": "Type of property." },
         "operation": { "type": "string", "enum": ["Venda", "Aluguel"], "description": "Type of operation." },
-        "featured": { "type": "boolean", "description": "Indicates if the property is featured." },
+        "sectionIds": { "type": "array", "items": { "type": "string" }, "description": "Array of section IDs this property belongs to. Includes 'featured' for featured properties." },
         "agentId": { "type": "string", "description": "ID of the agent who listed the property." },
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was created." }
       },
       "required": [
         "id", "title", "description", "price", "bedrooms", "bathrooms", "garage", "rooms", 
-        "builtArea", "totalArea", "imageUrls", "city", "neighborhood", "type", "operation", "featured", "agentId", "createdAt"
+        "builtArea", "totalArea", "imageUrls", "city", "neighborhood", "type", "operation", "sectionIds", "agentId", "createdAt"
       ]
     },
     "Agent": {
@@ -98,7 +98,6 @@
       "properties": {
         "id": { "type": "string" },
         "title": { "type": "string", "description": "The title of the custom section." },
-        "propertyIds": { "type": "array", "items": { "type": "string" }, "description": "List of property IDs to display in this section." },
         "order": { "type": "number", "description": "The display order of the section on the page." },
         "createdAt": { "type": "string", "format": "date-time" }
       },

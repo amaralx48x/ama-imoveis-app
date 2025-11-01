@@ -2,7 +2,7 @@
 import type { Property } from "@/lib/data";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
-import { BedDouble, Bath, Ruler, MapPin, MoreVertical, Pencil, Trash2, Link2 } from "lucide-react";
+import { BedDouble, Bath, Ruler, MapPin, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
 import Link from "next/link";
@@ -47,10 +47,6 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
     }
   };
 
-  const handleAssociation = () => {
-    router.push(`/imoveis/associar?propertyId=${property.id}`);
-  };
-
   const isDashboard = !!onDelete;
 
   return (
@@ -80,10 +76,6 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleAssociation}>
-                  <Link2 className="mr-2 h-4 w-4" />
-                  Associar a Seções
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleEdit}>
                   <Pencil className="mr-2 h-4 w-4" />
                   Editar

@@ -15,7 +15,7 @@ export type Property = {
   neighborhood: string;
   type: 'Apartamento' | 'Casa' | 'Chácara' | 'Galpão' | 'Sala' | 'Kitnet' | 'Terreno' | 'Lote' | 'Alto Padrão';
   operation: 'Comprar' | 'Alugar';
-  featured: boolean;
+  sectionIds: string[]; // <-- Alterado de 'featured' para 'sectionIds'
   agentId?: string; 
   createdAt?: string;
 };
@@ -52,7 +52,7 @@ export type Review = {
 export type CustomSection = {
   id: string;
   title: string;
-  propertyIds: string[];
+  // propertyIds: string[]; <-- Removido
   order: number;
   createdAt: any;
 };
@@ -77,7 +77,7 @@ const properties: Property[] = [
     neighborhood: 'Centro',
     type: 'Apartamento',
     operation: 'Comprar',
-    featured: true,
+    sectionIds: ['featured'],
   },
   {
     id: '2',
@@ -95,7 +95,7 @@ const properties: Property[] = [
     neighborhood: 'Taquaral',
     type: 'Casa',
     operation: 'Comprar',
-    featured: true,
+    sectionIds: ['featured'],
   },
 ];
 

@@ -112,7 +112,7 @@ export default function AgentPublicPage({ params }: Props) {
     }
 
     const heroImage = PlaceHolderImages.find(img => img.id === 'hero-background');
-    const featuredProperties = allProperties.filter(p => p.featured);
+    const featuredProperties = allProperties.filter(p => p.sectionIds.includes('featured'));
     const propertyTypes = getPropertyTypes();
     const showReviews = agent.siteSettings?.showReviews ?? true;
 
@@ -131,7 +131,7 @@ export default function AgentPublicPage({ params }: Props) {
                 )}
 
                 {customSections.map(section => {
-                    const sectionProperties = allProperties.filter(p => section.propertyIds.includes(p.id));
+                    const sectionProperties = allProperties.filter(p => p.sectionIds.includes(section.id));
                     if (sectionProperties.length === 0) return null;
                     return (
                         <CustomPropertySection 
@@ -139,6 +139,7 @@ export default function AgentPublicPage({ params }: Props) {
                             title={section.title}
                             properties={sectionProperties} 
                             agentId={agentId} 
+                            sectionId={section.id}
                         />
                     )
                 })}

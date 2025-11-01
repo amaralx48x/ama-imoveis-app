@@ -16,9 +16,10 @@ interface CustomPropertySectionProps {
   title: string;
   properties: Property[];
   agentId: string;
+  sectionId: string;
 }
 
-export function CustomPropertySection({ title, properties, agentId }: CustomPropertySectionProps) {
+export function CustomPropertySection({ title, properties, agentId, sectionId }: CustomPropertySectionProps) {
   if (properties.length === 0) {
     return null;
   }
@@ -36,7 +37,7 @@ export function CustomPropertySection({ title, properties, agentId }: CustomProp
                 </p>
             </div>
             <Button asChild variant="outline">
-                <Link href={`/search?agentId=${agentId}`}>
+                <Link href={`/search?agentId=${agentId}&sectionId=${sectionId}`}>
                     Ver Todos os Imóveis
                     <ArrowRight className="ml-2 h-4 w-4"/>
                 </Link>

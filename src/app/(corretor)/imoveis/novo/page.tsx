@@ -21,14 +21,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "next/navigation";
-import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
+import { useFirestore, useUser, useDoc, useMemoFirebase, useCollection } from "@/firebase";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { doc } from "firebase/firestore";
+import { doc, collection } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 import ImageUpload from "@/components/image-upload";
 import { useState, useMemo } from "react";
 import Image from "next/image";
-import type { Agent } from "@/lib/data";
+import type { Agent, CustomSection } from "@/lib/data";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -49,7 +49,7 @@ const formSchema = z.object({
   rooms: z.coerce.number().int().min(0),
   builtArea: z.coerce.number().positive("A área construída deve ser positiva."),
   totalArea: z.coerce.number().positive("A área total deve ser positiva."),
-  featured: z.boolean().default(false),
+  sectionIds: z.array(z.string()).default([]),
 });
 
 export default function NovoImovelPage() {
@@ -60,6 +60,13 @@ export default function NovoImovelPage() {
 
   const agentRef = useMemoFirebase(() => (firestore && user ? doc(firestore, 'agents', user.uid) : null), [firestore, user]);
   const { data: agentData } = useDoc<Agent>(agentRef);
+
+  const sectionsCollection = useMemoFirebase(
+    () => (user && firestore ? collection(firestore, `agents/${user.uid}/customSections`) : null),
+    [user, firestore]
+  );
+  const { data: sections } = useCollection<CustomSection>(sectionsCollection);
+
 
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const propertyId = useMemo(() => uuidv4(), []);
@@ -78,7 +85,7 @@ export default function NovoImovelPage() {
       rooms: 0,
       builtArea: 0,
       totalArea: 0,
-      featured: false,
+      sectionIds: [],
     },
   });
 
@@ -139,6 +146,9 @@ export default function NovoImovelPage() {
     });
     router.push('/imoveis');
   }
+
+  const allSections = [{ id: 'featured', title: 'Imóveis em Destaque' }, ...(sections || [])];
+
 
   return (
     <div className="space-y-4">
@@ -315,27 +325,54 @@ export default function NovoImovelPage() {
                 </FormItem>
 
                 <FormField
-                    control={form.control}
-                    name="featured"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                        <FormControl>
-                            <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                            <FormLabel>
-                            Marcar como Destaque
-                            </FormLabel>
-                            <FormDescription>
-                            Imóveis em destaque aparecem na seção principal do seu site.
-                            </FormDescription>
-                        </div>
-                        </FormItem>
-                    )}
-                    />
+                  control={form.control}
+                  name="sectionIds"
+                  render={() => (
+                    <FormItem>
+                      <div className="mb-4">
+                        <FormLabel className="text-base">Seções do Site</FormLabel>
+                        <FormDescription>
+                          Selecione em quais seções este imóvel deve aparecer.
+                        </FormDescription>
+                      </div>
+                      {allSections.map((item) => (
+                        <FormField
+                          key={item.id}
+                          control={form.control}
+                          name="sectionIds"
+                          render={({ field }) => {
+                            return (
+                              <FormItem
+                                key={item.id}
+                                className="flex flex-row items-start space-x-3 space-y-0"
+                              >
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(item.id)}
+                                    onCheckedChange={(checked) => {
+                                      return checked
+                                        ? field.onChange([...field.value, item.id])
+                                        : field.onChange(
+                                            field.value?.filter(
+                                              (value) => value !== item.id
+                                            )
+                                          )
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                  {item.title}
+                                </FormLabel>
+                              </FormItem>
+                            )
+                          }}
+                        />
+                      ))}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
 
                 <Button type="submit" size="lg" className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
                 Salvar Imóvel
