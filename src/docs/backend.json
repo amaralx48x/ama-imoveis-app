@@ -74,13 +74,11 @@
         "email": { "type": "string", "format": "email" },
         "phone": { "type": "string" },
         "message": { "type": "string" },
-        "agentId": { "type": "string", "description": "The ID of the agent this lead is for." },
         "propertyId": { "type": "string", "description": "Optional ID of the property the lead is interested in." },
-        "lida": { "type": "boolean", "default": false },
-        "arquivada": { "type": "boolean", "default": false },
+        "status": { "type": "string", "enum": ["unread", "read", "archived"], "default": "unread", "description": "The status of the lead message."},
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "name", "email", "message", "agentId", "createdAt"]
+      "required": ["id", "name", "email", "message", "status", "createdAt"]
     },
     "Review": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -138,9 +136,9 @@
         "description": "Stores custom property sections for the agent's public site."
       },
       {
-        "path": "/leads/{leadId}",
+        "path": "/agents/{agentId}/leads/{leadId}",
         "schema": { "$ref": "#/entities/Lead" },
-        "description": "Stores leads generated from the contact forms on the website."
+        "description": "Stores leads generated from contact forms for a specific agent."
       }
     ]
   }

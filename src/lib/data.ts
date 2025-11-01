@@ -51,10 +51,8 @@ export type Lead = {
   email: string;
   phone?: string;
   message: string;
-  agentId: string;
   propertyId?: string | null;
-  lida: boolean;
-  arquivada: boolean;
+  status: 'unread' | 'read' | 'archived';
   createdAt?: any;
 }
 

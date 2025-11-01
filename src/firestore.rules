@@ -21,6 +21,11 @@ service cloud.firestore {
         allow read: if true;
         allow write: if isOwner(agentId);
       }
+
+      match /leads/{leadId} {
+        allow create: if true; // The contact form will create leads here.
+        allow read, update, delete: if isOwner(agentId);
+      }
     }
 
     match /{path=**}/properties/{propertyId} {
@@ -31,11 +36,6 @@ service cloud.firestore {
     match /agents/{agentId}/properties/{propertyId} {
       allow read;
       allow write: if isOwner(agentId);
-    }
-
-    match /leads/{leadId} {
-        allow create: if true;
-        allow read, update, delete: if request.auth != null; 
     }
   }
 }

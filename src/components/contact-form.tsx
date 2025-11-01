@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { useFirestore, useFirebaseApp } from "@/firebase";
+import { useFirestore } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
@@ -50,20 +50,21 @@ export function ContactForm({ agentId, propertyId }: ContactFormProps) {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!firestore) {
-        toast({ title: "Erro", description: "Não foi possível conectar ao banco de dados.", variant: "destructive" });
+    if (!firestore || !agentId) {
+        toast({ title: "Erro", description: "Não foi possível identificar o destinatário.", variant: "destructive" });
         return;
     }
 
     setIsSubmitting(true);
 
     try {
-      await addDoc(collection(firestore, 'leads'), {
-        ...values,
-        agentId: agentId,
+      await addDoc(collection(firestore, 'agents', agentId, 'leads'), {
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        message: values.message,
         propertyId: propertyId || null,
-        lida: false,
-        arquivada: false,
+        status: 'unread',
         createdAt: serverTimestamp(),
       });
 

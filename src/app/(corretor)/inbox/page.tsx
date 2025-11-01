@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useFirestore, useUser } from '@/firebase';
-import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, deleteDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import type { Lead } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,32 +23,33 @@ function LeadCard({
     lead, 
     onUpdate,
     onDelete,
-    isProcessing
+    isProcessingId
 }: { 
     lead: LeadWithId, 
-    onUpdate: (id: string, field: 'lida' | 'arquivada', value: boolean) => void,
+    onUpdate: (id: string, newStatus: Lead['status']) => void,
     onDelete: (id: string) => void,
-    isProcessing: boolean,
+    isProcessingId: string | null,
 }) {
     const createdAt = lead.createdAt?.toDate ? format(lead.createdAt.toDate(), "d MMM, yyyy 'às' HH:mm", { locale: ptBR }) : 'Data indisponível';
+    const isProcessing = isProcessingId === lead.id;
 
     return (
         <motion.div
             layout
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
             transition={{ duration: 0.3 }}
         >
-            <Card className={`transition-all hover:shadow-md ${!lead.lida && !lead.arquivada ? 'bg-primary/5 border-primary/40' : 'bg-card'}`}>
+            <Card className={`transition-all hover:shadow-md ${lead.status === 'unread' ? 'bg-primary/5 border-primary/40' : 'bg-card'}`}>
                 <CardContent className="p-4">
                     <div className="flex justify-between items-start gap-4">
                         <div className="flex-1 space-y-2">
                             <div className="flex items-center gap-4">
                                 <h4 className="font-bold text-lg">{lead.name}</h4>
                                 <div className="flex gap-2">
-                                  {!lead.lida && !lead.arquivada && <Badge variant="default">Nova</Badge>}
-                                  {lead.arquivada && <Badge variant="secondary">Arquivada</Badge>}
+                                  {lead.status === 'unread' && <Badge variant="default">Nova</Badge>}
+                                  {lead.status === 'archived' && <Badge variant="secondary">Arquivada</Badge>}
                                 </div>
                             </div>
                             <p className="text-sm text-muted-foreground">{lead.email} {lead.phone && `• ${lead.phone}`}</p>
@@ -58,14 +59,29 @@ function LeadCard({
                         </div>
                     </div>
                     <div className="flex justify-end items-center gap-2 mt-4 pt-4 border-t">
-                        <Button size="sm" variant="outline" onClick={() => onUpdate(lead.id, 'lida', !lead.lida)} disabled={isProcessing}>
-                            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : (lead.lida ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />)}
-                            {lead.lida ? 'Não Lido' : 'Marcar Lido'}
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => onUpdate(lead.id, 'arquivada', !lead.arquivada)} disabled={isProcessing}>
-                            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : (lead.arquivada ? <ArchiveRestore className="mr-2 h-4 w-4" /> : <Archive className="mr-2 h-4 w-4" />)}
-                            {lead.arquivada ? 'Desarquivar' : 'Arquivar'}
-                        </Button>
+                        {lead.status === 'unread' && (
+                            <Button size="sm" variant="outline" onClick={() => onUpdate(lead.id, 'read')} disabled={isProcessing}>
+                                {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Eye className="mr-2 h-4 w-4" />}
+                                Marcar Lido
+                            </Button>
+                        )}
+                         {lead.status === 'read' && (
+                            <Button size="sm" variant="outline" onClick={() => onUpdate(lead.id, 'unread')} disabled={isProcessing}>
+                                {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <EyeOff className="mr-2 h-4 w-4" />}
+                                Marcar Não Lido
+                            </Button>
+                        )}
+                        {lead.status !== 'archived' ? (
+                            <Button size="sm" variant="ghost" onClick={() => onUpdate(lead.id, 'archived')} disabled={isProcessing}>
+                                {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Archive className="mr-2 h-4 w-4" />}
+                                Arquivar
+                            </Button>
+                        ) : (
+                             <Button size="sm" variant="ghost" onClick={() => onUpdate(lead.id, 'read')} disabled={isProcessing}>
+                                {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <ArchiveRestore className="mr-2 h-4 w-4" />}
+                                Desarquivar
+                            </Button>
+                        )}
                         <Button size="sm" variant="destructive" onClick={() => onDelete(lead.id)} disabled={isProcessing}>
                             {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Trash2 className="mr-2 h-4 w-4" />} 
                             Remover
@@ -85,29 +101,26 @@ export default function InboxPage() {
     const [allLeads, setAllLeads] = useState<LeadWithId[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'novas' | 'todas' | 'arquivadas'>('novas');
+    const [activeTab, setActiveTab] = useState<'unread' | 'all' | 'archived'>('unread');
     const [processingId, setProcessingId] = useState<string | null>(null);
 
     useEffect(() => {
         if (!user || !firestore) return;
 
         setLoading(true);
-        // Simplified query to avoid composite index. Ordering will be done on the client.
-        const leadsCollection = collection(firestore, 'leads');
-        const q = query(leadsCollection, where('agentId', '==', user.uid));
+        const leadsCollection = collection(firestore, `agents/${user.uid}/leads`);
+        const q = query(leadsCollection, orderBy('createdAt', 'desc'));
         
         const unsubscribe = onSnapshot(q, 
             (snapshot) => {
                 const fetchedLeads = snapshot.docs.map(d => ({ id: d.id, ...d.data() }) as LeadWithId);
-                // Sort client-side
-                fetchedLeads.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
                 setAllLeads(fetchedLeads);
                 setLoading(false);
                 setError(null);
             },
             (err: any) => {
                 console.error("Firestore onSnapshot Error:", err);
-                setError('Erro ao carregar mensagens.');
+                setError('Erro ao carregar mensagens. A coleção pode não existir ou você não tem permissão.');
                 setLoading(false);
             }
         );
@@ -115,22 +128,22 @@ export default function InboxPage() {
         return () => unsubscribe();
     }, [user, firestore]);
 
-    const handleUpdate = async (id: string, field: 'lida' | 'arquivada', value: boolean) => {
+    const handleUpdate = async (id: string, newStatus: Lead['status']) => {
         if (!user || !firestore) return;
         setProcessingId(id);
         
-        const ref = doc(firestore, 'leads', id);
+        const ref = doc(firestore, 'agents', user.uid, 'leads', id);
         try {
             const docSnap = await getDoc(ref);
             if (!docSnap.exists()) {
                  toast({ title: "A mensagem não existe mais", description: "Ela pode ter sido excluída.", variant: "destructive" });
                  return;
             }
-            await updateDoc(ref, { [field]: value });
+            await updateDoc(ref, { status: newStatus });
             toast({ title: `Mensagem atualizada com sucesso!` });
         } catch (err: any) {
             console.error("Erro ao atualizar status:", err);
-            toast({ title: "Erro ao atualizar", description: err.message || "Ocorreu um problema ao tentar atualizar a mensagem.", variant: "destructive" });
+            toast({ title: "Erro ao atualizar", description: err.message || "Ocorreu um problema.", variant: "destructive" });
         } finally {
             setProcessingId(null);
         }
@@ -144,15 +157,11 @@ export default function InboxPage() {
         }
 
         setProcessingId(id);
-        const ref = doc(firestore, 'leads', id);
+        const ref = doc(firestore, 'agents', user.uid, 'leads', id);
         try {
-            const docSnap = await getDoc(ref);
-             if (!docSnap.exists()) {
-                toast({ title: "Mensagem já foi removida.", variant: "destructive" });
-                return;
-            }
             await deleteDoc(ref);
             toast({ title: "Mensagem removida com sucesso!" });
+            // onSnapshot will handle the UI update automatically
         } catch (err: any) {
             console.error("Erro ao remover a mensagem:", err);
             toast({ title: "Erro ao remover a mensagem", description: err.message, variant: "destructive" });
@@ -162,13 +171,13 @@ export default function InboxPage() {
     };
     
     const filteredLeads = useMemo(() => {
-        if (activeTab === 'novas') return allLeads.filter(l => !l.lida && !l.arquivada);
-        if (activeTab === 'arquivadas') return allLeads.filter(l => l.arquivada);
-        // 'todas' should show everything that is NOT archived
-        return allLeads.filter(l => !l.arquivada);
+        if (activeTab === 'unread') return allLeads.filter(l => l.status === 'unread');
+        if (activeTab === 'archived') return allLeads.filter(l => l.status === 'archived');
+        // 'all' should show everything that is NOT archived
+        return allLeads.filter(l => l.status !== 'archived');
     }, [allLeads, activeTab]);
 
-    const newLeadsCount = useMemo(() => allLeads.filter(l => !l.lida && !l.arquivada).length, [allLeads]);
+    const unreadLeadsCount = useMemo(() => allLeads.filter(l => l.status === 'unread').length, [allLeads]);
 
     const renderLeadList = (leadList: LeadWithId[], emptyMessage: string) => {
         if (loading) {
@@ -211,7 +220,7 @@ export default function InboxPage() {
                         lead={lead} 
                         onUpdate={handleUpdate} 
                         onDelete={handleDelete}
-                        isProcessing={processingId === lead.id}
+                        isProcessingId={processingId}
                     />
                 ))}
               </AnimatePresence>
@@ -226,7 +235,7 @@ export default function InboxPage() {
                     <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2">
                         <Mail /> Caixa de Entrada
                     </CardTitle>
-                    {!loading && newLeadsCount > 0 && <Badge>{newLeadsCount} Nova(s)</Badge>}
+                    {!loading && unreadLeadsCount > 0 && <Badge>{unreadLeadsCount} Nova(s)</Badge>}
                 </div>
                 <CardDescription>
                     Gerencie as mensagens e contatos recebidos através do seu site.
@@ -235,17 +244,17 @@ export default function InboxPage() {
             <CardContent className="space-y-4">
                 <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
                     <TabsList>
-                        <TabsTrigger value="novas">Novas</TabsTrigger>
-                        <TabsTrigger value="todas">Caixa de Entrada</TabsTrigger>
-                        <TabsTrigger value="arquivadas">Arquivadas</TabsTrigger>
+                        <TabsTrigger value="unread">Não Lidas</TabsTrigger>
+                        <TabsTrigger value="all">Caixa de Entrada</TabsTrigger>
+                        <TabsTrigger value="archived">Arquivadas</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="novas" className="mt-6">
+                    <TabsContent value="unread" className="mt-6">
                         {renderLeadList(filteredLeads, 'Nenhuma mensagem nova')}
                     </TabsContent>
-                    <TabsContent value="todas" className="mt-6">
+                    <TabsContent value="all" className="mt-6">
                          {renderLeadList(filteredLeads, 'Nenhuma mensagem para exibir')}
                     </TabsContent>
-                    <TabsContent value="arquivadas" className="mt-6">
+                    <TabsContent value="archived" className="mt-6">
                          {renderLeadList(filteredLeads, 'Nenhuma mensagem arquivada')}
                     </TabsContent>
                 </Tabs>
