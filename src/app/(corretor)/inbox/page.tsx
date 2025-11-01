@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import type { Lead } from '@/lib/data';
@@ -82,6 +82,7 @@ export default function InboxPage() {
             (snapshot) => {
                 const fetchedLeads = snapshot.docs.map(d => ({ id: d.id, ...d.data() }) as LeadWithId);
                 
+                // Sort on the client to avoid composite index requirement
                 const sortedLeads = fetchedLeads.sort((a, b) => {
                     const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
                     const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
