@@ -92,26 +92,22 @@ export default function InboxPage() {
         if (!user || !firestore) return;
 
         setLoading(true);
-        // Simplified query to avoid composite index requirement.
-        // We will order and filter on the client side.
+        // Simplified query to avoid composite index. Ordering will be done on the client.
         const leadsCollection = collection(firestore, 'leads');
-        const q = query(leadsCollection, where('agentId', '==', user.uid), orderBy('createdAt', 'desc'));
+        const q = query(leadsCollection, where('agentId', '==', user.uid));
         
         const unsubscribe = onSnapshot(q, 
             (snapshot) => {
                 const fetchedLeads = snapshot.docs.map(d => ({ id: d.id, ...d.data() }) as LeadWithId);
+                // Sort client-side
+                fetchedLeads.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
                 setAllLeads(fetchedLeads);
                 setLoading(false);
                 setError(null);
             },
             (err: any) => {
                 console.error("Firestore onSnapshot Error:", err);
-                // Check if it's the specific index error and provide a helpful message
-                if (err.code === 'failed-precondition') {
-                    setError('A consulta requer um índice do Firestore. Por favor, crie o índice composto para (agentId, createdAt DESC) na coleção "leads" no seu console do Firebase.');
-                } else {
-                    setError('Erro ao carregar mensagens.');
-                }
+                setError('Erro ao carregar mensagens.');
                 setLoading(false);
             }
         );
