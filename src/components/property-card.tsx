@@ -37,8 +37,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
   const detailUrl = `/imovel/${property.id}?agentId=${property.agentId}`;
 
   const handleEdit = () => {
-    // router.push(`/imoveis/editar/${property.id}`);
-    alert('Funcionalidade de edição em desenvolvimento.');
+    router.push(`/imoveis/editar/${property.id}`);
   };
   
   const handleDelete = () => {
@@ -123,3 +122,5 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
     </Card>
   );
 }
+
+    
