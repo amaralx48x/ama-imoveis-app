@@ -30,7 +30,7 @@ import { useState, useMemo } from "react";
 import Image from "next/image";
 import type { Agent, CustomSection } from "@/lib/data";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 
 
 const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
@@ -91,6 +91,10 @@ export default function NovoImovelPage() {
 
   const handleUploadComplete = (urls: string[]) => {
     setImageUrls(prev => [...prev, ...urls]);
+  }
+
+  const handleRemoveImage = (indexToRemove: number) => {
+    setImageUrls(prev => prev.filter((_, index) => index !== indexToRemove));
   }
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -316,8 +320,16 @@ export default function NovoImovelPage() {
                 {imageUrls.length > 0 && (
                     <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                     {imageUrls.map((url, index) => (
-                        <div key={index} className="relative aspect-square rounded-md overflow-hidden">
-                        <Image src={url} alt={`Imagem do imóvel ${index + 1}`} fill className="object-cover" />
+                        <div key={index} className="relative aspect-square rounded-md overflow-hidden group">
+                            <Image src={url} alt={`Imagem do imóvel ${index + 1}`} fill className="object-cover" />
+                            <button
+                                type="button"
+                                onClick={() => handleRemoveImage(index)}
+                                className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                aria-label="Remover imagem"
+                            >
+                                <X className="h-3 w-3" />
+                            </button>
                         </div>
                     ))}
                     </div>
