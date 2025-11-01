@@ -85,7 +85,7 @@ export default function InboxPage() {
     const [allLeads, setAllLeads] = useState<LeadWithId[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'novas' | 'arquivadas' | 'todas'>('novas');
+    const [activeTab, setActiveTab] = useState<'novas' | 'todas' | 'arquivadas'>('novas');
     const [processingId, setProcessingId] = useState<string | null>(null);
 
     useEffect(() => {
