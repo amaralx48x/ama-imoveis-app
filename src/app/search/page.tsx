@@ -3,7 +3,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
-import { collectionGroup, query, where, getDocs, Query, DocumentData } from 'firebase/firestore';
+import { collectionGroup, query, where, getDocs, Query, DocumentData, collection } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import type { Property } from '@/lib/data';
 import { PropertyCard } from '@/components/property-card';
@@ -40,26 +40,32 @@ function SearchResults() {
             setIsLoading(true);
             setError(null);
             try {
-                let q: Query<DocumentData> = collectionGroup(firestore, 'properties');
+                let q: Query<DocumentData>;
 
-                // Apply server-side filters if possible
+                // If we have an agentId, query their subcollection directly (more efficient).
                 if (agentId) {
-                    q = query(q, where('agentId', '==', agentId));
-                }
-                if (sectionId) {
-                    q = query(q, where('sectionIds', 'array-contains', sectionId));
+                    q = collection(firestore, 'agents', agentId, 'properties');
+                } else {
+                    // Otherwise, use a collectionGroup query (requires index).
+                    q = collectionGroup(firestore, 'properties');
                 }
 
+                // Initial fetch from Firestore
                 const initialPropertiesSnap = await getDocs(q);
                 let allProps = initialPropertiesSnap.docs.map(doc => ({ ...doc.data(), id: doc.id }) as Property);
 
-                // Apply client-side filtering for the rest
-                const filtered = filterProperties(allProps, filters);
+                // Apply client-side filtering for sectionId and other parameters
+                let finalFiltered = allProps;
+                if (sectionId) {
+                    finalFiltered = finalFiltered.filter(p => (p.sectionIds || []).includes(sectionId));
+                }
+                
+                finalFiltered = filterProperties(finalFiltered, filters);
 
-                setProperties(filtered);
-            } catch (err) {
+                setProperties(finalFiltered);
+            } catch (err: any) {
                 console.error("Error fetching properties:", err);
-                setError("Ocorreu um erro ao buscar os imóveis. Tente novamente mais tarde.");
+                setError("Ocorreu um erro ao buscar os imóveis. Se o erro persistir, pode ser necessário criar um índice no Firestore. Consulte o console para mais detalhes.");
             } finally {
                 setIsLoading(false);
             }
