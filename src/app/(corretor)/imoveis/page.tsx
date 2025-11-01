@@ -100,6 +100,13 @@ export default function ImoveisPage() {
 
     const propertiesQuery = useMemoFirebase(() => {
         if (!propertiesCollection) return null;
+        if (activeTab === 'ativo') {
+            // Firestore does not have a "not equal" query directly.
+            // The logic to get documents where 'status' is 'ativo' OR does not exist
+            // is to query for everything that is NOT 'vendido' and NOT 'alugado'.
+            // This requires a "not-in" query.
+             return query(propertiesCollection, where('status', 'not-in', ['vendido', 'alugado']));
+        }
         return query(propertiesCollection, where('status', '==', activeTab));
     }, [propertiesCollection, activeTab]);
 
