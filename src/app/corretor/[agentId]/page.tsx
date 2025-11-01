@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { doc, getDoc, collection, getDocs, Query, query, where, orderBy, limit } from 'firebase/firestore';
 import type { Agent, Property, Review, CustomSection } from '@/lib/data';
 import { notFound } from 'next/navigation';
@@ -29,20 +29,20 @@ export default function AgentPublicPage({ params }: Props) {
     const [agent, setAgent] = useState<Agent | null>(null);
     const [allProperties, setAllProperties] = useState<Property[]>([]);
     const [customSections, setCustomSections] = useState<CustomSection[]>([]);
-    const [reviews, setReviews] = useState<Review[]>([]);
+    const [reviews, setReviews] = useState<Review[]>(getStaticReviews());
     const [isLoading, setIsLoading] = useState(true);
 
     const loadReviews = useCallback(async () => {
       if (!firestore) return;
       const reviewsRef = collection(firestore, `agents/${agentId}/reviews`);
-      const q = query(reviewsRef, where('approved', '==', true), orderBy('createdAt', 'desc'), limit(4));
+      const q = query(reviewsRef, where('approved', '==', true), orderBy('createdAt', 'desc'), limit(10));
       
       try {
         const reviewsSnap = await getDocs(q);
-        if (reviewsSnap.empty) {
-          setReviews(getStaticReviews());
-        } else {
+        if (!reviewsSnap.empty) {
           setReviews(reviewsSnap.docs.map(doc => ({ ...(doc.data() as Omit<Review, 'id'>), id: doc.id })));
+        } else {
+           setReviews(getStaticReviews());
         }
       } catch (error) {
         console.error("Error loading reviews, falling back to static reviews:", error);
