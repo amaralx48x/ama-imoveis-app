@@ -37,6 +37,10 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
   const detailUrl = `/imovel/${property.id}?agentId=${property.agentId}`;
 
   const handleEdit = () => {
+    router.push(`/imoveis/editar-imovel/${property.id}`);
+  };
+
+  const handleAssociate = () => {
     router.push(`/imoveis/editar/${property.id}`);
   };
   
@@ -79,7 +83,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                   <Pencil className="mr-2 h-4 w-4" />
                   Editar Imóvel
                 </DropdownMenuItem>
-                 <DropdownMenuItem onClick={handleEdit}>
+                 <DropdownMenuItem onClick={handleAssociate}>
                   <FolderSymlink className="mr-2 h-4 w-4" />
                   Associar a Seção
                 </DropdownMenuItem>
