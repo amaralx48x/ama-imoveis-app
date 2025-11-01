@@ -3,13 +3,13 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useFirestore, useUser } from '@/firebase';
-import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, deleteDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import type { Lead } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Mail, Inbox, Archive, Check, AlertTriangle, Trash2, Loader2, ArchiveRestore, Undo2, Eye, EyeOff } from 'lucide-react';
+import { Mail, Inbox, Archive, Check, AlertTriangle, Trash2, Loader2, ArchiveRestore, Eye, EyeOff } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -23,7 +23,7 @@ function LeadCard({
     lead, 
     onUpdate,
     onDelete,
-    isProcessing 
+    isProcessing
 }: { 
     lead: LeadWithId, 
     onUpdate: (id: string, field: 'lida' | 'arquivada', value: boolean) => void,
@@ -40,14 +40,14 @@ function LeadCard({
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.3 }}
         >
-            <Card className={`transition-all hover:shadow-md ${!lead.lida ? 'bg-primary/5 border-primary/40' : 'bg-card'}`}>
+            <Card className={`transition-all hover:shadow-md ${!lead.lida && !lead.arquivada ? 'bg-primary/5 border-primary/40' : 'bg-card'}`}>
                 <CardContent className="p-4">
                     <div className="flex justify-between items-start gap-4">
                         <div className="flex-1 space-y-2">
                             <div className="flex items-center gap-4">
                                 <h4 className="font-bold text-lg">{lead.name}</h4>
                                 <div className="flex gap-2">
-                                  {!lead.lida && <Badge variant="default">Nova</Badge>}
+                                  {!lead.lida && !lead.arquivada && <Badge variant="default">Nova</Badge>}
                                   {lead.arquivada && <Badge variant="secondary">Arquivada</Badge>}
                                 </div>
                             </div>
@@ -60,7 +60,7 @@ function LeadCard({
                     <div className="flex justify-end items-center gap-2 mt-4 pt-4 border-t">
                         <Button size="sm" variant="outline" onClick={() => onUpdate(lead.id, 'lida', !lead.lida)} disabled={isProcessing}>
                             {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : (lead.lida ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />)}
-                            {lead.lida ? 'Não Lido' : 'Lido'}
+                            {lead.lida ? 'Não Lido' : 'Marcar Lido'}
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => onUpdate(lead.id, 'arquivada', !lead.arquivada)} disabled={isProcessing}>
                             {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : (lead.arquivada ? <ArchiveRestore className="mr-2 h-4 w-4" /> : <Archive className="mr-2 h-4 w-4" />)}
@@ -91,19 +91,27 @@ export default function InboxPage() {
     useEffect(() => {
         if (!user || !firestore) return;
 
+        setLoading(true);
+        // Simplified query to avoid composite index requirement.
+        // We will order and filter on the client side.
         const leadsCollection = collection(firestore, 'leads');
         const q = query(leadsCollection, where('agentId', '==', user.uid), orderBy('createdAt', 'desc'));
         
-        setLoading(true);
         const unsubscribe = onSnapshot(q, 
             (snapshot) => {
                 const fetchedLeads = snapshot.docs.map(d => ({ id: d.id, ...d.data() }) as LeadWithId);
                 setAllLeads(fetchedLeads);
                 setLoading(false);
+                setError(null);
             },
-            (err) => {
-                console.error(err);
-                setError('Erro ao carregar mensagens. Pode ser necessário criar um índice no Firestore: (leads, agentId, createdAt DESC).');
+            (err: any) => {
+                console.error("Firestore onSnapshot Error:", err);
+                // Check if it's the specific index error and provide a helpful message
+                if (err.code === 'failed-precondition') {
+                    setError('A consulta requer um índice do Firestore. Por favor, crie o índice composto para (agentId, createdAt DESC) na coleção "leads" no seu console do Firebase.');
+                } else {
+                    setError('Erro ao carregar mensagens.');
+                }
                 setLoading(false);
             }
         );
@@ -123,10 +131,10 @@ export default function InboxPage() {
                  return;
             }
             await updateDoc(ref, { [field]: value });
-            toast({ title: `Mensagem atualizada!` });
-        } catch (err) {
+            toast({ title: `Mensagem atualizada com sucesso!` });
+        } catch (err: any) {
             console.error("Erro ao atualizar status:", err);
-            toast({ title: "Erro ao atualizar", description: "Ocorreu um problema ao tentar atualizar a mensagem.", variant: "destructive" });
+            toast({ title: "Erro ao atualizar", description: err.message || "Ocorreu um problema ao tentar atualizar a mensagem.", variant: "destructive" });
         } finally {
             setProcessingId(null);
         }
@@ -142,11 +150,16 @@ export default function InboxPage() {
         setProcessingId(id);
         const ref = doc(firestore, 'leads', id);
         try {
+            const docSnap = await getDoc(ref);
+             if (!docSnap.exists()) {
+                toast({ title: "Mensagem já foi removida.", variant: "destructive" });
+                return;
+            }
             await deleteDoc(ref);
             toast({ title: "Mensagem removida com sucesso!" });
-        } catch (err) {
+        } catch (err: any) {
             console.error("Erro ao remover a mensagem:", err);
-            toast({ title: "Erro ao remover a mensagem", variant: "destructive" });
+            toast({ title: "Erro ao remover a mensagem", description: err.message, variant: "destructive" });
         } finally {
             setProcessingId(null);
         }
@@ -155,7 +168,8 @@ export default function InboxPage() {
     const filteredLeads = useMemo(() => {
         if (activeTab === 'novas') return allLeads.filter(l => !l.lida && !l.arquivada);
         if (activeTab === 'arquivadas') return allLeads.filter(l => l.arquivada);
-        return allLeads; // 'todas'
+        // 'todas' should show everything that is NOT archived
+        return allLeads.filter(l => !l.arquivada);
     }, [allLeads, activeTab]);
 
     const newLeadsCount = useMemo(() => allLeads.filter(l => !l.lida && !l.arquivada).length, [allLeads]);
@@ -172,7 +186,7 @@ export default function InboxPage() {
             return (
                 <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Erro</AlertTitle>
+                    <AlertTitle>Erro ao Carregar</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
             )
@@ -226,7 +240,7 @@ export default function InboxPage() {
                 <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
                     <TabsList>
                         <TabsTrigger value="novas">Novas</TabsTrigger>
-                        <TabsTrigger value="todas">Todas</TabsTrigger>
+                        <TabsTrigger value="todas">Caixa de Entrada</TabsTrigger>
                         <TabsTrigger value="arquivadas">Arquivadas</TabsTrigger>
                     </TabsList>
                     <TabsContent value="novas" className="mt-6">
