@@ -1,3 +1,4 @@
+
 'use client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -100,14 +101,17 @@ export default function PerfilPage() {
     });
   }
 
-  const handleUploadComplete = (url: string) => {
+  const handleUploadComplete = (urls: string[]) => {
     if (!agentRef) return;
-    setDocumentNonBlocking(agentRef, { photoUrl: url }, { merge: true });
-    form.setValue('photoUrl', url);
-    toast({
-      title: 'Foto Atualizada!',
-      description: 'Sua foto de perfil foi alterada.',
-    });
+    const photoUrl = urls[0]; // Take the first URL from the array
+    if (photoUrl) {
+        setDocumentNonBlocking(agentRef, { photoUrl: photoUrl }, { merge: true });
+        form.setValue('photoUrl', photoUrl);
+        toast({
+        title: 'Foto Atualizada!',
+        description: 'Sua foto de perfil foi alterada.',
+        });
+    }
   }
 
   const handleAddCity = async () => {
