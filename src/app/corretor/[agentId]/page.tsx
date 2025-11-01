@@ -141,11 +141,13 @@ export default function AgentPublicPage({ }: Props) {
         <>
             <Header agentName={agent.name} agentId={agent.id}/>
             <main className="min-h-screen">
-                <Hero heroImage={heroImage}>
-                    <div className='absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-4'>
-                       <PropertyFilters agent={agent} propertyTypes={propertyTypes} />
-                    </div>
-                </Hero>
+                <div className="relative mb-24">
+                    <Hero heroImage={heroImage}>
+                        <div className='absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-4'>
+                           <PropertyFilters agent={agent} propertyTypes={propertyTypes} />
+                        </div>
+                    </Hero>
+                </div>
                 
                 {featuredProperties.length > 0 && (
                     <FeaturedProperties properties={featuredProperties} agentId={agentId} />
