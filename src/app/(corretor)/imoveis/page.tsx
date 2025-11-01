@@ -7,7 +7,7 @@ import { PropertyCard } from '@/components/property-card';
 import Link from 'next/link';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import type { Property } from '@/lib/data';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, doc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +20,7 @@ function PropertyList({
     isLoading, 
     error,
     onDelete, 
+    onStatusChange,
     emptyStateTitle,
     emptyStateDescription,
 }: {
@@ -27,6 +28,7 @@ function PropertyList({
     isLoading: boolean,
     error: Error | null,
     onDelete: (id: string) => void,
+    onStatusChange: () => void,
     emptyStateTitle: string,
     emptyStateDescription: string,
 }) {
@@ -78,7 +80,7 @@ function PropertyList({
     return (
          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-6">
             {properties && properties.map((property) => (
-                <PropertyCard key={property.id} property={property} onDelete={onDelete} />
+                <PropertyCard key={property.id} property={property} onDelete={onDelete} onStatusChange={onStatusChange} />
             ))}
         </div>
     )
@@ -146,6 +148,7 @@ export default function ImoveisPage() {
                         isLoading={isLoading}
                         error={error}
                         onDelete={handleDeleteProperty}
+                        onStatusChange={mutate}
                         emptyStateTitle="Nenhum imóvel ativo encontrado"
                         emptyStateDescription="Que tal adicionar seu primeiro imóvel agora?"
                     />
@@ -156,6 +159,7 @@ export default function ImoveisPage() {
                         isLoading={isLoading}
                         error={error}
                         onDelete={handleDeleteProperty}
+                        onStatusChange={mutate}
                         emptyStateTitle="Nenhum imóvel vendido"
                         emptyStateDescription="Imóveis marcados como 'vendido' aparecerão aqui."
                     />
@@ -166,6 +170,7 @@ export default function ImoveisPage() {
                         isLoading={isLoading}
                         error={error}
                         onDelete={handleDeleteProperty}
+                        onStatusChange={mutate}
                         emptyStateTitle="Nenhum imóvel alugado"
                         emptyStateDescription="Imóveis marcados como 'alugado' aparecerão aqui."
                     />

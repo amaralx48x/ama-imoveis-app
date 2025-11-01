@@ -1,4 +1,6 @@
 
+'use client';
+
 import type { Property } from "@/lib/data";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
@@ -7,16 +9,21 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
 import Link from "next/link";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { MarkAsSoldDialog } from "./mark-as-sold-dialog";
+
 
 interface PropertyCardProps {
   property: Property;
   onDelete?: (id: string) => void;
+  onStatusChange?: () => void;
 }
 
-export function PropertyCard({ property, onDelete }: PropertyCardProps) {
+export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCardProps) {
   const router = useRouter();
+  const [isSoldDialogOpen, setIsSoldDialogOpen] = useState(false);
 
   const formattedPrice = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -54,6 +61,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
   const isForSale = property.operation === 'Comprar';
 
   return (
+    <>
     <Card className="w-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 flex flex-col h-full bg-card">
       <CardHeader className="p-0 relative">
         <Link href={detailUrl} className="block cursor-pointer">
@@ -81,7 +89,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                  {property.status === 'ativo' && (
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setIsSoldDialogOpen(true)}>
                     <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
                     {isForSale ? 'Marcar como Vendido' : 'Marcar como Alugado'}
                   </DropdownMenuItem>
@@ -94,6 +102,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
                   <FolderSymlink className="mr-2 h-4 w-4" />
                   Associar a Seção
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleDelete} className="text-destructive">
                   <Trash2 className="mr-2 h-4 w-4" />
                   Excluir
@@ -135,5 +144,16 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
         </Button>
       </CardFooter>
     </Card>
+
+    <MarkAsSoldDialog
+        isOpen={isSoldDialogOpen}
+        onOpenChange={setIsSoldDialogOpen}
+        property={property}
+        onConfirm={() => {
+            setIsSoldDialogOpen(false);
+            onStatusChange?.();
+        }}
+    />
+    </>
   );
 }
