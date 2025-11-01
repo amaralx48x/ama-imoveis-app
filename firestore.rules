@@ -29,6 +29,22 @@ service cloud.firestore {
         // The agent (owner) can read all of their reviews and can update/delete them
         allow read, update, delete: if isOwner(agentId);
       }
+       // Subcollection for custom sections
+      match /customSections/{sectionId} {
+        // Public can read sections for site display
+        allow read: if true;
+        // The agent (owner) can manage their sections
+        allow write: if isOwner(agentId);
+      }
+      
+      // Subcollection for leads
+      match /leads/{leadId} {
+        // Anyone can create a lead from the public contact form
+        allow create: if true;
+        
+        // Only the agent (owner) can manage their own leads
+        allow read, update, delete: if isOwner(agentId);
+      }
     }
 
     // This rule allows the global 'collectionGroup' query on 'properties'.
@@ -50,15 +66,6 @@ service cloud.firestore {
       
       // Only the authenticated owner can write (create, update, delete) properties.
       allow write: if isOwner(agentId);
-    }
-
-    // Leads can be created by anyone (from the contact form)
-    // but should only be readable by the relevant agent (future enhancement).
-    match /leads/{leadId} {
-        allow create: if true;
-        // For now, only authenticated users (agents) can see leads.
-        // This should be refined to only allow the specific agent related to the lead.
-        allow read, update, delete: if request.auth != null; 
     }
   }
 }
