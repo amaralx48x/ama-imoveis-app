@@ -2,13 +2,14 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { doc, getDoc, collection, getDocs, Query, query, where, orderBy, limit } from 'firebase/firestore';
-import type { Agent, Property, Review } from '@/lib/data';
+import type { Agent, Property, Review, CustomSection } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Hero } from "@/components/hero";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FeaturedProperties } from '@/components/featured-properties';
+import { CustomPropertySection } from '@/components/custom-property-section';
 import { AgentProfile } from '@/components/agent-profile';
 import { ClientReviews } from '@/components/client-reviews';
 import { ContactForm } from '@/components/contact-form';
@@ -27,10 +28,11 @@ export default function AgentPublicPage({ params }: Props) {
     
     const [agent, setAgent] = useState<Agent | null>(null);
     const [allProperties, setAllProperties] = useState<Property[]>([]);
-    const [reviews, setReviews] = useState<Review[]>(getStaticReviews());
+    const [customSections, setCustomSections] = useState<CustomSection[]>([]);
+    const [reviews, setReviews] = useState<Review[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const loadReviews = async () => {
+    const loadReviews = useCallback(async () => {
       if (!firestore) return;
       const reviewsRef = collection(firestore, `agents/${agentId}/reviews`);
       const q = query(reviewsRef, where('approved', '==', true), orderBy('createdAt', 'desc'), limit(4));
@@ -38,17 +40,15 @@ export default function AgentPublicPage({ params }: Props) {
       try {
         const reviewsSnap = await getDocs(q);
         if (reviewsSnap.empty) {
-          // If no approved reviews are found in Firestore, keep the static ones.
           setReviews(getStaticReviews());
         } else {
-          // If approved reviews are found, replace the static ones.
           setReviews(reviewsSnap.docs.map(doc => ({ ...(doc.data() as Omit<Review, 'id'>), id: doc.id })));
         }
       } catch (error) {
         console.error("Error loading reviews, falling back to static reviews:", error);
         setReviews(getStaticReviews());
       }
-    };
+    }, [firestore, agentId]);
     
     useEffect(() => {
         if (!firestore) return;
@@ -56,8 +56,16 @@ export default function AgentPublicPage({ params }: Props) {
         const fetchData = async () => {
             setIsLoading(true);
             try {
+                // Fetch agent, properties, and custom sections in parallel
                 const agentRef = doc(firestore, 'agents', agentId);
-                const agentSnap = await getDoc(agentRef);
+                const propertiesRef = collection(firestore, `agents/${agentId}/properties`);
+                const sectionsRef = collection(firestore, `agents/${agentId}/customSections`);
+
+                const [agentSnap, propertiesSnap, sectionsSnap] = await Promise.all([
+                    getDoc(agentRef),
+                    getDocs(propertiesRef),
+                    getDocs(query(sectionsRef, orderBy('order', 'asc')))
+                ]);
 
                 if (!agentSnap.exists()) {
                     notFound();
@@ -67,11 +75,11 @@ export default function AgentPublicPage({ params }: Props) {
                 const agentData = { id: agentSnap.id, ...agentSnap.data() } as Agent;
                 setAgent(agentData);
 
-                const propertiesRef = collection(firestore, `agents/${agentId}/properties`);
-                const propertiesSnap = await getDocs(propertiesRef);
                 const props = propertiesSnap.docs.map(doc => ({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId: agentId }));
-
                 setAllProperties(props);
+
+                const sections = sectionsSnap.docs.map(doc => ({ ...(doc.data() as Omit<CustomSection, 'id'>), id: doc.id }));
+                setCustomSections(sections);
                 
                 await loadReviews();
 
@@ -84,7 +92,7 @@ export default function AgentPublicPage({ params }: Props) {
 
         fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [firestore, agentId]);
+    }, [firestore, agentId, loadReviews]);
 
     if (isLoading) {
          return (
@@ -121,6 +129,20 @@ export default function AgentPublicPage({ params }: Props) {
                 {featuredProperties.length > 0 && (
                     <FeaturedProperties properties={featuredProperties} agentId={agentId} />
                 )}
+
+                {customSections.map(section => {
+                    const sectionProperties = allProperties.filter(p => section.propertyIds.includes(p.id));
+                    if (sectionProperties.length === 0) return null;
+                    return (
+                        <CustomPropertySection 
+                            key={section.id} 
+                            title={section.title}
+                            properties={sectionProperties} 
+                            agentId={agentId} 
+                        />
+                    )
+                })}
+
                 <AgentProfile agent={agent} />
                 {showReviews && (
                   <div className="container mx-auto px-4 py-16 sm:py-24">
