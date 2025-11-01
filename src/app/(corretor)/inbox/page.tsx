@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import type { Lead } from '@/lib/data';
@@ -66,7 +66,6 @@ export default function InboxPage() {
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'novo' | 'lido' | 'arquivado'>('novo');
 
-    // Consulta simplificada para evitar necessidade de índice composto
     const leadsQuery = useMemoFirebase(
         () => (user && firestore ? query(collection(firestore, 'leads'), where('agentId', '==', user.uid)) : null),
         [user, firestore]
@@ -83,11 +82,10 @@ export default function InboxPage() {
             (snapshot) => {
                 const fetchedLeads = snapshot.docs.map(d => ({ id: d.id, ...d.data() }) as LeadWithId);
                 
-                // Ordena os leads no lado do cliente
                 const sortedLeads = fetchedLeads.sort((a, b) => {
                     const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
                     const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
-                    return dateB - dateA; // Descendente (mais novo primeiro)
+                    return dateB - dateA;
                 });
                 
                 setLeads(sortedLeads);
@@ -109,15 +107,15 @@ export default function InboxPage() {
         const ref = doc(firestore, 'leads', id);
         try {
             const docSnap = await getDoc(ref);
-            if (docSnap.exists()) {
-                await updateDoc(ref, { status: status });
-                toast({ title: `Mensagem movida para '${status}s'!` });
-            } else {
-                toast({ title: "A mensagem não existe mais", description: "Ela pode ter sido excluída.", variant: "destructive" });
+            if (!docSnap.exists()) {
+                 toast({ title: "A mensagem não existe mais", description: "Ela pode ter sido excluída.", variant: "destructive" });
+                 return;
             }
+            await updateDoc(ref, { status: status });
+            toast({ title: `Mensagem movida para '${status}s'!` });
         } catch (err) {
             console.error(err);
-            toast({ title: "Erro ao atualizar status", variant: "destructive" });
+            toast({ title: "Erro ao atualizar status", description: "Ocorreu um problema ao tentar atualizar a mensagem.", variant: "destructive" });
         }
     };
 
