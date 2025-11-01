@@ -1,13 +1,15 @@
+
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Home, FileText, Plus, Minus, Pencil } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import type { Agent } from '@/lib/data';
+import { useDoc, useFirestore, useUser, useMemoFirebase, useCollection } from '@/firebase';
+import { collection, doc } from 'firebase/firestore';
+import type { Agent, Property } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
+import { isSameMonth, parseISO } from 'date-fns';
 
 const MotionCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <div className={`transition-all duration-500 ease-out hover:scale-105 hover:shadow-primary/20 ${className}`}>
@@ -16,9 +18,6 @@ const MotionCard = ({ children, className }: { children: React.ReactNode, classN
 );
 
 export default function DashboardPage() {
-    const [newContracts, setNewContracts] = useState(5);
-    const [isEditingCommission, setIsEditingCommission] = useState(false);
-    const [commissionValue, setCommissionValue] = useState(12500.00);
     const [greeting, setGreeting] = useState('');
     
     const { user } = useUser();
@@ -29,6 +28,12 @@ export default function DashboardPage() {
         [firestore, user]
     );
     const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
+
+    const propertiesCollection = useMemoFirebase(
+        () => (firestore && user ? collection(firestore, `agents/${user.uid}/properties`) : null),
+        [firestore, user]
+    );
+    const { data: properties, isLoading: arePropertiesLoading } = useCollection<Property>(propertiesCollection);
 
     useEffect(() => {
         const getGreeting = () => {
@@ -42,11 +47,24 @@ export default function DashboardPage() {
 
     const displayName = agentData?.displayName?.split(' ')[0] || 'Corretor(a)';
 
+    const activePropertiesCount = properties?.filter(p => p.status === 'ativo').length || 0;
+
+    const commissionsThisMonth = properties
+        ?.filter(p => {
+            if (!['vendido', 'alugado'].includes(p.status) || !p.soldAt) return false;
+            
+            const soldDate = p.soldAt.toDate();
+            return isSameMonth(soldDate, new Date());
+        })
+        .reduce((sum, p) => sum + (p.commissionValue || 0), 0) || 0;
+
+    const isLoading = isAgentLoading || arePropertiesLoading;
+
     return (
         <div className="space-y-8">
             <div className="animate-fade-in-up">
                 <h1 className="text-3xl font-bold font-headline">
-                    {greeting}, <span className="text-gradient">{isAgentLoading ? <Skeleton className="h-8 w-32 inline-block" /> : displayName}</span>!
+                    {greeting}, <span className="text-gradient">{isLoading ? <Skeleton className="h-8 w-32 inline-block" /> : displayName}</span>!
                 </h1>
                 <p className="text-muted-foreground">Aqui está um resumo da sua atividade hoje.</p>
             </div>
@@ -59,8 +77,17 @@ export default function DashboardPage() {
                             <Home className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-4xl font-bold">12</div>
-                            <p className="text-xs text-muted-foreground">+2 na última semana</p>
+                             {isLoading ? (
+                                <>
+                                    <Skeleton className="h-10 w-16 mb-2" />
+                                    <Skeleton className="h-3 w-24" />
+                                </>
+                            ) : (
+                                <>
+                                    <div className="text-4xl font-bold">{activePropertiesCount}</div>
+                                    <p className="text-xs text-muted-foreground">Imóveis disponíveis para negócio</p>
+                                </>
+                            )}
                         </CardContent>
                     </Card>
                 </MotionCard>
@@ -72,49 +99,44 @@ export default function DashboardPage() {
                             <TrendingUp className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            {isEditingCommission ? (
-                                <div className="flex items-center gap-2">
-                                    <Input 
-                                        type="number" 
-                                        value={commissionValue}
-                                        onChange={(e) => setCommissionValue(parseFloat(e.target.value))}
-                                        className="text-2xl font-bold h-12"
-                                    />
-                                </div>
-                            ) : (
-                                <div className="text-4xl font-bold">
-                                    {commissionValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                                </div>
-                            )}
-                            <p className="text-xs text-muted-foreground">Cálculo baseado em imóveis negociados</p>
+                             {isLoading ? (
+                                <>
+                                    <Skeleton className="h-10 w-40 mb-2" />
+                                    <Skeleton className="h-3 w-32" />
+                                </>
+                             ) : (
+                                <>
+                                    <div className="text-4xl font-bold">
+                                        {commissionsThisMonth.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">Total de comissões no mês atual</p>
+                                </>
+                             )}
                         </CardContent>
-                         <CardFooter className="pt-0">
-                            <Button variant="ghost" size="sm" onClick={() => setIsEditingCommission(!isEditingCommission)}>
-                                <Pencil className="h-3 w-3 mr-2" />
-                                {isEditingCommission ? 'Salvar Valor' : 'Corrigir Manualmente'}
-                            </Button>
-                        </CardFooter>
                     </Card>
                 </MotionCard>
                 
-                <MotionCard>
+                 <MotionCard>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Novos Contratos (Mês)</CardTitle>
+                            <CardTitle className="text-sm font-medium">Imóveis Negociados (Mês)</CardTitle>
                             <FileText className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-4xl font-bold">{newContracts}</div>
-                            <p className="text-xs text-muted-foreground">Contador manual de novos negócios</p>
+                             {isLoading ? (
+                                <>
+                                    <Skeleton className="h-10 w-16 mb-2" />
+                                    <Skeleton className="h-3 w-32" />
+                                </>
+                            ) : (
+                                <>
+                                    <div className="text-4xl font-bold">
+                                        {properties?.filter(p => p.status !== 'ativo' && p.soldAt && isSameMonth(p.soldAt.toDate(), new Date())).length || 0}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">Imóveis vendidos ou alugados</p>
+                                </>
+                            )}
                         </CardContent>
-                        <CardFooter className="flex justify-end gap-2 pt-0">
-                            <Button variant="outline" size="icon" onClick={() => setNewContracts(c => Math.max(0, c - 1))}>
-                                <Minus className="h-4 w-4" />
-                            </Button>
-                            <Button variant="outline" size="icon" onClick={() => setNewContracts(c => c + 1)}>
-                                <Plus className="h-4 w-4" />
-                            </Button>
-                        </CardFooter>
                     </Card>
                 </MotionCard>
             </div>
