@@ -121,8 +121,7 @@ export default function ImoveisPage() {
     
     const filteredProperties = useMemo(() => {
         if (activeTab === 'ativo') {
-            // Includes properties explicitly set to 'ativo' or without a status field (for backward compatibility)
-            return allProperties.filter(p => !p.status || p.status === 'ativo');
+            return allProperties.filter(p => p.status !== 'vendido' && p.status !== 'alugado');
         }
         return allProperties.filter(p => p.status === activeTab);
     }, [allProperties, activeTab]);
@@ -130,13 +129,19 @@ export default function ImoveisPage() {
     
     const handleDeleteProperty = async (id: string) => {
         if (!firestore || !user) return;
+        
+        // This confirms with the user before proceeding
+        if (!window.confirm("Tem certeza que deseja excluir este imóvel? Esta ação não pode ser desfeita.")) {
+            return;
+        }
+
         const docRef = doc(firestore, `agents/${user.uid}/properties`, id);
         
         try {
             await deleteDoc(docRef);
-            toast({ title: 'Imóvel excluído com sucesso!' });
-            // Optimistic update on UI
+            // Optimistic UI update for immediate feedback
             setAllProperties(prev => prev.filter(p => p.id !== id));
+            toast({ title: 'Imóvel excluído com sucesso!' });
         } catch (error) {
             console.error("Erro ao excluir imóvel: ", error);
             toast({ 

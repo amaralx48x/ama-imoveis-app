@@ -51,7 +51,8 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
   };
   
   const handleDelete = () => {
-    if (onDelete && window.confirm(`Tem certeza que deseja excluir o imóvel "${property.title}"?`)) {
+    // The confirmation dialog is now handled in the parent page component
+    if (onDelete) {
       onDelete(property.id);
     }
   };
@@ -87,7 +88,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                 {property.status === 'ativo' && (
+                 {property.status !== 'vendido' && property.status !== 'alugado' && (
                   <DropdownMenuItem onClick={() => setIsSoldDialogOpen(true)}>
                     <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
                     {isForSale ? 'Marcar como Vendido' : 'Marcar como Alugado'}
