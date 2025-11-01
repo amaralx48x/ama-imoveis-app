@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, getDoc } from 'firebase/firestore';
 import type { Lead } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -102,10 +102,16 @@ export default function InboxPage() {
 
     const handleStatusChange = async (id: string, status: 'lido' | 'arquivado') => {
         if (!user || !firestore) return;
+        
+        const ref = doc(firestore, 'leads', id);
         try {
-            const ref = doc(firestore, 'leads', id);
-            await updateDoc(ref, { status: status });
-            toast({ title: `Mensagem movida para '${status}s'!` });
+            const docSnap = await getDoc(ref);
+            if (docSnap.exists()) {
+                await updateDoc(ref, { status: status });
+                toast({ title: `Mensagem movida para '${status}s'!` });
+            } else {
+                toast({ title: "A mensagem não existe mais", description: "Ela pode ter sido excluída.", variant: "destructive" });
+            }
         } catch (err) {
             console.error(err);
             toast({ title: "Erro ao atualizar status", variant: "destructive" });
