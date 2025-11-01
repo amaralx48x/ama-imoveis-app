@@ -23,7 +23,6 @@ import { useFirestore } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 
 interface ClientReviewsProps {
@@ -33,12 +32,11 @@ interface ClientReviewsProps {
 }
 
 export function ClientReviews({ reviews, agentId, onReviewSubmitted }: ClientReviewsProps) {
-  const clientAvatars = PlaceHolderImages.filter(img => img.id.startsWith('client-'));
 
   const getAvatarForReview = (reviewId: string) => {
     // Simple hash function to get a consistent avatar for a review
     const hash = reviewId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return clientAvatars[hash % clientAvatars.length];
+    return `https://picsum.photos/seed/client${hash}/100/100`;
   }
 
   return (
@@ -67,7 +65,7 @@ export function ClientReviews({ reviews, agentId, onReviewSubmitted }: ClientRev
         
         <div className="space-y-6">
           {reviews.map((review) => {
-            const avatar = getAvatarForReview(review.id);
+            const avatarUrl = getAvatarForReview(review.id);
             return (
                 <Card key={review.id} className="bg-card border-border/50 flex flex-col">
                 <CardContent className="p-6">
@@ -82,9 +80,9 @@ export function ClientReviews({ reviews, agentId, onReviewSubmitted }: ClientRev
                     {review.comment && <p className="text-muted-foreground italic">"{review.comment}"</p>}
                 </CardContent>
                 <CardHeader className="flex flex-row items-center gap-4 p-6 pt-0">
-                    {avatar && (
+                    {avatarUrl && (
                         <div className="relative h-12 w-12 rounded-full overflow-hidden">
-                             <Image src={avatar.imageUrl} alt={avatar.description} fill className="object-cover" />
+                             <Image src={avatarUrl} alt={`Avatar de ${review.name}`} fill className="object-cover" />
                         </div>
                     )}
                     <div>

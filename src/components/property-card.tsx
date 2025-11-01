@@ -8,7 +8,6 @@ import { BedDouble, Bath, Ruler, MapPin, MoreVertical, Pencil, Trash2, FolderSym
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
 import Link from "next/link";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -37,7 +36,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
   const firstImageUrl = property.imageUrls?.[0];
   const imageUrl = isValidUrl(firstImageUrl) 
     ? firstImageUrl 
-    : PlaceHolderImages.find(p => p.id === 'property-1-1')?.imageUrl || "https://picsum.photos/seed/default/600/400";
+    : `https://picsum.photos/seed/${property.id}/600/400`;
   
   const imageHint = "house exterior";
   

@@ -2,7 +2,6 @@
 'use client';
 
 import type { Property, Agent } from "@/lib/data";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -35,7 +34,7 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
         return !!url && (url.startsWith('http://') || url.startsWith('https://'));
     }
 
-    const defaultImage = PlaceHolderImages.find(img => img.id === 'property-1-1')?.imageUrl || "https://picsum.photos/seed/default/1280/720";
+    const defaultImage = `https://picsum.photos/seed/${property.id}/1280/720`;
     
     const images = property.imageUrls && property.imageUrls.length > 0 && property.imageUrls.every(isValidUrl)
         ? property.imageUrls 

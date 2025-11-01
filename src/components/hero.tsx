@@ -1,3 +1,4 @@
+
 import Image from "next/image";
 import type { ImagePlaceholder } from "@/lib/placeholder-images";
 import type { ReactNode } from "react";
@@ -8,18 +9,20 @@ interface HeroProps {
 }
 
 export function Hero({ heroImage, children }: HeroProps) {
+  const imageUrl = heroImage?.imageUrl ?? `https://picsum.photos/seed/hero/1920/1080`;
+  const imageHint = heroImage?.imageHint ?? 'modern living room';
+  const altText = heroImage?.description ?? 'Hero background image';
+
   return (
     <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center text-white">
-      {heroImage && (
-        <Image
-          src={heroImage.imageUrl}
-          alt={heroImage.description}
-          fill
-          className="object-cover -z-20"
-          priority
-          data-ai-hint={heroImage.imageHint}
-        />
-      )}
+      <Image
+        src={imageUrl}
+        alt={altText}
+        fill
+        className="object-cover -z-20"
+        priority
+        data-ai-hint={imageHint}
+      />
       <div className="absolute inset-0 bg-black/60 -z-10" />
       <div className="container mx-auto px-4 text-center mt-[-10rem]">
         <h1 className="text-4xl md:text-6xl font-extrabold font-headline mb-4 animate-fade-in-up">
