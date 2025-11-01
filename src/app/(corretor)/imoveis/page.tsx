@@ -77,9 +77,15 @@ function PropertyList({
         )
     }
 
+    // Client-side filter for properties that are 'ativo' or have no status (for backward compatibility)
+    const activeProperties = properties ? properties.filter(p => p.status === 'ativo' || !p.status) : [];
+    
+    const displayedProperties = properties;
+
+
     return (
          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-6">
-            {properties && properties.map((property) => (
+            {displayedProperties && displayedProperties.map((property) => (
                 <PropertyCard key={property.id} property={property} onDelete={onDelete} onStatusChange={onStatusChange} />
             ))}
         </div>
@@ -102,9 +108,9 @@ export default function ImoveisPage() {
         if (!propertiesCollection) return null;
         if (activeTab === 'ativo') {
             // Firestore does not have a "not equal" query directly.
-            // The logic to get documents where 'status' is 'ativo' OR does not exist
+            // The logic to get documents where 'status' is 'ativo' OR does not exist (for old data)
             // is to query for everything that is NOT 'vendido' and NOT 'alugado'.
-            // This requires a "not-in" query.
+            // This requires a "not-in" query, which correctly includes documents without the 'status' field.
              return query(propertiesCollection, where('status', 'not-in', ['vendido', 'alugado']));
         }
         return query(propertiesCollection, where('status', '==', activeTab));
