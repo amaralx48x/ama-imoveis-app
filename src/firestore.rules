@@ -63,9 +63,8 @@ service cloud.firestore {
       // O autor original também pode ler sua própria mensagem (mas não listar a coleção)
       allow get: if isOwner(resource.data.senderId);
 
-      // Apenas admins podem responder (atualizar campos específicos) ou deletar
-      allow update: if isAdmin() && request.writeFields.hasAll(['status', 'responseMessage', 'respondedBy', 'responseAt']);
-      allow delete: if isAdmin();
+      // Admins podem responder (atualizar) ou deletar
+      allow update, delete: if isAdmin();
     }
   }
 }
