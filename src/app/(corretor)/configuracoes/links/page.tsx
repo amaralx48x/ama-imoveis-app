@@ -20,10 +20,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Plus, Trash, Link, Loader2 } from "lucide-react";
+import { Plus, Trash, Link, Loader2, Image as ImageIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import ImageUpload from "@/components/image-upload";
+import Image from "next/image";
 
 const availableIcons = [
   { label: "WhatsApp", value: "whatsapp", placeholder: "5511999999999" },
@@ -86,6 +88,10 @@ export default function SocialLinksSettingsPage() {
       prev.map((link) => (link.id === id ? { ...link, [field]: value } : link))
     );
   };
+  
+  const handleImageUpload = (id: string, urls: string[]) => {
+      handleChange(id, "imageUrl", urls[0]);
+  };
 
   const handleDelete = (id: string) => {
     setSocialLinks((prev) => prev.filter((link) => link.id !== id));
@@ -121,43 +127,63 @@ export default function SocialLinksSettingsPage() {
             <AnimatePresence>
             {isAgentLoading ? <LinksFormSkeleton /> : socialLinks.map((link, index) => {
                 const currentIcon = availableIcons.find(i => i.value === link.icon);
+                const isLocation = link.icon === 'map-pin';
                 return (
                 <motion.div
                     key={link.id}
-                    className="flex items-center gap-2 md:gap-3 p-3 border rounded-lg bg-card"
+                    className="flex flex-col gap-3 p-3 border rounded-lg bg-card"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     layout
                 >
-                    <Select
-                    value={link.icon}
-                    onValueChange={(value) => handleChange(link.id, "icon", value)}
-                    >
-                        <SelectTrigger className="w-[120px] md:w-[150px] flex-shrink-0">
-                            <SelectValue placeholder="Ícone" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {availableIcons.map((i) => (
-                            <SelectItem key={i.value} value={i.value}>
-                                {i.label}
-                            </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <Input
-                    placeholder="Nome (ex: Meu Instagram)"
-                    value={link.label}
-                    onChange={(e) => handleChange(link.id, "label", e.target.value)}
-                    />
-                    <Input
-                    placeholder={currentIcon?.placeholder || "URL ou valor"}
-                    value={link.url}
-                    onChange={(e) => handleChange(link.id, "url", e.target.value)}
-                    />
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(link.id)} className="text-destructive hover:bg-destructive/10">
-                        <Trash className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center gap-2 md:gap-3">
+                        <Select
+                        value={link.icon}
+                        onValueChange={(value) => handleChange(link.id, "icon", value)}
+                        >
+                            <SelectTrigger className="w-[120px] md:w-[150px] flex-shrink-0">
+                                <SelectValue placeholder="Ícone" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {availableIcons.map((i) => (
+                                <SelectItem key={i.value} value={i.value}>
+                                    {i.label}
+                                </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Input
+                        placeholder="Nome (ex: Meu Instagram)"
+                        value={link.label}
+                        onChange={(e) => handleChange(link.id, "label", e.target.value)}
+                        />
+                        <Input
+                        placeholder={currentIcon?.placeholder || "URL ou valor"}
+                        value={link.url}
+                        onChange={(e) => handleChange(link.id, "url", e.target.value)}
+                        />
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(link.id)} className="text-destructive hover:bg-destructive/10">
+                            <Trash className="w-4 h-4" />
+                        </Button>
+                    </div>
+                    
+                    {isLocation && user && (
+                        <div className="flex items-center gap-4 pl-1 pt-2 border-t border-dashed">
+                             {link.imageUrl && (
+                                <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
+                                    <Image src={link.imageUrl} alt="Preview do endereço" fill className="object-cover" />
+                                </div>
+                             )}
+                            <div className="flex-grow">
+                                <label className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-2"><ImageIcon className="w-4 h-4"/> Foto do Endereço (Opcional)</label>
+                                <ImageUpload
+                                    agentId={user.uid}
+                                    onUploadComplete={(urls) => handleImageUpload(link.id, urls)}
+                                />
+                            </div>
+                        </div>
+                    )}
                 </motion.div>
                 )
             })}

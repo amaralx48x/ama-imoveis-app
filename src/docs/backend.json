@@ -43,7 +43,8 @@
         "id": { "type": "string" },
         "label": { "type": "string" },
         "url": { "type": "string" },
-        "icon": { "type": "string" }
+        "icon": { "type": "string" },
+        "imageUrl": { "type": "string", "description": "URL of an optional image associated with the link, like a store front." }
       },
       "required": ["id", "label", "url", "icon"]
     },

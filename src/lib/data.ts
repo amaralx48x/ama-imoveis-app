@@ -4,6 +4,7 @@ export type SocialLink = {
   label: string;
   url: string;
   icon: string;
+  imageUrl?: string; // Adicionado para a foto do endereço
 }
 
 export type Property = {

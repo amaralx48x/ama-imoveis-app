@@ -19,7 +19,7 @@ import { defaultPrivacyPolicy, defaultTermsOfUse } from "@/lib/data";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
+import Image from "next/image";
 
 const iconMap: Record<string, any> = {
   whatsapp: MessageCircle,
@@ -113,24 +113,36 @@ export function Footer({ agentId }: { agentId?: string }) {
   return (
     <footer className="bg-card/50" id="footer">
       <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-wrap justify-center gap-6 mb-6 min-h-[56px]">
+        <div className="flex flex-wrap justify-center items-start gap-6 mb-6 min-h-[56px]">
           {isLoading && <FooterSkeleton />}
           {!isLoading && agent?.siteSettings?.socialLinks?.map((link) => {
             const Icon = iconMap[link.icon] || Globe;
             const href = formatLink(link.icon, link.url);
+            const isLocationWithImage = link.icon === 'map-pin' && link.imageUrl;
+
             return (
               <motion.a
                 key={link.id}
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col items-center text-muted-foreground hover:text-primary transition-all"
-                whileHover={{ scale: 1.15 }}
+                className={`flex text-muted-foreground hover:text-primary transition-all ${isLocationWithImage ? 'flex-row items-center gap-3 p-3 rounded-lg bg-background/50 border max-w-xs w-full' : 'flex-col items-center'}`}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 title={link.label}
               >
-                <Icon className="w-6 h-6 mb-1" />
-                <span className="text-xs text-center max-w-[80px] truncate">{link.label}</span>
+                {isLocationWithImage && (
+                  <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
+                    <Image src={link.imageUrl!} alt={`Foto de ${link.label}`} fill className="object-cover" />
+                  </div>
+                )}
+                {!isLocationWithImage && <Icon className="w-6 h-6 mb-1" />}
+
+                <div className={isLocationWithImage ? 'text-left' : 'text-center'}>
+                    <span className={`text-xs ${isLocationWithImage ? 'font-semibold text-foreground' : ''}`}>{link.label}</span>
+                    {isLocationWithImage && <p className="text-xs text-muted-foreground line-clamp-2">{link.url}</p>}
+                </div>
+
               </motion.a>
             );
           })}
