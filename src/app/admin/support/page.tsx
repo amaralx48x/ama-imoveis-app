@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useEffect, useState } from "react";
 import { collection, query, onSnapshot, doc, updateDoc, serverTimestamp, orderBy } from "firebase/firestore";
-import { useFirestore, useUser, useMemoFirebase } from "@/firebase";
+import { useFirestore, useUser, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { SupportMessage } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -41,8 +42,11 @@ export default function AdminSupportPage() {
             setMessages(msgs);
             setLoading(false);
         }, (error) => {
-            console.error(error);
-            toast({ title: 'Erro ao carregar mensagens', variant: 'destructive' });
+            const contextualError = new FirestorePermissionError({
+                path: supportCollection.path,
+                operation: 'list',
+            });
+            errorEmitter.emit('permission-error', contextualError);
             setLoading(false);
         });
 
@@ -58,19 +62,24 @@ export default function AdminSupportPage() {
 
         setSubmittingId(id);
         const docRef = doc(firestore, 'supportMessages', id);
+        const responseData = {
+            status: 'responded',
+            responseMessage: response[id],
+            respondedBy: user.uid,
+            responseAt: serverTimestamp(),
+        };
 
         try {
-            await updateDoc(docRef, {
-                status: 'responded',
-                responseMessage: response[id],
-                respondedBy: user.uid,
-                responseAt: serverTimestamp(),
-            });
+            await updateDoc(docRef, responseData);
             toast({ title: "Resposta enviada com sucesso!" });
             setResponse(prev => ({...prev, [id]: ''}));
         } catch(err) {
-            console.error(err);
-            toast({ title: 'Erro ao enviar resposta', variant: 'destructive' });
+            const contextualError = new FirestorePermissionError({
+                path: docRef.path,
+                operation: 'update',
+                requestResourceData: responseData,
+            });
+            errorEmitter.emit('permission-error', contextualError);
         } finally {
             setSubmittingId(null);
         }
