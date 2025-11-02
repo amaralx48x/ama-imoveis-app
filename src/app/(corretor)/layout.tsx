@@ -1,15 +1,16 @@
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy } from 'lucide-react';
+import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection } from '@/firebase';
+import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
 import { useEffect } from 'react';
-import { collection, query, where } from 'firebase/firestore';
-import type { Lead } from '@/lib/data';
+import { collection, query, where, doc } from 'firebase/firestore';
+import type { Lead, Agent } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 export default function CorretorLayout({
   children,
@@ -21,6 +22,12 @@ export default function CorretorLayout({
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+
+  const agentRef = useMemoFirebase(
+    () => (user && firestore ? doc(firestore, 'agents', user.uid) : null),
+    [user, firestore]
+  );
+  const { data: agentData } = useDoc<Agent>(agentRef);
 
   const unreadLeadsQuery = useMemoFirebase(
     () => user && firestore 
@@ -56,6 +63,10 @@ export default function CorretorLayout({
     { href: '/meu-plano', label: 'Meu Plano', icon: Gem },
     { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' },
   ];
+  
+  const adminMenuItems = [
+      { href: '/admin/painel', label: 'Painel Admin', icon: ShieldCheck },
+  ]
 
   const settingsItems = [
       { href: '/configuracoes/aparencia', label: 'Controle de Exibição', icon: SlidersHorizontal },
@@ -72,6 +83,8 @@ export default function CorretorLayout({
         </div>
     );
   }
+
+  const isAdmin = agentData?.role === 'admin';
 
   return (
     <SidebarProvider>
@@ -134,6 +147,27 @@ export default function CorretorLayout({
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
+            {isAdmin && (
+                <>
+                    <Separator className="my-2" />
+                    {adminMenuItems.map((item) => (
+                         <SidebarMenuItem key={item.href}>
+                            <SidebarMenuButton
+                            asChild
+                            isActive={pathname.startsWith(item.href)}
+                            tooltip={{
+                                children: item.label,
+                            }}
+                            >
+                            <Link href={item.href}>
+                                <item.icon />
+                                <span>{item.label}</span>
+                            </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    ))}
+                </>
+            )}
           </SidebarMenu>
         </SidebarContent>
          <Sidebar.Footer className="p-2">
