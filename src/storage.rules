@@ -1,0 +1,36 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Função auxiliar para verificar se é admin
+    function isAdmin() {
+      return request.auth != null && request.auth.token.role == 'admin';
+    }
+
+    // Função auxiliar para verificar se é o dono da pasta
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // Regra geral para imagens enviadas via suporte
+    // O caminho agora usa o ID do usuário para segmentação
+    match /support-images/{userId}/{fileName} {
+      // O corretor pode enviar (write) imagens apenas dentro da própria pasta
+      allow write: if isOwner(userId);
+      // O admin pode ler tudo
+      // O corretor pode ler suas próprias imagens
+      allow read: if isAdmin() || isOwner(userId);
+    }
+    
+    // Regra para imagens de perfil e de imóveis
+    match /agents/{agentId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == agentId;
+    }
+
+    // Bloqueia qualquer outro acesso não permitido explicitamente
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

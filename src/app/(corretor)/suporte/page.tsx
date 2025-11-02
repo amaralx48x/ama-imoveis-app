@@ -72,7 +72,8 @@ export default function SuportePage() {
       
       const imageUrls = await Promise.all(
         files.map(async (file) => {
-          const imageRef = ref(storage, `support-images/${messageId}/${file.name}`);
+          // O caminho agora usa o UID do usuário, conforme definido nas novas regras de segurança.
+          const imageRef = ref(storage, `support-images/${user.uid}/${file.name}_${messageId}`);
           await uploadBytes(imageRef, file);
           return getDownloadURL(imageRef);
         })
