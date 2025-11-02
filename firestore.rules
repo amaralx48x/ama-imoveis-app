@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -9,14 +10,32 @@ service cloud.firestore {
     function isOwner(agentId) {
       return request.auth != null && request.auth.uid == agentId;
     }
+    
+    /**
+     * Helper function to check if the user is an administrator.
+     * It checks for a custom claim `role` on the user's auth token.
+     */
+     function isAdmin() {
+      // First, check for custom claims on the token.
+      // This is the most secure method for production.
+      if (request.auth.token.role == 'admin') {
+        return true;
+      }
+      
+      // Fallback for local development/testing: check a `role` field on the user's own document.
+      // This is less secure as it requires an extra read but is useful for setup.
+      // IMPORTANT: For production, rely on custom claims set via a backend function.
+      return get(/databases/$(database)/documents/agents/$(request.auth.uid)).data.role == 'admin';
+    }
+
 
     // Agent profiles
     match /agents/{agentId} {
       // Anyone can read agent profiles for the public website.
       allow read: if true;
 
-      // Only the authenticated owner of the agent profile can create, update, or delete it.
-      allow write: if isOwner(agentId);
+      // Only the authenticated owner or an admin can update an agent's profile.
+      allow write: if isOwner(agentId) || isAdmin();
 
       // Subcollection for reviews
       match /reviews/{reviewId} {
@@ -27,25 +46,36 @@ service cloud.firestore {
         allow list, get: if resource.data.approved == true;
 
         // The agent (owner) can read all of their reviews and can update/delete them
-        allow read, update, delete: if isOwner(agentId);
+        // An admin can also manage reviews
+        allow read, update, delete: if isOwner(agentId) || isAdmin();
       }
        // Subcollection for custom sections
       match /customSections/{sectionId} {
         // Public can read sections for site display
         allow read: if true;
-        // The agent (owner) can manage their sections
-        allow write: if isOwner(agentId);
+        // The agent (owner) or an admin can manage their sections
+        allow write: if isOwner(agentId) || isAdmin();
       }
       
       // Subcollection for leads
       match /leads/{leadId} {
-        // Anyone can create a lead from the public contact form
+        // Anyone can create a lead from the public contact form or from a support response
         allow create: if true;
         
-        // Only the agent (owner) can manage their own leads
-        allow read, update, delete: if isOwner(agentId);
+        // Only the agent (owner) or an admin can manage their own leads
+        allow read, update, delete: if isOwner(agentId) || isAdmin();
       }
     }
+    
+    // Support messages collection
+    match /supportMessages/{messageId} {
+      // Only authenticated users can create a support ticket.
+      allow create: if request.auth != null;
+      
+      // Only admins can read, update, or delete support tickets.
+      allow read, write: if isAdmin();
+    }
+
 
     // This rule allows the global 'collectionGroup' query on 'properties'.
     // It's necessary for the public search page to find properties across all agents.
@@ -64,8 +94,8 @@ service cloud.firestore {
       // We only need to define the write rule here.
       allow read; // This inherits the "allow read: if true" from the collection group rule.
       
-      // Only the authenticated owner can write (create, update, delete) properties.
-      allow write: if isOwner(agentId);
+      // Only the authenticated owner or an admin can write (create, update, delete) properties.
+      allow write: if isOwner(agentId) || isAdmin();
     }
   }
 }

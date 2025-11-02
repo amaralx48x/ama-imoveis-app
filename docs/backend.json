@@ -22,14 +22,42 @@
         "neighborhood": { "type": "string", "description": "Neighborhood where the property is located." },
         "type": { "type": "string", "enum": ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"], "description": "Type of property." },
         "operation": { "type": "string", "enum": ["Venda", "Aluguel"], "description": "Type of operation." },
-        "featured": { "type": "boolean", "description": "Indicates if the property is featured." },
+        "sectionIds": { "type": "array", "items": { "type": "string" }, "description": "Array of section IDs this property belongs to. Includes 'featured' for featured properties." },
+        "phone": { "type": "string", "description": "Specific contact phone number for this property." },
         "agentId": { "type": "string", "description": "ID of the agent who listed the property." },
-        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was created." }
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was created." },
+        "status": { "type": "string", "enum": ["ativo", "vendido", "alugado"], "description": "The current status of the property.", "default": "ativo" },
+        "soldAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was sold or rented." },
+        "commissionValue": { "type": "number", "description": "The final commission value earned from the transaction." }
       },
       "required": [
         "id", "title", "description", "price", "bedrooms", "bathrooms", "garage", "rooms", 
-        "builtArea", "totalArea", "imageUrls", "city", "neighborhood", "type", "operation", "featured", "agentId", "createdAt"
+        "builtArea", "totalArea", "imageUrls", "city", "neighborhood", "type", "operation", "sectionIds", "agentId", "createdAt", "status"
       ]
+    },
+    "SocialLink": {
+      "title": "Social Link",
+      "type": "object",
+      "description": "Represents a social media link.",
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "url": { "type": "string" },
+        "icon": { "type": "string" },
+        "imageUrl": { "type": "string", "description": "URL of an optional image associated with the link, like a store front." }
+      },
+      "required": ["id", "label", "url", "icon"]
+    },
+    "ManualCommissionAdjustment": {
+      "title": "Manual Commission Adjustment",
+      "type": "object",
+      "description": "Represents a manual adjustment to the monthly commission total.",
+      "properties": {
+        "value": { "type": "number", "description": "The value to add or subtract from the commission total." },
+        "reason": { "type": "string", "description": "The reason for the manual adjustment." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the adjustment was made." }
+      },
+      "required": ["value", "reason", "createdAt"]
     },
     "Agent": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -41,21 +69,54 @@
         "displayName": { "type": "string", "description": "The full name of the agent for display in the dashboard." },
         "name": { "type": "string", "description": "Name of the agent's site or agency name." },
         "accountType": { "type": "string", "enum": ["corretor", "imobiliaria"], "description": "The type of account, either an individual agent or an agency." },
+        "role": { "type": "string", "enum": ["corretor", "admin"], "description": "The user's role in the system.", "default": "corretor" },
         "description": { "type": "string", "description": "A public-facing description of the agent or agency." },
         "creci": { "type": "string", "description": "CRECI number of the agent." },
         "photoUrl": { "type": "string", "description": "URL of the agent's photo." },
+        "phone": { "type": "string", "description": "The agent's primary contact phone number." },
         "email": { "type": "string", "description": "Contact email for the agent." },
         "cities": { "type": "array", "items": { "type": "string" }, "description": "List of cities the agent operates in." },
+        "availability": {
+          "type": "object",
+          "description": "Defines the agent's availability for property viewings.",
+          "properties": {
+            "days": {
+              "type": "object",
+              "properties": {
+                "Segunda": { "type": "boolean" }, "Terça": { "type": "boolean" }, "Quarta": { "type": "boolean" },
+                "Quinta": { "type": "boolean" }, "Sexta": { "type": "boolean" }, "Sábado": { "type": "boolean" },
+                "Domingo": { "type": "boolean" }
+              }
+            },
+            "startTime": { "type": "string", "description": "The start time of availability, e.g., '09:00'." },
+            "endTime": { "type": "string", "description": "The end time of availability, e.g., '18:00'." }
+          }
+        },
         "siteSettings": {
           "type": "object",
           "description": "Settings to control the visibility of sections on the public site.",
           "properties": {
             "showFinancing": { "type": "boolean", "description": "Show or hide the financing simulation button." },
-            "showReviews": { "type": "boolean", "description": "Show or hide the client reviews section." }
+            "financingLink": { "type": "string", "description": "Custom URL for the financing button." },
+            "showReviews": { "type": "boolean", "description": "Show or hide the client reviews section." },
+            "defaultSaleCommission": { "type": "number", "description": "Default commission percentage for sales." },
+            "defaultRentCommission": { "type": "number", "description": "Default commission percentage for rentals." },
+            "socialLinks": {
+              "type": "array",
+              "description": "List of social media links.",
+              "items": { "$ref": "#/entities/SocialLink" }
+            },
+            "privacyPolicy": { "type": "string", "description": "The full text for the Privacy Policy." },
+            "termsOfUse": { "type": "string", "description": "The full text for the Terms of Use." },
+            "manualCommissionAdjustments": {
+              "type": "array",
+              "description": "Array of manual commission adjustments made in the dashboard.",
+              "items": { "$ref": "#/entities/ManualCommissionAdjustment" }
+            }
           }
         }
       },
-      "required": ["id", "displayName", "name", "accountType", "email"]
+      "required": ["id", "displayName", "name", "accountType", "email", "role"]
     },
     "Lead": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -69,9 +130,64 @@
         "phone": { "type": "string" },
         "message": { "type": "string" },
         "propertyId": { "type": "string", "description": "Optional ID of the property the lead is interested in." },
+        "status": { "type": "string", "enum": ["unread", "read", "archived"], "default": "unread", "description": "The status of the lead message."},
+        "leadType": { "type": "string", "enum": ["seller", "buyer", "other"], "description": "The classified type of the lead."},
+        "context": { "type": "string", "description": "The source context of the lead (e.g., 'form:captacao')." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "cpf": { "type": "string", "description": "CPF for scheduling a visit." },
+        "visitDate": { "type": "string", "format": "date-time", "description": "Requested date for a property visit." },
+        "visitTime": { "type": "string", "description": "Requested time for a property visit." }
+      },
+      "required": ["id", "name", "email", "message", "status", "leadType", "createdAt"]
+    },
+    "Review": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Review",
+      "type": "object",
+      "description": "Represents a client review for an agent.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "rating": { "type": "number", "minimum": 1, "maximum": 5 },
+        "comment": { "type": "string" },
+        "approved": { "type": "boolean", "default": false },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "name", "email", "message", "createdAt"]
+      "required": ["id", "name", "rating", "approved", "createdAt"]
+    },
+    "CustomSection": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Custom Section",
+      "type": "object",
+      "description": "Represents a custom section of properties on the agent's site.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "description": "The title of the custom section." },
+        "order": { "type": "number", "description": "The display order of the section on the page." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "order", "createdAt"]
+    },
+    "SupportMessage": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Support Message",
+      "type": "object",
+      "description": "Represents a support ticket sent by a user.",
+      "properties": {
+        "id": { "type": "string" },
+        "senderId": { "type": "string", "description": "UID of the user who sent the message." },
+        "senderName": { "type": "string" },
+        "senderEmail": { "type": "string", "format": "email" },
+        "message": { "type": "string" },
+        "images": { "type": "array", "items": { "type": "string", "format": "uri" }, "description": "URLs of uploaded images." },
+        "status": { "type": "string", "enum": ["pending", "responded"], "default": "pending" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "respondedBy": { "type": "string", "description": "UID of the admin who responded." },
+        "responseMessage": { "type": "string" },
+        "responseAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "senderId", "senderName", "senderEmail", "message", "status", "createdAt"]
     }
   },
   "auth": {
@@ -87,12 +203,27 @@
       {
         "path": "/agents/{agentId}/properties/{propertyId}",
         "schema": { "$ref": "#/entities/Property" },
-        "description": "Stores properties listed by a specific agent. The `agentId` in the path ensures data ownership and simplifies security rules."
+        "description": "Stores properties listed by a specific agent."
       },
       {
-        "path": "/leads/{leadId}",
+        "path": "/agents/{agentId}/reviews/{reviewId}",
+        "schema": { "$ref": "#/entities/Review" },
+        "description": "Stores client reviews for a specific agent."
+      },
+      {
+        "path": "/agents/{agentId}/customSections/{sectionId}",
+        "schema": { "$ref": "#/entities/CustomSection" },
+        "description": "Stores custom property sections for the agent's public site."
+      },
+      {
+        "path": "/agents/{agentId}/leads/{leadId}",
         "schema": { "$ref": "#/entities/Lead" },
-        "description": "Stores leads generated from the contact forms on the website."
+        "description": "Stores leads generated from contact forms for a specific agent."
+      },
+       {
+        "path": "/supportMessages/{messageId}",
+        "schema": { "$ref": "#/entities/SupportMessage" },
+        "description": "Stores all support tickets from all users for admin review."
       }
     ]
   }
