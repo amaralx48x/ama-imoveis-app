@@ -1,58 +1,65 @@
 
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isOwner(agentId) {
-      return request.auth != null && request.auth.uid == agentId;
-    }
-    
-    function isAdmin() {
-      return request.auth != null && request.auth.token.role == 'admin';
+    // Funções auxiliares de autenticação
+    function isSignedIn() {
+      return request.auth != null;
     }
 
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.role == 'admin';
+    }
+
+    // Regra para a coleção de agentes (corretores/imobiliárias)
     match /agents/{agentId} {
-      allow read: if true;
+      // Perfil e configurações são publicamente legíveis
+      allow get: if true; 
+      // A listagem de todos os agentes só é permitida para administradores
+      allow list: if isAdmin();
+      // Apenas o próprio dono ou um admin pode escrever no perfil
       allow write: if isOwner(agentId) || isAdmin();
 
-      // Theme document as a subdocument of agent
-      match /theme/{doc=**} {
-        allow read: if true; // Publicly readable for the site
-        allow write: if isOwner(agentId);
+      // Subcoleções dentro de cada agente
+      match /properties/{propertyId} {
+        allow read: if true;
+        allow write: if isOwner(agentId) || isAdmin();
       }
 
       match /reviews/{reviewId} {
-        allow create: if true;
-        allow list, get: if resource.data.approved == true;
-        allow read, update, delete: if isOwner(agentId) || isAdmin();
+        allow create: if isSignedIn(); // Qualquer um pode enviar uma avaliação
+        allow list, get: if resource.data.approved == true; // Leituras públicas apenas para avaliações aprovadas
+        // Dono do perfil e admins podem gerenciar todas as avaliações
+        allow read, update, delete: if isOwner(agentId) || isAdmin(); 
       }
       
       match /customSections/{sectionId} {
         allow read: if true;
         allow write: if isOwner(agentId) || isAdmin();
       }
-
+      
       match /leads/{leadId} {
-        allow create: if true;
+        allow create: if true; // Formulários de contato são públicos
+        // Apenas o dono do perfil ou admin podem ler/gerenciar os leads
         allow read, update, delete: if isOwner(agentId) || isAdmin();
       }
     }
 
-    match /{path=**}/properties/{propertyId} {
-        allow read: if true;
-        allow write: if false; 
-    }
-    
-    match /agents/{agentId}/properties/{propertyId} {
-      allow read;
-      allow write: if isOwner(agentId) || isAdmin();
-    }
-
+    // Regras para a coleção de mensagens de suporte
     match /supportMessages/{messageId} {
-      allow create: if request.auth != null;
-      // Admins can read all messages, users can only read their own.
-      allow read: if isAdmin() || isOwner(resource.data.senderId);
-      // Only admins can update or delete support messages.
+      // Qualquer usuário autenticado pode criar um ticket de suporte
+      allow create: if isSignedIn();
+      // Admins podem listar e ler todas as mensagens
+      allow list, get: if isAdmin();
+       // O autor original também pode ler sua própria mensagem
+      allow get: if isOwner(resource.data.senderId);
+      // Apenas admins podem responder (atualizar) ou deletar
       allow update, delete: if isAdmin();
     }
   }
