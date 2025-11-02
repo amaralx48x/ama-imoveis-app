@@ -27,7 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import ImageUpload from "@/components/image-upload";
 import Image from "next/image";
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -141,7 +141,7 @@ export default function SocialLinksSettingsPage() {
     [user, firestore]
   );
   
-  const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
+  const { data: agentData, isLoading: isAgentLoading, mutate } = useDoc<Agent>(agentRef);
 
   const [socialLinks, setSocialLinks] = useState<LinkState[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -179,7 +179,8 @@ export default function SocialLinksSettingsPage() {
         if (!agentRef) return;
         
         const updatePath = `siteSettings.${key}`;
-        setDocumentNonBlocking(agentRef, { [updatePath]: value }, { merge: true });
+        updateDocumentNonBlocking(agentRef, { [updatePath]: value });
+        mutate(); // Re-fetch the data to update UI
 
         toast({
             title: "Configuração atualizada!",

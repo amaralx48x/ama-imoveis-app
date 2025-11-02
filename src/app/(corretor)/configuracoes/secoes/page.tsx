@@ -15,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 
 function SettingToggle({ 
@@ -82,7 +82,7 @@ export default function GerenciarSecoesPage() {
         [user, firestore]
     );
 
-    const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
+    const { data: agentData, isLoading: isAgentLoading, mutate } = useDoc<Agent>(agentRef);
 
     const [newSectionTitle, setNewSectionTitle] = useState('');
     const [editingSection, setEditingSection] = useState<{ id: string; title: string } | null>(null);
@@ -91,7 +91,8 @@ export default function GerenciarSecoesPage() {
         if (!agentRef) return;
         
         const updatePath = `siteSettings.${key}`;
-        setDocumentNonBlocking(agentRef, { [updatePath]: value }, { merge: true });
+        updateDocumentNonBlocking(agentRef, { [updatePath]: value });
+        mutate(); // Re-fetch the data to update UI
 
         toast({
             title: "Configuração atualizada!",
