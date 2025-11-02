@@ -32,7 +32,7 @@ function SearchResults() {
   const searchParams = useSearchParams();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<Filters['sortBy']>(searchParams.get('sortBy') as Filters['sortBy'] || undefined);
+  const [sortBy, setSortBy] = useState<Filters['sortBy'] | ''>(searchParams.get('sortBy') || '');
   const firestore = useFirestore();
 
   const agentId = searchParams.get('agentId');
@@ -64,7 +64,7 @@ function SearchResults() {
         sectionId: currentParams.get('sectionId') || undefined,
         minPrice: currentParams.get('minPrice') || undefined,
         maxPrice: currentParams.get('maxPrice') || undefined,
-        sortBy: sortBy,
+        sortBy: sortBy as Filters['sortBy'] || undefined,
     };
     
     try {
@@ -83,8 +83,11 @@ function SearchResults() {
       const allProps = querySnapshot.docs.map(doc => ({ ...(doc.data() as Property), id: doc.id, agentId: doc.ref.parent.parent?.id }) as Property);
       
       const activeProps = allProps.filter(p => p.status !== 'vendido' && p.status !== 'alugado');
+      
+      // Aplicar filtros e ordenação no cliente
       const filtered = filterProperties(activeProps, filters);
       setProperties(filtered);
+      
     } catch (error) {
       console.error("Erro ao buscar imóveis:", error);
     } finally {
