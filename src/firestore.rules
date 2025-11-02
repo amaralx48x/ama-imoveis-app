@@ -32,8 +32,14 @@ service cloud.firestore {
       }
 
       match /leads/{leadId} {
-        allow create: if true;
-        allow read, update, delete: if isOwner(agentId) || isAdmin();
+        // Permitir criar leads
+        allow create: if request.auth != null;
+
+        // Permitir leitura do próprio corretor ou admin
+        allow read: if request.auth != null && (request.auth.uid == agentId || isAdmin());
+
+        // Permitir atualização ou exclusão apenas pelo dono ou admin
+        allow update, delete: if isOwner(agentId) || isAdmin();
       }
     }
 

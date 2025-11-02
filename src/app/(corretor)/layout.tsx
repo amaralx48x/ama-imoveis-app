@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { ThemeProvider } from '@/context/ThemeContext';
 
 export default function CorretorLayout({
   children,
@@ -87,6 +88,7 @@ export default function CorretorLayout({
   const isAdmin = agentData?.role === 'admin';
 
   return (
+    <ThemeProvider>
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
@@ -187,5 +189,6 @@ export default function CorretorLayout({
         </main>
       </SidebarInset>
     </SidebarProvider>
+    </ThemeProvider>
   );
 }

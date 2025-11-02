@@ -68,20 +68,21 @@ export function useTheme() {
   return useContext(ThemeContext);
 }
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+export function ThemeProvider({ children, agentIdForPublicPage }: { children: ReactNode, agentIdForPublicPage?: string }) {
   const [theme, setTheme] = useState<Theme>(defaultTheme);
   const { user } = useUser();
   const firestore = useFirestore();
 
+  const agentId = agentIdForPublicPage || user?.uid;
+
   useEffect(() => {
-    // Este provider é usado em todo o app. Se o usuário não está logado,
-    // ele pode estar em uma página pública. Devemos carregar o tema do corretor visitado.
-    // Esta lógica precisaria ser mais complexa (ex: pegar agentId da URL), mas por enquanto,
-    // focamos no corretor logado.
-    if (!user || !firestore) return;
+    if (!agentId || !firestore) {
+        setTheme(defaultTheme); // Fallback for public pages if no agentId
+        return;
+    };
 
     const unsub = onSnapshot(
-      doc(firestore, "agents", user.uid, "themes", "current"),
+      doc(firestore, "agents", agentId, "themes", "current"),
       (docSnap) => {
         if (docSnap.exists()) {
             setTheme(docSnap.data() as Theme);
@@ -92,7 +93,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     );
 
     return () => unsub();
-  }, [user, firestore]);
+  }, [agentId, firestore]);
 
   return (
     <ThemeContext.Provider value={theme}>
