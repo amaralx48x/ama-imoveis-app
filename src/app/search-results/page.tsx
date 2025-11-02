@@ -15,20 +15,8 @@ import { Frown, ArrowLeft, ArrowDownUp } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 
-function BackButton({ agentId }: { agentId: string | null }) {
-    const router = useRouter();
-    const href = agentId ? `/corretor/${agentId}` : '/';
-    const buttonText = agentId ? "Voltar para a Página do Corretor" : "Voltar para a Página Principal";
-
-    return (
-        <Button variant="outline" onClick={() => router.push(href)} className="mb-6 flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            {buttonText}
-        </Button>
-    );
-}
-
 function SearchResults() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,7 +91,10 @@ function SearchResults() {
   return (
     <div className="container mx-auto p-6 min-h-screen">
       <div className="mb-4">
-        <BackButton agentId={agentId} />
+        <Button variant="outline" onClick={() => router.back()} className="mb-6 flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+        </Button>
       </div>
 
       <div className="mb-8">
