@@ -34,6 +34,8 @@ interface PropertyViewProps {
 export function PropertyView({ property, agent }: PropertyViewProps) {
 
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
+
 
     const isValidUrl = (url: string | undefined): boolean => {
         return !!url && (url.startsWith('http://') || url.startsWith('https://'));
@@ -202,10 +204,25 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                                />
                           </DialogContent>
                         </Dialog>
-                        <Button className="w-full" size="lg" variant="outline">
-                            <CalendarPlus className="mr-2"/>
-                            Agendar uma visita
-                        </Button>
+                         <Dialog open={isSchedulingOpen} onOpenChange={setIsSchedulingOpen}>
+                            <DialogTrigger asChild>
+                               <Button className="w-full" size="lg" variant="outline">
+                                    <CalendarPlus className="mr-2"/>
+                                    Agendar uma visita
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[480px]">
+                                <ContactForm 
+                                    agentId={agent.id}
+                                    propertyId={property.id}
+                                    context="buyer:schedule-visit"
+                                    title="Agendar uma visita"
+                                    description={`Preencha os dados abaixo para agendar uma visita ao imóvel "${property.title}". Entraremos em contato para confirmar.`}
+                                    isDialog={true}
+                                    onFormSubmit={() => setIsSchedulingOpen(false)}
+                                />
+                            </DialogContent>
+                        </Dialog>
 
                         <Separator className="my-4"/>
                         
@@ -235,3 +252,5 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
         </div>
     );
 }
+
+    
