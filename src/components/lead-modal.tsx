@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { formatDate } from "@/lib/lead-utils";
 import { Button } from "./ui/button";
+import { Separator } from "./ui/separator";
 
 type Props = {
   lead: any | null;
@@ -16,6 +17,10 @@ type Props = {
 
 export default function LeadModal({ lead, open, onClose, onMarkRead, onArchive, onDelete }: Props) {
   if (!open || !lead) return null;
+
+  const isVisit = lead.context === 'buyer:schedule-visit';
+  const visitDate = isVisit && lead.visitDate ? new Date(lead.visitDate.seconds * 1000).toLocaleDateString('pt-BR') : null;
+
   return (
     <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
@@ -32,6 +37,7 @@ export default function LeadModal({ lead, open, onClose, onMarkRead, onArchive, 
             <h3 className="text-xl font-semibold">{lead.name || lead.nome || "Sem nome"}</h3>
             <p className="text-sm text-muted-foreground">{lead.email}</p>
             <p className="text-sm text-muted-foreground">{lead.phone || lead.telefone}</p>
+            {lead.cpf && <p className="text-sm text-muted-foreground">CPF: {lead.cpf}</p>}
           </div>
           <div className="text-right">
             <p className="text-xs text-muted-foreground">{formatDate(lead.createdAt)}</p>
@@ -39,7 +45,16 @@ export default function LeadModal({ lead, open, onClose, onMarkRead, onArchive, 
           </div>
         </div>
 
-        <hr className="my-4" />
+        <Separator className="my-4" />
+
+        {isVisit && (
+            <div className="mb-4 p-4 bg-muted rounded-md border">
+                <h4 className="font-semibold text-base mb-2">Solicitação de Visita</h4>
+                <p>Data solicitada: <span className="font-bold">{visitDate}</span></p>
+                <p>Horário solicitado: <span className="font-bold">{lead.visitTime}</span></p>
+            </div>
+        )}
+
         <div className="mb-4">
           <p className="whitespace-pre-line text-muted-foreground">{lead.message || lead.mensagem || ""}</p>
         </div>

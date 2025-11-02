@@ -24,7 +24,7 @@ type Props = {
 
 export default function LeadsPage({ agentId }: Props) {
   const [leads, setLeads] = useState<any[]>([]);
-  const [filter, setFilter] = useState<"all" | "unread" | "seller" | "buyer" | "archived">("unread");
+  const [filter, setFilter] = useState<"all" | "unread" | "seller" | "buyer" | "archived" | "visit">("unread");
   const [selectedIds, setSelectedIds] = useState<Record<string, boolean>>({});
   const [selectAll, setSelectAll] = useState(false);
   const [modalLead, setModalLead] = useState<any | null>(null);
@@ -58,7 +58,8 @@ export default function LeadsPage({ agentId }: Props) {
       if (filter === "all") return l.status !== "archived";
       if (filter === "unread") return l.status === "unread";
       if (filter === "seller") return l.leadType === "seller" && l.status !== "archived";
-      if (filter === "buyer") return l.leadType === "buyer" && l.status !== "archived";
+      if (filter === "buyer") return l.leadType === "buyer" && l.status !== "archived" && l.context !== 'buyer:schedule-visit';
+      if (filter === "visit") return l.context === 'buyer:schedule-visit' && l.status !== 'archived';
       if (filter === "archived") return l.status === "archived";
       return true;
     });
@@ -195,6 +196,7 @@ export default function LeadsPage({ agentId }: Props) {
             <SelectContent>
                 <SelectItem value="unread">Não lidas</SelectItem>
                 <SelectItem value="all">Caixa de Entrada</SelectItem>
+                <SelectItem value="visit">Visitas Agendadas</SelectItem>
                 <SelectItem value="seller">Proprietários</SelectItem>
                 <SelectItem value="buyer">Compradores</SelectItem>
                 <SelectItem value="archived">Arquivadas</SelectItem>
@@ -266,8 +268,8 @@ export default function LeadsPage({ agentId }: Props) {
                     <div>{lead.phone || ""}</div>
                   </TableCell>
                   <TableCell className="p-2">
-                     <Badge variant={lead.leadType === "seller" ? "destructive" : "secondary"}>
-                         {lead.leadType === "seller" ? "Proprietário" : lead.leadType === "buyer" ? "Comprador" : "Outro"}
+                     <Badge variant={lead.context === 'buyer:schedule-visit' ? 'default' : lead.leadType === "seller" ? "destructive" : "secondary"}>
+                         {lead.context === 'buyer:schedule-visit' ? 'Agendamento' : lead.leadType === "seller" ? "Proprietário" : lead.leadType === "buyer" ? "Comprador" : "Outro"}
                     </Badge>
                   </TableCell>
                   <TableCell className="p-2 text-sm text-muted-foreground">{formatDate(lead.createdAt)}</TableCell>
