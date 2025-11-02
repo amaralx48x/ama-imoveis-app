@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect } from 'react';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
@@ -30,7 +31,8 @@ export default function AdminLayout({
     if (!isUserLoading && !user) {
       router.replace('/login');
     }
-    if (!isAgentLoading && agentData && agentData.role !== 'admin') {
+    // A condição !isAgentLoading garante que só tomamos a decisão depois de saber o papel do usuário.
+    if (!isUserLoading && !isAgentLoading && agentData && agentData.role !== 'admin') {
       router.replace('/dashboard');
     }
   }, [user, isUserLoading, agentData, isAgentLoading, router]);
@@ -52,7 +54,9 @@ export default function AdminLayout({
     );
   }
 
-  if (agentData?.role !== 'admin') {
+  // Se, após o carregamento, o usuário não for admin, ele já terá sido redirecionado.
+  // Mas como uma proteção extra, podemos mostrar uma mensagem de acesso negado.
+  if (!agentData || agentData.role !== 'admin') {
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-background text-center">
             <h1 className="text-4xl font-bold text-destructive mb-4">Acesso Negado</h1>
