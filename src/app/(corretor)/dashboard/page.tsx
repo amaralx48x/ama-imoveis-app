@@ -3,14 +3,21 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Home, FileText, Plus, Minus, Pencil } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { TrendingUp, Home, FileText, MoreVertical } from 'lucide-react';
 import { useDoc, useFirestore, useUser, useMemoFirebase, useCollection } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import type { Agent, Property } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { isSameMonth } from 'date-fns';
 import { MonthlyPerformanceChart } from '@/components/dashboard/monthly-chart';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ManualCommissionDialog } from '@/components/dashboard/manual-commission-dialog';
+
 
 const MotionCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <div className={`transition-all duration-500 ease-out hover:scale-105 hover:shadow-primary/20 ${className}`}>
@@ -20,6 +27,7 @@ const MotionCard = ({ children, className }: { children: React.ReactNode, classN
 
 export default function DashboardPage() {
     const [greeting, setGreeting] = useState('');
+    const [isCommissionDialogOpen, setIsCommissionDialogOpen] = useState(false);
     
     const { user } = useUser();
     const firestore = useFirestore();
@@ -69,6 +77,7 @@ export default function DashboardPage() {
     const isLoading = isAgentLoading || arePropertiesLoading;
 
     return (
+        <>
         <div className="space-y-8">
             <div className="animate-fade-in-up">
                 <h1 className="text-3xl font-bold font-headline">
@@ -104,7 +113,18 @@ export default function DashboardPage() {
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Comissões no Mês</CardTitle>
-                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 -mr-2">
+                                        <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => setIsCommissionDialogOpen(true)}>
+                                        Ajustar valor manualmente
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </CardHeader>
                         <CardContent>
                              {isLoading ? (
@@ -143,7 +163,7 @@ export default function DashboardPage() {
                                     </div>
                                     <p className="text-xs text-muted-foreground">Imóveis vendidos ou alugados</p>
                                 </>
-                            )}
+                             )}
                         </CardContent>
                     </Card>
                 </MotionCard>
@@ -151,5 +171,13 @@ export default function DashboardPage() {
             
             <MonthlyPerformanceChart properties={properties || []} isLoading={isLoading} />
         </div>
+        {user && (
+            <ManualCommissionDialog
+                agentId={user.uid}
+                isOpen={isCommissionDialogOpen}
+                onOpenChange={setIsCommissionDialogOpen}
+            />
+        )}
+        </>
     );
 }

@@ -48,6 +48,17 @@
       },
       "required": ["id", "label", "url", "icon"]
     },
+    "ManualCommissionAdjustment": {
+      "title": "Manual Commission Adjustment",
+      "type": "object",
+      "description": "Represents a manual adjustment to the monthly commission total.",
+      "properties": {
+        "value": { "type": "number", "description": "The value to add or subtract from the commission total." },
+        "reason": { "type": "string", "description": "The reason for the manual adjustment." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the adjustment was made." }
+      },
+      "required": ["value", "reason", "createdAt"]
+    },
     "Agent": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Agent",
@@ -95,7 +106,12 @@
               "items": { "$ref": "#/entities/SocialLink" }
             },
             "privacyPolicy": { "type": "string", "description": "The full text for the Privacy Policy." },
-            "termsOfUse": { "type": "string", "description": "The full text for the Terms of Use." }
+            "termsOfUse": { "type": "string", "description": "The full text for the Terms of Use." },
+            "manualCommissionAdjustments": {
+              "type": "array",
+              "description": "Array of manual commission adjustments made in the dashboard.",
+              "items": { "$ref": "#/entities/ManualCommissionAdjustment" }
+            }
           }
         }
       },
