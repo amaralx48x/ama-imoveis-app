@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -11,15 +12,12 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import type { Agent } from "@/lib/data";
 import { defaultPrivacyPolicy, defaultTermsOfUse } from "@/lib/data";
-import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 
@@ -132,7 +130,7 @@ export function Footer({ agentId }: { agentId?: string }) {
                 title={link.label}
               >
                 <Icon className="w-6 h-6 mb-1" />
-                <span className="text-xs">{link.label}</span>
+                <span className="text-xs text-center max-w-[80px] truncate">{link.label}</span>
               </motion.a>
             );
           })}

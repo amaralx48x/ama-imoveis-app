@@ -32,7 +32,7 @@ const availableIcons = [
   { label: "LinkedIn", value: "linkedin", placeholder: "https://linkedin.com/in/seu_usuario" },
   { label: "Website", value: "globe", placeholder: "https://seusite.com" },
   { label: "Telefone", value: "phone", placeholder: "11999999999" },
-  { label: "Localização", value: "map-pin", placeholder: "Endereço ou link do Google Maps" },
+  { label: "Localização", value: "map-pin", placeholder: "Endereço completo do escritório" },
   { label: "E-mail", value: "mail", placeholder: "seu@email.com" },
 ];
 
@@ -110,10 +110,10 @@ export default function SocialLinksSettingsPage() {
     <Card>
         <CardHeader>
             <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2">
-                <Link /> Gerenciar Links e Ícones
+                <Link /> Gerenciar Links e Contatos
             </CardTitle>
             <CardDescription>
-                Adicione ou edite os links que aparecerão no rodapé do seu site público. As alterações são salvas ao clicar em "Salvar".
+                Adicione ou edite os links de contato e redes sociais que aparecerão no rodapé do seu site. A opção "Localização" é ideal para imobiliárias ou corretores com escritório físico.
             </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -146,7 +146,7 @@ export default function SocialLinksSettingsPage() {
                         </SelectContent>
                     </Select>
                     <Input
-                    placeholder="Nome (ex: WhatsApp)"
+                    placeholder="Nome (ex: Meu Instagram)"
                     value={link.label}
                     onChange={(e) => handleChange(link.id, "label", e.target.value)}
                     />
