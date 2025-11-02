@@ -1,3 +1,4 @@
+
 'use client'
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
@@ -15,6 +16,13 @@ export type Theme = {
   buttonSecondary: string;
 };
 
+export type SavedTheme = {
+  id: string;
+  name: string;
+  theme: Theme;
+};
+
+
 export const defaultTheme: Theme = {
   headerColor: "#1f2937", // gray-800
   footerColor: "#1f2937", // gray-800
@@ -25,6 +33,18 @@ export const defaultTheme: Theme = {
   buttonPrimary: "hsl(277 79% 53%)", // primary
   buttonSecondary: "hsl(282 100% 41%)", // accent
 };
+
+export const lightTheme: Theme = {
+  headerColor: "#ffffff",
+  footerColor: "#f3f4f6", // gray-100
+  textPrimary: "#000000",
+  textDynamic: true,
+  backgroundPrimary: "#f9fafb", // gray-50
+  backgroundSecondary: "#ffffff",
+  buttonPrimary: "hsl(277 79% 53%)",
+  buttonSecondary: "hsl(282 100% 41%)",
+};
+
 
 // Função de contraste inteligente
 export function getContrastColor(bgColor: string): string {

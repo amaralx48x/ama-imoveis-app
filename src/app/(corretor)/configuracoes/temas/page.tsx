@@ -1,18 +1,21 @@
+
 'use client'
 
 import { useState, useEffect } from "react";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, updateDoc } from "firebase/firestore";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { toast } from "@/hooks/use-toast";
-import type { Theme } from "@/context/ThemeContext";
+import type { Theme, SavedTheme } from "@/context/ThemeContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Palette, Loader2 } from "lucide-react";
-import { defaultTheme, getContrastColor } from "@/context/ThemeContext";
+import { Palette, Loader2, Save, Trash2, CheckCircle } from "lucide-react";
+import { defaultTheme, lightTheme, getContrastColor } from "@/context/ThemeContext";
+import { v4 as uuidv4 } from 'uuid';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 // Componente de paleta de cores
 function ColorPicker({ label, value, onChange, description }: { label: string; value: string; onChange: (c: string) => void, description?: string }) {
@@ -63,11 +66,18 @@ export default function ThemeSettingsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const [isSaving, setIsSaving] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newThemeName, setNewThemeName] = useState("");
   
+  const agentRef = useMemoFirebase(() => (user && firestore ? doc(firestore, "agents", user.uid) : null), [user, firestore]);
   const themeRef = useMemoFirebase(() => (user && firestore ? doc(firestore, "agents", user.uid, "themes", "current") : null), [user, firestore]);
-  const {data: savedTheme, isLoading} = useDoc<Theme>(themeRef);
+  
+  const {data: agentData, isLoading: isAgentLoading} = useDoc(agentRef);
+  const {data: savedTheme, isLoading: isThemeLoading} = useDoc<Theme>(themeRef);
 
   const [theme, setTheme] = useState<Theme>(defaultTheme);
+  
+  const savedThemes: SavedTheme[] = agentData?.siteSettings?.savedThemes || [];
 
   useEffect(() => {
     if (savedTheme) {
@@ -79,26 +89,50 @@ export default function ThemeSettingsPage() {
     setTheme(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleReset = () => {
-    setTheme(defaultTheme);
-     toast.info("Tema redefinido para o padrão. Salve para aplicar.");
-  }
-
-  const saveTheme = async () => {
+  const saveCurrentTheme = async () => {
     if (!user || !themeRef) return;
     setIsSaving(true);
     try {
         await setDoc(themeRef, theme);
-        toast.success("Tema salvo com sucesso!");
+        toast({title: "Tema aplicado com sucesso!"});
     } catch (err) {
         console.error(err);
-        toast.error("Erro ao salvar o tema.");
+        toast({title: "Erro ao salvar o tema.", variant: "destructive"});
     } finally {
         setIsSaving(false);
     }
   };
+
+  const handleSaveNamedTheme = async () => {
+      if (!newThemeName.trim() || !agentRef) return;
+      const newSavedTheme: SavedTheme = {
+          id: uuidv4(),
+          name: newThemeName,
+          theme: theme,
+      };
+
+      const currentSavedThemes = agentData?.siteSettings?.savedThemes || [];
+      
+      await updateDoc(agentRef, {
+          'siteSettings.savedThemes': [...currentSavedThemes, newSavedTheme]
+      });
+
+      toast({title: `Tema "${newThemeName}" salvo!`});
+      setNewThemeName("");
+      setIsDialogOpen(false);
+  }
+
+  const handleDeleteTheme = async (themeId: string) => {
+    if (!agentRef || !window.confirm("Tem certeza que deseja excluir este tema salvo?")) return;
+    
+    const updatedSavedThemes = savedThemes.filter(t => t.id !== themeId);
+     await updateDoc(agentRef, {
+        'siteSettings.savedThemes': updatedSavedThemes
+    });
+     toast({title: `Tema excluído.`});
+  }
   
-  if (isLoading) {
+  if (isAgentLoading || isThemeLoading) {
       return <div>Carregando tema...</div>
   }
 
@@ -109,10 +143,20 @@ export default function ThemeSettingsPage() {
                 <Palette /> Aparência e Temas
             </CardTitle>
             <CardDescription>
-                Personalize as cores do seu site público para combinar com sua marca. As alterações são refletidas em tempo real no preview abaixo.
+                Personalize as cores do seu site público. Selecione um tema pré-definido ou crie o seu. As alterações são refletidas em tempo real no preview abaixo.
             </CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">
+            <div>
+                <h3 className="text-xl font-bold font-headline mb-4">Temas Pré-definidos</h3>
+                <div className="flex gap-4">
+                    <Button variant="outline" onClick={() => setTheme(defaultTheme)}>Padrão (Escuro)</Button>
+                    <Button variant="outline" onClick={() => setTheme(lightTheme)}>Claro</Button>
+                </div>
+            </div>
+            
+            <Separator />
+            
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                  <ColorPicker label="Cor do Cabeçalho" value={theme.headerColor} onChange={(c) => handleChange("headerColor", c)} />
                 <ColorPicker label="Cor do Rodapé" value={theme.footerColor} onChange={(c) => handleChange("footerColor", c)} />
@@ -151,11 +195,48 @@ export default function ThemeSettingsPage() {
             <Preview theme={theme} />
 
             <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={handleReset}>Redefinir Padrão</Button>
-                <Button onClick={saveTheme} disabled={isSaving} className="bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
-                    {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Salvando...</> : "Salvar Tema"}
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                         <Button variant="outline"><Save className="mr-2 h-4 w-4"/>Salvar Tema Atual</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Salvar Tema Personalizado</DialogTitle>
+                            <DialogDescription>Dê um nome para sua configuração de tema atual para usá-la mais tarde.</DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4 space-y-2">
+                             <Label htmlFor="theme-name">Nome do Tema</Label>
+                            <Input id="theme-name" value={newThemeName} onChange={(e) => setNewThemeName(e.target.value)} placeholder="Ex: Meu Tema Azul"/>
+                        </div>
+                        <Button onClick={handleSaveNamedTheme} disabled={!newThemeName.trim()}>Salvar</Button>
+                    </DialogContent>
+                </Dialog>
+               
+                <Button onClick={saveCurrentTheme} disabled={isSaving} className="bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
+                    {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Aplicando...</> : "Aplicar Tema ao Site"}
                 </Button>
             </div>
+            
+            {savedThemes.length > 0 && (
+                <>
+                <Separator />
+                <div>
+                     <h3 className="text-xl font-bold font-headline mb-4">Meus Temas Salvos</h3>
+                     <div className="space-y-2">
+                        {savedThemes.map((saved) => (
+                            <div key={saved.id} className="flex items-center justify-between p-3 border rounded-md bg-muted/50">
+                                <span className="font-medium">{saved.name}</span>
+                                <div className="flex gap-2">
+                                    <Button size="sm" variant="outline" onClick={() => setTheme(saved.theme)}><CheckCircle className="mr-2 h-4 w-4 text-green-500"/> Aplicar</Button>
+                                    <Button size="icon" variant="destructive" className="h-9 w-9" onClick={() => handleDeleteTheme(saved.id)}><Trash2 className="h-4 w-4"/></Button>
+                                </div>
+                            </div>
+                        ))}
+                     </div>
+                </div>
+                </>
+            )}
+
         </CardContent>
     </Card>
   );

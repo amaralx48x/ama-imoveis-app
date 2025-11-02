@@ -53,6 +53,7 @@ export type SiteSettings = {
     defaultSaleCommission?: number;
     defaultRentCommission?: number;
     socialLinks?: SocialLink[];
+    savedThemes?: any[]; // Re-evaluate this any
     privacyPolicy?: string;
     termsOfUse?: string;
 }
