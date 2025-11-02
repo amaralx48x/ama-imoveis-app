@@ -27,12 +27,14 @@ export function Footer({ agent }: FooterProps) {
             </p>
             <p className="text-xs text-muted-foreground/50">CRECI {agent?.creci || '123456-F'}</p>
           </div>
-          <div className="flex space-x-4 mb-4 md:mb-0">
-            {socialLinks?.facebook && <Link href={socialLinks.facebook} aria-label="Facebook" target="_blank" rel="noopener noreferrer"><Facebook className="h-6 w-6 text-muted-foreground hover:text-primary transition-colors" /></Link>}
-            {socialLinks?.instagram && <Link href={socialLinks.instagram} aria-label="Instagram" target="_blank" rel="noopener noreferrer"><Instagram className="h-6 w-6 text-muted-foreground hover:text-primary transition-colors" /></Link>}
-            {socialLinks?.linkedin && <Link href={socialLinks.linkedin} aria-label="LinkedIn" target="_blank" rel="noopener noreferrer"><Linkedin className="h-6 w-6 text-muted-foreground hover:text-primary transition-colors" /></Link>}
-            {whatsappLink && <Link href={whatsappLink} aria-label="WhatsApp" target="_blank" rel="noopener noreferrer"><WhatsAppIcon className="h-6 w-6 text-muted-foreground hover:text-primary transition-colors" /></Link>}
-          </div>
+          {(socialLinks || whatsappLink) && (
+            <div className="flex space-x-4 mb-4 md:mb-0">
+                {socialLinks?.facebook && <Link href={socialLinks.facebook} aria-label="Facebook" target="_blank" rel="noopener noreferrer"><Facebook className="h-6 w-6 text-muted-foreground hover:text-primary transition-colors" /></Link>}
+                {socialLinks?.instagram && <Link href={socialLinks.instagram} aria-label="Instagram" target="_blank" rel="noopener noreferrer"><Instagram className="h-6 w-6 text-muted-foreground hover:text-primary transition-colors" /></Link>}
+                {socialLinks?.linkedin && <Link href={socialLinks.linkedin} aria-label="LinkedIn" target="_blank" rel="noopener noreferrer"><Linkedin className="h-6 w-6 text-muted-foreground hover:text-primary transition-colors" /></Link>}
+                {whatsappLink && <Link href={whatsappLink} aria-label="WhatsApp" target="_blank" rel="noopener noreferrer"><WhatsAppIcon className="h-6 w-6 text-muted-foreground hover:text-primary transition-colors" /></Link>}
+            </div>
+          )}
         </div>
         <div className="text-center mt-6 border-t border-border pt-6 text-muted-foreground text-xs">
           <Link href="#" className="hover:underline hover:text-foreground transition-colors">Política de Privacidade</Link>
