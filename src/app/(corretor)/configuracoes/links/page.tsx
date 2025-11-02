@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Plus, Trash, Link, Loader2, Image as ImageIcon, SlidersHorizontal } from "lucide-react";
+import { Plus, Trash, Link, Loader2, Image as ImageIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -114,6 +114,17 @@ function LinksFormSkeleton() {
         </div>
     )
 }
+
+const availableIcons = [
+  { value: 'whatsapp', label: 'WhatsApp', placeholder: '5511999999999' },
+  { value: 'instagram', label: 'Instagram', placeholder: 'seu_usuario_sem_@' },
+  { value: 'facebook', label: 'Facebook', placeholder: 'https://facebook.com/seu_usuario' },
+  { value: 'linkedin', label: 'LinkedIn', placeholder: 'https://linkedin.com/in/seu_usuario' },
+  { value: 'globe', label: 'Website', placeholder: 'https://seu-site.com' },
+  { value: 'phone', label: 'Telefone', placeholder: '(11) 99999-9999' },
+  { value: 'map-pin', label: 'Endereço', placeholder: 'Rua Exemplo, 123, Cidade' },
+  { value: 'mail', label: 'E-mail', placeholder: 'contato@seu-email.com' },
+];
 
 export default function SocialLinksSettingsPage() {
   const { user } = useUser();
