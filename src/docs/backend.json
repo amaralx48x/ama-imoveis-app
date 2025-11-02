@@ -114,10 +114,11 @@
         "propertyId": { "type": "string", "description": "Optional ID of the property the lead is interested in." },
         "status": { "type": "string", "enum": ["unread", "read", "archived"], "default": "unread", "description": "The status of the lead message."},
         "leadType": { "type": "string", "enum": ["seller", "buyer", "other"], "description": "The classified type of the lead."},
-        "lida": { "type": "boolean", "description": "Legacy field for read status." },
-        "arquivada": { "type": "boolean", "description": "Legacy field for archived status." },
         "context": { "type": "string", "description": "The source context of the lead (e.g., 'form:captacao')." },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "createdAt": { "type": "string", "format": "date-time" },
+        "cpf": { "type": "string", "description": "CPF for scheduling a visit." },
+        "visitDate": { "type": "string", "format": "date-time", "description": "Requested date for a property visit." },
+        "visitTime": { "type": "string", "description": "Requested time for a property visit." }
       },
       "required": ["id", "name", "email", "message", "status", "leadType", "createdAt"]
     },

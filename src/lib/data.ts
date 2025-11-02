@@ -1,5 +1,4 @@
 
-
 export type SocialLink = {
   id: string;
   label: string;
@@ -83,10 +82,12 @@ export type Lead = {
   propertyId?: string | null;
   status: 'unread' | 'read' | 'archived';
   leadType: LeadType;
-  lida?: boolean;
-  arquivada?: boolean;
   context?: string;
   createdAt?: any;
+  // Campos de agendamento
+  cpf?: string;
+  visitDate?: any;
+  visitTime?: string;
 }
 
 export type Review = {

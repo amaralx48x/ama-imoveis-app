@@ -74,8 +74,6 @@ export function ContactForm({ agentId, propertyId, context, title, description, 
         createdAt: serverTimestamp(),
         status: 'unread',
         leadType: leadType,
-        lida: false,
-        arquivada: false,
         context: context || null,
       });
 

@@ -5,7 +5,7 @@ import type { Property, Agent } from "@/lib/data";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { BedDouble, Bath, Ruler, MapPin, Car, Home, Phone, Mail, Share2, Printer, MessageCircle, CalendarPlus, Search, Link as LinkIcon } from "lucide-react";
+import { BedDouble, Bath, Ruler, MapPin, Car, Home, Phone, Mail, Printer, Link as LinkIcon, CalendarPlus, MessageCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -13,6 +13,8 @@ import Link from "next/link";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ContactForm } from "@/components/contact-form";
 import { useState } from "react";
+import { SchedulingForm } from "@/components/scheduling-form";
+
 
 // Simple inline SVG for WhatsApp and Facebook as they are not in lucide-react
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -211,14 +213,10 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                                     Agendar uma visita
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-[480px]">
-                                <ContactForm 
-                                    agentId={agent.id}
+                            <DialogContent className="sm:max-w-[520px]">
+                                <SchedulingForm 
+                                    agent={agent}
                                     propertyId={property.id}
-                                    context="buyer:schedule-visit"
-                                    title="Agendar uma visita"
-                                    description={`Preencha os dados abaixo para agendar uma visita ao imóvel "${property.title}". Entraremos em contato para confirmar.`}
-                                    isDialog={true}
                                     onFormSubmit={() => setIsSchedulingOpen(false)}
                                 />
                             </DialogContent>
