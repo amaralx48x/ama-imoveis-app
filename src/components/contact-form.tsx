@@ -21,6 +21,7 @@ import { useFirestore, useUser } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { detectLeadType } from "@/lib/lead-utils";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
@@ -32,13 +33,14 @@ const formSchema = z.object({
 interface ContactFormProps {
     agentId: string;
     propertyId?: string;
+    context?: string; // e.g., 'form:captacao' or 'ad:imovel'
     title?: string;
     description?: string;
     isDialog?: boolean;
     onFormSubmit?: () => void;
 }
 
-export function ContactForm({ agentId, propertyId, title, description, isDialog, onFormSubmit }: ContactFormProps) {
+export function ContactForm({ agentId, propertyId, context, title, description, isDialog, onFormSubmit }: ContactFormProps) {
   const { toast } = useToast();
   const firestore = useFirestore();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,6 +62,7 @@ export function ContactForm({ agentId, propertyId, title, description, isDialog,
     }
 
     setIsSubmitting(true);
+    const leadType = detectLeadType(values.message, context);
 
     try {
       await addDoc(collection(firestore, 'agents', agentId, 'leads'), {
@@ -68,8 +71,12 @@ export function ContactForm({ agentId, propertyId, title, description, isDialog,
         phone: values.phone,
         message: values.message,
         propertyId: propertyId || null,
-        status: 'unread',
         createdAt: serverTimestamp(),
+        status: 'unread',
+        leadType: leadType,
+        lida: false,
+        arquivada: false,
+        context: context || null,
       });
 
       toast({

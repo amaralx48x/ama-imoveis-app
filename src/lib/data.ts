@@ -1,5 +1,6 @@
 
 
+
 export type SocialLink = {
   id: string;
   label: string;
@@ -58,6 +59,8 @@ export type Agent = {
     siteSettings?: SiteSettings;
 }
 
+export type LeadType = "seller" | "buyer" | "other";
+
 export type Lead = {
   id: string;
   name: string;
@@ -66,6 +69,10 @@ export type Lead = {
   message: string;
   propertyId?: string | null;
   status: 'unread' | 'read' | 'archived';
+  leadType: LeadType;
+  lida?: boolean;
+  arquivada?: boolean;
+  context?: string;
   createdAt?: any;
 }
 
@@ -130,6 +137,15 @@ const properties: Property[] = [
     status: 'ativo',
     useAgentPhone: true,
   },
+];
+
+const staticReviews: Review[] = [
+  { id: '1', name: 'Carlos Silva', rating: 5, comment: 'Atendimento excepcional e muito profissionalismo. Encontrei o imóvel dos meus sonhos em poucas semanas. Recomendo fortemente!', approved: true },
+  { id: '2', name: 'Mariana Oliveira', rating: 5, comment: 'Processo de compra muito tranquilo e transparente. A equipe foi muito atenciosa e tirou todas as minhas dúvidas.', approved: true },
+  { id: '3', name: 'Pedro Martins', rating: 4, comment: 'Gostei muito da variedade de imóveis disponíveis. O corretor foi paciente e me ajudou a encontrar a melhor opção para minha família.', approved: true },
+  { id: '4', name: 'Juliana Costa', rating: 5, comment: 'Experiência fantástica! Venderam meu apartamento antigo e me ajudaram a encontrar um novo lar. Super eficientes!', approved: true },
+  { id: '5', name: 'Fernanda Lima', rating: 5, comment: 'Ótimo suporte durante todo o processo de locação. Me senti segura e bem assessorada.', approved: true },
+  { id: '6', name: 'Ricardo Alves', rating: 5, comment: 'A melhor imobiliária da região! Encontrei exatamente o que procurava e o atendimento foi impecável.', approved: true }
 ];
 
 export const defaultPrivacyPolicy = `
@@ -210,6 +226,7 @@ O Prestador reserva-se o direito de modificar os presentes Termos a qualquer tem
 Estes Termos são regidos e interpretados segundo as leis da República Federativa do Brasil. Fica eleito o foro da Comarca do domicílio do Prestador para dirimir quaisquer controvérsias oriundas destes Termos, com renúncia expressa a qualquer outro, por mais privilegiado que seja.
 `;
 
+export const getProperties = () => properties;
 export const getReviews = () => staticReviews;
 export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Guarujá', 'Rio de Janeiro', 'Belo Horizonte', 'Curitiba', 'Porto Alegre'];
 export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
