@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { collection, query, onSnapshot, doc, updateDoc, serverTimestamp, orderBy } from "firebase/firestore";
-import { useFirestore, useUser, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
+import { useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import type { SupportMessage } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -46,7 +46,6 @@ export default function AdminSupportPage() {
             setLoading(false);
         }, (err) => {
             console.error("Firebase Snapshot Error:", err);
-            // Instead of throwing an error, we set a state to display a message.
             if (err.code === 'permission-denied') {
                 setError("Você não tem permissão para visualizar esta página. Apenas administradores podem ver os tickets de suporte.");
             } else {
@@ -78,13 +77,13 @@ export default function AdminSupportPage() {
             await updateDoc(docRef, responseData);
             toast({ title: "Resposta enviada com sucesso!" });
             setResponse(prev => ({...prev, [id]: ''}));
-        } catch(err) {
-            const contextualError = new FirestorePermissionError({
-                path: docRef.path,
-                operation: 'update',
-                requestResourceData: responseData,
+        } catch(err: any) {
+            console.error("Error updating document: ", err);
+            toast({
+                title: "Erro ao enviar resposta",
+                description: err.message,
+                variant: "destructive",
             });
-            errorEmitter.emit('permission-error', contextualError);
         } finally {
             setSubmittingId(null);
         }
