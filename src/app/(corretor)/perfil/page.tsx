@@ -36,6 +36,7 @@ const profileFormSchema = z.object({
   description: z.string().min(10, { message: 'A descrição deve ter pelo menos 10 caracteres.' }).max(500, { message: 'A descrição não pode ter mais de 500 caracteres.' }),
   accountType: z.enum(['corretor', 'imobiliaria'], { required_error: 'Selecione um tipo de conta.' }),
   photoUrl: z.string().url().optional().or(z.literal('')),
+  phone: z.string().optional(),
 });
 
 export default function PerfilPage() {
@@ -60,6 +61,7 @@ export default function PerfilPage() {
       description: '',
       accountType: 'corretor',
       photoUrl: '',
+      phone: '',
     },
   });
 
@@ -71,6 +73,7 @@ export default function PerfilPage() {
         description: agentData.description || '',
         accountType: agentData.accountType || 'corretor',
         photoUrl: agentData.photoUrl || '',
+        phone: agentData.phone || '',
       });
     }
   }, [agentData, form]);
@@ -91,6 +94,7 @@ export default function PerfilPage() {
         description: values.description,
         accountType: values.accountType,
         photoUrl: values.photoUrl,
+        phone: values.phone,
     };
 
     setDocumentNonBlocking(agentRef, dataToSave, { merge: true });
@@ -219,6 +223,21 @@ export default function PerfilPage() {
                     <Input placeholder="Ex: AMA Imóveis" {...field} />
                   </FormControl>
                    <FormDescription>Este nome aparecerá no cabeçalho do seu site público.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Telefone Principal</FormLabel>
+                  <FormControl>
+                    <Input placeholder="(11) 99999-9999" {...field} />
+                  </FormControl>
+                   <FormDescription>Este será o número padrão para contato, caso um número específico não seja definido no imóvel.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

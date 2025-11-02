@@ -29,6 +29,8 @@ export type Property = {
   status: 'ativo' | 'vendido' | 'alugado';
   soldAt?: any; // ou rentedAt
   commissionValue?: number;
+  phone?: string; // Número de telefone específico para este imóvel
+  useAgentPhone: boolean; // Flag para usar o telefone principal do agente
 };
 
 export type SiteSettings = {
@@ -51,6 +53,7 @@ export type Agent = {
     email: string;
     creci: string;
     photoUrl: string;
+    phone?: string; // Telefone principal do corretor
     cities?: string[];
     siteSettings?: SiteSettings;
 }
@@ -104,7 +107,8 @@ const properties: Property[] = [
     type: 'Apartamento',
     operation: 'Comprar',
     sectionIds: ['featured'],
-    status: 'ativo'
+    status: 'ativo',
+    useAgentPhone: true,
   },
   {
     id: '2',
@@ -123,31 +127,8 @@ const properties: Property[] = [
     type: 'Casa',
     operation: 'Comprar',
     sectionIds: ['featured'],
-    status: 'ativo'
-  },
-];
-
-const staticReviews: Review[] = [
-  {
-    id: '1',
-    name: 'Carlos Silva',
-    rating: 5,
-    comment: 'Atendimento incrível e profissional. Encontrei o apartamento perfeito para minha família em tempo recorde. Recomendo a todos!',
-    email: 'carlos@example.com'
-  },
-  {
-    id: '2',
-    name: 'Mariana Oliveira',
-    rating: 5,
-    comment: 'A corretora foi super atenciosa e paciente durante todo o processo. A experiência de compra foi muito mais tranquila graças a ela.',
-    email: 'mariana@example.com'
-  },
-  {
-    id: '3',
-    name: 'João Pereira',
-    rating: 5,
-    comment: 'Profissionalismo exemplar e conhecimento profundo do mercado. Consegui vender meu imóvel rapidamente e por um ótimo preço.',
-    email: 'joao@example.com'
+    status: 'ativo',
+    useAgentPhone: true,
   },
 ];
 

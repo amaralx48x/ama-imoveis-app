@@ -54,6 +54,13 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
     const financingLink = agent.siteSettings?.financingLink;
     const isFinancingButtonActionable = showFinancingButton && financingLink && isValidUrl(financingLink);
 
+    const contactPhone = property.useAgentPhone ? agent.phone : property.phone;
+    const canCall = !!contactPhone;
+    const callLink = `tel:${contactPhone?.replace(/\D/g, '')}`;
+    const whatsappNumber = agent.siteSettings?.socialLinks?.find(link => link.icon === 'whatsapp')?.url;
+    const whatsappLink = whatsappNumber ? `https://wa.me/${whatsappNumber.replace(/\D/g, '')}` : '#';
+
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Coluna principal com detalhes */}
@@ -160,13 +167,17 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                             </div>
                         </div>
 
-                        <Button className="w-full bg-green-500 hover:bg-green-600 text-white" size="lg">
-                            <WhatsAppIcon className="mr-2"/>
-                            WhatsApp
+                        <Button asChild className="w-full bg-green-500 hover:bg-green-600 text-white" size="lg" disabled={!whatsappNumber}>
+                            <Link href={whatsappLink} target="_blank" rel="noopener noreferrer">
+                                <WhatsAppIcon className="mr-2"/>
+                                WhatsApp
+                            </Link>
                         </Button>
-                        <Button className="w-full" size="lg" variant="outline">
-                            <Phone className="mr-2" />
-                            Ligar
+                        <Button asChild className="w-full" size="lg" variant="outline" disabled={!canCall}>
+                            <Link href={canCall ? callLink : '#'}>
+                                <Phone className="mr-2" />
+                                Ligar
+                            </Link>
                         </Button>
                         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                           <DialogTrigger asChild>
