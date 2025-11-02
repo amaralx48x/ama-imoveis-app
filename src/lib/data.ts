@@ -1,6 +1,7 @@
 
 
 
+
 export type SocialLink = {
   id: string;
   label: string;
@@ -30,8 +31,6 @@ export type Property = {
   status: 'ativo' | 'vendido' | 'alugado';
   soldAt?: any; // ou rentedAt
   commissionValue?: number;
-  phone?: string; // Número de telefone específico para este imóvel
-  useAgentPhone: boolean; // Flag para usar o telefone principal do agente
 };
 
 export type SiteSettings = {
@@ -115,7 +114,6 @@ const properties: Property[] = [
     operation: 'Comprar',
     sectionIds: ['featured'],
     status: 'ativo',
-    useAgentPhone: true,
   },
   {
     id: '2',
@@ -135,7 +133,6 @@ const properties: Property[] = [
     operation: 'Comprar',
     sectionIds: ['featured'],
     status: 'ativo',
-    useAgentPhone: true,
   },
 ];
 

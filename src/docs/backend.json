@@ -27,13 +27,11 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was created." },
         "status": { "type": "string", "enum": ["ativo", "vendido", "alugado"], "description": "The current status of the property.", "default": "ativo" },
         "soldAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was sold or rented." },
-        "commissionValue": { "type": "number", "description": "The final commission value earned from the transaction." },
-        "phone": { "type": "string", "description": "Specific contact phone number for this property." },
-        "useAgentPhone": { "type": "boolean", "description": "Flag to determine if the agent's main phone number should be used." }
+        "commissionValue": { "type": "number", "description": "The final commission value earned from the transaction." }
       },
       "required": [
         "id", "title", "description", "price", "bedrooms", "bathrooms", "garage", "rooms", 
-        "builtArea", "totalArea", "imageUrls", "city", "neighborhood", "type", "operation", "sectionIds", "agentId", "createdAt", "status", "useAgentPhone"
+        "builtArea", "totalArea", "imageUrls", "city", "neighborhood", "type", "operation", "sectionIds", "agentId", "createdAt", "status"
       ]
     },
     "SocialLink": {

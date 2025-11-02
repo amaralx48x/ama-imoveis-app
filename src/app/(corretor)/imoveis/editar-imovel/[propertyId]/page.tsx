@@ -51,8 +51,6 @@ const formSchema = z.object({
   builtArea: z.coerce.number().positive("A área construída deve ser positiva."),
   totalArea: z.coerce.number().positive("A área total deve ser positiva."),
   sectionIds: z.array(z.string()).default([]),
-  phone: z.string().optional(),
-  useAgentPhone: z.boolean().default(true),
 });
 
 function EditFormSkeleton() {
@@ -118,18 +116,13 @@ export default function EditarImovelPage() {
       builtArea: 0,
       totalArea: 0,
       sectionIds: [],
-      phone: "",
-      useAgentPhone: true,
     },
   });
   
-  const useAgentPhoneValue = form.watch('useAgentPhone');
-
   useEffect(() => {
     if (propertyData) {
       form.reset({
         ...propertyData,
-        useAgentPhone: propertyData.useAgentPhone ?? true,
       });
       setImageUrls(propertyData.imageUrls || []);
     }
@@ -184,7 +177,6 @@ export default function EditarImovelPage() {
       imageUrls: imageUrls,
       // Retain original creation date
       createdAt: propertyData?.createdAt || new Date().toISOString(),
-      phone: values.useAgentPhone ? '' : values.phone,
     };
     
     setDocumentNonBlocking(propertyRef, updatedProperty, { merge: true });
@@ -354,51 +346,6 @@ export default function EditarImovelPage() {
                 />
                 
                  <Separator />
-
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Contato Telefônico</h3>
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Telefone de Contato do Imóvel</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="(11) 98888-7777"
-                            {...field}
-                            disabled={useAgentPhoneValue}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="useAgentPhone"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>
-                            Usar meu telefone principal
-                          </FormLabel>
-                          <FormDescription>
-                            Irá usar o número de telefone cadastrado no seu perfil ({agentData?.phone || "nenhum"}).
-                          </FormDescription>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <Separator />
                 
                 <FormItem>
                 <FormLabel>Imagens do Imóvel</FormLabel>

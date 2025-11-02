@@ -51,14 +51,19 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
     const totalPrice = property.operation === 'Alugar' ? property.price + iptu : property.price;
 
     const showFinancingButton = agent.siteSettings?.showFinancing ?? true;
-    const financingLink = agent.siteSettings?.financingLink;
-    const isFinancingButtonActionable = showFinancingButton && financingLink && isValidUrl(financingLink);
-
-    const contactPhone = property.useAgentPhone ? agent.phone : property.phone;
+    
+    // --- Nova Lógica de Contato ---
+    const contactPhone = agent.phone; // Usa sempre o telefone principal do agente
     const canCall = !!contactPhone;
     const callLink = `tel:${contactPhone?.replace(/\D/g, '')}`;
+    
     const whatsappNumber = agent.siteSettings?.socialLinks?.find(link => link.icon === 'whatsapp')?.url;
-    const whatsappLink = whatsappNumber ? `https://wa.me/${whatsappNumber.replace(/\D/g, '')}` : '#';
+    const prefilledMessage = encodeURIComponent(`Olá! Tenho interesse no imóvel: ${property.title}, localizado no bairro ${property.neighborhood}.`);
+    const whatsappLink = whatsappNumber ? `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${prefilledMessage}` : '#';
+
+    // Link de financiamento agora também vai para o WhatsApp com a mensagem
+    const financingLink = whatsappLink; 
+    const isFinancingButtonActionable = showFinancingButton && !!whatsappNumber;
 
 
     return (
