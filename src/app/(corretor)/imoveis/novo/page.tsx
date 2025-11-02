@@ -30,8 +30,10 @@ import { useState, useMemo } from "react";
 import Image from "next/image";
 import type { Agent, CustomSection } from "@/lib/data";
 import Link from "next/link";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, X, Gem } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { usePlan } from "@/context/PlanContext";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 
 const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
@@ -58,6 +60,7 @@ export default function NovoImovelPage() {
   const router = useRouter();
   const firestore = useFirestore();
   const { user } = useUser();
+  const { limits, canAddNewProperty, isLoading: isPlanLoading } = usePlan();
 
   const agentRef = useMemoFirebase(() => (firestore && user ? doc(firestore, 'agents', user.uid) : null), [firestore, user]);
   const { data: agentData } = useDoc<Agent>(agentRef);
@@ -154,6 +157,33 @@ export default function NovoImovelPage() {
   }
 
   const allSections = [{ id: 'featured', title: 'Imóveis em Destaque' }, ...(sections || [])];
+
+  if (isPlanLoading) {
+      return <div>Carregando informações do plano...</div>
+  }
+
+  if (!canAddNewProperty()) {
+    return (
+      <div className="space-y-4 max-w-2xl mx-auto">
+        <Button variant="outline" asChild>
+            <Link href="/imoveis">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar para Meus Imóveis
+            </Link>
+        </Button>
+        <Alert variant="destructive">
+            <Gem className="h-4 w-4" />
+            <AlertTitle>Limite de Imóveis Atingido!</AlertTitle>
+            <AlertDescription>
+                Você atingiu o limite de imóveis para o seu plano atual. Para continuar adicionando, por favor, faça o upgrade do seu plano.
+                <Button asChild variant="link" className="p-0 h-auto ml-1 text-destructive">
+                    <Link href="/meu-plano">Fazer Upgrade</Link>
+                </Button>
+            </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
 
   return (
