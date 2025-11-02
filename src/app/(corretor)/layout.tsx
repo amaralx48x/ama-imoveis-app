@@ -69,10 +69,9 @@ export default function CorretorLayout({
   ]
 
   const settingsItems = [
-      { href: '/configuracoes/aparencia', label: 'Controle de Exibição', icon: SlidersHorizontal },
+      { href: '/configuracoes/links', label: 'Links e Exibição', icon: LinkIcon },
       { href: '/configuracoes/secoes', label: 'Gerenciar Seções', icon: Folder },
       { href: '/configuracoes/metricas', label: 'Métricas e Comissões', icon: Percent },
-      { href: '/configuracoes/links', label: 'Links e Redes Sociais', icon: LinkIcon },
       { href: '/configuracoes/politicas', label: 'Políticas e Termos', icon: FileText },
   ]
   

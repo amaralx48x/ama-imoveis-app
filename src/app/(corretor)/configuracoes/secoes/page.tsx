@@ -1,9 +1,9 @@
 
 'use client';
-import { useState } from 'react';
-import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { useState, useEffect } from 'react';
+import { useCollection, useFirestore, useUser, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
-import type { CustomSection } from '@/lib/data';
+import type { CustomSection, Agent } from '@/lib/data';
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,58 @@ import { Folder, Plus, Trash2, Edit, Check, X, AlertTriangle } from 'lucide-reac
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+
+
+function SettingToggle({ 
+    id, 
+    label, 
+    description, 
+    isChecked, 
+    onCheckedChange, 
+    isLoading,
+}: { 
+    id: string, 
+    label: string, 
+    description: string, 
+    isChecked: boolean, 
+    onCheckedChange: (checked: boolean) => void, 
+    isLoading: boolean,
+}) {
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
+                <div className="space-y-1.5">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-4 w-48" />
+                </div>
+                <Skeleton className="h-6 w-11 rounded-full" />
+            </div>
+        )
+    }
+    
+    return (
+        <div className="rounded-lg border p-4 space-y-4">
+            <div className="flex items-center justify-between space-x-2">
+                <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor={id} className="text-base font-medium">{label}</Label>
+                    <p id={`${id}-description`} className="text-sm text-muted-foreground">
+                        {description}
+                    </p>
+                </div>
+                <Switch
+                    id={id}
+                    checked={isChecked}
+                    onCheckedChange={onCheckedChange}
+                    aria-describedby={`${id}-description`}
+                />
+            </div>
+        </div>
+    )
+}
 
 export default function GerenciarSecoesPage() {
     const { user } = useUser();
@@ -24,9 +76,28 @@ export default function GerenciarSecoesPage() {
     );
 
     const { data: sections, isLoading, error } = useCollection<CustomSection>(sectionsCollection);
+    
+    const agentRef = useMemoFirebase(
+        () => (user && firestore ? doc(firestore, 'agents', user.uid) : null),
+        [user, firestore]
+    );
+
+    const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
 
     const [newSectionTitle, setNewSectionTitle] = useState('');
     const [editingSection, setEditingSection] = useState<{ id: string; title: string } | null>(null);
+
+    const handleSettingChange = (key: string) => (value: boolean | string) => {
+        if (!agentRef) return;
+        
+        const updatePath = `siteSettings.${key}`;
+        setDocumentNonBlocking(agentRef, { [updatePath]: value }, { merge: true });
+
+        toast({
+            title: "Configuração atualizada!",
+            description: "A mudança será refletida no seu site público."
+        });
+    };
 
     const handleCreateSection = async () => {
         if (!newSectionTitle.trim() || !user || !firestore) return;
@@ -87,6 +158,7 @@ export default function GerenciarSecoesPage() {
         }
     };
 
+    const siteSettings = agentData?.siteSettings;
 
     return (
         <Card>
@@ -95,12 +167,12 @@ export default function GerenciarSecoesPage() {
                     <Folder /> Gerenciar Seções do Site
                 </CardTitle>
                 <CardDescription>
-                    Crie e organize seções personalizadas de imóveis para exibir na sua página inicial.
+                    Crie e organize seções personalizadas de imóveis e controle a visibilidade de outras áreas do seu site.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="space-y-2">
-                    <h3 className="text-lg font-semibold">Nova Seção</h3>
+                    <h3 className="text-lg font-semibold">Nova Seção Personalizada</h3>
                     <div className="flex gap-2">
                         <Input
                             placeholder="Ex: Oportunidades no Centro"
@@ -162,6 +234,23 @@ export default function GerenciarSecoesPage() {
                         </div>
                     )}
                 </div>
+
+                <Separator />
+                
+                <div>
+                    <h3 className="text-lg font-semibold mb-4">Outras Seções da Página</h3>
+                    <div className="space-y-4">
+                        <SettingToggle
+                            id="showReviews"
+                            label="Seção de Avaliações de Clientes"
+                            description="Mostra o carrossel com as avaliações e depoimentos dos seus clientes."
+                            isChecked={siteSettings?.showReviews ?? true}
+                            onCheckedChange={handleSettingChange('showReviews')}
+                            isLoading={isAgentLoading}
+                        />
+                    </div>
+                </div>
+
             </CardContent>
         </Card>
     );

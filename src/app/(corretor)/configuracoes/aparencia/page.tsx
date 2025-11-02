@@ -1,169 +1,190 @@
-
 'use client';
-
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import type { Agent } from '@/lib/data';
-import { doc } from 'firebase/firestore';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
-import { SlidersHorizontal } from 'lucide-react';
+import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
+import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
+import { useEffect } from 'react';
+import { collection, query, where, doc } from 'firebase/firestore';
+import type { Lead, Agent } from '@/lib/data';
+import { Button } from '@/components/ui/button';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Input } from '@/components/ui/input';
-import { useState, useEffect, useCallback } from 'react';
 
-function SettingToggle({ 
-    id, 
-    label, 
-    description, 
-    isChecked, 
-    onCheckedChange, 
-    isLoading,
-    linkValue,
-    onLinkChange,
-    linkPlaceholder
-}: { 
-    id: string, 
-    label: string, 
-    description: string, 
-    isChecked: boolean, 
-    onCheckedChange: (checked: boolean) => void, 
-    isLoading: boolean,
-    linkValue?: string,
-    onLinkChange?: (e: React.ChangeEvent<HTMLInputElement>) => void,
-    linkPlaceholder?: string
+export default function CorretorLayout({
+  children,
+}: {
+  children: React.ReactNode;
 }) {
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
-                <div className="space-y-1.5">
-                    <Skeleton className="h-5 w-32" />
-                    <Skeleton className="h-4 w-48" />
-                </div>
-                <Skeleton className="h-6 w-11 rounded-full" />
-            </div>
-        )
+  const pathname = usePathname();
+  const auth = useAuth();
+  const router = useRouter();
+  const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
+
+  const agentRef = useMemoFirebase(
+    () => (user && firestore ? doc(firestore, 'agents', user.uid) : null),
+    [user, firestore]
+  );
+  const { data: agentData } = useDoc<Agent>(agentRef);
+
+  const unreadLeadsQuery = useMemoFirebase(
+    () => user && firestore 
+      ? query(collection(firestore, `agents/${user.uid}/leads`), where('status', '==', 'unread')) 
+      : null,
+    [user, firestore]
+  );
+  const { data: unreadLeads } = useCollection<Lead>(unreadLeadsQuery);
+  const unreadCount = unreadLeads?.length || 0;
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
     }
-    
+  }, [user, isUserLoading, router]);
+
+  const handleLogout = () => {
+    if(auth) {
+      auth.signOut();
+      router.push('/login');
+    }
+  };
+
+  const agentSiteUrl = user ? `/corretor/${user.uid}` : '/';
+
+  const menuItems = [
+    { href: '/dashboard', label: 'Dashboard', icon: Home },
+    { href: '/imoveis', label: 'Meus Imóveis', icon: Briefcase },
+    { href: '/inbox', label: 'Caixa de Entrada', icon: Mail, badgeCount: unreadCount },
+    { href: '/perfil', label: 'Perfil', icon: User },
+    { href: '/avaliacoes', label: 'Avaliações', icon: Star },
+    { href: '/suporte', label: 'Suporte', icon: LifeBuoy },
+    { href: '/meu-plano', label: 'Meu Plano', icon: Gem },
+    { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' },
+  ];
+  
+  const adminMenuItems = [
+      { href: '/admin/dashboard', label: 'Painel Admin', icon: ShieldCheck },
+  ]
+
+  const settingsItems = [
+      { href: '/configuracoes/links', label: 'Links e Exibição', icon: LinkIcon },
+      { href: '/configuracoes/secoes', label: 'Gerenciar Seções', icon: Folder },
+      { href: '/configuracoes/metricas', label: 'Métricas e Comissões', icon: Percent },
+      { href: '/configuracoes/politicas', label: 'Políticas e Termos', icon: FileText },
+  ]
+  
+  if (isUserLoading || !user) {
     return (
-        <div className="rounded-lg border p-4 space-y-4">
-            <div className="flex items-center justify-between space-x-2">
-                <div className="flex flex-col space-y-1.5">
-                    <Label htmlFor={id} className="text-base font-medium">{label}</Label>
-                    <p id={`${id}-description`} className="text-sm text-muted-foreground">
-                        {description}
-                    </p>
-                </div>
-                <Switch
-                    id={id}
-                    checked={isChecked}
-                    onCheckedChange={onCheckedChange}
-                    aria-describedby={`${id}-description`}
-                />
-            </div>
-            {onLinkChange && (
-                 <div className="space-y-2">
-                    <Label htmlFor={`${id}-link`} className="text-sm font-medium">Link Personalizado</Label>
-                    <Input
-                        id={`${id}-link`}
-                        type="url"
-                        placeholder={linkPlaceholder || "https://seu-link.com"}
-                        value={linkValue}
-                        onChange={onLinkChange}
-                        disabled={!isChecked}
-                        className="text-sm"
-                    />
-                     <p className="text-xs text-muted-foreground">Insira o link completo (ex: WhatsApp, página de financiamento, etc).</p>
-                </div>
-            )}
+        <div className="flex items-center justify-center h-screen bg-background">
+            <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
         </div>
-    )
-}
-
-export default function AparênciaPage() {
-    const { user } = useUser();
-    const firestore = useFirestore();
-    const { toast } = useToast();
-
-    const agentRef = useMemoFirebase(
-        () => (user && firestore ? doc(firestore, 'agents', user.uid) : null),
-        [user, firestore]
     );
+  }
 
-    const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
-    const [financingLink, setFinancingLink] = useState(agentData?.siteSettings?.financingLink || '');
+  const isAdmin = agentData?.role === 'admin';
 
-     useEffect(() => {
-        if (agentData?.siteSettings?.financingLink) {
-            setFinancingLink(agentData.siteSettings.financingLink);
-        }
-    }, [agentData]);
-
-    const handleSettingChange = (key: string) => (value: boolean | string) => {
-        if (!agentRef) return;
-        
-        const updatePath = `siteSettings.${key}`;
-        setDocumentNonBlocking(agentRef, { [updatePath]: value }, { merge: true });
-
-        toast({
-            title: "Configuração atualizada!",
-            description: "A mudança será refletida no seu site público."
-        });
-    };
-
-    const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFinancingLink(e.target.value);
-        handleSettingChange('financingLink')(e.target.value);
-    }
-
-    const siteSettings = agentData?.siteSettings;
-
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2"><SlidersHorizontal/> Controle de Exibição</CardTitle>
-                <CardDescription>
-                    Controle quais seções e elementos aparecem no seu site público. As alterações são salvas automaticamente.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <div>
-                     <h3 className="text-xl font-bold font-headline mb-4">Seções da Página de Imóveis</h3>
-                     <div className="space-y-4">
-                        <SettingToggle
-                            id="showFinancing"
-                            label="Botão 'Simular Financiamento'"
-                            description="Exibe um botão na página de detalhes do imóvel para uma ação personalizada."
-                            isChecked={siteSettings?.showFinancing ?? true}
-                            onCheckedChange={handleSettingChange('showFinancing')}
-                            isLoading={isAgentLoading}
-                            linkValue={financingLink}
-                            onLinkChange={handleLinkChange}
-                            linkPlaceholder="https://wa.me/5511999999999"
-                        />
-                    </div>
-                </div>
-
-                <Separator />
-                
-                <div>
-                    <h3 className="text-xl font-bold font-headline mb-4">Seções da Página Principal</h3>
-                    <div className="space-y-4">
-                        <SettingToggle
-                            id="showReviews"
-                            label="Seção de Avaliações de Clientes"
-                            description="Mostra o carrossel com as avaliações e depoimentos dos seus clientes."
-                            isChecked={siteSettings?.showReviews ?? true}
-                            onCheckedChange={handleSettingChange('showReviews')}
-                            isLoading={isAgentLoading}
-                        />
-                    </div>
-                </div>
-
-            </CardContent>
-        </Card>
-    );
+  return (
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarHeader>
+            <div className="flex items-center gap-2 p-2">
+                 <span className="text-gradient">
+                    <Building2 className="h-6 w-6" />
+                </span>
+                <span className="font-bold font-headline text-lg group-data-[collapsible=icon]:hidden">AMA Imóveis</span>
+            </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu>
+            {menuItems.map((item) => (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === item.href}
+                  tooltip={{
+                    children: item.label,
+                  }}
+                >
+                  <Link href={item.href} target={item.target}>
+                    <item.icon />
+                    <span className="flex-1">{item.label}</span>
+                     {item.badgeCount && item.badgeCount > 0 && (
+                        <Badge className="h-5 group-data-[collapsible=icon]:hidden">{item.badgeCount}</Badge>
+                    )}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+             <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item-1" className="border-none">
+                <AccordionTrigger className="[&[data-state=open]>svg]:rotate-180 flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>svg:last-child]:ms-auto">
+                    <Settings/>
+                    <span className="group-data-[collapsible=icon]:hidden">Configurações</span>
+                </AccordionTrigger>
+                <AccordionContent className="p-0 pl-7">
+                   <SidebarMenu>
+                    {settingsItems.map((item) => (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                          asChild
+                          size="sm"
+                          isActive={pathname.startsWith(item.href)}
+                           tooltip={{
+                            children: item.label,
+                          }}
+                        >
+                          <Link href={item.href}>
+                            <item.icon />
+                            <span>{item.label}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+            {isAdmin && (
+                <>
+                    <Separator className="my-2" />
+                    {adminMenuItems.map((item) => (
+                         <SidebarMenuItem key={item.href}>
+                            <SidebarMenuButton
+                            asChild
+                            isActive={pathname.startsWith(item.href)}
+                            tooltip={{
+                                children: item.label,
+                            }}
+                            >
+                            <Link href={item.href}>
+                                <item.icon />
+                                <span>{item.label}</span>
+                            </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    ))}
+                </>
+            )}
+          </SidebarMenu>
+        </SidebarContent>
+         <Sidebar.Footer className="p-2">
+            <Button variant="ghost" className="w-full justify-start gap-2" onClick={handleLogout}>
+                <LogOut />
+                <span className="group-data-[collapsible=icon]:hidden">Sair</span>
+            </Button>
+        </Sidebar.Footer>
+      </Sidebar>
+      <SidebarInset>
+        <header className="flex items-center justify-between p-4 border-b">
+            <SidebarTrigger />
+            {/* User menu can go here */}
+        </header>
+        <main className="p-4 md:p-6 lg:p-8">
+            {children}
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
+  );
 }
