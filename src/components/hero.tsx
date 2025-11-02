@@ -2,13 +2,18 @@
 import Image from "next/image";
 import type { ImagePlaceholder } from "@/lib/placeholder-images";
 import type { ReactNode } from "react";
+import PropertyFilters from "./property-filters";
+import type { Agent } from "@/lib/data";
+
 
 interface HeroProps {
   heroImage?: ImagePlaceholder;
   children?: ReactNode;
+  agent?: Agent | null;
+  propertyTypes?: string[];
 }
 
-export function Hero({ heroImage, children }: HeroProps) {
+export function Hero({ heroImage, children, agent, propertyTypes }: HeroProps) {
   const imageUrl = heroImage?.imageUrl ?? `https://picsum.photos/seed/hero/1920/1080`;
   const imageHint = heroImage?.imageHint ?? 'modern living room';
   const altText = heroImage?.description ?? 'Imagem de fundo da seção principal';
@@ -32,6 +37,9 @@ export function Hero({ heroImage, children }: HeroProps) {
           As melhores oportunidades do mercado imobiliário para você.
         </p>
       </div>
+       <div className='absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-4'>
+           {agent && propertyTypes && <PropertyFilters agent={agent} propertyTypes={propertyTypes} />}
+        </div>
       {children}
     </section>
   );

@@ -1,137 +1,70 @@
 
-'use client';
-import { useState } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { useRouter } from 'next/navigation';
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Label } from "./ui/label";
-import type { Agent } from "@/lib/data";
+"use client";
 
-interface PropertyFiltersProps {
-    agent: Agent;
-    propertyTypes: string[];
-}
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
-export default function PropertyFilters({ agent, propertyTypes }: PropertyFiltersProps) {
-  const [filters, setFilters] = useState({
-    operation: "",
-    city: "",
-    type: "",
-    minPrice: "",
-    maxPrice: "",
-    bedrooms: "",
-    garage: "",
-    keyword: ""
-  });
+export default function PropertyFilter({ isSearchPage = false }: { isSearchPage?: boolean }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const cities = agent?.cities ?? [];
+  const [filters, setFilters] = useState({
+    city: searchParams.get("city") || "",
+    type: searchParams.get("type") || "",
+    minPrice: searchParams.get("minPrice") || "",
+    maxPrice: searchParams.get("maxPrice") || "",
+  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
+  const handleChange = (name: string, value: string) => {
+    setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectChange = (name: string) => (value: string) => {
-    setFilters(prev => ({ ...prev, [name]: value }));
-  };
-  
   const handleSearch = () => {
     const query = new URLSearchParams();
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        query.append(key, value);
-      }
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v) query.append(k, v);
     });
-    // Add agentId to the query to allow global search to optionally filter by agent
-    if (agent?.id) {
-        query.append('agentId', agent.id);
-    }
-    router.push(`/search?${query.toString()}`);
-  }
+    router.push(`/search-results?${query.toString()}`);
+  };
 
   return (
-    <div className="bg-card rounded-xl shadow-lg p-6 space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Operation */}
-        <Select name="operation" onValueChange={handleSelectChange('operation')}>
-          <SelectTrigger><SelectValue placeholder="Operação" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Comprar">Comprar</SelectItem>
-            <SelectItem value="Alugar">Alugar</SelectItem>
-          </SelectContent>
-        </Select>
+    <div className="bg-white p-4 rounded-2xl shadow-sm grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <Input
+        placeholder="Cidade"
+        value={filters.city}
+        onChange={(e) => handleChange("city", e.target.value)}
+      />
+      <Select value={filters.type} onValueChange={(v) => handleChange("type", v)}>
+        <SelectTrigger>
+          <SelectValue placeholder="Tipo de imóvel" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="casa">Casa</SelectItem>
+          <SelectItem value="apartamento">Apartamento</SelectItem>
+          <SelectItem value="terreno">Terreno</SelectItem>
+          <SelectItem value="comercial">Comercial</SelectItem>
+        </SelectContent>
+      </Select>
 
-        {/* City */}
-        <Select name="city" onValueChange={handleSelectChange('city')} disabled={cities.length === 0}>
-          <SelectTrigger><SelectValue placeholder="Cidade" /></SelectTrigger>
-          <SelectContent>
-            {cities.length > 0 ? 
-                cities.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>) :
-                <SelectItem value="none" disabled>Nenhuma cidade de atuação</SelectItem>
-            }
-          </SelectContent>
-        </Select>
+      <Input
+        placeholder="Preço mínimo"
+        type="number"
+        value={filters.minPrice}
+        onChange={(e) => handleChange("minPrice", e.target.value)}
+      />
+      <Input
+        placeholder="Preço máximo"
+        type="number"
+        value={filters.maxPrice}
+        onChange={(e) => handleChange("maxPrice", e.target.value)}
+      />
 
-        {/* Property Type */}
-        <Select name="type" onValueChange={handleSelectChange('type')}>
-          <SelectTrigger><SelectValue placeholder="Tipo de Imóvel" /></SelectTrigger>
-          <SelectContent>
-            {propertyTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
-          </SelectContent>
-        </Select>
-
-        {/* Advanced Filters & Search Button */}
-        <div className="flex gap-2">
-            <Popover>
-                <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full h-10">
-                        <SlidersHorizontal className="mr-2 h-4 w-4" />
-                        Mais Filtros
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80">
-                    <div className="grid gap-4">
-                        <div className="space-y-2">
-                            <h4 className="font-medium leading-none">Filtros Avançados</h4>
-                            <p className="text-sm text-muted-foreground">
-                                Refine sua busca com mais detalhes.
-                            </p>
-                        </div>
-                        <div className="grid gap-2">
-                             <div className="grid grid-cols-2 items-center gap-4">
-                                <Label htmlFor="keyword">Busca Livre</Label>
-                                <Input id="keyword" name="keyword" placeholder="Ex: piscina" onChange={handleChange} value={filters.keyword} />
-                            </div>
-                            <div className="grid grid-cols-2 items-center gap-4">
-                                <Label htmlFor="minPrice">Preço Mín.</Label>
-                                <Input id="minPrice" name="minPrice" type="number" placeholder="R$ 100.000" onChange={handleChange} value={filters.minPrice} />
-                            </div>
-                            <div className="grid grid-cols-2 items-center gap-4">
-                                <Label htmlFor="maxPrice">Preço Máx.</Label>
-                                <Input id="maxPrice" name="maxPrice" type="number" placeholder="R$ 500.000" onChange={handleChange} value={filters.maxPrice} />
-                            </div>
-                             <div className="grid grid-cols-2 items-center gap-4">
-                                <Label htmlFor="bedrooms">Quartos</Label>
-                                <Input id="bedrooms" name="bedrooms" type="number" placeholder="3" onChange={handleChange} value={filters.bedrooms} />
-                            </div>
-                             <div className="grid grid-cols-2 items-center gap-4">
-                                <Label htmlFor="garage">Vagas Garagem</Label>
-                                <Input id="garage" name="garage" type="number" placeholder="2" onChange={handleChange} value={filters.garage} />
-                            </div>
-                        </div>
-                    </div>
-                </PopoverContent>
-            </Popover>
-            <Button onClick={handleSearch} className="w-full h-10 bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
-                <Search className="mr-2 h-4 w-4" />
-                Buscar
-            </Button>
-        </div>
-      </div>
+      <Button onClick={handleSearch} className="w-full bg-amber-500 hover:bg-amber-600">
+        {isSearchPage ? "Atualizar busca" : "Buscar imóveis"}
+      </Button>
     </div>
   );
 }
