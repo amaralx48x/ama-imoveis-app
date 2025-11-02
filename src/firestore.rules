@@ -14,7 +14,8 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && request.auth.token.role == 'admin';
+      // Lê o campo 'role' do documento do agente correspondente ao UID do usuário autenticado.
+      return isSignedIn() && get(/databases/$(database)/documents/agents/$(request.auth.uid)).data.role == 'admin';
     }
 
     // Regra para a coleção de agentes (corretores/imobiliárias)
