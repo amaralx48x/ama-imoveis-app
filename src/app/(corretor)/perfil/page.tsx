@@ -1,6 +1,6 @@
 
 'use client';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -26,9 +26,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ImageUpload from '@/components/image-upload';
 import { setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, CalendarDays } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, { message: 'O nome de exibição deve ter pelo menos 2 caracteres.' }),
@@ -37,7 +38,20 @@ const profileFormSchema = z.object({
   accountType: z.enum(['corretor', 'imobiliaria'], { required_error: 'Selecione um tipo de conta.' }),
   photoUrl: z.string().url().optional().or(z.literal('')),
   phone: z.string().optional(),
+  availabilityDays: z.object({
+    Segunda: z.boolean(),
+    Terça: z.boolean(),
+    Quarta: z.boolean(),
+    Quinta: z.boolean(),
+    Sexta: z.boolean(),
+    Sábado: z.boolean(),
+    Domingo: z.boolean(),
+  }),
+  availabilityStartTime: z.string(),
+  availabilityEndTime: z.string(),
 });
+
+const weekDays = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"] as const;
 
 export default function PerfilPage() {
   const { toast } = useToast();
@@ -62,6 +76,9 @@ export default function PerfilPage() {
       accountType: 'corretor',
       photoUrl: '',
       phone: '',
+      availabilityDays: { Segunda: false, Terça: false, Quarta: false, Quinta: false, Sexta: false, Sábado: false, Domingo: false },
+      availabilityStartTime: '09:00',
+      availabilityEndTime: '18:00',
     },
   });
 
@@ -74,6 +91,9 @@ export default function PerfilPage() {
         accountType: agentData.accountType || 'corretor',
         photoUrl: agentData.photoUrl || '',
         phone: agentData.phone || '',
+        availabilityDays: agentData.availability?.days || { Segunda: false, Terça: false, Quarta: false, Quinta: false, Sexta: false, Sábado: false, Domingo: false },
+        availabilityStartTime: agentData.availability?.startTime || '09:00',
+        availabilityEndTime: agentData.availability?.endTime || '18:00',
       });
     }
   }, [agentData, form]);
@@ -95,6 +115,11 @@ export default function PerfilPage() {
         accountType: values.accountType,
         photoUrl: values.photoUrl,
         phone: values.phone,
+        availability: {
+          days: values.availabilityDays,
+          startTime: values.availabilityStartTime,
+          endTime: values.availabilityEndTime,
+        }
     };
 
     setDocumentNonBlocking(agentRef, dataToSave, { merge: true });
@@ -293,6 +318,78 @@ export default function PerfilPage() {
                 </FormItem>
               )}
             />
+
+             <Separator />
+
+             {/* Seção de Disponibilidade */}
+            <div className="space-y-6">
+                <div>
+                    <h3 className="text-xl font-bold font-headline flex items-center gap-2 mb-2"><CalendarDays/> Disponibilidade para Visitas</h3>
+                    <p className="text-muted-foreground text-sm">Defina seus dias e horários de trabalho para que os clientes possam solicitar agendamentos.</p>
+                </div>
+
+                <FormField
+                    control={form.control}
+                    name="availabilityDays"
+                    render={() => (
+                        <FormItem>
+                            <FormLabel>Dias da Semana</FormLabel>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {weekDays.map((day) => (
+                                    <FormField
+                                        key={day}
+                                        control={form.control}
+                                        name={`availabilityDays.${day}`}
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                                                <FormControl>
+                                                    <Checkbox
+                                                        checked={field.value}
+                                                        onCheckedChange={field.onChange}
+                                                    />
+                                                </FormControl>
+                                                <div className="space-y-1 leading-none">
+                                                    <FormLabel className="cursor-pointer">{day}</FormLabel>
+                                                </div>
+                                            </FormItem>
+                                        )}
+                                    />
+                                ))}
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <div className="grid grid-cols-2 gap-6">
+                    <FormField
+                        control={form.control}
+                        name="availabilityStartTime"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Horário de Início</FormLabel>
+                                <FormControl>
+                                    <Input type="time" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="availabilityEndTime"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Horário de Fim</FormLabel>
+                                <FormControl>
+                                    <Input type="time" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            </div>
 
             <Button type="submit" size="lg" disabled={form.formState.isSubmitting} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
               {form.formState.isSubmitting ? 'Salvando...' : 'Salvar Alterações'}

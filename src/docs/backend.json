@@ -23,6 +23,7 @@
         "type": { "type": "string", "enum": ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"], "description": "Type of property." },
         "operation": { "type": "string", "enum": ["Venda", "Aluguel"], "description": "Type of operation." },
         "sectionIds": { "type": "array", "items": { "type": "string" }, "description": "Array of section IDs this property belongs to. Includes 'featured' for featured properties." },
+        "phone": { "type": "string", "description": "Specific contact phone number for this property." },
         "agentId": { "type": "string", "description": "ID of the agent who listed the property." },
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was created." },
         "status": { "type": "string", "enum": ["ativo", "vendido", "alugado"], "description": "The current status of the property.", "default": "ativo" },
@@ -62,6 +63,22 @@
         "phone": { "type": "string", "description": "The agent's primary contact phone number." },
         "email": { "type": "string", "description": "Contact email for the agent." },
         "cities": { "type": "array", "items": { "type": "string" }, "description": "List of cities the agent operates in." },
+        "availability": {
+          "type": "object",
+          "description": "Defines the agent's availability for property viewings.",
+          "properties": {
+            "days": {
+              "type": "object",
+              "properties": {
+                "Segunda": { "type": "boolean" }, "Terça": { "type": "boolean" }, "Quarta": { "type": "boolean" },
+                "Quinta": { "type": "boolean" }, "Sexta": { "type": "boolean" }, "Sábado": { "type": "boolean" },
+                "Domingo": { "type": "boolean" }
+              }
+            },
+            "startTime": { "type": "string", "description": "The start time of availability, e.g., '09:00'." },
+            "endTime": { "type": "string", "description": "The end time of availability, e.g., '18:00'." }
+          }
+        },
         "siteSettings": {
           "type": "object",
           "description": "Settings to control the visibility of sections on the public site.",

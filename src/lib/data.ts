@@ -1,7 +1,5 @@
 
 
-
-
 export type SocialLink = {
   id: string;
   label: string;
@@ -26,12 +24,27 @@ export type Property = {
   type: 'Apartamento' | 'Casa' | 'Chácara' | 'Galpão' | 'Sala' | 'Kitnet' | 'Terreno' | 'Lote' | 'Alto Padrão';
   operation: 'Comprar' | 'Alugar';
   sectionIds: string[];
+  phone?: string;
   agentId?: string; 
   createdAt?: any;
   status: 'ativo' | 'vendido' | 'alugado';
   soldAt?: any; // ou rentedAt
   commissionValue?: number;
 };
+
+export type Availability = {
+  days: {
+    Segunda: boolean;
+    Terça: boolean;
+    Quarta: boolean;
+    Quinta: boolean;
+    Sexta: boolean;
+    Sábado: boolean;
+    Domingo: boolean;
+  };
+  startTime: string;
+  endTime: string;
+}
 
 export type SiteSettings = {
     showFinancing?: boolean;
@@ -55,6 +68,7 @@ export type Agent = {
     photoUrl: string;
     phone?: string; // Telefone principal do corretor
     cities?: string[];
+    availability?: Availability;
     siteSettings?: SiteSettings;
 }
 
