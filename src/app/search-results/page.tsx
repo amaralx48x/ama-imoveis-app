@@ -54,6 +54,8 @@ function SearchResults() {
         maxPrice: currentParams.get('maxPrice') || undefined,
         sortBy: sortBy as Filters['sortBy'] || undefined,
     };
+
+    const hasFilters = Object.values(filters).some(v => v !== undefined && v !== '');
     
     try {
       let q: Query<DocumentData>;
