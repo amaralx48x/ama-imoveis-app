@@ -15,6 +15,12 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isOwner(agentId) || isAdmin();
 
+      // Theme document as a subdocument of agent
+      match /theme/{doc=**} {
+        allow read: if true; // Publicly readable for the site
+        allow write: if isOwner(agentId);
+      }
+
       match /reviews/{reviewId} {
         allow create: if true;
         allow list, get: if resource.data.approved == true;
@@ -44,7 +50,10 @@ service cloud.firestore {
 
     match /supportMessages/{messageId} {
       allow create: if request.auth != null;
-      allow read, update, delete: if isAdmin() || isOwner(resource.data.senderUid);
+      // Admins can read all messages, users can only read their own.
+      allow read: if isAdmin() || isOwner(resource.data.senderId);
+      // Only admins can update or delete support messages.
+      allow update, delete: if isAdmin();
     }
   }
 }
