@@ -19,14 +19,15 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { setDoc, doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { setDoc, doc, updateDoc, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useEffect, useState } from 'react';
 import type { Agent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ImageUpload from '@/components/image-upload';
 import { setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { X, Plus, CalendarDays } from 'lucide-react';
+import { X, Plus, CalendarDays, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -66,6 +67,8 @@ export default function PerfilPage() {
   const { data: agentData, isLoading: isAgentLoading, mutate } = useDoc<Agent>(agentRef);
 
   const [newCity, setNewCity] = useState('');
+  const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const form = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
@@ -113,7 +116,6 @@ export default function PerfilPage() {
         name: values.siteName,
         description: values.description,
         accountType: values.accountType,
-        photoUrl: values.photoUrl,
         phone: values.phone,
         availability: {
           days: values.availabilityDays,
@@ -130,22 +132,40 @@ export default function PerfilPage() {
     });
   }
 
-  const handleUploadComplete = (urls: string[]) => {
-    if (!agentRef) return;
-    const photoUrl = urls[0]; // Take the first URL from the array
-    if (photoUrl) {
-        setDocumentNonBlocking(agentRef, { photoUrl: photoUrl }, { merge: true });
-        form.setValue('photoUrl', photoUrl);
-        toast({
-        title: 'Foto Atualizada!',
-        description: 'Sua foto de perfil foi alterada.',
-        });
+  const handleSavePhoto = async () => {
+    if (!profilePhotoFile || !user || !firestore) {
+      toast({ title: 'Nenhum arquivo selecionado', variant: 'destructive' });
+      return;
     }
-  }
+    if (!agentRef) return;
+
+    setIsUploading(true);
+    const storage = getStorage();
+    const filePath = `agents/${user.uid}/profile.jpg`;
+    const fileRef = ref(storage, filePath);
+
+    try {
+      await uploadBytes(fileRef, profilePhotoFile);
+      const photoUrl = await getDownloadURL(fileRef);
+
+      await updateDoc(agentRef, { photoUrl });
+
+      form.setValue('photoUrl', photoUrl);
+      setProfilePhotoFile(null); // Clear file after upload
+      toast({ title: 'Foto de Perfil Atualizada!' });
+    } catch (error) {
+      console.error(error);
+      toast({ title: 'Erro ao fazer upload', variant: 'destructive' });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
 
   const handleAddCity = async () => {
     if (!agentRef || !newCity.trim()) return;
-    if (agentData?.cities?.includes(newCity.trim())) {
+    const currentAgentData = (await getDoc(agentRef)).data() as Agent | undefined;
+    if (currentAgentData?.cities?.includes(newCity.trim())) {
       toast({ title: "Cidade já existe", variant: "destructive" });
       return;
     }
@@ -195,34 +215,30 @@ export default function PerfilPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="space-y-6">
+            <h3 className="text-xl font-bold font-headline">Foto de Perfil</h3>
+            <div className='flex items-center gap-6 p-4 border rounded-lg'>
+                <Avatar className='h-24 w-24'>
+                    <AvatarImage src={form.watch('photoUrl')} alt={form.getValues('displayName') || "Avatar do corretor"} />
+                    <AvatarFallback>{form.getValues('displayName')?.charAt(0) || 'A'}</AvatarFallback>
+                </Avatar>
+                <div className='flex-grow space-y-2'>
+                    <ImageUpload 
+                        onFileChange={setProfilePhotoFile}
+                        currentImageUrl={agentData?.photoUrl}
+                    />
+                     <Button onClick={handleSavePhoto} disabled={!profilePhotoFile || isUploading}>
+                        {isUploading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando...</> : "Salvar Foto"}
+                    </Button>
+                </div>
+            </div>
+        </div>
+
+        <Separator className="my-8" />
+        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="photoUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Foto de Perfil</FormLabel>
-                  <FormControl>
-                    <div className='flex items-center gap-6'>
-                       <Avatar className='h-24 w-24'>
-                          <AvatarImage src={field.value} alt={form.getValues('displayName') || "Avatar do corretor"} />
-                          <AvatarFallback>{form.getValues('displayName')?.charAt(0) || 'A'}</AvatarFallback>
-                        </Avatar>
-                        {user && (
-                           <ImageUpload 
-                            agentId={user.uid}
-                            onUploadComplete={handleUploadComplete}
-                           />
-                        )}
-                    </div>
-                  </FormControl>
-                  <FormDescription>Esta é a sua foto de perfil pública.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+             <h3 className="text-xl font-bold font-headline">Informações Públicas</h3>
             <FormField
               control={form.control}
               name="displayName"

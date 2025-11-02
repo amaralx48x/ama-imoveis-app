@@ -9,6 +9,7 @@ import {
   useMemoFirebase,
 } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { Agent, SocialLink } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Plus, Trash, Link, Loader2, Image as ImageIcon } from "lucide-react";
+import { Plus, Trash, Link as LinkIcon, Loader2, Image as ImageIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -126,6 +127,8 @@ const availableIcons = [
   { value: 'mail', label: 'E-mail', placeholder: 'contato@seu-email.com' },
 ];
 
+type LinkState = SocialLink & { file?: File | null };
+
 export default function SocialLinksSettingsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
@@ -138,7 +141,7 @@ export default function SocialLinksSettingsPage() {
   
   const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
 
-  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+  const [socialLinks, setSocialLinks] = useState<LinkState[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [financingLink, setFinancingLink] = useState(agentData?.siteSettings?.financingLink || '');
 
@@ -146,7 +149,7 @@ export default function SocialLinksSettingsPage() {
     if (agentData?.siteSettings?.socialLinks) {
       setSocialLinks(agentData.siteSettings.socialLinks);
     } else if (!isAgentLoading) {
-      setSocialLinks([]); // Ensure it's an empty array if not present
+      setSocialLinks([]);
     }
      if (agentData?.siteSettings?.financingLink) {
         setFinancingLink(agentData.siteSettings.financingLink);
@@ -160,14 +163,10 @@ export default function SocialLinksSettingsPage() {
     ]);
   };
 
-  const handleChange = (id: string, field: keyof SocialLink, value: string) => {
+  const handleChange = (id: string, field: keyof LinkState, value: any) => {
     setSocialLinks((prev) =>
       prev.map((link) => (link.id === id ? { ...link, [field]: value } : link))
     );
-  };
-  
-  const handleImageUpload = (id: string, urls: string[]) => {
-      handleChange(id, "imageUrl", urls[0]);
   };
 
   const handleDelete = (id: string) => {
@@ -191,14 +190,32 @@ export default function SocialLinksSettingsPage() {
     }
 
   const handleSave = async () => {
-    if (!agentRef) return;
+    if (!agentRef || !user) return;
 
     setIsSaving(true);
     try {
+        const storage = getStorage();
+        const updatedLinks = await Promise.all(
+            socialLinks.map(async (link) => {
+                if (link.file) {
+                    const filePath = `agents/${user.uid}/links/${link.id}_${link.file.name}`;
+                    const fileRef = ref(storage, filePath);
+                    await uploadBytes(fileRef, link.file);
+                    const imageUrl = await getDownloadURL(fileRef);
+                    const { file, ...rest } = link; // remove file from link object
+                    return { ...rest, imageUrl };
+                }
+                const { file, ...rest } = link;
+                return rest;
+            })
+        );
+        
       await updateDoc(agentRef, { 
-        "siteSettings.socialLinks": socialLinks,
+        "siteSettings.socialLinks": updatedLinks,
         "siteSettings.financingLink": financingLink,
        });
+
+      setSocialLinks(updatedLinks); // Update state with new image URLs
       toast({ title: "Links salvos com sucesso!" });
     } catch (e) {
       console.error("Erro ao salvar links", e);
@@ -214,7 +231,7 @@ export default function SocialLinksSettingsPage() {
     <Card>
         <CardHeader>
             <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2">
-                <Link /> Gerenciar Links e Exibição
+                <LinkIcon /> Gerenciar Links e Exibição
             </CardTitle>
             <CardDescription>
                 Adicione ou edite os links de contato, redes sociais e controle elementos de exibição do seu site.
@@ -289,16 +306,12 @@ export default function SocialLinksSettingsPage() {
                         
                         {isLocation && user && (
                             <div className="flex items-center gap-4 pl-1 pt-2 border-t border-dashed">
-                                {link.imageUrl && (
-                                    <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
-                                        <Image src={link.imageUrl} alt={link.label || "Preview do endereço"} fill className="object-cover" />
-                                    </div>
-                                )}
                                 <div className="flex-grow">
                                     <label className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-2"><ImageIcon className="w-4 h-4"/> Foto do Endereço (Opcional)</label>
                                     <ImageUpload
-                                        agentId={user.uid}
-                                        onUploadComplete={(urls) => handleImageUpload(link.id, urls)}
+                                        onFileChange={(file) => handleChange(link.id, "file", file)}
+                                        currentImageUrl={link.imageUrl}
+                                        id={`upload-${link.id}`}
                                     />
                                 </div>
                             </div>
