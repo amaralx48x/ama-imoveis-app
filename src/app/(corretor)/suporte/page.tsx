@@ -2,18 +2,24 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, getStorage } from 'firebase/storage';
-import { useFirestore, useUser, useFirebaseApp } from '@/firebase';
+import { useFirestore, useUser, useFirebaseApp, useMemoFirebase } from '@/firebase';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useToast } from '@/hooks/use-toast';
-import { LifeBuoy, Loader2, Upload, X } from 'lucide-react';
+import { LifeBuoy, Loader2, Upload, X, MessageSquare, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { v4 as uuidv4 } from 'uuid';
+import type { SupportMessage } from '@/lib/data';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import Image from 'next/image';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 const faqItems = [
   {
@@ -33,6 +39,113 @@ const faqItems = [
     answer: 'Você pode ver os detalhes e limites do seu plano atual na seção "Meu Plano". Lá você também pode simular a troca para um plano superior para liberar mais funcionalidades, como imóveis ilimitados e importação via CSV.',
   },
 ];
+
+const formatDate = (timestamp: any) => {
+    if (!timestamp?.toDate) return 'Data indisponível';
+    return format(timestamp.toDate(), "d 'de' MMMM, yyyy 'às' HH:mm", { locale: ptBR });
+}
+
+function MessagesHistory() {
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const [messages, setMessages] = useState<SupportMessage[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const messagesQuery = useMemoFirebase(() => {
+        if (!user || !firestore) return null;
+        return query(
+            collection(firestore, 'supportMessages'),
+            where('senderId', '==', user.uid),
+            orderBy('createdAt', 'desc')
+        );
+    }, [user, firestore]);
+
+    useEffect(() => {
+        if (!messagesQuery) {
+            setIsLoading(false);
+            return;
+        }
+
+        const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
+            const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SupportMessage));
+            setMessages(msgs);
+            setIsLoading(false);
+            setError(null);
+        }, (err) => {
+            console.error(err);
+            setError('Não foi possível carregar suas mensagens.');
+            setIsLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [messagesQuery]);
+
+    return (
+         <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><MessageSquare /> Histórico de Solicitações</CardTitle>
+            </CardHeader>
+            <CardContent>
+                {isLoading && (
+                    <div className="space-y-4">
+                       {[...Array(2)].map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
+                    </div>
+                )}
+                {error && (
+                    <Alert variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>Erro</AlertTitle>
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                )}
+                {!isLoading && !error && messages.length === 0 && (
+                    <p className="text-muted-foreground text-sm text-center py-4">Você ainda não enviou nenhuma solicitação de suporte.</p>
+                )}
+                {!isLoading && messages.length > 0 && (
+                    <Accordion type="multiple" className="w-full space-y-4">
+                        {messages.map(msg => (
+                            <AccordionItem key={msg.id} value={msg.id} className="border rounded-lg bg-card overflow-hidden">
+                                <AccordionTrigger className="p-4 hover:no-underline data-[state=open]:bg-muted/50">
+                                    <div className="flex justify-between items-center w-full">
+                                        <p className="font-semibold truncate pr-4">{msg.message}</p>
+                                        <div className="text-right flex items-center gap-4 flex-shrink-0">
+                                            <span className="text-xs text-muted-foreground hidden sm:inline">{formatDate(msg.createdAt)}</span>
+                                            <Badge variant={msg.status === 'pending' ? 'default' : 'secondary'}>
+                                                {msg.status === 'pending' ? 'Pendente' : 'Respondido'}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                </AccordionTrigger>
+                                <AccordionContent className="p-4 pt-0">
+                                    <div className="space-y-4 pt-4 border-t">
+                                        <p className="text-muted-foreground whitespace-pre-wrap">{msg.message}</p>
+                                        {msg.images && msg.images.length > 0 && (
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {msg.images.map((url, i) => (
+                                                    <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                                                        <Image src={url} alt={`Anexo ${i+1}`} width={200} height={200} className="rounded-md object-cover aspect-square hover:opacity-80 transition-opacity"/>
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {msg.status === 'responded' && msg.responseMessage && (
+                                            <div className="border-t pt-4 mt-4">
+                                                <p className="font-semibold text-sm mb-2">Resposta do Suporte:</p>
+                                                <p className="text-sm bg-muted p-3 rounded-md whitespace-pre-wrap">{msg.responseMessage}</p>
+                                                <p className="text-xs text-muted-foreground mt-2">Respondido em {formatDate(msg.responseAt)}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
+                )}
+            </CardContent>
+        </Card>
+    )
+}
 
 export default function SuportePage() {
   const { user } = useUser();
@@ -72,7 +185,6 @@ export default function SuportePage() {
       
       const imageUrls = await Promise.all(
         files.map(async (file) => {
-          // O caminho agora usa o UID do usuário, conforme definido nas novas regras de segurança.
           const imageRef = ref(storage, `support-images/${user.uid}/${file.name}_${messageId}`);
           await uploadBytes(imageRef, file);
           return getDownloadURL(imageRef);
@@ -82,7 +194,7 @@ export default function SuportePage() {
       const supportCollectionRef = collection(firestore, 'supportMessages');
       await addDoc(supportCollectionRef, {
         id: messageId,
-        senderUid: user.uid,
+        senderId: user.uid,
         senderName: user.displayName || 'Não informado',
         senderEmail: user.email || 'Não informado',
         message,
@@ -176,6 +288,9 @@ export default function SuportePage() {
           </form>
         </CardContent>
       </Card>
+
+      <MessagesHistory />
+
     </div>
   );
 }
