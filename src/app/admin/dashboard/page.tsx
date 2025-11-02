@@ -1,14 +1,18 @@
+
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Home, Users, DollarSign } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { collectionGroup, getDocs, query, where } from 'firebase/firestore';
+import { collection, collectionGroup, getDocs, query, where } from 'firebase/firestore';
 import type { Property, Agent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
-import { isSameMonth } from 'date-fns';
 import { MonthlyPerformanceChart } from '@/components/dashboard/monthly-chart';
 
+const PLAN_PRICES = {
+    corretor: 59.90,
+    imobiliaria: 89.90,
+};
 
 const MotionCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <div className={`transition-all duration-500 ease-out hover:scale-105 hover:shadow-primary/20 ${className}`}>
@@ -19,8 +23,8 @@ const MotionCard = ({ children, className }: { children: React.ReactNode, classN
 export default function AdminDashboardPage() {
     const [metrics, setMetrics] = useState({
         totalAgents: 0,
+        monthlyRevenue: 0,
         totalActiveProperties: 0,
-        commissionsThisMonth: 0,
     });
     const [allProperties, setAllProperties] = useState<Property[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -32,33 +36,33 @@ export default function AdminDashboardPage() {
         async function fetchMetrics() {
             setIsLoading(true);
             try {
-                // Use collectionGroup to query across all subcollections
-                const agentsQuery = collectionGroup(firestore, 'agents');
-                const propertiesQuery = collectionGroup(firestore, 'properties');
+                const agentsCollection = collection(firestore, 'agents');
+                const propertiesCollection = collectionGroup(firestore, 'properties');
 
                 const [agentsSnap, propertiesSnap] = await Promise.all([
-                    getDocs(agentsQuery),
-                    getDocs(propertiesQuery)
+                    getDocs(agentsCollection),
+                    getDocs(propertiesCollection)
                 ]);
 
+                const agents = agentsSnap.docs.map(doc => doc.data() as Agent);
+                const totalAgents = agents.length;
+                
+                const monthlyRevenue = agents.reduce((sum, agent) => {
+                    const plan = agent.plan || 'corretor'; // Default to 'corretor' if plan is not set
+                    return sum + (PLAN_PRICES[plan] || 0);
+                }, 0);
+                
                 const allProps = propertiesSnap.docs.map(doc => ({ ...doc.data(), id: doc.id }) as Property);
                 setAllProperties(allProps);
                 
                 const activeProperties = allProps.filter(p => p.status !== 'vendido' && p.status !== 'alugado').length;
 
-                const commissions = allProps
-                    .filter(p => {
-                         if (!['vendido', 'alugado'].includes(p.status || '') || !p.soldAt) return false;
-                        const soldDate = p.soldAt.toDate();
-                        return isSameMonth(soldDate, new Date());
-                    })
-                    .reduce((sum, p) => sum + (p.commissionValue || 0), 0);
-
                 setMetrics({
-                    totalAgents: agentsSnap.size,
+                    totalAgents,
+                    monthlyRevenue,
                     totalActiveProperties: activeProperties,
-                    commissionsThisMonth: commissions,
                 });
+
             } catch (error) {
                 console.error("Failed to fetch admin metrics:", error);
             } finally {
@@ -95,6 +99,26 @@ export default function AdminDashboardPage() {
                     </Card>
                 </MotionCard>
 
+                 <MotionCard>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Receita Mensal (Assinaturas)</CardTitle>
+                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                             {isLoading ? (
+                                <Skeleton className="h-10 w-40 mb-2" />
+                             ) : (
+                                <>
+                                    <div className="text-4xl font-bold">
+                                        {metrics.monthlyRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                    </div>
+                                </>
+                             )}
+                        </CardContent>
+                    </Card>
+                </MotionCard>
+
                 <MotionCard>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -107,26 +131,6 @@ export default function AdminDashboardPage() {
                             ) : (
                                 <div className="text-4xl font-bold">{metrics.totalActiveProperties}</div>
                             )}
-                        </CardContent>
-                    </Card>
-                </MotionCard>
-                
-                <MotionCard>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Comissões no Mês (Total)</CardTitle>
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                             {isLoading ? (
-                                <Skeleton className="h-10 w-40 mb-2" />
-                             ) : (
-                                <>
-                                    <div className="text-4xl font-bold">
-                                        {metrics.commissionsThisMonth.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                                    </div>
-                                </>
-                             )}
                         </CardContent>
                     </Card>
                 </MotionCard>
