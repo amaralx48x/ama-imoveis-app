@@ -35,13 +35,17 @@ export default function AgentPublicPage({ }: Props) {
 
     const loadReviews = useCallback(async () => {
       if (!firestore || !agentId) return;
+      // Simplificado para remover a necessidade de índice composto
       const reviewsRef = collection(firestore, `agents/${agentId}/reviews`);
-      const q = query(reviewsRef, where('approved', '==', true), orderBy('createdAt', 'desc'), limit(10));
+      const q = query(reviewsRef, where('approved', '==', true), limit(10));
       
       try {
         const reviewsSnap = await getDocs(q);
         if (!reviewsSnap.empty) {
-          setReviews(reviewsSnap.docs.map(doc => ({ ...(doc.data() as Omit<Review, 'id'>), id: doc.id })));
+          const fetchedReviews = reviewsSnap.docs.map(doc => ({ ...(doc.data() as Omit<Review, 'id'>), id: doc.id }));
+          // Ordenar no lado do cliente
+          fetchedReviews.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+          setReviews(fetchedReviews);
         } else {
            setReviews(getStaticReviews());
         }
