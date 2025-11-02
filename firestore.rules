@@ -20,7 +20,7 @@ service cloud.firestore {
       // Corretores podem apenas ler suas próprias mensagens
       allow read: if isOwner(resource.data.senderUid) || isAdmin();
 
-      // Corretores não podem atualizar/deletar mensagens
+      // Apenas admins podem atualizar/deletar mensagens
       allow update, delete: if isAdmin();
     }
 
@@ -37,9 +37,30 @@ service cloud.firestore {
         allow read: if true; // público
         allow write: if isOwner(agentId) || isAdmin();
       }
+
+      // Subcoleção de avaliações
+      match /reviews/{reviewId} {
+        allow create: if true; // Qualquer um pode criar
+        allow list, get: if resource.data.approved == true; // Público só lê aprovadas
+        allow read, update, delete: if isOwner(agentId) || isAdmin(); // Dono/Admin gerencia tudo
+      }
+      
+      // Subcoleção de seções customizadas
+      match /customSections/{sectionId} {
+        allow read: if true; // Público
+        allow write: if isOwner(agentId) || isAdmin();
+      }
+      
+      // Subcoleção de leads
+      match /leads/{leadId} {
+        // Permitir criar leads (formulário de contato público)
+        allow create: if true;
+        // Permitir leitura, atualização e exclusão apenas pelo dono ou admin
+        allow read, update, delete: if isOwner(agentId) || isAdmin();
+      }
     }
 
-    // Métricas globais (leads, imóveis, etc.) só admin
+    // Métricas globais (acesso restrito ao admin)
     match /metrics/{docId} {
       allow read, write: if isAdmin();
     }
