@@ -10,6 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { ContactForm } from "@/components/contact-form";
+import { useState } from "react";
 
 // Simple inline SVG for WhatsApp and Facebook as they are not in lucide-react
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -29,6 +32,8 @@ interface PropertyViewProps {
 }
 
 export function PropertyView({ property, agent }: PropertyViewProps) {
+
+    const [isFormOpen, setIsFormOpen] = useState(false);
 
     const isValidUrl = (url: string | undefined): boolean => {
         return !!url && (url.startsWith('http://') || url.startsWith('https://'));
@@ -163,10 +168,24 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                             <Phone className="mr-2" />
                             Ligar
                         </Button>
-                        <Button className="w-full" size="lg" variant="outline">
-                             <MessageCircle className="mr-2"/>
-                            Fale com o corretor
-                        </Button>
+                        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                          <DialogTrigger asChild>
+                            <Button className="w-full" size="lg" variant="outline">
+                                 <MessageCircle className="mr-2"/>
+                                Fale com o corretor
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[480px]">
+                               <ContactForm 
+                                agentId={agent.id}
+                                propertyId={property.id}
+                                title="Fale sobre este imóvel"
+                                description={`Preencha os dados abaixo para conversar com um corretor sobre "${property.title}".`}
+                                isDialog={true}
+                                onFormSubmit={() => setIsFormOpen(false)}
+                               />
+                          </DialogContent>
+                        </Dialog>
                         <Button className="w-full" size="lg" variant="outline">
                             <CalendarPlus className="mr-2"/>
                             Agendar uma visita
