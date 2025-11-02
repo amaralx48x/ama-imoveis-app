@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
@@ -16,8 +17,9 @@ import { Frown, ArrowLeft } from "lucide-react";
 function BackButton() {
     const router = useRouter();
     return (
-        <Button variant="outline" onClick={() => router.back()} className="mb-6 flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" /> Voltar
+        <Button variant="outline" onClick={() => router.push('/')} className="mb-6 flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Voltar para a Página Principal
         </Button>
     );
 }
@@ -42,7 +44,7 @@ function SearchResults() {
   }
   const propertyTypes = ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
 
-  const fetchData = useCallback(async (firestoreInstance, currentParams) => {
+  const fetchData = useCallback(async (firestoreInstance: any, currentParams: any) => {
     setLoading(true);
     const filters: Filters = {
         operation: currentParams.get('operation') || undefined,
@@ -68,7 +70,7 @@ function SearchResults() {
       }
 
       const querySnapshot = await getDocs(q);
-      const allProps = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, agentId: doc.ref.parent.parent?.id }) as Property);
+      const allProps = querySnapshot.docs.map(doc => ({ ...(doc.data() as Property), id: doc.id, agentId: doc.ref.parent.parent?.id }) as Property);
       
       const activeProps = allProps.filter(p => p.status !== 'vendido' && p.status !== 'alugado');
       const filtered = filterProperties(activeProps, filters);
