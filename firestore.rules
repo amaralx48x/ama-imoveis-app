@@ -1,4 +1,3 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -8,55 +7,51 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      // Verifica se request.auth existe
+      // Garante que o usuário está autenticado antes de tentar ler o documento
       return request.auth != null && (
+        // A verificação de 'custom claims' é a mais segura para produção
         request.auth.token.role == 'admin' ||
+        // O fallback verifica um campo 'role' no documento do próprio usuário
         (exists(/databases/$(database)/documents/agents/$(request.auth.uid)) &&
          get(/databases/$(database)/documents/agents/$(request.auth.uid)).data.role == 'admin')
       );
     }
 
-    // Agent profiles
+    // Perfis de agentes e suas subcoleções
     match /agents/{agentId} {
-      allow read: if true; // Público
-
+      // Qualquer um pode ler perfis para o site público
+      allow read: if true;
+      // Admin ou o próprio dono pode escrever
       allow write: if isOwner(agentId) || isAdmin();
 
-      // Subcollection for reviews
-      match /reviews/{reviewId} {
-        allow create: if true;
-        allow list, get: if resource.data.approved == true;
-        allow read, update, delete: if isOwner(agentId) || isAdmin();
-      }
-
-      // Subcollection for customSections
-      match /customSections/{sectionId} {
-        allow read: if true;
+      // Regra para todas as subcoleções (properties, reviews, leads, etc.)
+      match /{subcollection}/{docId} {
+         // Leitura: Permitida para o dono do perfil ou um admin.
+        allow read: if isOwner(agentId) || isAdmin();
+         // Escrita: Permitida para o dono do perfil ou um admin.
         allow write: if isOwner(agentId) || isAdmin();
-      }
-
-      // Subcollection for leads
-      match /leads/{leadId} {
-        allow create: if true;
-        allow read, update, delete: if isOwner(agentId) || isAdmin();
-      }
-
-      // Properties
-      match /properties/{propertyId} {
-        allow read: if true;
-        allow write: if isOwner(agentId) || isAdmin();
+         // Criação:
+         // - reviews e leads podem ser criados por qualquer pessoa (formulários públicos).
+         // - properties e customSections só podem ser criados pelo dono ou admin.
+        allow create: if (subcollection == 'reviews' || subcollection == 'leads') || 
+                       (isOwner(agentId) || isAdmin());
       }
     }
-
-    // Support messages collection
+    
+    // Regras para a Coleção de Suporte
     match /supportMessages/{messageId} {
+      // Qualquer usuário autenticado pode criar um ticket.
       allow create: if request.auth != null;
+      // Apenas administradores podem ler, atualizar ou deletar tickets.
       allow read, update, delete: if isAdmin();
     }
 
-    // Global collectionGroup for properties (apenas leitura pública)
+    // Regra Global para o `collectionGroup` de 'properties'
+    // Necessária para a busca global de imóveis.
     match /{path=**}/properties/{propertyId} {
+      // Permite a leitura pública de qualquer imóvel em qualquer subcoleção.
       allow read: if true;
+      // Nega a escrita nesta regra genérica para forçar a verificação da regra mais específica.
       allow write: if false;
     }
   }
