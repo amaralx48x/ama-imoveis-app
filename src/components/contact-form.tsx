@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { useFirestore } from "@/firebase";
+import { useFirestore, useUser } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
@@ -37,6 +37,7 @@ interface ContactFormProps {
 export function ContactForm({ agentId, propertyId }: ContactFormProps) {
   const { toast } = useToast();
   const firestore = useFirestore();
+  const { user } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -58,6 +59,7 @@ export function ContactForm({ agentId, propertyId }: ContactFormProps) {
     setIsSubmitting(true);
 
     try {
+      const docPath = user ? `agents/${user.uid}/leads` : `public_leads`;
       await addDoc(collection(firestore, 'agents', agentId, 'leads'), {
         name: values.name,
         email: values.email,

@@ -12,7 +12,7 @@ import { FeaturedProperties } from '@/components/featured-properties';
 import { CustomPropertySection } from '@/components/custom-property-section';
 import { AgentProfile } from '@/components/agent-profile';
 import { ClientReviews } from '@/components/client-reviews';
-import { ContactForm } from '@/components/contact-form';
+import { FloatingContactButton } from '@/components/floating-contact-button';
 import { useFirestore } from '@/firebase';
 import PropertyFilters from '@/components/property-filters';
 import { getPropertyTypes, getReviews as getStaticReviews } from '@/lib/data';
@@ -136,12 +136,13 @@ export default function AgentPublicPage({ }: Props) {
     const featuredProperties = allProperties.filter(p => (p.sectionIds || []).includes('featured'));
     const propertyTypes = getPropertyTypes();
     const showReviews = agent.siteSettings?.showReviews ?? true;
+    const whatsAppLink = agent.siteSettings?.socialLinks?.find(link => link.icon === 'whatsapp');
 
     return (
         <>
             <Header agent={agent} agentId={agent.id}/>
             <main className="min-h-screen">
-                <div className="relative mb-36">
+                <div className="relative mb-24 md:mb-36">
                     <Hero heroImage={heroImage}>
                         <div className='absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-4'>
                            <PropertyFilters agent={agent} propertyTypes={propertyTypes} />
@@ -173,7 +174,7 @@ export default function AgentPublicPage({ }: Props) {
                     <ClientReviews reviews={reviews} agentId={agentId} onReviewSubmitted={loadReviews} />
                   </div>
                 )}
-                <ContactForm agentId={agent.id} />
+                {whatsAppLink && <FloatingContactButton whatsAppLink={whatsAppLink} />}
             </main>
             <Footer agentId={agent.id} />
         </>
