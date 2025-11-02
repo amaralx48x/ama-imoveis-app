@@ -1,5 +1,12 @@
 
 
+export type SocialLink = {
+  id: string;
+  label: string;
+  url: string;
+  icon: string;
+}
+
 export type Property = {
   id: string;
   title: string;
@@ -30,6 +37,7 @@ export type SiteSettings = {
     showReviews?: boolean;
     defaultSaleCommission?: number;
     defaultRentCommission?: number;
+    socialLinks?: SocialLink[];
 }
 
 export type Agent = {

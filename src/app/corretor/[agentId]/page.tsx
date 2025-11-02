@@ -175,7 +175,7 @@ export default function AgentPublicPage({ }: Props) {
                 )}
                 <ContactForm agentId={agent.id} />
             </main>
-            <Footer agent={agent} />
+            <Footer agentId={agent.id} />
         </>
     );
 }

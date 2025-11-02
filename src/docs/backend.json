@@ -34,6 +34,18 @@
         "builtArea", "totalArea", "imageUrls", "city", "neighborhood", "type", "operation", "sectionIds", "agentId", "createdAt", "status"
       ]
     },
+    "SocialLink": {
+      "title": "Social Link",
+      "type": "object",
+      "description": "Represents a social media link.",
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "url": { "type": "string", "format": "uri" },
+        "icon": { "type": "string" }
+      },
+      "required": ["id", "label", "url", "icon"]
+    },
     "Agent": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Agent",
@@ -57,7 +69,12 @@
             "financingLink": { "type": "string", "description": "Custom URL for the financing button." },
             "showReviews": { "type": "boolean", "description": "Show or hide the client reviews section." },
             "defaultSaleCommission": { "type": "number", "description": "Default commission percentage for sales." },
-            "defaultRentCommission": { "type": "number", "description": "Default commission percentage for rentals." }
+            "defaultRentCommission": { "type": "number", "description": "Default commission percentage for rentals." },
+            "socialLinks": {
+              "type": "array",
+              "description": "List of social media links.",
+              "items": { "$ref": "#/entities/SocialLink" }
+            }
           }
         }
       },
