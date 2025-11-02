@@ -58,31 +58,32 @@ export default function LeadsPage({ agentId }: Props) {
       if (filter === "all") return l.status !== "archived";
       if (filter === "unread") return l.status === "unread";
       if (filter === "seller") return l.leadType === "seller" && l.status !== "archived";
-      if (filter === "buyer") return l.leadType === "buyer" && l.status !== "archived" && l.context !== 'buyer:schedule-visit';
+      if (filter === "buyer") return l.leadType === "buyer" && l.context !== 'buyer:schedule-visit' && l.status !== "archived";
       if (filter === "visit") return l.context === 'buyer:schedule-visit' && l.status !== 'archived';
       if (filter === "archived") return l.status === "archived";
       return true;
     });
   }, [leads, filter]);
 
-  useEffect(() => {
-    // update selectAll toggle when filtered changes
-    const allFilteredIds = filtered.map(f => f.id);
-    if (selectAll && allFilteredIds.length > 0) {
-      const map: Record<string, boolean> = {};
-      allFilteredIds.forEach(id => (map[id] = true));
-      setSelectedIds(map);
-    } else if (!selectAll) {
-        // Deselect all only if selectAll is unchecked
-        const currentSelected = Object.keys(selectedIds);
-        const filteredSelected = currentSelected.filter(id => allFilteredIds.includes(id));
-        if(currentSelected.length !== filteredSelected.length) {
+    useEffect(() => {
+        // When the filter changes, it's more intuitive to reset the selection.
+        clearSelection();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filter]);
+
+    useEffect(() => {
+        const filteredIds = filtered.map(l => l.id);
+        if (selectAll) {
             const newSelection: Record<string, boolean> = {};
-            filteredSelected.forEach(id => newSelection[id] = true);
+            filteredIds.forEach(id => newSelection[id] = true);
             setSelectedIds(newSelection);
+        } else {
+            // When deselecting "select all", we only clear the selection,
+            // individual selections are preserved until the filter changes.
+            setSelectedIds({});
         }
-    }
-  }, [selectAll, filtered, selectedIds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectAll]);
 
   function toggleSelect(id: string) {
     setSelectedIds(prev => {
@@ -303,3 +304,5 @@ export default function LeadsPage({ agentId }: Props) {
     </div>
   );
 }
+
+    
