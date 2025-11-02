@@ -16,8 +16,13 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AnimatePresence, motion } from "framer-motion";
+import Link from 'next/link';
 
 type LeadWithId = Lead & { id: string };
+
+const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 32 32" className="w-4 h-4" {...props}><path d=" M19.11 17.205c-.372 0-1.088 1.39-1.088 1.39s-1.088-1.39-1.088-1.39c-1.615 0-2.822-1.207-2.822-2.822s1.207-2.822 2.822-2.822c.433 0 .837.103 1.188.29l-1.188-1.188-1.188 1.188c-.35-.187-.755-.29-1.188-.29-1.615 0-2.822 1.207-2.822 2.822s1.207 2.822 2.822 2.822c.372 0 1.088-1.39 1.088-1.39s1.088 1.39 1.088 1.39c1.615 0 2.822-1.207 2.822-2.822s-1.207-2.822-2.822-2.822c-.433 0-.837.103-1.188.29l1.188-1.188-1.188 1.188c.35-.187.755-.29 1.188-.29 1.615 0 2.822 1.207 2.822 2.822s-1.207 2.822-2.822-2.822z" fill="currentColor"></path></svg>
+);
 
 function LeadCard({ 
     lead, 
@@ -32,6 +37,8 @@ function LeadCard({
 }) {
     const createdAt = lead.createdAt?.toDate ? format(lead.createdAt.toDate(), "d MMM, yyyy 'às' HH:mm", { locale: ptBR }) : 'Data indisponível';
     const isProcessing = isProcessingId === lead.id;
+
+    const whatsappLink = lead.phone ? `https://wa.me/${lead.phone.replace(/\D/g, '')}` : null;
 
     return (
         <motion.div
@@ -52,7 +59,22 @@ function LeadCard({
                                   {lead.status === 'archived' && <Badge variant="secondary">Arquivada</Badge>}
                                 </div>
                             </div>
-                            <p className="text-sm text-muted-foreground">{lead.email} {lead.phone && `• ${lead.phone}`}</p>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm text-muted-foreground">{lead.email}</span>
+                                {lead.phone && (
+                                    <>
+                                        <span className="text-muted-foreground">•</span>
+                                        <span className="text-sm text-muted-foreground">{lead.phone}</span>
+                                        {whatsappLink && (
+                                            <Button asChild variant="outline" size="icon" className="h-7 w-7 rounded-full bg-green-500/10 text-green-500 hover:bg-green-500/20 hover:text-green-600">
+                                                <Link href={whatsappLink} target="_blank" rel="noopener noreferrer" title="Abrir no WhatsApp">
+                                                    <WhatsAppIcon />
+                                                </Link>
+                                            </Button>
+                                        )}
+                                    </>
+                                )}
+                            </div>
                             <p className="text-md pt-2">{lead.message}</p>
                             {lead.propertyId && <p className="text-xs text-muted-foreground pt-2">Interesse no imóvel ID: {lead.propertyId}</p>}
                             <span className="text-xs text-muted-foreground">{createdAt}</span>
@@ -238,3 +260,5 @@ export default function InboxPage() {
         </Card>
     );
 }
+
+    
