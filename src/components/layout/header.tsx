@@ -4,6 +4,9 @@ import { Building2 } from "lucide-react";
 import { Button } from "../ui/button";
 import type { Agent } from '@/lib/data';
 import { usePathname } from 'next/navigation';
+import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
+import { ContactForm } from "@/components/contact-form";
+import { useState } from "react";
 
 interface HeaderProps {
     agentName?: string;
@@ -14,6 +17,7 @@ interface HeaderProps {
 export function Header({ agentName, agentId, agent }: HeaderProps) {
   
   const siteName = agent?.name || agentName || "AMA Imóveis";
+  const [isProprietarioFormOpen, setIsProprietarioFormOpen] = useState(false);
   
   const agentBaseUrl = agentId ? `/corretor/${agentId}` : '#';
 
@@ -47,8 +51,25 @@ export function Header({ agentName, agentId, agent }: HeaderProps) {
           </nav>
         </div>
         <div className="flex flex-1 items-center justify-end space-x-2">
+          <Dialog open={isProprietarioFormOpen} onOpenChange={setIsProprietarioFormOpen}>
+            <DialogTrigger asChild>
+              <Button variant="ghost">É um proprietário?</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[480px]">
+              {agentId && (
+                <ContactForm
+                  agentId={agentId}
+                  title="Anuncie seu imóvel conosco"
+                  description="Preencha os dados abaixo e entraremos em contato para avaliar e anunciar seu imóvel."
+                  isDialog={true}
+                  onFormSubmit={() => setIsProprietarioFormOpen(false)}
+                />
+              )}
+            </DialogContent>
+          </Dialog>
+
           <Button asChild>
-            <Link href={`${agentBaseUrl}#contato`}>Fale Conosco</Link>
+            <Link href={`${agentBaseUrl}#footer`}>Fale Conosco</Link>
           </Button>
            <Button asChild variant="outline">
               <Link href="/login">Área do Corretor</Link>
