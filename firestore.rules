@@ -58,14 +58,14 @@ service cloud.firestore {
     // Mensagens de suporte
     // =========================
     match /supportMessages/{messageId} {
-      // Criação apenas para usuários autenticados
+      // Admins têm acesso total
+      allow read, write: if isAdmin();
+      
+      // Usuários autenticados podem criar mensagens
       allow create: if isSignedIn();
 
-      // Listar e ler: admin pode tudo, usuário pode ler sua própria msg.
-      allow list, get: if isAdmin() || (isSignedIn() && resource.data.senderId == request.auth.uid);
-
-      // Atualizar (resposta) e deletar apenas admin
-      allow update, delete: if isAdmin();
+      // O autor da mensagem pode ler sua própria mensagem
+      allow get: if isOwner(resource.data.senderId);
     }
 
     // =========================
