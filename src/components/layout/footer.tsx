@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -16,8 +15,13 @@ import { useEffect, useState } from "react";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import type { Agent } from "@/lib/data";
+import { defaultPrivacyPolicy, defaultTermsOfUse } from "@/lib/data";
 import Link from "next/link";
-import { Skeleton } from "../ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
 
 const iconMap: Record<string, any> = {
   whatsapp: MessageCircle,
@@ -52,6 +56,36 @@ function formatLink(type: string, value: string): string {
   }
 }
 
+function PolicyDialog({ title, content }: { title: string, content: string }) {
+    const formatText = (text: string) => {
+        return text
+            .split('\n')
+            .map((line, i) => {
+                if (line.startsWith('## ')) return `<h2 key=${i} class="text-2xl font-bold mt-6 mb-3">${line.substring(3)}</h2>`;
+                if (line.startsWith('**')) return `<p key=${i} class="font-bold mt-4">${line.replace(/\*\*/g, '')}</p>`;
+                if (line.trim() === '') return '<br />';
+                return `<p key=${i} class="text-muted-foreground leading-relaxed mb-2">${line}</p>`;
+            })
+            .join('');
+    };
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                 <button className="hover:underline hover:text-foreground transition-colors">{title}</button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl h-[80vh]">
+                 <DialogHeader>
+                    <DialogTitle className="text-3xl font-headline">{title}</DialogTitle>
+                </DialogHeader>
+                <ScrollArea className="h-full">
+                    <div className="prose prose-invert max-w-none pr-6" dangerouslySetInnerHTML={{ __html: formatText(content) }} />
+                </ScrollArea>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 
 function FooterSkeleton() {
     return (
@@ -74,6 +108,9 @@ export function Footer({ agentId }: { agentId?: string }) {
   );
   
   const { data: agent, isLoading } = useDoc<Agent>(agentRef);
+  const privacyPolicy = agent?.siteSettings?.privacyPolicy || defaultPrivacyPolicy;
+  const termsOfUse = agent?.siteSettings?.termsOfUse || defaultTermsOfUse;
+
 
   return (
     <footer className="bg-card/50" id="footer">
@@ -107,10 +144,10 @@ export function Footer({ agentId }: { agentId?: string }) {
               © {new Date().getFullYear()} AMA Tecnologia. Todos os direitos reservados.
             </p>
           </div>
-          <div className="text-muted-foreground text-xs">
-              <Link href={agentId ? `/corretor/${agentId}/politica-de-privacidade` : '#'} className="hover:underline hover:text-foreground transition-colors">Política de Privacidade</Link>
-              <span className="mx-2">|</span>
-              <Link href={agentId ? `/corretor/${agentId}/termos-de-uso` : '#'} className="hover:underline hover:text-foreground transition-colors">Termos de Uso</Link>
+          <div className="text-muted-foreground text-xs space-x-2">
+              <PolicyDialog title="Política de Privacidade" content={privacyPolicy} />
+              <span>|</span>
+              <PolicyDialog title="Termos de Uso" content={termsOfUse} />
           </div>
         </div>
       </div>
