@@ -4,7 +4,7 @@ import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { doc } from 'firebase/firestore';
 import type { Agent } from '@/lib/data';
-import { LogOut, ShieldCheck, User } from 'lucide-react';
+import { LogOut, ShieldCheck, User, LayoutDashboard, LifeBuoy } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -25,17 +25,14 @@ export default function AdminLayout({
   const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
 
   useEffect(() => {
-    // If user data is loaded and there's no user, redirect to login.
     if (!isUserLoading && !user) {
       router.replace('/login');
     }
-    // If agent data is loaded and the user is not an admin, redirect.
     if (!isAgentLoading && agentData && agentData.role !== 'admin') {
-      router.replace('/dashboard'); // Redirect to their own dashboard
+      router.replace('/dashboard');
     }
   }, [user, isUserLoading, agentData, isAgentLoading, router]);
 
-  // Loading state
   if (isUserLoading || isAgentLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
@@ -45,7 +42,6 @@ export default function AdminLayout({
     );
   }
 
-  // If after loading, the user is not an admin, show access denied before redirect kicks in.
   if (agentData?.role !== 'admin') {
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-background text-center">
@@ -74,8 +70,16 @@ export default function AdminLayout({
              <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                     <Link href="/admin/painel">
-                        <ShieldCheck/>
-                        <span>Painel de Suporte</span>
+                        <LayoutDashboard/>
+                        <span>Dashboard</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                    <Link href="/admin/support">
+                        <LifeBuoy/>
+                        <span>Suporte</span>
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>

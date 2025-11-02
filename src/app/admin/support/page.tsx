@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useEffect, useState } from "react";
-import { collection, query, onSnapshot, doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, onSnapshot, doc, updateDoc, serverTimestamp, orderBy } from "firebase/firestore";
 import { useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import type { SupportMessage } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
@@ -14,10 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import Image from "next/image";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, LifeBuoy } from "lucide-react";
 
 
-export default function AdminPainelPage() {
+export default function AdminSupportPage() {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -35,7 +34,7 @@ export default function AdminPainelPage() {
     useEffect(() => {
         if (!supportCollection) return;
         
-        const q = query(supportCollection, (ref) => ref.orderBy('createdAt', 'desc'));
+        const q = query(supportCollection, orderBy('createdAt', 'desc'));
         
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const msgs = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as SupportMessage));
@@ -90,7 +89,7 @@ export default function AdminPainelPage() {
         <div className="space-y-6">
              <Card>
                 <CardHeader>
-                <CardTitle className="text-3xl font-bold font-headline">Painel de Suporte</CardTitle>
+                <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2"><LifeBuoy/> Painel de Suporte</CardTitle>
                 <CardDescription>Visualize e responda os tickets de suporte enviados pelos corretores.</CardDescription>
                 </CardHeader>
             </Card>
@@ -98,7 +97,7 @@ export default function AdminPainelPage() {
             <Accordion type="multiple" className="w-full space-y-4">
                 {messages.map(msg => (
                     <AccordionItem key={msg.id} value={msg.id} className="border rounded-lg bg-card overflow-hidden">
-                        <AccordionTrigger className="p-4 hover:no-underline">
+                        <AccordionTrigger className="p-4 hover:no-underline data-[state=open]:bg-muted/50">
                             <div className="flex justify-between items-center w-full">
                                 <div className="text-left">
                                     <p className="font-semibold">{msg.senderName}</p>
@@ -114,7 +113,7 @@ export default function AdminPainelPage() {
                         </AccordionTrigger>
                         <AccordionContent className="p-4 pt-0">
                             <div className="space-y-4">
-                                <p className="text-muted-foreground whitespace-pre-wrap">{msg.message}</p>
+                                <p className="text-muted-foreground whitespace-pre-wrap pt-4 border-t">{msg.message}</p>
                                 {msg.images && msg.images.length > 0 && (
                                     <div className="grid grid-cols-3 gap-2">
                                         {msg.images.map((url, i) => (
@@ -154,4 +153,3 @@ export default function AdminPainelPage() {
         </div>
     );
 }
-
