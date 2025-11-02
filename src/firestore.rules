@@ -1,10 +1,11 @@
 
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Funções auxiliares de autenticação
+    // =========================
+    // Funções auxiliares
+    // =========================
     function isSignedIn() {
       return request.auth != null;
     }
@@ -14,57 +15,70 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      // Lê o campo 'role' do documento do agente correspondente ao UID do usuário autenticado.
-      return isSignedIn() && get(/databases/$(database)/documents/agents/$(request.auth.uid)).data.role == 'admin';
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/agents/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Regra para a coleção de agentes (corretores/imobiliárias)
+    // =========================
+    // Coleção de agentes (corretores)
+    // =========================
     match /agents/{agentId} {
-      // Perfil e configurações são publicamente legíveis
-      allow get: if true; 
-      // A listagem de todos os agentes só é permitida para administradores
+      // Perfis públicos podem ser lidos
+      allow get: if true;
+      // Listar todos os agentes apenas admin
       allow list: if isAdmin();
-      // Apenas o próprio dono ou um admin pode escrever no perfil
+      // Escrever apenas dono ou admin
       allow write: if isOwner(agentId) || isAdmin();
 
-      // Subcoleções dentro de cada agente
+      // Subcoleção de propriedades
       match /properties/{propertyId} {
         allow read: if true;
         allow write: if isOwner(agentId) || isAdmin();
       }
 
+      // Subcoleção de reviews
       match /reviews/{reviewId} {
-        allow create: if isSignedIn(); // Qualquer um pode enviar uma avaliação
-        allow list, get: if resource.data.approved == true; // Leituras públicas apenas para avaliações aprovadas
-        // Dono do perfil e admins podem gerenciar todas as avaliações
-        allow read, update, delete: if isOwner(agentId) || isAdmin(); 
+        allow create: if isSignedIn(); // qualquer usuário autenticado
+        allow list, get: if resource.data.approved == true; // públicas apenas aprovadas
+        allow read, update, delete: if isOwner(agentId) || isAdmin();
       }
-      
+
+      // Subcoleção customSections
       match /customSections/{sectionId} {
         allow read: if true;
         allow write: if isOwner(agentId) || isAdmin();
       }
-      
+
+      // Subcoleção leads
       match /leads/{leadId} {
-        allow create: if true; // Formulários de contato são públicos
-        // Apenas o dono do perfil ou admin podem ler/gerenciar os leads
+        allow create: if true; // formulário público
         allow read, update, delete: if isOwner(agentId) || isAdmin();
       }
     }
 
-    // Regras para a coleção de mensagens de suporte
+    // =========================
+    // Mensagens de suporte
+    // =========================
     match /supportMessages/{messageId} {
-      // Qualquer usuário autenticado pode criar um ticket de suporte
+      // Criação apenas para usuários autenticados
       allow create: if isSignedIn();
-      
-      // Admins podem listar e ler todas as mensagens.
-      allow list, get: if isAdmin();
-      
-      // O autor original também pode ler sua própria mensagem (mas não listar a coleção)
-      allow get: if isOwner(resource.data.senderId);
 
-      // Admins podem responder (atualizar) ou deletar
-      allow update, delete: if isAdmin();
+      // Listar e ler
+      allow list, get: if isAdmin() || resource.data.senderId == request.auth.uid;
+
+      // Atualizar (resposta) apenas admin
+      allow update: if isAdmin();
+
+      // Deletar apenas admin
+      allow delete: if isAdmin();
+    }
+
+    // =========================
+    // Regras globais de propriedades (caso haja pesquisa global)
+    // =========================
+    match /{path=**}/properties/{propertyId} {
+      allow read: if true;
+      allow write: if false; // apenas via subcoleção do agente
     }
   }
 }
