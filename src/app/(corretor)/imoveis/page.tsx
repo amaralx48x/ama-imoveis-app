@@ -124,7 +124,6 @@ export default function ImoveisPage() {
     const filteredProperties = useMemo(() => {
         let propertiesByTab;
         if (activeTab === 'ativo') {
-             // Retrocompatible: shows properties where status is 'ativo' OR status doesn't exist
             propertiesByTab = allProperties.filter(p => p.status !== 'vendido' && p.status !== 'alugado');
         } else {
             propertiesByTab = allProperties.filter(p => p.status === activeTab);
@@ -135,11 +134,15 @@ export default function ImoveisPage() {
         }
 
         const lowercasedTerm = searchTerm.toLowerCase();
-        return propertiesByTab.filter(property =>
-            property.title.toLowerCase().includes(lowercasedTerm) ||
-            property.city.toLowerCase().includes(lowercasedTerm) ||
-            property.neighborhood.toLowerCase().includes(lowercasedTerm)
-        );
+        return propertiesByTab.filter(property => {
+            const title = property.title?.toLowerCase() ?? '';
+            const city = property.city?.toLowerCase() ?? '';
+            const neighborhood = property.neighborhood?.toLowerCase() ?? '';
+
+            return title.includes(lowercasedTerm) ||
+                   city.includes(lowercasedTerm) ||
+                   neighborhood.includes(lowercasedTerm);
+        });
 
     }, [allProperties, activeTab, searchTerm]);
 
