@@ -43,7 +43,7 @@ function SearchResults() {
         minPrice: searchParams.get('minPrice') || undefined,
         maxPrice: searchParams.get('maxPrice') || undefined,
         bedrooms: searchParams.get('bedrooms') || undefined,
-        garage: searchParams.get('garage') || undefined,
+        garage: search_params.get('garage') || undefined,
         keyword: searchParams.get('keyword') || undefined,
     };
     
