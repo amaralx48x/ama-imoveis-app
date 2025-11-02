@@ -51,9 +51,6 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
 
     const formattedPrice = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-    const iptu = property.price * 0.0006; // Example: 0.06% of property value
-    const totalPrice = property.operation === 'Alugar' ? property.price + iptu : property.price;
-
     const showFinancingButton = agent.siteSettings?.showFinancing ?? true;
     
     // --- Nova Lógica de Contato ---
@@ -161,18 +158,9 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                  <Card className="sticky top-24">
                     <CardContent className="pt-6 space-y-3">
                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">{property.operation === 'Alugar' ? 'Locação' : 'Valor'}</span>
-                                <span className="font-semibold">{formattedPrice(property.price)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">IPTU (aprox.)</span>
-                                <span className="font-semibold">{formattedPrice(iptu)}</span>
-                            </div>
-                             <Separator className="my-2"/>
-                            <div className="flex justify-between font-bold text-base">
-                                <span>Total</span>
-                                <span>{formattedPrice(totalPrice)}</span>
+                            <div className="flex justify-between font-bold text-lg">
+                                <span>{property.operation === 'Alugar' ? 'Valor do Aluguel' : 'Valor de Venda'}</span>
+                                <span>{formattedPrice(property.price)}</span>
                             </div>
                         </div>
 
