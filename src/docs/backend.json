@@ -1,34 +1,6 @@
 
 {
   "entities": {
-    "SavedTheme": {
-      "title": "Saved Theme",
-      "type": "object",
-      "description": "Represents a user-saved custom theme.",
-      "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "theme": { "$ref": "#/entities/Theme" }
-      },
-      "required": ["id", "name", "theme"]
-    },
-    "Theme": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Theme",
-      "type": "object",
-      "description": "Represents the visual theme settings for an agent's public site.",
-      "properties": {
-        "headerColor": { "type": "string", "description": "Background color for the header." },
-        "footerColor": { "type": "string", "description": "Background color for the footer." },
-        "textPrimary": { "type": "string", "description": "Primary text color (used when textDynamic is false)." },
-        "textDynamic": { "type": "boolean", "description": "Whether to automatically determine text color for contrast.", "default": true },
-        "backgroundPrimary": { "type": "string", "description": "Primary background color of the site." },
-        "backgroundSecondary": { "type": "string", "description": "Secondary background color for cards and sections." },
-        "buttonPrimary": { "type": "string", "description": "Primary button color." },
-        "buttonSecondary": { "type": "string", "description": "Secondary button color (e.g., for hover)." }
-      },
-      "required": ["headerColor", "footerColor", "textPrimary", "textDynamic", "backgroundPrimary", "backgroundSecondary", "buttonPrimary", "buttonSecondary"]
-    },
     "Property": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Property",
@@ -135,11 +107,6 @@
               "description": "List of social media links.",
               "items": { "$ref": "#/entities/SocialLink" }
             },
-            "savedThemes": {
-              "type": "array",
-              "description": "List of user-saved themes.",
-              "items": { "$ref": "#/entities/SavedTheme" }
-            },
             "privacyPolicy": { "type": "string", "description": "The full text for the Privacy Policy." },
             "termsOfUse": { "type": "string", "description": "The full text for the Terms of Use." },
             "manualCommissionAdjustments": {
@@ -210,7 +177,7 @@
       "description": "Represents a support ticket sent by a user.",
       "properties": {
         "id": { "type": "string" },
-        "senderUid": { "type": "string", "description": "UID of the user who sent the message." },
+        "senderId": { "type": "string", "description": "UID of the user who sent the message." },
         "senderName": { "type": "string" },
         "senderEmail": { "type": "string", "format": "email" },
         "message": { "type": "string" },
@@ -221,7 +188,7 @@
         "responseMessage": { "type": "string" },
         "responseAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "senderUid", "senderName", "senderEmail", "message", "status", "createdAt"]
+      "required": ["id", "senderId", "senderName", "senderEmail", "message", "status", "createdAt"]
     }
   },
   "auth": {
@@ -253,11 +220,6 @@
         "path": "/agents/{agentId}/leads/{leadId}",
         "schema": { "$ref": "#/entities/Lead" },
         "description": "Stores leads generated from contact forms for a specific agent."
-      },
-       {
-        "path": "/agents/{agentId}/themes/{themeId}",
-        "schema": { "$ref": "#/entities/Theme" },
-        "description": "Stores theme customization for the agent's public site. Usually has a single document with id 'current'."
       },
        {
         "path": "/supportMessages/{messageId}",

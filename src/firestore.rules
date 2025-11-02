@@ -15,12 +15,6 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isOwner(agentId) || isAdmin();
 
-      // Theme document as a subdocument of agent
-      match /theme/{doc=**} {
-        allow read: if true; // Publicly readable for the site
-        allow write: if isOwner(agentId);
-      }
-
       match /reviews/{reviewId} {
         allow create: if true;
         allow list, get: if resource.data.approved == true;

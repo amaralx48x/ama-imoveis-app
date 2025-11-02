@@ -8,7 +8,6 @@ import { usePathname } from 'next/navigation';
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import { ContactForm } from "@/components/contact-form";
 import { useState } from "react";
-import { getContrastColor } from "@/context/ThemeContext";
 
 interface HeaderProps {
     agentName?: string;
@@ -32,11 +31,7 @@ export function Header({ agentName, agentId, agent }: HeaderProps) {
 
   return (
     <header 
-      className="sticky top-0 z-50 w-full border-b border-border/40 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-      style={{ 
-        backgroundColor: 'var(--header-color)',
-        color: getContrastColor(document.documentElement.style.getPropertyValue('--header-color')) 
-      }}
+      className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
     >
       <div className="container flex h-14 max-w-screen-2xl items-center">
         <div className="mr-4 hidden md:flex">
@@ -51,7 +46,7 @@ export function Header({ agentName, agentId, agent }: HeaderProps) {
                  <Link
                     key={item.href}
                     href={item.href}
-                    className="transition-colors hover:text-foreground/80"
+                    className="transition-colors hover:text-foreground/80 text-muted-foreground"
                 >
                     {item.label}
                 </Link>
@@ -76,7 +71,7 @@ export function Header({ agentName, agentId, agent }: HeaderProps) {
             </DialogContent>
           </Dialog>
 
-          <Button asChild style={{ backgroundColor: 'var(--btn-primary)', color: getContrastColor(document.documentElement.style.getPropertyValue('--btn-primary'))}}>
+          <Button asChild>
             <Link href={`${agentBaseUrl}#footer`}>Fale Conosco</Link>
           </Button>
            <Button asChild variant="outline">

@@ -26,15 +26,6 @@
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
 
-    /* Fallback/Default Theme Variables */
-    --header-color: #1f2937;
-    --footer-color: #1f2937;
-    --bg-primary: #111827;
-    --bg-secondary: #374151;
-    --text-color: #ffffff;
-    --btn-primary: hsl(277 79% 53%);
-    --btn-secondary: hsl(282 100% 41%);
-
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -87,8 +78,7 @@
     @apply border-border;
   }
   body {
-    background-color: var(--bg-primary);
-    color: var(--text-color);
+    @apply bg-background text-foreground;
     zoom: 0.94;
   }
   .text-gradient {

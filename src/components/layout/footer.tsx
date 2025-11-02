@@ -15,7 +15,7 @@ import { motion } from "framer-motion";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import type { Agent } from "@/lib/data";
-import { defaultPrivacyPolicy, defaultTermsOfUse, getContrastColor } from "@/lib/data";
+import { defaultPrivacyPolicy, defaultTermsOfUse } from "@/lib/data";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -116,7 +116,7 @@ export function Footer({ agentId }: { agentId?: string }) {
 
 
   return (
-    <footer id="footer" style={{ backgroundColor: 'var(--footer-color)', color: getContrastColor(document.documentElement.style.getPropertyValue('--footer-color')) }}>
+    <footer id="footer" className="bg-muted">
       <div className="container mx-auto px-4 py-8">
 
         <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-6 min-h-[56px]">
@@ -139,7 +139,7 @@ export function Footer({ agentId }: { agentId?: string }) {
                             </div>
                         )}
                         <div className="text-left">
-                            <span className="font-semibold text-current">{locationLink.label}</span>
+                            <span className="font-semibold text-foreground">{locationLink.label}</span>
                             <p className="text-xs line-clamp-3">{locationLink.url}</p>
                         </div>
                     </motion.a>
@@ -154,7 +154,7 @@ export function Footer({ agentId }: { agentId?: string }) {
                         whileTap={{ scale: 0.95 }}
                         title={phoneLink.label}
                     >
-                         <span className="font-semibold text-current">{phoneLink.label}</span>
+                         <span className="font-semibold text-foreground">{phoneLink.label}</span>
                         <p className="text-muted-foreground hover:text-primary transition-colors">{phoneLink.url}</p>
                     </motion.a>
                  )}
@@ -172,7 +172,7 @@ export function Footer({ agentId }: { agentId?: string }) {
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex flex-col items-center hover:text-primary transition-all"
+                    className="flex flex-col items-center text-muted-foreground hover:text-primary transition-all"
                     whileHover={{ scale: 1.15 }}
                     whileTap={{ scale: 0.95 }}
                     title={link.label}
@@ -187,11 +187,11 @@ export function Footer({ agentId }: { agentId?: string }) {
 
         <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left border-t border-border pt-6">
            <div className="mb-4 md:mb-0">
-             <p className="text-sm">
+             <p className="text-muted-foreground text-sm">
               © {new Date().getFullYear()} AMA Tecnologia. Todos os direitos reservados.
             </p>
           </div>
-          <div className="text-xs space-x-2">
+          <div className="text-muted-foreground text-xs space-x-2">
               <PolicyDialog title="Política de Privacidade" content={privacyPolicy} />
               <span>|</span>
               <PolicyDialog title="Termos de Uso" content={termsOfUse} />

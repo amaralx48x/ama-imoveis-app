@@ -46,23 +46,6 @@ export type Availability = {
   endTime: string;
 }
 
-export type Theme = {
-  headerColor: string;
-  footerColor: string;
-  textPrimary: string;
-  textDynamic: boolean;
-  backgroundPrimary: string;
-  backgroundSecondary: string;
-  buttonPrimary: string;
-  buttonSecondary: string;
-};
-
-export type SavedTheme = {
-  id: string;
-  name: string;
-  theme: Theme;
-};
-
 export type SiteSettings = {
     showFinancing?: boolean;
     financingLink?: string;
@@ -70,7 +53,6 @@ export type SiteSettings = {
     defaultSaleCommission?: number;
     defaultRentCommission?: number;
     socialLinks?: SocialLink[];
-    savedThemes?: SavedTheme[];
     privacyPolicy?: string;
     termsOfUse?: string;
 }
@@ -88,7 +70,6 @@ export type Agent = {
     cities?: string[];
     availability?: Availability;
     siteSettings?: SiteSettings;
-    theme?: Theme; // New theme property
 }
 
 export type LeadType = "seller" | "buyer" | "other";
@@ -126,25 +107,6 @@ export type CustomSection = {
   order: number;
   createdAt: any;
 };
-
-export function getContrastColor(bgColor: string): string {
-    if (!bgColor) return "#000000"; // Fallback
-    
-    if (!bgColor.startsWith('#')) {
-        return "#ffffff";
-    }
-
-    try {
-        const r = parseInt(bgColor.slice(1, 3), 16);
-        const g = parseInt(bgColor.slice(3, 5), 16);
-        const b = parseInt(bgColor.slice(5, 7), 16);
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        return luminance > 0.5 ? "#000000" : "#ffffff";
-    } catch (e) {
-        return "#000000"; // Fallback em caso de erro de parsing
-    }
-}
-
 
 // This data is now considered legacy mock data.
 // The app will primarily use Firestore.
