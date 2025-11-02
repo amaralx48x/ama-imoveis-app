@@ -139,7 +139,7 @@ export default function AgentPublicPage({ }: Props) {
 
     return (
         <>
-            <Header agentName={agent.name} agentId={agent.id}/>
+            <Header agent={agent} agentId={agent.id}/>
             <main className="min-h-screen">
                 <div className="relative mb-24">
                     <Hero heroImage={heroImage}>
@@ -175,7 +175,7 @@ export default function AgentPublicPage({ }: Props) {
                 )}
                 <ContactForm agentId={agent.id} />
             </main>
-            <Footer />
+            <Footer agent={agent} />
         </>
     );
 }

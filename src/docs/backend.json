@@ -57,7 +57,17 @@
             "financingLink": { "type": "string", "description": "Custom URL for the financing button." },
             "showReviews": { "type": "boolean", "description": "Show or hide the client reviews section." },
             "defaultSaleCommission": { "type": "number", "description": "Default commission percentage for sales." },
-            "defaultRentCommission": { "type": "number", "description": "Default commission percentage for rentals." }
+            "defaultRentCommission": { "type": "number", "description": "Default commission percentage for rentals." },
+            "socialLinks": {
+              "type": "object",
+              "description": "Links to social media profiles.",
+              "properties": {
+                "facebook": { "type": "string", "format": "uri" },
+                "instagram": { "type": "string", "format": "uri" },
+                "linkedin": { "type": "string", "format": "uri" },
+                "whatsapp": { "type": "string" }
+              }
+            }
           }
         }
       },

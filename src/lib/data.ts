@@ -24,12 +24,20 @@ export type Property = {
   commissionValue?: number;
 };
 
+export type SocialLinks = {
+    facebook?: string;
+    instagram?: string;
+    linkedin?: string;
+    whatsapp?: string;
+}
+
 export type SiteSettings = {
     showFinancing?: boolean;
     financingLink?: string;
     showReviews?: boolean;
     defaultSaleCommission?: number;
     defaultRentCommission?: number;
+    socialLinks?: SocialLinks;
 }
 
 export type Agent = {
