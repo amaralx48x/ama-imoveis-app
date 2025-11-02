@@ -11,6 +11,8 @@ export type Filters = {
     bedrooms?: string;
     garage?: string;
     keyword?: string;
+    agentId?: string;
+    sectionId?: string;
 }
 
 export function filterProperties(properties: Property[], filters: Filters): Property[] {
@@ -18,7 +20,7 @@ export function filterProperties(properties: Property[], filters: Filters): Prop
   
   const {
       city, neighborhood, type, operation,
-      minPrice, maxPrice, bedrooms, garage, keyword
+      minPrice, maxPrice, bedrooms, garage, keyword, sectionId
     } = filters;
     
   // Primary keyword search on title, city, neighborhood
@@ -41,6 +43,7 @@ export function filterProperties(properties: Property[], filters: Filters): Prop
   if (maxPrice) filtered = filtered.filter(p => p.price <= Number(maxPrice));
   if (bedrooms) filtered = filtered.filter(p => p.bedrooms >= Number(bedrooms));
   if (garage) filtered = filtered.filter(p => p.garage >= Number(garage));
+  if (sectionId) filtered = filtered.filter(p => (p.sectionIds || []).includes(sectionId));
   
   return filtered;
 }
