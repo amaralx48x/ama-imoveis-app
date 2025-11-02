@@ -109,7 +109,7 @@ const properties: Property[] = [
   {
     id: '2',
     title: 'Casa Espaçosa com Quintal',
-    description: 'Casa familiar espaçosa em bairro tranquilo, com um grande quintal perfeito para crianças e animais de estimação. Possui 4 quartos, cozinha americana e área de churrasqueira. Próxima a escolas, parques e comércios locais.',
+    description: 'Casa familiar espaçosa em bairro tranquilo, com um grande quintal perfeito para crianças e animais de estimação. Possui 4 quartos, cozinha americana и área de churrasqueira. Próxima a escolas, parques e comércios locais.',
     price: 850000,
     bedrooms: 4,
     bathrooms: 3,
@@ -152,87 +152,81 @@ const staticReviews: Review[] = [
 ];
 
 export const defaultPrivacyPolicy = `
-## Política de Privacidade
+## POLÍTICA DE PRIVACIDADE
 
-**Última atualização:** ${new Date().toLocaleDateString('pt-BR')}
+**Última Atualização:** ${new Date().toLocaleDateString('pt-BR')}
 
-A sua privacidade é importante para nós. É política do nosso site respeitar a sua privacidade em relação a qualquer informação sua que possamos coletar.
+A presente Política de Privacidade e Tratamento de Dados Pessoais ("Política") tem por finalidade demonstrar o compromisso do(a) [Nome do Site/Corretor], doravante denominado(a) "Controlador", com a privacidade e a proteção dos dados pessoais coletados de seus Usuários, estabelecendo as regras sobre a coleta, registro, armazenamento, uso, compartilhamento e eliminação dos dados coletados dentro do escopo dos serviços prestados, em conformidade com a Lei nº 13.709/2018 (Lei Geral de Proteção de Dados Pessoais - LGPD).
 
-**1. Coleta de Dados**
-Solicitamos informações pessoais apenas quando realmente precisamos delas para lhe fornecer um serviço. Fazemo-lo por meios justos и legais, com o seu conhecimento e consentimento. Também informamos por que estamos coletando e como será usado.
+**1. DEFINIÇÕES**
+**Dado Pessoal:** Informação relacionada a pessoa natural identificada ou identificável.
+**Titular:** Pessoa natural a quem se referem os dados pessoais que são objeto de tratamento.
+**Tratamento:** Toda operação realizada com dados pessoais, como as que se referem a coleta, produção, recepção, classificação, utilização, acesso, reprodução, transmissão, distribuição, processamento, arquivamento, armazenamento, eliminação, avaliação ou controle da informação, modificação, comunicação, transferência, difusão ou extração.
+**Controlador:** Pessoa natural ou jurídica, de direito público ou privado, a quem competem as decisões referentes ao tratamento de dados pessoais. Para fins desta Política, o corretor/imobiliária responsável por este site.
 
-Os dados que coletamos através do formulário de contato (nome, email, telefone e mensagem) são utilizados exclusivamente para que o corretor responsável possa entrar em contato com você para tratar sobre sua solicitação.
+**2. DADOS COLETADOS E FINALIDADE DO TRATAMENTO**
+O Controlador poderá coletar os seguintes dados pessoais dos Titulares que utilizam o formulário de contato:
+- **Dados de Contato:** Nome, endereço de e-mail, número de telefone.
+- **Finalidade:** Viabilizar o contato comercial para responder a questionamentos, fornecer informações sobre imóveis, agendar visitas e prestar os serviços de intermediação imobiliária. A base legal para este tratamento é o fornecimento de consentimento pelo Titular (Art. 7º, I, LGPD) e, subsequentemente, a execução de diligências pré-contratuais (Art. 7º, V, LGPD).
 
-**2. Uso dos Dados**
-Os dados fornecidos são utilizados para:
-- Responder às suas questões e solicitações.
-- Agendar visitas a imóveis.
-- Fornecer informações sobre propriedades de seu interesse.
-- Enviar comunicações de marketing, caso tenha consentido.
+**3. ARMAZENAMENTO E SEGURANÇA DOS DADOS**
+Os dados pessoais coletados são armazenados em ambiente seguro e controlado. O Controlador emprega medidas técnicas e administrativas aptas a proteger os dados pessoais de acessos não autorizados e de situações acidentais ou ilícitas de destruição, perda, alteração, comunicação ou qualquer forma de tratamento inadequado ou ilícito.
+Os dados são retidos apenas pelo período estritamente necessário para o cumprimento das finalidades para as quais foram coletados, bem como para o cumprimento de obrigações legais, regulatórias ou para o exercício regular de direitos em processo judicial.
 
-**3. Armazenamento de Dados**
-Apenas retemos as informações coletadas pelo tempo necessário para fornecer o serviço solicitado. Quando armazenamos dados, protegemos dentro de meios comercialmente aceitáveis para evitar perdas e roubos, bem como acesso, divulgação, cópia, uso ou modificação não autorizados.
+**4. COMPARTILHAMENTO DE DADOS**
+O Controlador não compartilha os dados pessoais dos Titulares com terceiros, exceto mediante consentimento expresso do Titular ou por força de obrigação legal ou ordem judicial.
 
-**4. Compartilhamento de Dados**
-Não compartilhamos informações de identificação pessoal publicamente ou com terceiros, exceto quando exigido por lei.
+**5. DIREITOS DO TITULAR DOS DADOS**
+Nos termos do Art. 18 da LGPD, o Titular dos dados pessoais tem o direito a obter do Controlador, a qualquer momento e mediante requisição:
+I - confirmação da existência de tratamento;
+II - acesso aos dados;
+III - correção de dados incompletos, inexatos ou desatualizados;
+IV - anonimização, bloqueio ou eliminação de dados desnecessários, excessivos ou tratados em desconformidade com a LGPD;
+V - portabilidade dos dados a outro fornecedor, mediante requisição expressa;
+VI - eliminação dos dados pessoais tratados com o consentimento do titular;
+VII - informação das entidades com as quais o controlador realizou uso compartilhado de dados;
+VIII - informação sobre a possibilidade de não fornecer consentimento e sobre as consequências da negativa;
+IX - revogação do consentimento.
 
-**5. Seus Direitos (LGPD)**
-De acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018), você tem o direito de:
-- Confirmar a existência de tratamento de seus dados.
-- Acessar seus dados.
-- Corrigir dados incompletos, inexatos ou desatualizados.
-- Solicitar a anonimização, bloqueio ou eliminação de dados desnecessários.
-- Solicitar a portabilidade dos seus dados a outro fornecedor de serviço ou produto.
-- Solicitar a eliminação dos dados pessoais tratados com o seu consentimento.
-- Obter informação sobre as entidades públicas ou privadas com as quais compartilhamos seus dados.
+Para exercer qualquer um dos seus direitos, o Titular deverá entrar em contato com o Controlador através dos canais de comunicação disponibilizados neste site.
 
-Para exercer seus direitos, entre em contato conosco através dos canais disponibilizados neste site.
+**6. DISPOSIÇÕES GERAIS**
+Esta Política poderá ser atualizada a qualquer tempo. Recomenda-se que o Titular a verifique periodicamente.
+O uso continuado deste site após a publicação de alterações a esta Política será considerado como aceitação das práticas de privacidade.
 
-**6. Links para Sites de Terceiros**
-O nosso site pode ter links para sites externos que não são operados por nós. Esteja ciente de que não temos controle sobre o conteúdo e práticas desses sites e não podemos aceitar responsabilidade por suas respectivas políticas de privacidade.
-
-**7. Consentimento**
-O uso continuado de nosso site será considerado como aceitação de nossas práticas em torno de privacidade e informações pessoais. Se você tiver alguma dúvida sobre como lidamos com dados do usuário e informações pessoais, entre em contato conosco.
-
-O corretor/imobiliária responsável por este site é o controlador dos dados pessoais coletados.
+**7. JURISDIÇÃO**
+Esta Política será regida, interpretada e executada de acordo com as Leis da República Federativa do Brasil, sendo competente o foro da comarca de domicílio do Titular para dirimir qualquer dúvida decorrente deste documento.
 `;
 
 export const defaultTermsOfUse = `
-## Termos de Uso
+## TERMOS E CONDIÇÕES DE USO
 
-**Última atualização:** ${new Date().toLocaleDateString('pt-BR')}
+**Última Atualização:** ${new Date().toLocaleDateString('pt-BR')}
 
-**1. Termos**
-Ao acessar ao site, concorda em cumprir estes termos de serviço, todas as leis e regulamentos aplicáveis ​​e concorda que é responsável pelo cumprimento de todas as leis locais aplicáveis. Se você não concordar com algum desses termos, está proibido de usar ou acessar este site. Os materiais contidos neste site são protegidos pelas leis de direitos autorais e marcas comerciais aplicáveis.
+Estes Termos e Condições de Uso ("Termos") regulam o acesso e a utilização do website mantido pelo(a) [Nome do Site/Corretor], doravante denominado(a) "Prestador". O acesso e a utilização do site implicam na aceitação integral e sem reservas de todas as disposições destes Termos.
 
-**2. Uso de Licença**
-É concedida permissão para baixar temporariamente uma cópia dos materiais (informações ou software) no site, apenas para visualização transitória pessoal e não comercial. Esta é a concessão de uma licença, não uma transferência de título e, sob esta licença, você не pode:
-- modificar ou copiar os materiais;
-- usar os materiais para qualquer finalidade comercial ou para exibição pública (comercial ou não comercial);
-- tentar descompilar ou fazer engenharia reversa de qualquer software contido no site;
-- remover quaisquer direitos autorais ou outras notações de propriedade dos materiais; ou
-- transferir os materiais para outra pessoa ou 'espelhe' os materiais em qualquer outro servidor.
+**1. OBJETO**
+O presente site tem como objeto a divulgação de anúncios de imóveis para venda e locação, bem como a facilitação do contato entre os Usuários interessados e o Prestador, que atua na intermediação imobiliária.
 
-Esta licença será automaticamente rescindida se você violar alguma dessas restrições e poderá ser rescindida por nós a qualquer momento.
+**2. OBRIGAÇÕES DO USUÁRIO**
+O Usuário compromete-se a utilizar o site e seus serviços em conformidade com a lei, a moral, os bons costumes, a ordem pública e os presentes Termos. O Usuário se obriga a não utilizar o site para fins ilícitos, lesivos aos direitos e interesses de terceiros, ou que de qualquer forma possam danificar, inutilizar, sobrecarregar ou deteriorar o site e seus serviços.
 
-**3. Isenção de Responsabilidade**
-Os materiais no site são fornecidos 'como estão'. Não oferecemos garantias, expressas ou implícitas, e, por este meio, isenta e nega todas as outras garantias, incluindo, sem limitação, garantias implícitas ou condições de comercialização, adequação a um fim específico ou não violação de propriedade intelectual ou outra violação de direitos.
-Além disso, não garantimos ou fazemos qualquer representação relativa à precisão, aos resultados prováveis ​​ou à confiabilidade do uso dos materiais em seu site ou de outra forma relacionado a esses materiais ou em sites vinculados a este site.
+**3. PROPRIEDADE INTELECTUAL**
+Todo o conteúdo disponibilizado no site, incluindo, mas não se limitando a textos, gráficos, imagens, logotipos, ícones, fotografias, layout, software e demais materiais ("Conteúdo"), é de propriedade exclusiva do Prestador ou de terceiros que licitamente cederam seu direito de uso, e está protegido pelas leis de propriedade intelectual.
+É vedada a reprodução, distribuição, modificação, exibição, criação de trabalhos derivados ou qualquer outra forma de utilização do Conteúdo sem a prévia e expressa autorização por escrito do Prestador.
 
-**4. Limitações**
-Em nenhum caso nós ou nossos fornecedores seremos responsáveis ​​por quaisquer danos (incluindo, sem limitação, danos por perda de dados ou lucro ou devido a interrupção dos negócios) decorrentes do uso ou da incapacidade de usar os materiais no site, mesmo que nós ou um representante autorizado tenha sido notificado oralmente ou por escrito da possibilidade de tais danos.
+**4. ISENÇÃO DE RESPONSABILIDADE**
+As informações sobre os imóveis (preços, metragens, características, disponibilidade, etc.) são fornecidas pelos proprietários e estão sujeitas a alterações sem aviso prévio. O Prestador envida seus melhores esforços para manter as informações atualizadas, contudo, não garante a exatidão, pontualidade ou integralidade das mesmas, recomendando-se a confirmação junto aos nossos corretores.
+O Prestador não se responsabiliza por quaisquer danos diretos, indiretos, incidentais, especiais, consequenciais ou punitivos resultantes do uso ou da incapacidade de uso do site.
 
-**5. Precisão dos Materiais**
-Os materiais exibidos no site podem incluir erros técnicos, tipográficos ou fotográficos. Não garantimos que qualquer material em seu site seja preciso, completo ou atual. Podemos fazer alterações nos materiais contidos em seu site a qualquer momento, sem aviso prévio. No entanto, não nos comprometemos a atualizar os materiais.
+**5. LINKS PARA SITES DE TERCEIROS**
+O site pode conter links para websites de terceiros. A existência desses links não implica em relação de endosso, patrocínio ou afiliação do Prestador para com esses sites. O Prestador não exerce controle sobre o conteúdo de sites de terceiros e não se responsabiliza por suas políticas ou práticas. O acesso a tais sites se dará por conta e risco do Usuário.
 
-**6. Links**
-Não analisamos todos os sites vinculados ao seu site e не somos responsáveis pelo conteúdo de nenhum site vinculado. A inclusão de qualquer link não implica nosso endosso do site. O uso de qualquer site vinculado é por conta e risco do usuário.
+**6. MODIFICAÇÕES DOS TERMOS**
+O Prestador reserva-se o direito de modificar os presentes Termos a qualquer tempo, sem necessidade de aviso prévio. A versão atualizada estará sempre disponível no site. Recomenda-se a leitura periódica destes Termos. A continuidade do uso do site pelo Usuário após quaisquer alterações constituirá sua aceitação tácita.
 
-**Modificações**
-Podemos revisar estes termos de serviço do site a qualquer momento, sem aviso prévio. Ao usar este site, você concorda em ficar vinculado à versão atual desses termos de serviço.
-
-**Lei aplicável**
-Estes termos e condições são regidos e interpretados de acordo com as leis do Brasil e você se submete irrevogavelmente à jurisdição exclusiva dos tribunais naquele estado ou localidade.
+**7. LEGISLAÇÃO APLICÁVEL E FORO**
+Estes Termos são regidos e interpretados segundo as leis da República Federativa do Brasil. Fica eleito o foro da Comarca do domicílio do Prestador para dirimir quaisquer controvérsias oriundas destes Termos, com renúncia expressa a qualquer outro, por mais privilegiado que seja.
 `;
 
 export const getReviews = () => staticReviews;
