@@ -56,12 +56,12 @@ service cloud.firestore {
     match /supportMessages/{messageId} {
       // Qualquer usuário autenticado pode criar um ticket de suporte
       allow create: if isSignedIn();
-      // Admins podem listar e ler todas as mensagens
-      allow list, get: if isAdmin();
-       // O autor original também pode ler sua própria mensagem
+      
+      // Admins podem listar, ler, atualizar e deletar todas as mensagens.
+      allow list, get, update, delete: if isAdmin();
+      
+      // O autor original também pode ler sua própria mensagem (mas não listar a coleção)
       allow get: if isOwner(resource.data.senderId);
-      // Apenas admins podem responder (atualizar) ou deletar
-      allow update, delete: if isAdmin();
     }
   }
 }
