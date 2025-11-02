@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { collection, query, onSnapshot, doc, updateDoc, serverTimestamp, orderBy } from "firebase/firestore";
+import { collection, query, onSnapshot, doc, setDoc, serverTimestamp, orderBy } from "firebase/firestore";
 import { useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import type { SupportMessage } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
@@ -74,7 +74,8 @@ export default function AdminSupportPage() {
         };
 
         try {
-            await updateDoc(docRef, responseData);
+            // Use setDoc com merge: true para criar/atualizar o documento.
+            await setDoc(docRef, responseData, { merge: true });
             toast({ title: "Resposta enviada com sucesso!" });
             setResponse(prev => ({...prev, [id]: ''}));
         } catch(err: any) {
