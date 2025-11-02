@@ -20,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
+import { Separator } from "@/components/ui/separator";
 
 const iconMap: Record<string, any> = {
   whatsapp: MessageCircle,
@@ -109,41 +110,58 @@ export function Footer({ agentId }: { agentId?: string }) {
   const privacyPolicy = agent?.siteSettings?.privacyPolicy || defaultPrivacyPolicy;
   const termsOfUse = agent?.siteSettings?.termsOfUse || defaultTermsOfUse;
 
-  const socialLinks = agent?.siteSettings?.socialLinks?.filter(l => l.icon !== 'map-pin') || [];
+  const socialLinks = agent?.siteSettings?.socialLinks?.filter(l => l.icon !== 'map-pin' && l.icon !== 'phone') || [];
   const locationLink = agent?.siteSettings?.socialLinks?.find(l => l.icon === 'map-pin');
+  const phoneLink = agent?.siteSettings?.socialLinks?.find(l => l.icon === 'phone');
 
 
   return (
     <footer className="bg-card/50" id="footer">
       <div className="container mx-auto px-4 py-8">
 
-        <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-6 min-h-[56px]">
-            {/* Endereço na Esquerda */}
-            {locationLink && (
-                 <motion.a
-                    key={locationLink.id}
-                    href={formatLink(locationLink.icon, locationLink.url)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex text-muted-foreground hover:text-primary transition-all flex-row items-center gap-4 max-w-xs"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    title={locationLink.label}
-                 >
-                    {locationLink.imageUrl && (
-                        <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
-                            <Image src={locationLink.imageUrl} alt={locationLink.label || "Foto do endereço"} fill className="object-cover" />
+        <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-6 min-h-[56px]">
+            {/* Contatos Primários na Esquerda */}
+            <div className="flex items-center gap-6 text-sm">
+                {locationLink && (
+                     <motion.a
+                        key={locationLink.id}
+                        href={formatLink(locationLink.icon, locationLink.url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex text-muted-foreground hover:text-primary transition-all flex-row items-center gap-4 max-w-xs"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        title={locationLink.label}
+                     >
+                        {locationLink.imageUrl && (
+                            <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
+                                <Image src={locationLink.imageUrl} alt={locationLink.label || "Foto do endereço"} fill className="object-cover" />
+                            </div>
+                        )}
+                        <div className="text-left">
+                            <span className="font-semibold text-foreground">{locationLink.label}</span>
+                            <p className="text-xs text-muted-foreground line-clamp-3">{locationLink.url}</p>
                         </div>
-                    )}
-                    <div className="text-left">
-                        <span className="font-semibold text-foreground">{locationLink.label}</span>
-                        <p className="text-xs text-muted-foreground line-clamp-3">{locationLink.url}</p>
-                    </div>
-                </motion.a>
-            )}
+                    </motion.a>
+                )}
+                 {(locationLink && phoneLink) && <Separator orientation="vertical" className="h-10"/>}
+                 {phoneLink && (
+                    <motion.a
+                        key={phoneLink.id}
+                        href={formatLink(phoneLink.icon, phoneLink.url)}
+                        className="flex flex-col text-left"
+                         whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        title={phoneLink.label}
+                    >
+                         <span className="font-semibold text-foreground">{phoneLink.label}</span>
+                        <p className="text-muted-foreground hover:text-primary transition-colors">{phoneLink.url}</p>
+                    </motion.a>
+                 )}
+            </div>
 
-            {/* Ícones Sociais no Centro */}
-            <div className="flex flex-wrap justify-center items-start gap-6 flex-grow">
+            {/* Ícones Sociais no Centro/Direita */}
+            <div className="flex flex-wrap justify-center items-center gap-6 flex-grow md:justify-end">
               {isLoading && <FooterSkeleton />}
               {!isLoading && socialLinks.map((link) => {
                 const Icon = iconMap[link.icon] || Globe;
