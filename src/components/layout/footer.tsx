@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -107,9 +108,9 @@ export function Footer({ agentId }: { agentId?: string }) {
             </p>
           </div>
           <div className="text-muted-foreground text-xs">
-              <Link href="#" className="hover:underline hover:text-foreground transition-colors">Política de Privacidade</Link>
+              <Link href={agentId ? `/corretor/${agentId}/politica-de-privacidade` : '#'} className="hover:underline hover:text-foreground transition-colors">Política de Privacidade</Link>
               <span className="mx-2">|</span>
-              <Link href="#" className="hover:underline hover:text-foreground transition-colors">Termos de Uso</Link>
+              <Link href={agentId ? `/corretor/${agentId}/termos-de-uso` : '#'} className="hover:underline hover:text-foreground transition-colors">Termos de Uso</Link>
           </div>
         </div>
       </div>

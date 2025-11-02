@@ -41,7 +41,7 @@
       "properties": {
         "id": { "type": "string" },
         "label": { "type": "string" },
-        "url": { "type": "string", "format": "uri" },
+        "url": { "type": "string" },
         "icon": { "type": "string" }
       },
       "required": ["id", "label", "url", "icon"]
@@ -74,7 +74,9 @@
               "type": "array",
               "description": "List of social media links.",
               "items": { "$ref": "#/entities/SocialLink" }
-            }
+            },
+            "privacyPolicy": { "type": "string", "description": "The full text for the Privacy Policy." },
+            "termsOfUse": { "type": "string", "description": "The full text for the Terms of Use." }
           }
         }
       },
