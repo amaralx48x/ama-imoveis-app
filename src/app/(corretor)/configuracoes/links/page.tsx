@@ -7,9 +7,8 @@ import {
   useUser,
   useDoc,
   useMemoFirebase,
-  updateDocumentNonBlocking,
 } from "@/firebase";
-import { doc } from "firebase/firestore";
+import { doc, updateDoc } from "firebase/firestore";
 import type { Agent, SocialLink } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,14 +26,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const availableIcons = [
-  { label: "WhatsApp", value: "whatsapp" },
-  { label: "Instagram", value: "instagram" },
-  { label: "Facebook", value: "facebook" },
-  { label: "LinkedIn", value: "linkedin" },
-  { label: "Website", value: "globe" },
-  { label: "Telefone", value: "phone" },
-  { label: "Localização", value: "map-pin" },
-  { label: "E-mail", value: "mail" },
+  { label: "WhatsApp", value: "whatsapp", placeholder: "5511999999999" },
+  { label: "Instagram", value: "instagram", placeholder: "seu_usuario" },
+  { label: "Facebook", value: "facebook", placeholder: "https://facebook.com/seu_usuario" },
+  { label: "LinkedIn", value: "linkedin", placeholder: "https://linkedin.com/in/seu_usuario" },
+  { label: "Website", value: "globe", placeholder: "https://seusite.com" },
+  { label: "Telefone", value: "phone", placeholder: "11999999999" },
+  { label: "Localização", value: "map-pin", placeholder: "Endereço ou link do Google Maps" },
+  { label: "E-mail", value: "mail", placeholder: "seu@email.com" },
 ];
 
 function LinksFormSkeleton() {
@@ -70,8 +69,10 @@ export default function SocialLinksSettingsPage() {
   useEffect(() => {
     if (agentData?.siteSettings?.socialLinks) {
       setSocialLinks(agentData.siteSettings.socialLinks);
+    } else if (!isAgentLoading) {
+      setSocialLinks([]); // Ensure it's an empty array if not present
     }
-  }, [agentData]);
+  }, [agentData, isAgentLoading]);
 
   const handleAdd = () => {
     setSocialLinks((prev) => [
@@ -95,7 +96,7 @@ export default function SocialLinksSettingsPage() {
 
     setIsSaving(true);
     try {
-      updateDocumentNonBlocking(agentRef, { "siteSettings.socialLinks": socialLinks });
+      await updateDoc(agentRef, { "siteSettings.socialLinks": socialLinks });
       toast({ title: "Links salvos com sucesso!" });
     } catch (e) {
       console.error("Erro ao salvar links", e);
@@ -118,7 +119,9 @@ export default function SocialLinksSettingsPage() {
         <CardContent className="space-y-6">
             <div className="space-y-4">
             <AnimatePresence>
-            {isAgentLoading ? <LinksFormSkeleton /> : socialLinks.map((link, index) => (
+            {isAgentLoading ? <LinksFormSkeleton /> : socialLinks.map((link, index) => {
+                const currentIcon = availableIcons.find(i => i.value === link.icon);
+                return (
                 <motion.div
                     key={link.id}
                     className="flex items-center gap-2 md:gap-3 p-3 border rounded-lg bg-card"
@@ -148,7 +151,7 @@ export default function SocialLinksSettingsPage() {
                     onChange={(e) => handleChange(link.id, "label", e.target.value)}
                     />
                     <Input
-                    placeholder="URL (https://...)"
+                    placeholder={currentIcon?.placeholder || "URL ou valor"}
                     value={link.url}
                     onChange={(e) => handleChange(link.id, "url", e.target.value)}
                     />
@@ -156,7 +159,8 @@ export default function SocialLinksSettingsPage() {
                         <Trash className="w-4 h-4" />
                     </Button>
                 </motion.div>
-            ))}
+                )
+            })}
             </AnimatePresence>
             </div>
 

@@ -29,6 +29,29 @@ const iconMap: Record<string, any> = {
   mail: Mail,
 };
 
+function formatLink(type: string, value: string): string {
+  if (!value) return '#';
+  switch (type) {
+    case 'whatsapp':
+      return `https://wa.me/${value.replace(/\D/g, '')}`;
+    case 'instagram':
+      return `https://instagram.com/${value.replace('@', '')}`;
+    case 'phone':
+      return `tel:${value.replace(/\D/g, '')}`;
+    case 'mail':
+      return `mailto:${value}`;
+    case 'map-pin':
+      return `https://www.google.com/maps?q=${encodeURIComponent(value)}`;
+    case 'facebook':
+    case 'linkedin':
+    case 'globe':
+      return value.startsWith('http') ? value : `https://${value}`;
+    default:
+      return value;
+  }
+}
+
+
 function FooterSkeleton() {
     return (
         <div className="flex justify-center gap-6">
@@ -54,14 +77,15 @@ export function Footer({ agentId }: { agentId?: string }) {
   return (
     <footer className="bg-card/50" id="footer">
       <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-wrap justify-center gap-6 mb-6">
+        <div className="flex flex-wrap justify-center gap-6 mb-6 min-h-[56px]">
           {isLoading && <FooterSkeleton />}
           {!isLoading && agent?.siteSettings?.socialLinks?.map((link) => {
             const Icon = iconMap[link.icon] || Globe;
+            const href = formatLink(link.icon, link.url);
             return (
               <motion.a
                 key={link.id}
-                href={link.url}
+                href={href}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex flex-col items-center text-muted-foreground hover:text-primary transition-all"
