@@ -2,14 +2,14 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { useFirestore, useUser } from '@/firebase';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
+import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy, doc, updateDoc, deleteDoc, getDoc, writeBatch } from 'firebase/firestore';
 import type { Lead } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Mail, Inbox, Archive, Check, AlertTriangle, Trash2, Loader2, ArchiveRestore, Eye, EyeOff } from 'lucide-react';
+import { Mail, Inbox, Archive, AlertTriangle, Trash2, Loader2, ArchiveRestore, Eye, EyeOff } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -98,47 +98,24 @@ export default function InboxPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
     
-    const [allLeads, setAllLeads] = useState<LeadWithId[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'unread' | 'all' | 'archived'>('unread');
     const [processingId, setProcessingId] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<'unread' | 'all' | 'archived'>('unread');
+    
+    const leadsCollection = useMemoFirebase(
+        () => user && firestore ? collection(firestore, `agents/${user.uid}/leads`) : null,
+        [user, firestore]
+    );
 
-    useEffect(() => {
-        if (!user || !firestore) return;
-
-        setLoading(true);
-        const leadsCollection = collection(firestore, `agents/${user.uid}/leads`);
-        const q = query(leadsCollection, orderBy('createdAt', 'desc'));
-        
-        const unsubscribe = onSnapshot(q, 
-            (snapshot) => {
-                const fetchedLeads = snapshot.docs.map(d => ({ id: d.id, ...d.data() }) as LeadWithId);
-                setAllLeads(fetchedLeads);
-                setLoading(false);
-                setError(null);
-            },
-            (err: any) => {
-                console.error("Firestore onSnapshot Error:", err);
-                setError('Erro ao carregar mensagens. A coleção pode não existir ou você não tem permissão.');
-                setLoading(false);
-            }
-        );
-
-        return () => unsubscribe();
-    }, [user, firestore]);
-
+    const { data: allLeads, isLoading, error } = useCollection<LeadWithId>(
+        useMemoFirebase(() => leadsCollection && query(leadsCollection, orderBy('createdAt', 'desc')), [leadsCollection])
+    );
+    
     const handleUpdate = async (id: string, newStatus: Lead['status']) => {
         if (!user || !firestore) return;
         setProcessingId(id);
         
         const ref = doc(firestore, 'agents', user.uid, 'leads', id);
         try {
-            const docSnap = await getDoc(ref);
-            if (!docSnap.exists()) {
-                 toast({ title: "A mensagem não existe mais", description: "Ela pode ter sido excluída.", variant: "destructive" });
-                 return;
-            }
             await updateDoc(ref, { status: newStatus });
             toast({ title: `Mensagem atualizada com sucesso!` });
         } catch (err: any) {
@@ -161,7 +138,6 @@ export default function InboxPage() {
         try {
             await deleteDoc(ref);
             toast({ title: "Mensagem removida com sucesso!" });
-            // onSnapshot will handle the UI update automatically
         } catch (err: any) {
             console.error("Erro ao remover a mensagem:", err);
             toast({ title: "Erro ao remover a mensagem", description: err.message, variant: "destructive" });
@@ -171,16 +147,16 @@ export default function InboxPage() {
     };
     
     const filteredLeads = useMemo(() => {
+        if (!allLeads) return [];
         if (activeTab === 'unread') return allLeads.filter(l => l.status === 'unread');
         if (activeTab === 'archived') return allLeads.filter(l => l.status === 'archived');
-        // 'all' should show everything that is NOT archived
         return allLeads.filter(l => l.status !== 'archived');
     }, [allLeads, activeTab]);
 
-    const unreadLeadsCount = useMemo(() => allLeads.filter(l => l.status === 'unread').length, [allLeads]);
+    const unreadLeadsCount = useMemo(() => allLeads?.filter(l => l.status === 'unread').length || 0, [allLeads]);
 
     const renderLeadList = (leadList: LeadWithId[], emptyMessage: string) => {
-        if (loading) {
+        if (isLoading) {
             return (
                 <div className="space-y-4">
                     {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-48 w-full rounded-lg" />)}
@@ -192,7 +168,7 @@ export default function InboxPage() {
                 <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>Erro ao Carregar</AlertTitle>
-                    <AlertDescription>{error}</AlertDescription>
+                    <AlertDescription>{error.message}</AlertDescription>
                 </Alert>
             )
         }
@@ -235,7 +211,7 @@ export default function InboxPage() {
                     <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2">
                         <Mail /> Caixa de Entrada
                     </CardTitle>
-                    {!loading && unreadLeadsCount > 0 && <Badge>{unreadLeadsCount} Nova(s)</Badge>}
+                    {!isLoading && unreadLeadsCount > 0 && <Badge>{unreadLeadsCount} Nova(s)</Badge>}
                 </div>
                 <CardDescription>
                     Gerencie as mensagens e contatos recebidos através do seu site.

@@ -1,13 +1,16 @@
+
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
 import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuth } from '@/firebase';
+import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection } from '@/firebase';
 import { useEffect } from 'react';
-import { useUser } from '@/firebase/provider';
+import { collection, query, where } from 'firebase/firestore';
+import type { Lead } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
 
 export default function CorretorLayout({
   children,
@@ -18,6 +21,16 @@ export default function CorretorLayout({
   const auth = useAuth();
   const router = useRouter();
   const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
+
+  const unreadLeadsQuery = useMemoFirebase(
+    () => user && firestore 
+      ? query(collection(firestore, `agents/${user.uid}/leads`), where('status', '==', 'unread')) 
+      : null,
+    [user, firestore]
+  );
+  const { data: unreadLeads } = useCollection<Lead>(unreadLeadsQuery);
+  const unreadCount = unreadLeads?.length || 0;
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -37,7 +50,7 @@ export default function CorretorLayout({
   const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
     { href: '/imoveis', label: 'Meus Imóveis', icon: Briefcase },
-    { href: '/inbox', label: 'Caixa de Entrada', icon: Mail },
+    { href: '/inbox', label: 'Caixa de Entrada', icon: Mail, badgeCount: unreadCount },
     { href: '/perfil', label: 'Perfil', icon: User },
     { href: '/avaliacoes', label: 'Avaliações', icon: Star },
     { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' },
@@ -82,7 +95,10 @@ export default function CorretorLayout({
                 >
                   <Link href={item.href} target={item.target}>
                     <item.icon />
-                    <span>{item.label}</span>
+                    <span className="flex-1">{item.label}</span>
+                     {item.badgeCount && item.badgeCount > 0 && (
+                        <Badge className="h-5 group-data-[collapsible=icon]:hidden">{item.badgeCount}</Badge>
+                    )}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
