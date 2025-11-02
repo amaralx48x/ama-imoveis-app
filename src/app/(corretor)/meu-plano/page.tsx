@@ -1,9 +1,11 @@
+
 'use client';
 
 import { usePlan, PlanType } from '@/context/PlanContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, Gem } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function MeuPlanoPage() {
   const { plan, setPlan, limits, currentPropertiesCount, isLoading } = usePlan();
