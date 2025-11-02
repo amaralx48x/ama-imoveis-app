@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams, Suspense } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import PropertyFilters from "@/components/property-filters";
 import { PropertyCard } from "@/components/property-card";
 import { Button } from "@/components/ui/button";
