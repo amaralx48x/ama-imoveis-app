@@ -82,7 +82,7 @@ export default function LeadsPage({ agentId }: Props) {
             setSelectedIds(newSelection);
         }
     }
-  }, [selectAll, filtered]);
+  }, [selectAll, filtered, selectedIds]);
 
   function toggleSelect(id: string) {
     setSelectedIds(prev => {
