@@ -1,8 +1,7 @@
-
 "use client";
 
 import { useRouter, useSearchParams, Suspense } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import PropertyFilters from "@/components/property-filters";
 import { PropertyCard } from "@/components/property-card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +28,7 @@ function SearchResults() {
   const [loading, setLoading] = useState(true);
   const firestore = useFirestore();
 
+  // Mock agent para popular os filtros de cidade, etc.
   const mockAgent: Agent = {
     id: 'global',
     displayName: 'Global Search',
@@ -42,51 +42,48 @@ function SearchResults() {
   }
   const propertyTypes = ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
 
+  const fetchData = useCallback(async (firestoreInstance, currentParams) => {
+    setLoading(true);
+    const filters: Filters = {
+        operation: currentParams.get('operation') || undefined,
+        city: currentParams.get('city') || undefined,
+        type: currentParams.get('type') || undefined,
+        bedrooms: currentParams.get('bedrooms') || undefined,
+        garage: currentParams.get('garage') || undefined,
+        keyword: currentParams.get('keyword') || undefined,
+        agentId: currentParams.get('agentId') || undefined,
+        sectionId: currentParams.get('sectionId') || undefined,
+    };
+    
+    try {
+      let q: Query<DocumentData>;
+      const agentId = filters.agentId;
+
+      if (agentId && agentId !== 'global') {
+          // Se um agentId específico for fornecido, busca apenas nas propriedades dele
+          q = query(collectionGroup(firestoreInstance, 'properties'), where('agentId', '==', agentId));
+      } else {
+          // Busca global em todas as propriedades
+          q = query(collectionGroup(firestoreInstance, 'properties'));
+      }
+
+      const querySnapshot = await getDocs(q);
+      const allProps = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, agentId: doc.ref.parent.parent?.id }) as Property);
+      
+      const activeProps = allProps.filter(p => p.status !== 'vendido' && p.status !== 'alugado');
+      const filtered = filterProperties(activeProps, filters);
+      setProperties(filtered);
+    } catch (error) {
+      console.error("Erro ao buscar imóveis:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!firestore) return;
-
-    const filters: Filters = {
-        operation: searchParams.get('operation') || undefined,
-        city: searchParams.get('city') || undefined,
-        type: searchParams.get('type') || undefined,
-        minPrice: searchParams.get('minPrice') || undefined,
-        maxPrice: searchParams.get('maxPrice') || undefined,
-        bedrooms: searchParams.get('bedrooms') || undefined,
-        garage: searchParams.get('garage') || undefined,
-        keyword: searchParams.get('keyword') || undefined,
-        agentId: searchParams.get('agentId') || undefined,
-        sectionId: searchParams.get('sectionId') || undefined,
-    };
-    
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        let q: Query<DocumentData>;
-
-        if (filters.agentId) {
-            // If agentId is specified, search only within that agent's properties
-            q = query(collectionGroup(firestore, 'properties'), where('agentId', '==', filters.agentId));
-        } else {
-            // Otherwise, perform a global search across all properties
-            q = query(collectionGroup(firestore, 'properties'));
-        }
-
-        const querySnapshot = await getDocs(q);
-        const allProps = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, agentId: doc.ref.parent.parent?.id }) as Property);
-        
-        const activeProps = allProps.filter(p => p.status !== 'vendido' && p.status !== 'alugado');
-        const filtered = filterProperties(activeProps, filters);
-        setProperties(filtered);
-      } catch (error) {
-        console.error("Erro ao buscar imóveis:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [searchParams, firestore]);
+    fetchData(firestore, searchParams);
+  }, [searchParams, firestore, fetchData]);
 
   return (
     <div className="container mx-auto p-6 min-h-screen">
