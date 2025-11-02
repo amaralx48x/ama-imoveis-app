@@ -1,10 +1,9 @@
 
-'use client'
+'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { doc, onSnapshot } from "firebase/firestore";
-import { useFirestore, useUser } from "@/firebase";
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
+// Define o tipo para o objeto de tema
 export type Theme = {
   headerColor: string;
   footerColor: string;
@@ -16,13 +15,7 @@ export type Theme = {
   buttonSecondary: string;
 };
 
-export type SavedTheme = {
-  id: string;
-  name: string;
-  theme: Theme;
-};
-
-
+// Tema padrão como fallback
 export const defaultTheme: Theme = {
   headerColor: "#1f2937", // gray-800
   footerColor: "#1f2937", // gray-800
@@ -34,6 +27,7 @@ export const defaultTheme: Theme = {
   buttonSecondary: "hsl(282 100% 41%)", // accent
 };
 
+// Tema claro como opção pré-definida
 export const lightTheme: Theme = {
   headerColor: "#ffffff",
   footerColor: "#f3f4f6", // gray-100
@@ -46,72 +40,69 @@ export const lightTheme: Theme = {
 };
 
 
-// Função de contraste inteligente
+// Função para calcular a cor de contraste (preto ou branco)
 export function getContrastColor(bgColor: string): string {
+    if (!bgColor) return "#000000"; // Fallback
+    
     if (!bgColor.startsWith('#')) {
-        // Se for uma cor HSL/RGB, o melhor é usar um fundo escuro ou claro padrão
-        // A lógica de luminância é complexa sem converter para RGB primeiro.
-        // Para simplificar, assumimos que cores não-hex são vibrantes e ficam bem com texto branco.
+        // Assume-se que cores não hexadecimais são vibrantes o suficiente para texto branco.
+        // Uma lógica mais complexa seria necessária para converter HSL/RGB para luminância.
         return "#ffffff";
     }
-  const r = parseInt(bgColor.slice(1, 3), 16);
-  const g = parseInt(bgColor.slice(3, 5), 16);
-  const b = parseInt(bgColor.slice(5, 7), 16);
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.5 ? "#000000" : "#ffffff";
+
+    try {
+        const r = parseInt(bgColor.slice(1, 3), 16);
+        const g = parseInt(bgColor.slice(3, 5), 16);
+        const b = parseInt(bgColor.slice(5, 7), 16);
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return luminance > 0.5 ? "#000000" : "#ffffff";
+    } catch (e) {
+        return "#000000"; // Fallback em caso de erro de parsing
+    }
 }
 
 
-const ThemeContext = createContext<Theme>(defaultTheme);
+// Cria o contexto com um valor padrão
+const ThemeContext = createContext<{ theme: Theme | null, setTheme: (theme: Theme) => void }>({
+    theme: defaultTheme,
+    setTheme: () => {}
+});
 
-export function useTheme() {
-  return useContext(ThemeContext);
-}
+// Hook para usar o tema
+export const useTheme = () => useContext(ThemeContext);
 
-export function ThemeProvider({ children, agentIdForPublicPage }: { children: ReactNode, agentIdForPublicPage?: string }) {
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
-  const { user } = useUser();
-  const firestore = useFirestore();
 
-  const agentId = agentIdForPublicPage || user?.uid;
+// O Provedor de Tema que aplica as variáveis CSS
+export const ThemeProvider = ({ theme: initialTheme, children }: { theme: Theme | null, children: ReactNode }) => {
+  const [currentTheme, setCurrentTheme] = useState(initialTheme || defaultTheme);
 
   useEffect(() => {
-    if (!agentId || !firestore) {
-        setTheme(defaultTheme); // Fallback for public pages if no agentId
-        return;
-    };
+    // Atualiza o tema se a prop inicial mudar
+    setCurrentTheme(initialTheme || defaultTheme);
+  }, [initialTheme]);
 
-    const unsub = onSnapshot(
-      doc(firestore, "agents", agentId, "themes", "current"),
-      (docSnap) => {
-        if (docSnap.exists()) {
-            setTheme(docSnap.data() as Theme);
+  useEffect(() => {
+    // Aplica as variáveis CSS ao root do documento
+    if (typeof window !== 'undefined') {
+        const root = document.documentElement;
+        root.style.setProperty('--header-color', currentTheme.headerColor);
+        root.style.setProperty('--footer-color', currentTheme.footerColor);
+        root.style.setProperty('--bg-primary', currentTheme.backgroundPrimary);
+        root.style.setProperty('--bg-secondary', currentTheme.backgroundSecondary);
+        root.style.setProperty('--btn-primary', currentTheme.buttonPrimary);
+        root.style.setProperty('--btn-secondary', currentTheme.buttonSecondary);
+        
+        if (currentTheme.textDynamic) {
+            root.style.setProperty('--text-color', getContrastColor(currentTheme.backgroundPrimary));
         } else {
-            setTheme(defaultTheme);
+            root.style.setProperty('--text-color', currentTheme.textPrimary);
         }
-      }
-    );
-
-    return () => unsub();
-  }, [agentId, firestore]);
+    }
+  }, [currentTheme]);
 
   return (
-    <ThemeContext.Provider value={theme}>
-      <div
-        style={{
-          "--header-color": theme.headerColor,
-          "--footer-color": theme.footerColor,
-          "--text-color": theme.textDynamic
-            ? getContrastColor(theme.backgroundPrimary)
-            : theme.textPrimary,
-          "--bg-primary": theme.backgroundPrimary,
-          "--bg-secondary": theme.backgroundSecondary,
-          "--btn-primary": theme.buttonPrimary,
-          "--btn-secondary": theme.buttonSecondary,
-        } as React.CSSProperties}
-      >
-        {children}
-      </div>
+    <ThemeContext.Provider value={{ theme: currentTheme, setTheme: setCurrentTheme }}>
+      {children}
     </ThemeContext.Provider>
   );
-}
+};

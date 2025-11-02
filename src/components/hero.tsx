@@ -6,8 +6,6 @@ import type { ImagePlaceholder } from "@/lib/placeholder-images";
 import type { ReactNode } from "react";
 import PropertyFilters from "./property-filters";
 import type { Agent } from "@/lib/data";
-import { useTheme } from "@/context/ThemeContext";
-
 
 interface HeroProps {
   heroImage?: ImagePlaceholder;
@@ -17,15 +15,14 @@ interface HeroProps {
 }
 
 export function Hero({ agent, propertyTypes }: HeroProps) {
-  const theme = useTheme();
 
   return (
-    <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center" style={{ backgroundColor: theme.backgroundSecondary, color: theme.textPrimary }}>
-      <div className="container mx-auto px-4 text-center mt-[-10rem] z-10">
+    <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center" style={{ backgroundColor: 'var(--bg-secondary)'}}>
+      <div className="container mx-auto px-4 text-center mt-[-10rem] z-10" style={{color: 'var(--text-color)'}}>
         <h1 className="text-4xl md:text-6xl font-extrabold font-headline mb-4 animate-fade-in-up">
           Encontre o <span className="text-gradient">Imóvel</span> dos Seus Sonhos
         </h1>
-        <p className="text-lg md:text-xl text-foreground/80 max-w-2xl mx-auto mb-8">
+        <p className="text-lg md:text-xl text-current/80 max-w-2xl mx-auto mb-8">
           As melhores oportunidades do mercado imobiliário para você.
         </p>
       </div>

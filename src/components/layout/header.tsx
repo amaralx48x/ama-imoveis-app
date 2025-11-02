@@ -1,3 +1,4 @@
+
 'use client';
 import Link from "next/link";
 import { Building2 } from "lucide-react";
@@ -7,6 +8,7 @@ import { usePathname } from 'next/navigation';
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import { ContactForm } from "@/components/contact-form";
 import { useState } from "react";
+import { getContrastColor } from "@/context/ThemeContext";
 
 interface HeaderProps {
     agentName?: string;
@@ -29,7 +31,13 @@ export function Header({ agentName, agentId, agent }: HeaderProps) {
   ]
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header 
+      className="sticky top-0 z-50 w-full border-b border-border/40 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+      style={{ 
+        backgroundColor: 'var(--header-color)',
+        color: getContrastColor(document.documentElement.style.getPropertyValue('--header-color')) 
+      }}
+    >
       <div className="container flex h-14 max-w-screen-2xl items-center">
         <div className="mr-4 hidden md:flex">
           <Link href={agentBaseUrl} className="mr-6 flex items-center space-x-2">
@@ -43,7 +51,7 @@ export function Header({ agentName, agentId, agent }: HeaderProps) {
                  <Link
                     key={item.href}
                     href={item.href}
-                    className="transition-colors hover:text-foreground/80 text-foreground/60"
+                    className="transition-colors hover:text-foreground/80"
                 >
                     {item.label}
                 </Link>
@@ -68,7 +76,7 @@ export function Header({ agentName, agentId, agent }: HeaderProps) {
             </DialogContent>
           </Dialog>
 
-          <Button asChild>
+          <Button asChild style={{ backgroundColor: 'var(--btn-primary)', color: getContrastColor(document.documentElement.style.getPropertyValue('--btn-primary'))}}>
             <Link href={`${agentBaseUrl}#footer`}>Fale Conosco</Link>
           </Button>
            <Button asChild variant="outline">

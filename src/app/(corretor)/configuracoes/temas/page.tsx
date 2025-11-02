@@ -2,8 +2,8 @@
 'use client'
 
 import { useState, useEffect } from "react";
-import { doc, setDoc, updateDoc } from "firebase/firestore";
-import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useUser, useFirestore, useMemoFirebase } from "@/firebase";
 import { toast } from "@/hooks/use-toast";
 import type { Theme, SavedTheme } from "@/context/ThemeContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -66,34 +66,57 @@ export default function ThemeSettingsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newThemeName, setNewThemeName] = useState("");
   
-  const agentRef = useMemoFirebase(() => (user && firestore ? doc(firestore, "agents", user.uid) : null), [user, firestore]);
-  const themeRef = useMemoFirebase(() => (user && firestore ? doc(firestore, "agents", user.uid, "themes", "current") : null), [user, firestore]);
-  
-  const {data: agentData, isLoading: isAgentLoading} = useDoc(agentRef);
-  const {data: savedTheme, isLoading: isThemeLoading} = useDoc<Theme>(themeRef);
+  const [localTheme, setLocalTheme] = useState<Theme>(defaultTheme);
+  const [savedThemes, setSavedThemes] = useState<SavedTheme[]>([]);
 
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
-  
-  const savedThemes: SavedTheme[] = agentData?.siteSettings?.savedThemes || [];
+  const themeRef = useMemoFirebase(() => (user && firestore ? doc(firestore, "agents", user.uid, "theme", "current") : null), [user, firestore]);
+  const agentRef = useMemoFirebase(() => (user && firestore ? doc(firestore, "agents", user.uid) : null), [user, firestore]);
 
   useEffect(() => {
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
-  }, [savedTheme]);
+    if (!themeRef || !agentRef) return;
+    setIsLoading(true);
+
+    const fetchInitialData = async () => {
+        try {
+            const [themeSnap, agentSnap] = await Promise.all([
+                getDoc(themeRef),
+                getDoc(agentRef)
+            ]);
+
+            if (themeSnap.exists()) {
+                setLocalTheme(themeSnap.data() as Theme);
+            } else {
+                setLocalTheme(defaultTheme);
+            }
+
+            if (agentSnap.exists()) {
+                setSavedThemes(agentSnap.data()?.siteSettings?.savedThemes || []);
+            }
+        } catch (error) {
+            console.error("Error fetching theme data:", error);
+            toast({title: "Erro ao carregar dados do tema", variant: "destructive"});
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    fetchInitialData();
+  }, [themeRef, agentRef, toast]);
+
 
   const handleChange = (field: keyof Theme, value: any) => {
-    setTheme(prev => ({ ...prev, [field]: value }));
+    setLocalTheme(prev => ({ ...prev, [field]: value }));
   };
 
   const saveCurrentTheme = async () => {
-    if (!user || !themeRef) return;
+    if (!themeRef) return;
     setIsSaving(true);
     try {
-        await setDoc(themeRef, theme);
+        await setDoc(themeRef, localTheme);
         toast({title: "Tema aplicado com sucesso!"});
     } catch (err) {
         console.error(err);
@@ -105,18 +128,20 @@ export default function ThemeSettingsPage() {
 
   const handleSaveNamedTheme = async () => {
       if (!newThemeName.trim() || !agentRef) return;
+      
       const newSavedTheme: SavedTheme = {
           id: uuidv4(),
           name: newThemeName,
-          theme: theme,
+          theme: localTheme,
       };
 
-      const currentSavedThemes = agentData?.siteSettings?.savedThemes || [];
+      const updatedSavedThemes = [...savedThemes, newSavedTheme];
       
-      await updateDoc(agentRef, {
-          'siteSettings.savedThemes': [...currentSavedThemes, newSavedTheme]
-      });
+      await setDoc(agentRef, {
+          siteSettings: { savedThemes: updatedSavedThemes }
+      }, { merge: true });
 
+      setSavedThemes(updatedSavedThemes);
       toast({title: `Tema "${newThemeName}" salvo!`});
       setNewThemeName("");
       setIsDialogOpen(false);
@@ -126,13 +151,16 @@ export default function ThemeSettingsPage() {
     if (!agentRef || !window.confirm("Tem certeza que deseja excluir este tema salvo?")) return;
     
     const updatedSavedThemes = savedThemes.filter(t => t.id !== themeId);
-     await updateDoc(agentRef, {
-        'siteSettings.savedThemes': updatedSavedThemes
-    });
+    
+     await setDoc(agentRef, {
+        siteSettings: { savedThemes: updatedSavedThemes }
+    }, { merge: true });
+    
+     setSavedThemes(updatedSavedThemes);
      toast({title: `Tema excluído.`});
   }
   
-  if (isAgentLoading || isThemeLoading) {
+  if (isLoading) {
       return <div>Carregando tema...</div>
   }
 
@@ -150,20 +178,20 @@ export default function ThemeSettingsPage() {
             <div>
                 <h3 className="text-xl font-bold font-headline mb-4">Temas Pré-definidos</h3>
                 <div className="flex gap-4">
-                    <Button variant="outline" onClick={() => setTheme(defaultTheme)}>Padrão (Escuro)</Button>
-                    <Button variant="outline" onClick={() => setTheme(lightTheme)}>Claro</Button>
+                    <Button variant="outline" onClick={() => setLocalTheme(defaultTheme)}>Padrão (Escuro)</Button>
+                    <Button variant="outline" onClick={() => setLocalTheme(lightTheme)}>Claro</Button>
                 </div>
             </div>
             
             <Separator />
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                 <ColorPicker label="Cor do Cabeçalho" value={theme.headerColor} onChange={(c) => handleChange("headerColor", c)} />
-                <ColorPicker label="Cor do Rodapé" value={theme.footerColor} onChange={(c) => handleChange("footerColor", c)} />
-                <ColorPicker label="Cor de Fundo (Primária)" value={theme.backgroundPrimary} onChange={(c) => handleChange("backgroundPrimary", c)} description="Cor principal do fundo do site." />
-                <ColorPicker label="Cor de Fundo (Secundária)" value={theme.backgroundSecondary} onChange={(c) => handleChange("backgroundSecondary", c)} description="Usada em cards e seções internas."/>
-                <ColorPicker label="Cor do Botão (Primário)" value={theme.buttonPrimary} onChange={(c) => handleChange("buttonPrimary", c)} />
-                <ColorPicker label="Cor do Botão (Secundário)" value={theme.buttonSecondary} onChange={(c) => handleChange("buttonSecondary", c)} />
+                 <ColorPicker label="Cor do Cabeçalho" value={localTheme.headerColor} onChange={(c) => handleChange("headerColor", c)} />
+                <ColorPicker label="Cor do Rodapé" value={localTheme.footerColor} onChange={(c) => handleChange("footerColor", c)} />
+                <ColorPicker label="Cor de Fundo (Primária)" value={localTheme.backgroundPrimary} onChange={(c) => handleChange("backgroundPrimary", c)} description="Cor principal do fundo do site." />
+                <ColorPicker label="Cor de Fundo (Secundária)" value={localTheme.backgroundSecondary} onChange={(c) => handleChange("backgroundSecondary", c)} description="Usada em cards e seções internas."/>
+                <ColorPicker label="Cor do Botão (Primário)" value={localTheme.buttonPrimary} onChange={(c) => handleChange("buttonPrimary", c)} />
+                <ColorPicker label="Cor do Botão (Secundário)" value={localTheme.buttonSecondary} onChange={(c) => handleChange("buttonSecondary", c)} />
             </div>
 
             <Separator />
@@ -179,20 +207,20 @@ export default function ThemeSettingsPage() {
                     </div>
                     <Switch
                         id="text-dynamic"
-                        checked={theme.textDynamic}
+                        checked={localTheme.textDynamic}
                         onCheckedChange={(checked) => handleChange("textDynamic", checked)}
                         aria-describedby="text-dynamic-description"
                     />
                 </div>
 
-                {!theme.textDynamic && (
-                    <ColorPicker label="Cor do Texto (Primária)" value={theme.textPrimary} onChange={(c) => handleChange("textPrimary", c)} description="Defina manualmente a cor principal do texto. Use com cuidado."/>
+                {!localTheme.textDynamic && (
+                    <ColorPicker label="Cor do Texto (Primária)" value={localTheme.textPrimary} onChange={(c) => handleChange("textPrimary", c)} description="Defina manualmente a cor principal do texto. Use com cuidado."/>
                 )}
             </div>
             
             <Separator />
 
-            <Preview theme={theme} />
+            <Preview theme={localTheme} />
 
             <div className="flex justify-end gap-2 pt-4">
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -227,7 +255,7 @@ export default function ThemeSettingsPage() {
                             <div key={saved.id} className="flex items-center justify-between p-3 border rounded-md bg-muted/50">
                                 <span className="font-medium">{saved.name}</span>
                                 <div className="flex gap-2">
-                                    <Button size="sm" variant="outline" onClick={() => setTheme(saved.theme)}><CheckCircle className="mr-2 h-4 w-4 text-green-500"/> Aplicar</Button>
+                                    <Button size="sm" variant="outline" onClick={() => setLocalTheme(saved.theme)}><CheckCircle className="mr-2 h-4 w-4 text-green-500"/> Aplicar</Button>
                                     <Button size="icon" variant="destructive" className="h-9 w-9" onClick={() => handleDeleteTheme(saved.id)}><Trash2 className="h-4 w-4"/></Button>
                                 </div>
                             </div>

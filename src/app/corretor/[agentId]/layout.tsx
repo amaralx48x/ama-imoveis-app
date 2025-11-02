@@ -1,19 +1,34 @@
 
-'use client'
+import { doc, getDoc } from 'firebase/firestore';
+import { getFirebaseServer } from '@/firebase/server-init';
+import { ThemeProvider, defaultTheme, type Theme } from '@/context/ThemeContext';
 
-import { ThemeProvider } from "@/context/ThemeContext";
-
-// This is a client component because it uses ThemeProvider which is a client context.
-export default function PublicAgentLayout({
+export default async function PublicAgentLayout({
     children,
     params,
 }: {
     children: React.ReactNode;
     params: { agentId: string };
 }) {
-    // We pass the agentId to the ThemeProvider so it can fetch the correct theme.
+    const { firestore } = getFirebaseServer();
+    let theme: Theme | null = null;
+    
+    try {
+        const themeRef = doc(firestore, 'agents', params.agentId, 'theme', 'current');
+        const themeSnap = await getDoc(themeRef);
+        
+        if (themeSnap.exists()) {
+            theme = themeSnap.data() as Theme;
+        } else {
+            theme = defaultTheme;
+        }
+    } catch (error) {
+        console.error("Failed to fetch theme on server:", error);
+        theme = defaultTheme; // Fallback to default theme on error
+    }
+
     return (
-        <ThemeProvider agentIdForPublicPage={params.agentId}>
+        <ThemeProvider theme={theme}>
             {children}
         </ThemeProvider>
     );

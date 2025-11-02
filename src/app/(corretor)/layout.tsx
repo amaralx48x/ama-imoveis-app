@@ -1,3 +1,4 @@
+
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
 import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette } from 'lucide-react';
@@ -11,7 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ThemeProvider } from '@/context/ThemeContext';
 
 export default function CorretorLayout({
   children,
@@ -88,7 +88,6 @@ export default function CorretorLayout({
   const isAdmin = agentData?.role === 'admin';
 
   return (
-    <ThemeProvider>
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
@@ -189,6 +188,5 @@ export default function CorretorLayout({
         </main>
       </SidebarInset>
     </SidebarProvider>
-    </ThemeProvider>
   );
 }
