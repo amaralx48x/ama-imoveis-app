@@ -81,7 +81,7 @@ export default function SuportePage() {
       const supportCollectionRef = collection(firestore, 'supportMessages');
       await addDoc(supportCollectionRef, {
         id: messageId,
-        senderId: user.uid,
+        senderUid: user.uid,
         senderName: user.displayName || 'Não informado',
         senderEmail: user.email || 'Não informado',
         message,

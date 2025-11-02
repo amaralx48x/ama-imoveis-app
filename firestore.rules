@@ -2,57 +2,46 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isOwner(agentId) {
-      return request.auth != null && request.auth.uid == agentId;
+    // Função para verificar se é o proprietário da mensagem/corretor
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
     }
 
+    // Função para verificar se é admin via claim
     function isAdmin() {
-      // Garante que o usuário está autenticado antes de tentar ler o documento
-      return request.auth != null && (
-        // A verificação de 'custom claims' é a mais segura para produção
-        request.auth.token.role == 'admin' ||
-        // O fallback verifica um campo 'role' no documento do próprio usuário
-        (exists(/databases/$(database)/documents/agents/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/agents/$(request.auth.uid)).data.role == 'admin')
-      );
+      return request.auth != null && request.auth.token.role == 'admin';
     }
 
-    // Perfis de agentes e suas subcoleções
+    // Coleção de mensagens de suporte
+    match /supportMessages/{messageId} {
+      // Corretores podem criar mensagens
+      allow create: if request.auth != null;
+
+      // Corretores podem apenas ler suas próprias mensagens
+      allow read: if isOwner(resource.data.senderUid) || isAdmin();
+
+      // Corretores não podem atualizar/deletar mensagens
+      allow update, delete: if isAdmin();
+    }
+
+    // Coleção de agentes/corretores
     match /agents/{agentId} {
-      // Qualquer um pode ler perfis para o site público
+      // Perfil público de agentes
       allow read: if true;
-      // Admin ou o próprio dono pode escrever
+
+      // Apenas o próprio agente ou admin pode atualizar
       allow write: if isOwner(agentId) || isAdmin();
 
-      // Regra para todas as subcoleções (properties, reviews, leads, etc.)
-      match /{subcollection}/{docId} {
-         // Leitura: Permitida para o dono do perfil ou um admin.
-        allow read: if isOwner(agentId) || isAdmin();
-         // Escrita: Permitida para o dono do perfil ou um admin.
+      // Subcoleções de propriedades
+      match /properties/{propertyId} {
+        allow read: if true; // público
         allow write: if isOwner(agentId) || isAdmin();
-         // Criação:
-         // - reviews e leads podem ser criados por qualquer pessoa (formulários públicos).
-         // - properties e customSections só podem ser criados pelo dono ou admin.
-        allow create: if (subcollection == 'reviews' || subcollection == 'leads') || 
-                       (isOwner(agentId) || isAdmin());
       }
     }
-    
-    // Regras para a Coleção de Suporte
-    match /supportMessages/{messageId} {
-      // Qualquer usuário autenticado pode criar um ticket.
-      allow create: if request.auth != null;
-      // Apenas administradores podem ler, atualizar ou deletar tickets.
-      allow read, update, delete: if isAdmin();
-    }
 
-    // Regra Global para o `collectionGroup` de 'properties'
-    // Necessária para a busca global de imóveis.
-    match /{path=**}/properties/{propertyId} {
-      // Permite a leitura pública de qualquer imóvel em qualquer subcoleção.
-      allow read: if true;
-      // Nega a escrita nesta regra genérica para forçar a verificação da regra mais específica.
-      allow write: if false;
+    // Métricas globais (leads, imóveis, etc.) só admin
+    match /metrics/{docId} {
+      allow read, write: if isAdmin();
     }
   }
 }
