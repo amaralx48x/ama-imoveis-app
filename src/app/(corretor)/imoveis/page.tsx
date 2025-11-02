@@ -2,7 +2,7 @@
 'use client';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, AlertTriangle, Upload, Trash2 } from 'lucide-react';
+import { PlusCircle, AlertTriangle, Upload, Trash2, Search } from 'lucide-react';
 import { PropertyCard } from '@/components/property-card';
 import Link from 'next/link';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 
 
 function PropertyList({ 
@@ -91,6 +92,7 @@ export default function ImoveisPage() {
     const { toast } = useToast();
 
     const [activeTab, setActiveTab] = useState<'ativo' | 'vendido' | 'alugado'>('ativo');
+    const [searchTerm, setSearchTerm] = useState('');
     const [allProperties, setAllProperties] = useState<Property[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
@@ -120,12 +122,26 @@ export default function ImoveisPage() {
     }, [fetchProperties]);
     
     const filteredProperties = useMemo(() => {
+        let propertiesByTab;
         if (activeTab === 'ativo') {
              // Retrocompatible: shows properties where status is 'ativo' OR status doesn't exist
-            return allProperties.filter(p => p.status !== 'vendido' && p.status !== 'alugado');
+            propertiesByTab = allProperties.filter(p => p.status !== 'vendido' && p.status !== 'alugado');
+        } else {
+            propertiesByTab = allProperties.filter(p => p.status === activeTab);
         }
-        return allProperties.filter(p => p.status === activeTab);
-    }, [allProperties, activeTab]);
+        
+        if (!searchTerm) {
+            return propertiesByTab;
+        }
+
+        const lowercasedTerm = searchTerm.toLowerCase();
+        return propertiesByTab.filter(property =>
+            property.title.toLowerCase().includes(lowercasedTerm) ||
+            property.city.toLowerCase().includes(lowercasedTerm) ||
+            property.neighborhood.toLowerCase().includes(lowercasedTerm)
+        );
+
+    }, [allProperties, activeTab, searchTerm]);
 
     
     const handleDeleteProperty = async (id: string) => {
@@ -186,6 +202,16 @@ export default function ImoveisPage() {
                     </Button>
                 </div>
             </div>
+            
+             <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                    placeholder="Buscar por título, cidade ou bairro..."
+                    className="w-full pl-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
 
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
                 <TabsList>
@@ -201,7 +227,7 @@ export default function ImoveisPage() {
                         onDelete={handleDeleteProperty}
                         onStatusChange={handleStatusChange}
                         emptyStateTitle="Nenhum imóvel ativo encontrado"
-                        emptyStateDescription="Que tal adicionar seu primeiro imóvel agora?"
+                        emptyStateDescription={searchTerm ? "Tente uma busca diferente." : "Que tal adicionar seu primeiro imóvel agora?"}
                     />
                 </TabsContent>
                 <TabsContent value="vendido">
