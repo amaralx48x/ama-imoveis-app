@@ -40,13 +40,25 @@ export default function PropertyFilters({ agent, propertyTypes = [] }: PropertyF
     if (bedrooms) query.set('bedrooms', bedrooms);
     if (garage) query.set('garage', garage);
     if (keyword) query.set('keyword', keyword);
-    if (minPrice) query.set('minPrice', minPrice);
-    if (maxPrice) query.set('maxPrice', maxPrice);
+    if (minPrice) query.set('minPrice', minPrice.replace(/\D/g, ''));
+    if (maxPrice) query.set('maxPrice', maxPrice.replace(/\D/g, ''));
 
     if (agent?.id && agent.id !== 'global') {
         query.set('agentId', agent.id);
     }
     router.push(`/search-results?${query.toString()}`);
+  };
+
+  const handlePriceInputChange = (setter: (value: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\D/g, '');
+    if (rawValue) {
+        const numberValue = parseInt(rawValue, 10);
+        setter(numberValue.toString());
+        e.target.value = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 0 }).format(numberValue);
+    } else {
+        setter('');
+        e.target.value = '';
+    }
   };
 
   const cities = agent?.cities || [];
@@ -108,11 +120,23 @@ export default function PropertyFilters({ agent, propertyTypes = [] }: PropertyF
                 <CollapsibleContent className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 animate-accordion-down">
                     <div className="space-y-2">
                         <Label htmlFor="min-price">Preço Mínimo</Label>
-                        <Input id="min-price" type="number" placeholder="R$ 100.000" value={minPrice} onChange={e => setMinPrice(e.target.value)} />
+                        <Input 
+                            id="min-price" 
+                            type="text" 
+                            placeholder="R$ 100.000,00" 
+                            onChange={handlePriceInputChange(setMinPrice)}
+                            defaultValue={minPrice ? new Intl.NumberFormat('pt-BR').format(parseInt(minPrice)) : ''}
+                        />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="max-price">Preço Máximo</Label>
-                        <Input id="max-price" type="number" placeholder="R$ 500.000" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} />
+                        <Input 
+                            id="max-price" 
+                            type="text" 
+                            placeholder="R$ 500.000,00" 
+                            onChange={handlePriceInputChange(setMaxPrice)} 
+                            defaultValue={maxPrice ? new Intl.NumberFormat('pt-BR').format(parseInt(maxPrice)) : ''}
+                        />
                     </div>
                     <Select value={bedrooms} onValueChange={setBedrooms}>
                         <SelectTrigger>
