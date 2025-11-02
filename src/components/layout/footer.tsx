@@ -109,43 +109,62 @@ export function Footer({ agentId }: { agentId?: string }) {
   const privacyPolicy = agent?.siteSettings?.privacyPolicy || defaultPrivacyPolicy;
   const termsOfUse = agent?.siteSettings?.termsOfUse || defaultTermsOfUse;
 
+  const socialLinks = agent?.siteSettings?.socialLinks?.filter(l => l.icon !== 'map-pin') || [];
+  const locationLink = agent?.siteSettings?.socialLinks?.find(l => l.icon === 'map-pin');
+
 
   return (
     <footer className="bg-card/50" id="footer">
       <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-wrap justify-center items-start gap-6 mb-6 min-h-[56px]">
-          {isLoading && <FooterSkeleton />}
-          {!isLoading && agent?.siteSettings?.socialLinks?.map((link) => {
-            const Icon = iconMap[link.icon] || Globe;
-            const href = formatLink(link.icon, link.url);
-            const isLocationWithImage = link.icon === 'map-pin' && link.imageUrl;
 
-            return (
-              <motion.a
-                key={link.id}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`flex text-muted-foreground hover:text-primary transition-all ${isLocationWithImage ? 'flex-row items-center gap-3 p-3 rounded-lg bg-background/50 border max-w-xs w-full' : 'flex-col items-center'}`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                title={link.label}
-              >
-                {isLocationWithImage && (
-                  <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
-                    <Image src={link.imageUrl!} alt={link.label || "Foto do endereço"} fill className="object-cover" />
-                  </div>
-                )}
-                {!isLocationWithImage && <Icon className="w-6 h-6 mb-1" />}
+        <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-6 min-h-[56px]">
+            {/* Endereço na Esquerda */}
+            {locationLink && (
+                 <motion.a
+                    key={locationLink.id}
+                    href={formatLink(locationLink.icon, locationLink.url)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex text-muted-foreground hover:text-primary transition-all flex-row items-center gap-4 max-w-xs"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    title={locationLink.label}
+                 >
+                    {locationLink.imageUrl && (
+                        <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
+                            <Image src={locationLink.imageUrl} alt={locationLink.label || "Foto do endereço"} fill className="object-cover" />
+                        </div>
+                    )}
+                    <div className="text-left">
+                        <span className="font-semibold text-foreground">{locationLink.label}</span>
+                        <p className="text-xs text-muted-foreground line-clamp-3">{locationLink.url}</p>
+                    </div>
+                </motion.a>
+            )}
 
-                <div className={isLocationWithImage ? 'text-left' : 'text-center'}>
-                    <span className={`text-xs ${isLocationWithImage ? 'font-semibold text-foreground' : ''}`}>{link.label}</span>
-                    {isLocationWithImage && <p className="text-xs text-muted-foreground line-clamp-2">{link.url}</p>}
-                </div>
-
-              </motion.a>
-            );
-          })}
+            {/* Ícones Sociais no Centro */}
+            <div className="flex flex-wrap justify-center items-start gap-6 flex-grow">
+              {isLoading && <FooterSkeleton />}
+              {!isLoading && socialLinks.map((link) => {
+                const Icon = iconMap[link.icon] || Globe;
+                const href = formatLink(link.icon, link.url);
+                return (
+                  <motion.a
+                    key={link.id}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center text-muted-foreground hover:text-primary transition-all"
+                    whileHover={{ scale: 1.15 }}
+                    whileTap={{ scale: 0.95 }}
+                    title={link.label}
+                  >
+                    <Icon className="w-6 h-6 mb-1" />
+                    <span className="text-xs">{link.label}</span>
+                  </motion.a>
+                );
+              })}
+            </div>
         </div>
 
         <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left border-t border-border pt-6">
