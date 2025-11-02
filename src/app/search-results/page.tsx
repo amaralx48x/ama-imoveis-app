@@ -55,7 +55,7 @@ function SearchResults() {
         sortBy: sortBy as Filters['sortBy'] || undefined,
     };
 
-    const hasFilters = Object.values(filters).some(v => v !== undefined && v !== '');
+    const hasFilters = Object.values(filters).some(v => v !== undefined && v !== '' && v !== 'global');
     
     try {
       let q: Query<DocumentData>;
@@ -72,10 +72,12 @@ function SearchResults() {
       const querySnapshot = await getDocs(q);
       const allProps = querySnapshot.docs.map(doc => ({ ...(doc.data() as Property), id: doc.id, agentId: doc.ref.parent.parent?.id }) as Property);
       
-      const activeProps = allProps.filter(p => p.status !== 'vendido' && p.status !== 'alugado');
+      const uniqueProperties = Array.from(new Map(allProps.map(p => [p.id, p])).values());
+
+      const activeProps = uniqueProperties.filter(p => p.status !== 'vendido' && p.status !== 'alugado');
       
       // Aplicar filtros e ordenação no cliente
-      const filtered = filterProperties(activeProps, filters);
+      const filtered = hasFilters ? filterProperties(activeProps, filters) : activeProps;
       setProperties(filtered);
       
     } catch (error) {
