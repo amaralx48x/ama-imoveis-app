@@ -11,7 +11,8 @@ import { collectionGroup, query, getDocs, DocumentData, Query, where } from "fir
 import type { Property, Agent } from "@/lib/data";
 import { filterProperties, type Filters } from "@/lib/filter-logic";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Frown, ArrowLeft } from "lucide-react";
+import { Frown, ArrowLeft, ArrowDownUp } from "lucide-react";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 
 function BackButton({ agentId }: { agentId: string | null }) {
@@ -31,6 +32,7 @@ function SearchResults() {
   const searchParams = useSearchParams();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<Filters['sortBy']>(searchParams.get('sortBy') as Filters['sortBy'] || undefined);
   const firestore = useFirestore();
 
   const agentId = searchParams.get('agentId');
@@ -60,6 +62,9 @@ function SearchResults() {
         keyword: currentParams.get('keyword') || undefined,
         agentId: currentParams.get('agentId') || undefined,
         sectionId: currentParams.get('sectionId') || undefined,
+        minPrice: currentParams.get('minPrice') || undefined,
+        maxPrice: currentParams.get('maxPrice') || undefined,
+        sortBy: sortBy,
     };
     
     try {
@@ -85,7 +90,7 @@ function SearchResults() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [sortBy]);
 
   useEffect(() => {
     if (!firestore) return;
@@ -102,7 +107,21 @@ function SearchResults() {
         <PropertyFilters agent={mockAgent} propertyTypes={propertyTypes}/>
       </div>
       
-      <h1 className="text-3xl font-bold font-headline mb-6">Resultados da Busca</h1>
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <h1 className="text-3xl font-bold font-headline">Resultados da Busca</h1>
+            <div className="flex items-center gap-2">
+                <ArrowDownUp className="h-4 w-4 text-muted-foreground" />
+                <Select value={sortBy} onValueChange={(value) => setSortBy(value as Filters['sortBy'])}>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Ordenar por" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="price-asc">Preço: Crescente</SelectItem>
+                        <SelectItem value="price-desc">Preço: Decrescente</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+      </div>
 
       {loading ? (
          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

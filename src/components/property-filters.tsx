@@ -53,9 +53,21 @@ export default function PropertyFilters({ agent, propertyTypes = [] }: PropertyF
 
   return (
     <Card className="shadow-2xl shadow-primary/10 border-border/10">
-        <CardContent className="p-4">
+        <CardContent className="p-4 space-y-4">
+            {/* Linha de Busca Principal */}
+            <div className="w-full">
+                 <Label htmlFor="keyword-search" className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-2"><Search className="w-4 h-4"/> Título, Bairro ou Descrição</Label>
+                <Input
+                    id="keyword-search"
+                    placeholder="Busque por características, código do imóvel ou localização..."
+                    value={keyword}
+                    onChange={(e) => setKeyword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                />
+            </div>
+
+            {/* Filtros Principais */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
-                {/* Linha 1: Operação e Cidade */}
                 <Select value={operation} onValueChange={setOperation}>
                     <SelectTrigger>
                         <SelectValue placeholder="Comprar ou Alugar" />
@@ -89,75 +101,61 @@ export default function PropertyFilters({ agent, propertyTypes = [] }: PropertyF
                        {propertyTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
                 </Select>
-
-                {/* Linha 2: Busca e Preço */}
-                <div className="md:col-span-2 lg:col-span-3">
-                     <Label htmlFor="keyword-search" className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-2"><Search className="w-4 h-4"/> Título, Bairro ou Descrição</Label>
-                    <Input
-                        id="keyword-search"
-                        placeholder="Busque por características ou localização..."
-                        value={keyword}
-                        onChange={(e) => setKeyword(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    />
-                </div>
-                 
-                 <Collapsible open={showMoreFilters} onOpenChange={setShowMoreFilters} className="md:col-span-2 lg:col-span-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                           <Label htmlFor="min-price">Preço Mínimo</Label>
-                            <Input id="min-price" type="number" placeholder="R$ 100.000" value={minPrice} onChange={e => setMinPrice(e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                             <Label htmlFor="max-price">Preço Máximo</Label>
-                            <Input id="max-price" type="number" placeholder="R$ 500.000" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} />
-                        </div>
-                         <CollapsibleTrigger asChild>
-                           <Button variant="ghost" className="self-end">
-                                <Filter className="mr-2 h-4 w-4" />
-                                {showMoreFilters ? 'Menos Filtros' : 'Mais Filtros'}
-                           </Button>
-                        </CollapsibleTrigger>
-                    </div>
-
-                    <CollapsibleContent className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 animate-accordion-down">
-                        <Select value={bedrooms} onValueChange={setBedrooms}>
-                            <SelectTrigger>
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                    <BedDouble className="w-4 h-4"/>
-                                    <SelectValue placeholder="Nº de Quartos" />
-                                </div>
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="1">1+</SelectItem>
-                                <SelectItem value="2">2+</SelectItem>
-                                <SelectItem value="3">3+</SelectItem>
-                                <SelectItem value="4">4+</SelectItem>
-                            </SelectContent>
-                        </Select>
-
-                         <Select value={garage} onValueChange={setGarage}>
-                            <SelectTrigger>
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                    <Car className="w-4 h-4"/>
-                                    <SelectValue placeholder="Nº de Vagas" />
-                                </div>
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="1">1+</SelectItem>
-                                <SelectItem value="2">2+</SelectItem>
-                                <SelectItem value="3">3+</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </CollapsibleContent>
-                 </Collapsible>
-
-
-                <Button onClick={handleSearch} className="w-full h-12 text-base font-bold bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity md:col-span-2 lg:col-span-3">
-                    <Search className="mr-2 h-5 w-5" />
-                    Buscar Imóveis
-                </Button>
             </div>
+                 
+            {/* Filtros Colapsáveis */}
+            <Collapsible open={showMoreFilters} onOpenChange={setShowMoreFilters}>
+                <CollapsibleContent className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 animate-accordion-down">
+                    <div className="space-y-2">
+                        <Label htmlFor="min-price">Preço Mínimo</Label>
+                        <Input id="min-price" type="number" placeholder="R$ 100.000" value={minPrice} onChange={e => setMinPrice(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="max-price">Preço Máximo</Label>
+                        <Input id="max-price" type="number" placeholder="R$ 500.000" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} />
+                    </div>
+                    <Select value={bedrooms} onValueChange={setBedrooms}>
+                        <SelectTrigger>
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                <BedDouble className="w-4 h-4"/>
+                                <SelectValue placeholder="Nº de Quartos" />
+                            </div>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="1">1+</SelectItem>
+                            <SelectItem value="2">2+</SelectItem>
+                            <SelectItem value="3">3+</SelectItem>
+                            <SelectItem value="4">4+</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <Select value={garage} onValueChange={setGarage}>
+                        <SelectTrigger>
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                <Car className="w-4 h-4"/>
+                                <SelectValue placeholder="Nº de Vagas" />
+                            </div>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="1">1+</SelectItem>
+                            <SelectItem value="2">2+</SelectItem>
+                            <SelectItem value="3">3+</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </CollapsibleContent>
+                <div className="flex justify-between items-center mt-4">
+                     <CollapsibleTrigger asChild>
+                       <Button variant="ghost">
+                            <Filter className="mr-2 h-4 w-4" />
+                            {showMoreFilters ? 'Menos Filtros' : 'Mais Filtros'}
+                       </Button>
+                    </CollapsibleTrigger>
+                    <Button onClick={handleSearch} className="h-12 text-base font-bold bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
+                        <Search className="mr-2 h-5 w-5" />
+                        Buscar Imóveis
+                    </Button>
+                </div>
+            </Collapsible>
         </CardContent>
     </Card>
   );

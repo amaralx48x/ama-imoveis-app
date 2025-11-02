@@ -13,6 +13,7 @@ export type Filters = {
     keyword?: string;
     agentId?: string;
     sectionId?: string;
+    sortBy?: 'price-asc' | 'price-desc';
 }
 
 export function filterProperties(properties: Property[], filters: Filters): Property[] {
@@ -20,7 +21,7 @@ export function filterProperties(properties: Property[], filters: Filters): Prop
   
   const {
       city, neighborhood, type, operation,
-      minPrice, maxPrice, bedrooms, garage, keyword, sectionId
+      minPrice, maxPrice, bedrooms, garage, keyword, sectionId, sortBy
     } = filters;
     
   // Primary keyword search on title, city, neighborhood
@@ -44,6 +45,13 @@ export function filterProperties(properties: Property[], filters: Filters): Prop
   if (bedrooms) filtered = filtered.filter(p => p.bedrooms >= Number(bedrooms));
   if (garage) filtered = filtered.filter(p => p.garage >= Number(garage));
   if (sectionId) filtered = filtered.filter(p => (p.sectionIds || []).includes(sectionId));
+
+  // Sorting
+  if (sortBy === 'price-asc') {
+    filtered.sort((a, b) => a.price - b.price);
+  } else if (sortBy === 'price-desc') {
+    filtered.sort((a, b) => b.price - a.price);
+  }
   
   return filtered;
 }
