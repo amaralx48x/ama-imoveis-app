@@ -65,7 +65,7 @@ export default function CorretorLayout({
   ];
   
   const adminMenuItems = [
-      { href: '/admin/painel', label: 'Painel Admin', icon: ShieldCheck },
+      { href: '/admin/dashboard', label: 'Painel Admin', icon: ShieldCheck },
   ]
 
   const settingsItems = [

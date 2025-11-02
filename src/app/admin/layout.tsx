@@ -1,7 +1,7 @@
 'use client';
 import { useEffect } from 'react';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { useRouter } from 'next/navigation';
+import { useUser, useDoc, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
+import { useRouter, usePathname } from 'next/navigation';
 import { doc } from 'firebase/firestore';
 import type { Agent } from '@/lib/data';
 import { LogOut, ShieldCheck, User, LayoutDashboard, LifeBuoy } from 'lucide-react';
@@ -16,6 +16,8 @@ export default function AdminLayout({
 }) {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+  const auth = useAuth();
+  const pathname = usePathname();
   const firestore = useFirestore();
 
   const agentRef = useMemoFirebase(
@@ -32,6 +34,14 @@ export default function AdminLayout({
       router.replace('/dashboard');
     }
   }, [user, isUserLoading, agentData, isAgentLoading, router]);
+
+  const handleLogout = () => {
+    if(auth) {
+      auth.signOut();
+      router.push('/login');
+    }
+  };
+
 
   if (isUserLoading || isAgentLoading) {
     return (
@@ -54,6 +64,12 @@ export default function AdminLayout({
     )
   }
 
+  const menuItems = [
+      { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/admin/support', label: 'Suporte', icon: LifeBuoy },
+      { href: '/dashboard', label: 'Visão do Corretor', icon: User },
+  ]
+
   return (
      <SidebarProvider>
       <Sidebar>
@@ -67,34 +83,20 @@ export default function AdminLayout({
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-             <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                    <Link href="/admin/painel">
-                        <LayoutDashboard/>
-                        <span>Dashboard</span>
-                    </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                    <Link href="/admin/support">
-                        <LifeBuoy/>
-                        <span>Suporte</span>
-                    </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-             <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                    <Link href="/dashboard">
-                        <User/>
-                        <span>Visão do Corretor</span>
-                    </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
+             {menuItems.map((item) => (
+                 <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton asChild isActive={pathname === item.href}>
+                        <Link href={item.href}>
+                            <item.icon/>
+                            <span>{item.label}</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+             ))}
           </SidebarMenu>
         </SidebarContent>
          <Sidebar.Footer className="p-2">
-            <Button variant="ghost" className="w-full justify-start gap-2" onClick={() => router.push('/login')}>
+            <Button variant="ghost" className="w-full justify-start gap-2" onClick={handleLogout}>
                 <LogOut />
                 <span className="group-data-[collapsible=icon]:hidden">Sair</span>
             </Button>
