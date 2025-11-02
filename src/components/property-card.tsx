@@ -68,7 +68,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
           <div className="relative w-full h-56">
             <Image
               src={imageUrl}
-              alt={property.title}
+              alt={property.title || "Imagem do imóvel"}
               fill
               className="object-cover"
               data-ai-hint={imageHint}

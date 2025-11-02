@@ -133,7 +133,7 @@ export function Footer({ agentId }: { agentId?: string }) {
               >
                 {isLocationWithImage && (
                   <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
-                    <Image src={link.imageUrl!} alt={`Foto de ${link.label}`} fill className="object-cover" />
+                    <Image src={link.imageUrl!} alt={link.label || "Foto do endereço"} fill className="object-cover" />
                   </div>
                 )}
                 {!isLocationWithImage && <Icon className="w-6 h-6 mb-1" />}

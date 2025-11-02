@@ -206,7 +206,7 @@ export default function PerfilPage() {
                   <FormControl>
                     <div className='flex items-center gap-6'>
                        <Avatar className='h-24 w-24'>
-                          <AvatarImage src={field.value} alt={form.getValues('displayName')} />
+                          <AvatarImage src={field.value} alt={form.getValues('displayName') || "Avatar do corretor"} />
                           <AvatarFallback>{form.getValues('displayName')?.charAt(0) || 'A'}</AvatarFallback>
                         </Avatar>
                         {user && (

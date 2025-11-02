@@ -172,7 +172,7 @@ export default function SocialLinksSettingsPage() {
                         <div className="flex items-center gap-4 pl-1 pt-2 border-t border-dashed">
                              {link.imageUrl && (
                                 <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
-                                    <Image src={link.imageUrl} alt="Preview do endereço" fill className="object-cover" />
+                                    <Image src={link.imageUrl} alt={link.label || "Preview do endereço"} fill className="object-cover" />
                                 </div>
                              )}
                             <div className="flex-grow">

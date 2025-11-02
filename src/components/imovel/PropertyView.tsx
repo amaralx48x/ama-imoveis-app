@@ -83,7 +83,7 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                                     <div className="aspect-video relative rounded-lg overflow-hidden border">
                                         <Image
                                             src={imageUrl}
-                                            alt={`${property.title} - Imagem ${index + 1}`}
+                                            alt={`${property.title || 'Imagem do imóvel'} - Imagem ${index + 1}`}
                                             fill
                                             className="object-cover"
                                             data-ai-hint="house interior"

@@ -11,7 +11,7 @@ interface HeroProps {
 export function Hero({ heroImage, children }: HeroProps) {
   const imageUrl = heroImage?.imageUrl ?? `https://picsum.photos/seed/hero/1920/1080`;
   const imageHint = heroImage?.imageHint ?? 'modern living room';
-  const altText = heroImage?.description ?? 'Hero background image';
+  const altText = heroImage?.description ?? 'Imagem de fundo da seção principal';
 
   return (
     <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center text-white">
