@@ -23,9 +23,8 @@ service cloud.firestore {
     // Coleção de agentes (corretores)
     // =========================
     match /agents/{agentId} {
-      // Perfis públicos podem ser lidos
-      allow get: if true;
-      // Listar todos os agentes apenas admin
+      // Dono pode ler o próprio perfil, admins podem listar todos.
+      allow get: if isOwner(agentId) || isAdmin();
       allow list: if isAdmin();
       // Escrever apenas dono ou admin
       allow write: if isOwner(agentId) || isAdmin();
@@ -39,8 +38,8 @@ service cloud.firestore {
       // Subcoleção de reviews
       match /reviews/{reviewId} {
         allow create: if isSignedIn(); // qualquer usuário autenticado
-        allow list, get: if resource.data.approved == true; // públicas apenas aprovadas
-        allow read, update, delete: if isOwner(agentId) || isAdmin();
+        allow list, get: if resource.data.approved == true || isOwner(agentId) || isAdmin();
+        allow update, delete: if isOwner(agentId) || isAdmin();
       }
 
       // Subcoleção customSections
@@ -64,13 +63,10 @@ service cloud.firestore {
       allow create: if isSignedIn();
 
       // Listar e ler
-      allow list, get: if isAdmin() || resource.data.senderId == request.auth.uid;
+      allow list, get: if isAdmin() || (isSignedIn() && resource.data.senderId == request.auth.uid);
 
-      // Atualizar (resposta) apenas admin
-      allow update: if isAdmin();
-
-      // Deletar apenas admin
-      allow delete: if isAdmin();
+      // Atualizar (resposta) e deletar apenas admin
+      allow update, delete: if isAdmin();
     }
 
     // =========================

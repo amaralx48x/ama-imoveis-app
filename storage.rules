@@ -1,31 +1,37 @@
-
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Agent profile photos and property images
-    match /agents/{agentId}/{allPaths=**} {
-      // Public read access for all images
-      allow read: if true;
+    // Função auxiliar para verificar se é admin
+    function isAdmin() {
+      // Lê o campo 'role' do documento do agente correspondente ao UID do usuário autenticado.
+      return request.auth != null && get(/databases/$(database)/documents/agents/$(request.auth.uid)).data.role == 'admin';
+    }
 
-      // Write access only for the owner of the agent profile
-      allow write: if request.auth != null && request.auth.uid == agentId;
+    // Função auxiliar para verificar se é o dono
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // Imagens de suporte
+    match /support-images/{userId}/{fileName} {
+      // O autor da mensagem pode enviar (write) imagens dentro da própria pasta
+      allow write: if isOwner(userId);
+      // Admin pode ler tudo, e o autor pode ler suas próprias imagens
+      allow read: if isAdmin() || isOwner(userId);
     }
     
-    // Support ticket images
-    match /support-images/{messageId}/{allPaths=**} {
-       // Only authenticated users who are creating the ticket can upload.
-       // We check that the user is uploading to a path that matches their UID in the message.
-       // This is a simplified check; a more robust one might involve checking the Firestore document being created.
-       allow create: if request.auth != null;
+    // Imagens de perfil e de imóveis do corretor
+    match /agents/{agentId}/{allPaths=**} {
+      // Leitura pública para todas as imagens
+      allow read: if true;
+      // Escrita apenas para o dono do perfil ou admin
+      allow write: if isOwner(agentId) || isAdmin();
+    }
 
-       // Admins and the original sender should be able to read images.
-       // This requires a Firestore read to check ownership, which can be complex.
-       // For simplicity, we allow any authenticated user to read, but production apps should lock this down.
-       allow read: if request.auth != null;
-
-       // No updates or deletes allowed to keep the record intact.
-       allow update, delete: if false;
+    // Bloqueia qualquer outro acesso não permitido explicitamente
+    match /{allPaths=**} {
+      allow read, write: if false;
     }
   }
 }
