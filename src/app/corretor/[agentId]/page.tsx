@@ -13,9 +13,11 @@ import { CustomPropertySection } from '@/components/custom-property-section';
 import { AgentProfile } from '@/components/agent-profile';
 import { ClientReviews } from '@/components/client-reviews';
 import { FloatingContactButton } from '@/components/floating-contact-button';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import PropertyFilters from '@/components/property-filters';
 import { getPropertyTypes, getReviews as getStaticReviews } from '@/lib/data';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Construction } from 'lucide-react';
 
 
 type Props = {
@@ -26,6 +28,7 @@ export default function AgentPublicPage({ }: Props) {
     const params = useParams();
     const agentId = params.agentId as string;
     const firestore = useFirestore();
+    const { user: loggedInUser } = useUser();
     
     const [agent, setAgent] = useState<Agent | null>(null);
     const [allProperties, setAllProperties] = useState<Property[]>([]);
@@ -133,6 +136,28 @@ export default function AgentPublicPage({ }: Props) {
                 <h1 className="text-4xl font-bold mb-4">Corretor não encontrado</h1>
                 <p className="text-muted-foreground">O link que você acessou pode estar quebrado ou o corretor não existe mais.</p>
             </div>
+        )
+    }
+
+    const isOwner = loggedInUser && loggedInUser.uid === agent.id;
+    const isSiteActive = agent.siteSettings?.siteStatus ?? true;
+
+    if (!isSiteActive && !isOwner) {
+        return (
+            <>
+                <Header agent={agent} agentId={agent.id}/>
+                <main className="min-h-[calc(100vh-theme(spacing.14)-theme(spacing.32))] flex items-center justify-center">
+                     <Card className="max-w-md text-center">
+                         <CardHeader>
+                            <CardTitle className="flex items-center justify-center gap-2 text-2xl"><Construction/> Site em Manutenção</CardTitle>
+                         </CardHeader>
+                         <CardContent>
+                             <p className="text-muted-foreground">O corretor está fazendo melhorias no site. Por favor, volte mais tarde!</p>
+                         </CardContent>
+                     </Card>
+                </main>
+                <Footer agentId={agent.id} />
+            </>
         )
     }
 

@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Plus, Trash, Link as LinkIcon, Loader2, Image as ImageIcon } from "lucide-react";
+import { Plus, Trash, Link as LinkIcon, Loader2, Image as ImageIcon, Power } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,7 +42,8 @@ function SettingToggle({
     isLoading,
     linkValue,
     onLinkChange,
-    linkPlaceholder
+    linkPlaceholder,
+    variant
 }: { 
     id: string, 
     label: string, 
@@ -52,7 +53,8 @@ function SettingToggle({
     isLoading: boolean,
     linkValue?: string,
     onLinkChange?: (e: React.ChangeEvent<HTMLInputElement>) => void,
-    linkPlaceholder?: string
+    linkPlaceholder?: string,
+    variant?: "default" | "destructive"
 }) {
     if (isLoading) {
         return (
@@ -67,10 +69,10 @@ function SettingToggle({
     }
     
     return (
-        <div className="rounded-lg border p-4 space-y-4">
+        <div className={`rounded-lg border p-4 space-y-4 ${variant === 'destructive' && isChecked === false ? 'border-destructive bg-destructive/5' : ''}`}>
             <div className="flex items-center justify-between space-x-2">
                 <div className="flex flex-col space-y-1.5">
-                    <Label htmlFor={id} className="text-base font-medium">{label}</Label>
+                    <Label htmlFor={id} className={`text-base font-medium ${variant === 'destructive' && isChecked === false ? 'text-destructive' : ''}`}>{label}</Label>
                     <p id={`${id}-description`} className="text-sm text-muted-foreground">
                         {description}
                     </p>
@@ -238,6 +240,23 @@ export default function SocialLinksSettingsPage() {
             </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+            <div>
+                 <h3 className="text-xl font-bold font-headline mb-4">Status do Site</h3>
+                 <div className="space-y-4">
+                    <SettingToggle
+                        id="siteStatus"
+                        label="Site Público"
+                        description="Quando inativo, seu site exibirá uma página de manutenção para visitantes. Você ainda poderá visualizá-lo por estar logado."
+                        isChecked={siteSettings?.siteStatus ?? true}
+                        onCheckedChange={handleSettingChange('siteStatus')}
+                        isLoading={isAgentLoading}
+                        variant="destructive"
+                    />
+                </div>
+            </div>
+
+            <Separator/>
+
             <div>
                 <h3 className="text-xl font-bold font-headline mb-4">Controle de Botões</h3>
                 <div className="space-y-4">
