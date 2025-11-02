@@ -1,7 +1,7 @@
 
 'use client';
 
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import type { Property, Agent } from '@/lib/data';
 import { notFound, useRouter, useParams, useSearchParams } from 'next/navigation';
 import { Header } from "@/components/layout/header";
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useFirestore } from '@/firebase';
+import { RelatedProperties } from '@/components/imovel/RelatedProperties';
 
 function BackButton() {
     const router = useRouter();
@@ -36,6 +37,7 @@ export default function PropertyPage({ }: Props) {
   
   const [propertyData, setPropertyData] = useState<Property | null>(null);
   const [agentData, setAgentData] = useState<Agent | null>(null);
+  const [allAgentProperties, setAllAgentProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const firestore = useFirestore();
 
@@ -51,10 +53,16 @@ export default function PropertyPage({ }: Props) {
         try {
             const agentRef = doc(firestore, 'agents', agentId);
             const propertyRef = doc(firestore, `agents/${agentId}/properties`, imovelId);
+            const allPropertiesQuery = query(
+                collection(firestore, `agents/${agentId}/properties`),
+                where('status', '!=', 'vendido'),
+                where('status', '!=', 'alugado')
+            );
             
-            const [agentSnap, propertySnap] = await Promise.all([
+            const [agentSnap, propertySnap, allPropertiesSnap] = await Promise.all([
               getDoc(agentRef),
-              getDoc(propertyRef)
+              getDoc(propertyRef),
+              getDocs(allPropertiesQuery)
             ]);
 
             if (propertySnap.exists()) {
@@ -68,6 +76,12 @@ export default function PropertyPage({ }: Props) {
             } else {
                 setAgentData(null);
             }
+
+            if (!allPropertiesSnap.empty) {
+                const props = allPropertiesSnap.docs.map(d => ({...d.data() as Property, id: d.id, agentId}));
+                setAllAgentProperties(props);
+            }
+
 
         } catch (error) {
             console.error("Erro ao buscar imóvel e corretor:", error);
@@ -103,9 +117,10 @@ export default function PropertyPage({ }: Props) {
   return (
     <>
       <Header agentId={agentId} />
-      <main className="min-h-[calc(100vh-theme(spacing.14)-theme(spacing.32))] container mx-auto px-4 py-8">
+      <main className="min-h-screen container mx-auto px-4 py-8">
         <BackButton />
         <PropertyView property={propertyData} agent={agentData} />
+        <RelatedProperties currentProperty={propertyData} allProperties={allAgentProperties} />
       </main>
       <Footer />
     </>
