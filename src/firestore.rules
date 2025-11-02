@@ -6,25 +6,34 @@ service cloud.firestore {
     function isOwner(agentId) {
       return request.auth != null && request.auth.uid == agentId;
     }
+    
+    function isAdmin() {
+      return request.auth != null && request.auth.token.role == 'admin';
+    }
 
     match /agents/{agentId} {
       allow read: if true;
-      allow write: if isOwner(agentId);
+      allow write: if isOwner(agentId) || isAdmin();
 
       match /reviews/{reviewId} {
         allow create: if true;
         allow list, get: if resource.data.approved == true;
-        allow read, update, delete: if isOwner(agentId);
+        allow read, update, delete: if isOwner(agentId) || isAdmin();
       }
       
       match /customSections/{sectionId} {
         allow read: if true;
-        allow write: if isOwner(agentId);
+        allow write: if isOwner(agentId) || isAdmin();
+      }
+      
+      match /themes/{themeId} {
+        allow read: if true; // Public can read for site display
+        allow write: if isOwner(agentId) || isAdmin();
       }
 
       match /leads/{leadId} {
-        allow create: if true; // The contact form will create leads here.
-        allow read, update, delete: if isOwner(agentId);
+        allow create: if true;
+        allow read, update, delete: if isOwner(agentId) || isAdmin();
       }
     }
 
@@ -35,7 +44,12 @@ service cloud.firestore {
     
     match /agents/{agentId}/properties/{propertyId} {
       allow read;
-      allow write: if isOwner(agentId);
+      allow write: if isOwner(agentId) || isAdmin();
+    }
+
+    match /supportMessages/{messageId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if isAdmin() || isOwner(resource.data.senderUid);
     }
   }
 }
