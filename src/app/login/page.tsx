@@ -68,6 +68,7 @@ export default function LoginPage() {
         switch (error.code) {
             case 'auth/user-not-found':
             case 'auth/wrong-password':
+            case 'auth/invalid-credential':
                 title = "Credenciais Inválidas";
                 description = "O e-mail ou a senha estão incorretos. Verifique e tente novamente.";
                 break;
@@ -127,6 +128,7 @@ export default function LoginPage() {
                 email: values.email,
                 creci: '000000-F', // Placeholder
                 photoUrl: '', // Placeholder
+                role: 'corretor',
             });
             
             toast({
@@ -252,3 +254,5 @@ export default function LoginPage() {
         </div>
     );
 }
+
+    
