@@ -32,12 +32,15 @@ const formSchema = z.object({
 interface ContactFormProps {
     agentId: string;
     propertyId?: string;
+    title?: string;
+    description?: string;
+    isDialog?: boolean;
+    onFormSubmit?: () => void;
 }
 
-export function ContactForm({ agentId, propertyId }: ContactFormProps) {
+export function ContactForm({ agentId, propertyId, title, description, isDialog, onFormSubmit }: ContactFormProps) {
   const { toast } = useToast();
   const firestore = useFirestore();
-  const { user } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -46,7 +49,7 @@ export function ContactForm({ agentId, propertyId }: ContactFormProps) {
       name: "",
       email: "",
       phone: "",
-      message: "",
+      message: propertyId ? `Olá, tenho interesse no imóvel com ID ${propertyId}.` : "",
     },
   });
 
@@ -59,7 +62,6 @@ export function ContactForm({ agentId, propertyId }: ContactFormProps) {
     setIsSubmitting(true);
 
     try {
-      const docPath = user ? `agents/${user.uid}/leads` : `public_leads`;
       await addDoc(collection(firestore, 'agents', agentId, 'leads'), {
         name: values.name,
         email: values.email,
@@ -75,6 +77,7 @@ export function ContactForm({ agentId, propertyId }: ContactFormProps) {
         description: "Obrigado por entrar em contato. Retornaremos em breve.",
       });
       form.reset();
+      onFormSubmit?.();
 
     } catch (error) {
       console.error("Erro ao enviar mensagem:", error);
@@ -88,94 +91,92 @@ export function ContactForm({ agentId, propertyId }: ContactFormProps) {
     }
   }
 
+  const FormContainer = isDialog ? 'div' : Card;
+
   return (
-    <section className="py-16 sm:py-24 bg-card/50" id="contato">
-      <div className="container mx-auto px-4">
-        <div className="max-w-2xl mx-auto">
-          <Card>
-             <CardHeader className="text-center">
-              <CardTitle className="text-4xl md:text-5xl font-extrabold font-headline">Fale <span className="text-gradient">Conosco</span></CardTitle>
-              <CardDescription className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-                Tem alguma dúvida ou quer agendar uma visita? Preencha o formulário abaixo.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <FormField
+    <FormContainer>
+        <CardHeader className={isDialog ? "text-left p-0 mb-4" : "text-center"}>
+            <CardTitle className={isDialog ? "text-xl font-bold" : "text-4xl md:text-5xl font-extrabold font-headline"}>
+                 {title || <>Fale <span className="text-gradient">Conosco</span></>}
+            </CardTitle>
+            <CardDescription className={isDialog ? "text-sm" : "mt-4 text-lg text-muted-foreground max-w-2xl mx-auto"}>
+                {description || "Tem alguma dúvida ou quer agendar uma visita? Preencha o formulário abaixo."}
+            </CardDescription>
+        </CardHeader>
+        <CardContent className={isDialog ? "p-0" : ""}>
+            <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Nome</FormLabel>
+                    <FormControl>
+                        <Input placeholder="Seu nome completo" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
                     control={form.control}
-                    name="name"
+                    name="email"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nome</FormLabel>
+                    <FormItem>
+                        <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="Seu nome completo" {...field} />
+                        <Input placeholder="seu.email@exemplo.com" {...field} />
                         </FormControl>
                         <FormMessage />
-                      </FormItem>
+                    </FormItem>
                     )}
-                  />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input placeholder="seu.email@exemplo.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Telefone (Opcional)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="(11) 99999-9999" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormField
+                />
+                <FormField
                     control={form.control}
-                    name="message"
+                    name="phone"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Mensagem</FormLabel>
+                    <FormItem>
+                        <FormLabel>Telefone (Opcional)</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="Escreva sua mensagem aqui..."
-                            className="min-h-[120px]"
-                            {...field}
-                          />
+                        <Input placeholder="(11) 99999-9999" {...field} />
                         </FormControl>
                         <FormMessage />
-                      </FormItem>
+                    </FormItem>
                     )}
-                  />
-                  <Button type="submit" size="lg" className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Enviando...
-                        </>
-                    ) : (
-                        "Enviar Mensagem"
-                    )}
-                  </Button>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </section>
+                />
+                </div>
+                <FormField
+                control={form.control}
+                name="message"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Mensagem</FormLabel>
+                    <FormControl>
+                        <Textarea
+                        placeholder="Escreva sua mensagem aqui..."
+                        className="min-h-[120px]"
+                        {...field}
+                        />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <Button type="submit" size="lg" className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity" disabled={isSubmitting}>
+                {isSubmitting ? (
+                    <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Enviando...
+                    </>
+                ) : (
+                    "Enviar Mensagem"
+                )}
+                </Button>
+            </form>
+            </Form>
+        </CardContent>
+    </FormContainer>
   );
 }

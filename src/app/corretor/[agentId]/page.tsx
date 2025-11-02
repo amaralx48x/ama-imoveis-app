@@ -174,7 +174,7 @@ export default function AgentPublicPage({ }: Props) {
                     <ClientReviews reviews={reviews} agentId={agentId} onReviewSubmitted={loadReviews} />
                   </div>
                 )}
-                {whatsAppLink && <FloatingContactButton whatsAppLink={whatsAppLink} />}
+                {whatsAppLink && <FloatingContactButton whatsAppLink={whatsAppLink} agent={agent}/>}
             </main>
             <Footer agentId={agent.id} />
         </>
