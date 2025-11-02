@@ -14,12 +14,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Frown, ArrowLeft } from "lucide-react";
 
 
-function BackButton() {
+function BackButton({ agentId }: { agentId: string | null }) {
     const router = useRouter();
+    const href = agentId ? `/corretor/${agentId}` : '/';
+    const buttonText = agentId ? "Voltar para a Página do Corretor" : "Voltar para a Página Principal";
+
     return (
-        <Button variant="outline" onClick={() => router.push('/')} className="mb-6 flex items-center gap-2">
+        <Button variant="outline" onClick={() => router.push(href)} className="mb-6 flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" />
-            Voltar para a Página Principal
+            {buttonText}
         </Button>
     );
 }
@@ -29,6 +32,8 @@ function SearchResults() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const firestore = useFirestore();
+
+  const agentId = searchParams.get('agentId');
 
   // Mock agent para popular os filtros de cidade, etc.
   const mockAgent: Agent = {
@@ -59,11 +64,11 @@ function SearchResults() {
     
     try {
       let q: Query<DocumentData>;
-      const agentId = filters.agentId;
+      const currentAgentId = filters.agentId;
 
-      if (agentId && agentId !== 'global') {
+      if (currentAgentId && currentAgentId !== 'global') {
           // Se um agentId específico for fornecido, busca apenas nas propriedades dele
-          q = query(collectionGroup(firestoreInstance, 'properties'), where('agentId', '==', agentId));
+          q = query(collectionGroup(firestoreInstance, 'properties'), where('agentId', '==', currentAgentId));
       } else {
           // Busca global em todas as propriedades
           q = query(collectionGroup(firestoreInstance, 'properties'));
@@ -90,7 +95,7 @@ function SearchResults() {
   return (
     <div className="container mx-auto p-6 min-h-screen">
       <div className="mb-4">
-        <BackButton />
+        <BackButton agentId={agentId} />
       </div>
 
       <div className="mb-8">
