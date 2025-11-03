@@ -25,7 +25,6 @@ function SearchResults() {
 
   const agentId = searchParams.get('agentId');
 
-  // Mock agent para popular os filtros de cidade, etc.
   const mockAgent: Agent = {
     id: 'global',
     displayName: 'Global Search',
@@ -54,32 +53,27 @@ function SearchResults() {
         maxPrice: currentParams.get('maxPrice') || undefined,
         sortBy: sortBy as Filters['sortBy'] || undefined,
     };
-
-    const hasFilters = Object.values(filters).some(v => v !== undefined && v !== '' && v !== 'global');
     
     try {
       let baseQuery: Query<DocumentData>;
       const currentAgentId = filters.agentId;
 
       if (currentAgentId && currentAgentId !== 'global') {
-          // Se um agentId específico for fornecido, busca apenas nas propriedades dele
           baseQuery = query(collectionGroup(firestoreInstance, 'properties'), where('agentId', '==', currentAgentId));
       } else {
-          // Busca global em todas as propriedades
           baseQuery = query(collectionGroup(firestoreInstance, 'properties'));
       }
       
       const querySnapshot = await getDocs(baseQuery);
       
-      const allProps = querySnapshot.docs.map(doc => ({ ...(doc.data() as Property), id: doc.id, agentId: doc.ref.parent.parent?.id }) as Property);
+      let allProps = querySnapshot.docs.map(doc => ({ ...(doc.data() as Property), id: doc.id, agentId: doc.ref.parent.parent?.id }) as Property);
       
-      // Filtra por imóveis ativos no lado do cliente para evitar a necessidade de índice
-      const activeProperties = allProps.filter(p => ['ativo', 'Ativo', 'active'].includes(p.status ?? ''));
+      // Client-side filtering for status to avoid composite index
+      allProps = allProps.filter(p => ['ativo', 'Ativo', 'active'].includes(p.status ?? ''));
 
-      const uniqueProperties = Array.from(new Map(activeProperties.map(p => [p.id, p])).values());
+      const uniqueProperties = Array.from(new Map(allProps.map(p => [p.id, p])).values());
       
-      // Aplicar filtros e ordenação no cliente
-      const filtered = hasFilters ? filterProperties(uniqueProperties, filters) : uniqueProperties;
+      const filtered = filterProperties(uniqueProperties, filters);
       setProperties(filtered);
       
     } catch (error) {
@@ -108,7 +102,7 @@ function SearchResults() {
       </div>
       
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-            <h1 className="text-3xl font-bold font-headline">Resultados da Busca</h1>
+            <h1 className="text-3xl font-bold font-headline">Resultados da Busca ({properties.length})</h1>
             <div className="flex items-center gap-2">
                 <ArrowDownUp className="h-4 w-4 text-muted-foreground" />
                 <Select value={sortBy} onValueChange={(value) => setSortBy(value as Filters['sortBy'])}>

@@ -59,7 +59,6 @@ export default function AgentPublicPage({ }: Props) {
 
         const fetchData = async () => {
             setIsLoading(true);
-            console.debug(`[DEBUG] Iniciando busca de dados para o corretor: ${agentId}`);
             try {
                 const agentRef = doc(firestore, 'agents', agentId);
                 const propertiesQuery = collection(firestore, `agents/${agentId}/properties`);
@@ -72,41 +71,31 @@ export default function AgentPublicPage({ }: Props) {
                 ]);
 
                 if (!agentSnap.exists()) {
-                    console.error("[DEBUG] Corretor não encontrado.");
                     setAgent(null);
                     return;
                 }
                 
                 const agentData = { id: agentSnap.id, ...agentSnap.data() } as Agent;
                 setAgent(agentData);
-                console.debug("[DEBUG] Dados do corretor carregados:", agentData);
-
 
                 const allProps = propertiesSnap.docs.map(doc => ({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId: agentId }));
-                console.debug('[DEBUG] Total de imóveis carregados (bruto):', allProps.length, allProps);
                 
-                // Filtrando imóveis "ativos" no lado do cliente para maior robustez
                 const activeProperties = allProps.filter(p => ['ativo', 'Ativo', 'active'].includes(p.status ?? ''));
                 setAllProperties(activeProperties);
-                console.debug(`[DEBUG] Total de ${activeProperties.length} imóveis ativos filtrados:`, activeProperties);
-
 
                 const sections = sectionsSnap.docs.map(doc => ({ ...(doc.data() as Omit<CustomSection, 'id'>), id: doc.id }));
                 setCustomSections(sections);
-                console.debug(`[DEBUG] Total de ${sections.length} seções personalizadas carregadas:`, sections);
                 
                 await loadReviews();
 
             } catch (error) {
-                console.error("[DEBUG] Erro ao buscar dados do corretor:", error);
+                console.error("Erro ao buscar dados do corretor:", error);
             } finally {
                 setIsLoading(false);
-                console.debug("[DEBUG] Busca de dados finalizada.");
             }
         };
 
         fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [firestore, agentId, loadReviews]);
 
     if (isLoading) {
@@ -149,7 +138,6 @@ export default function AgentPublicPage({ }: Props) {
     }
 
     const featuredProperties = allProperties.filter(p => (p.sectionIds || []).includes('featured'));
-    console.debug(`[DEBUG] Imóveis filtrados para a seção 'Destaques': ${featuredProperties.length}`, featuredProperties);
 
     const propertyTypes = getPropertyTypes();
     const showReviews = agent.siteSettings?.showReviews ?? true;
@@ -167,10 +155,7 @@ export default function AgentPublicPage({ }: Props) {
 
                 {customSections.map(section => {
                     const sectionProperties = allProperties.filter(p => (p.sectionIds || []).includes(section.id));
-                    console.debug(`[DEBUG] Para a seção '${section.title}' (ID: ${section.id}), foram encontrados ${sectionProperties.length} imóveis.`, sectionProperties);
-
                     if (sectionProperties.length === 0) {
-                        console.debug(`[DEBUG] A seção '${section.title}' não será renderizada por não ter imóveis associados.`);
                         return null;
                     }
                     return (

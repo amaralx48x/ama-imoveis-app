@@ -23,14 +23,14 @@ service cloud.firestore {
     // =========================
     match /agents/{agentId} {
       // Dono pode ler o próprio perfil, admins podem listar todos.
-      allow get: if isOwner(agentId) || isAdmin();
+      allow get: if true;
       allow list: if isAdmin();
       // Escrever apenas dono ou admin
       allow write: if isOwner(agentId) || isAdmin();
 
       // Subcoleção de propriedades
       match /properties/{propertyId} {
-        allow read: if true;
+        allow list, get: if true;
         allow write: if isOwner(agentId) || isAdmin();
       }
 
@@ -43,7 +43,7 @@ service cloud.firestore {
 
       // Subcoleção customSections
       match /customSections/{sectionId} {
-        allow read: if true;
+        allow list, get: if true;
         allow write: if isOwner(agentId) || isAdmin();
       }
 
@@ -72,7 +72,7 @@ service cloud.firestore {
     // Regras globais de propriedades (para pesquisa global)
     // =========================
     match /{path=**}/properties/{propertyId} {
-      allow read: if true;
+      allow list, get: if true;
       allow write: if false; // Escrita apenas via subcoleção do agente
     }
   }
