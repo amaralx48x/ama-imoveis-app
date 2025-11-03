@@ -11,7 +11,6 @@ import {
   CollectionReference,
   getDocs,
 } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
 /** Utility type to add an 'id' field to a given type T. */
@@ -43,12 +42,11 @@ export interface InternalQuery extends Query<DocumentData> {
 /**
  * React hook to subscribe to a Firestore collection or query in real-time.
  * Handles nullable references/queries.
- * 
  *
  * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedTargetRefOrQuery or BAD THINGS WILL HAPPEN
  * use useMemo to memoize it per React guidence.  Also make sure that it's dependencies are stable
  * references
- *  
+ *
  * @template T Optional type for document data. Defaults to any.
  * @param {CollectionReference<DocumentData> | Query<DocumentData> | null | undefined} targetRefOrQuery -
  * The Firestore CollectionReference or Query. Waits if null/undefined.
@@ -71,7 +69,7 @@ export function useCollection<T = any>(
         setError(null);
         return;
     }
-    
+
     setIsLoading(true);
     try {
         const snapshot = await getDocs(memoizedTargetRefOrQuery);
@@ -88,7 +86,7 @@ export function useCollection<T = any>(
             : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
         const contextualError = new FirestorePermissionError({ operation: 'list', path });
         setError(contextualError);
-        errorEmitter.emit('permission-error', contextualError);
+        throw contextualError; // Throw error to be caught by Next.js Error Boundary
     } finally {
         setIsLoading(false);
     }
@@ -116,7 +114,7 @@ export function useCollection<T = any>(
         setError(null);
         setIsLoading(false);
       },
-      (error: FirestoreError) => {
+      (err: FirestoreError) => {
         const path: string =
           memoizedTargetRefOrQuery.type === 'collection'
             ? (memoizedTargetRefOrQuery as CollectionReference).path
@@ -127,11 +125,12 @@ export function useCollection<T = any>(
           path,
         })
 
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
+        setError(contextualError);
+        setData(null);
+        setIsLoading(false);
 
-        errorEmitter.emit('permission-error', contextualError);
+        // Throwing the error here will allow parent components and error boundaries to catch it.
+        throw contextualError;
       }
     );
 
