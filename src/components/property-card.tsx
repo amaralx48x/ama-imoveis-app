@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Property } from "@/lib/data";
