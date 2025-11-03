@@ -349,7 +349,7 @@ export default function EditarImovelPage() {
                 
                 <FormItem>
                 <FormLabel>Imagens do Imóvel</FormLabel>
-                <FormDescription>Envie até 20 fotos do seu imóvel. A primeira será a imagem de capa.</FormDescription>
+                <FormDescription>Envie até 20 fotos do seu imóvel. A primeira será a imagem de capa. Para uma melhor apresentação, use imagens de alta resolução.</FormDescription>
                 {user && (
                     <ImageUpload
                     agentId={user.uid}
