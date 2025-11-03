@@ -8,26 +8,12 @@ import { Footer } from "@/components/layout/footer";
 import { PropertyView } from '@/components/imovel/PropertyView';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useFirestore } from '@/firebase';
 import { RelatedProperties } from '@/components/imovel/RelatedProperties';
 
-function BackButton() {
-    const router = useRouter();
-    return (
-        <Button variant="outline" onClick={() => router.back()} className="mb-6">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar
-        </Button>
-    );
-}
-
-type Props = {
-  params: { imovelId: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-};
-
-export default function PropertyPage({ }: Props) {
+export default function PropertyPage() {
+  const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
   
@@ -40,55 +26,52 @@ export default function PropertyPage({ }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const firestore = useFirestore();
 
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
     if (!agentId || !imovelId || !firestore) {
         setIsLoading(false);
         return;
     }
 
-    const fetchPropertyAndAgent = async () => {
-        setIsLoading(true);
-        try {
-            const agentRef = doc(firestore, 'agents', agentId);
-            const propertyRef = doc(firestore, `agents/${agentId}/properties`, imovelId);
-            
-            const q = query(collection(firestore, `agents/${agentId}/properties`), where('status', '==', 'ativo'));
-            const allPropertiesSnap = await getDocs(q);
+    setIsLoading(true);
+    try {
+        const agentRef = doc(firestore, 'agents', agentId);
+        const propertyRef = doc(firestore, `agents/${agentId}/properties`, imovelId);
+        
+        const allPropertiesQuery = query(collection(firestore, `agents/${agentId}/properties`), where('status', '==', 'ativo'));
 
-            const allProps = allPropertiesSnap.docs
-                .map(d => ({ ...d.data() as Property, id: d.id, agentId }));
-
-            setAllAgentProperties(allProps);
-
-            const [agentSnap, propertySnap] = await Promise.all([
-              getDoc(agentRef),
-              getDoc(propertyRef)
-            ]);
-
-            if (propertySnap.exists()) {
-                setPropertyData({ id: propertySnap.id, ...(propertySnap.data() as Omit<Property, 'id'>), agentId });
-            } else {
-                setPropertyData(null);
-            }
-
-            if (agentSnap.exists()) {
-                setAgentData({ id: agentSnap.id, ...(agentSnap.data() as Omit<Agent, 'id'>) });
-            } else {
-                setAgentData(null);
-            }
-
-        } catch (error) {
-            console.error("Erro ao buscar imóvel e corretor:", error);
-            setPropertyData(null);
+        const [agentSnap, propertySnap, allPropertiesSnap] = await Promise.all([
+            getDoc(agentRef),
+            getDoc(propertyRef),
+            getDocs(allPropertiesQuery)
+        ]);
+        
+        if (agentSnap.exists()) {
+            setAgentData({ id: agentSnap.id, ...(agentSnap.data() as Omit<Agent, 'id'>) });
+        } else {
             setAgentData(null);
-        } finally {
-            setIsLoading(false);
         }
-    };
-    
-    fetchPropertyAndAgent();
 
+        if (propertySnap.exists()) {
+            setPropertyData({ id: propertySnap.id, ...(propertySnap.data() as Omit<Property, 'id'>), agentId });
+        } else {
+            setPropertyData(null);
+        }
+
+        const allProps = allPropertiesSnap.docs.map(d => ({ ...d.data() as Property, id: d.id, agentId }));
+        setAllAgentProperties(allProps);
+
+    } catch (error) {
+        console.error("Erro ao buscar imóvel e corretor:", error);
+        setPropertyData(null);
+        setAgentData(null);
+    } finally {
+        setIsLoading(false);
+    }
   }, [firestore, agentId, imovelId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   if (isLoading) {
     return (
@@ -111,7 +94,10 @@ export default function PropertyPage({ }: Props) {
       <Header agentId={agentId} agent={agentData} />
       <main>
          <div className="container mx-auto px-4 py-8">
-            <BackButton />
+            <Button variant="outline" onClick={() => router.back()} className="mb-6">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar
+            </Button>
          </div>
          <PropertyView property={propertyData} agent={agentData} />
          <RelatedProperties currentProperty={propertyData} allProperties={allAgentProperties} />
@@ -120,5 +106,3 @@ export default function PropertyPage({ }: Props) {
     </>
   );
 }
-
-    
