@@ -82,7 +82,7 @@ export function ClientReviews({ reviews, agentId, onReviewSubmitted }: ClientRev
                 <CardHeader className="flex flex-row items-center gap-4 p-6 pt-0">
                     {avatarUrl && (
                         <div className="relative h-12 w-12 rounded-full overflow-hidden">
-                             <Image src={avatarUrl} alt={`Avatar de ${review.name || 'cliente'}`} fill className="object-cover" />
+                             <Image src={avatarUrl} alt={`Avatar de ${review.name || 'cliente'}`} fill sizes="48px" className="object-cover" />
                         </div>
                     )}
                     <div>

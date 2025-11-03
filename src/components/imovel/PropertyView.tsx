@@ -80,9 +80,9 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                                         src={imageUrl}
                                         alt={`${property.title || 'Imagem do imóvel'} - Imagem ${index + 1}`}
                                         fill
+                                        sizes="100vw"
                                         className="object-cover"
                                         data-ai-hint="house interior"
-                                        sizes="100vw"
                                         priority={index === 0}
                                     />
                                 </div>

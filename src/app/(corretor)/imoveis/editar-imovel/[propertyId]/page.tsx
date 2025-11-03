@@ -353,7 +353,7 @@ export default function EditarImovelPage() {
                     <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                     {imageUrls.map((url, index) => (
                         <div key={index} className="relative aspect-square rounded-md overflow-hidden group">
-                            <Image src={url} alt={`Imagem do imóvel ${index + 1}`} fill className="object-cover" />
+                            <Image src={url} alt={`Imagem do imóvel ${index + 1}`} fill sizes="150px" className="object-cover" />
                             <button
                                 type="button"
                                 onClick={() => handleRemoveImage(index)}

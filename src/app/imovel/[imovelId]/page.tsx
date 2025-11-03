@@ -117,10 +117,10 @@ export default function PropertyPage({ }: Props) {
     <>
       <Header agentId={agentId} />
       <main className="min-h-screen">
-        <div className="container mx-auto px-4 py-8">
+         <PropertyView property={propertyData} agent={agentData} />
+        <div className="container mx-auto px-4 mt-8">
             <BackButton />
         </div>
-        <PropertyView property={propertyData} agent={agentData} />
         <RelatedProperties currentProperty={propertyData} allProperties={allAgentProperties} />
       </main>
       <Footer agentId={agentId} />

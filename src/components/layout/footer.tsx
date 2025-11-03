@@ -135,7 +135,7 @@ export function Footer({ agentId }: { agentId?: string }) {
                      >
                         {locationLink.imageUrl && (
                             <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
-                                <Image src={locationLink.imageUrl} alt={locationLink.label || "Foto do endereço"} fill className="object-cover" />
+                                <Image src={locationLink.imageUrl} alt={locationLink.label || "Foto do endereço"} fill sizes="64px" className="object-cover" />
                             </div>
                         )}
                         <div className="text-left">

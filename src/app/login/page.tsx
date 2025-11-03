@@ -149,6 +149,7 @@ export default function LoginPage() {
                 src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxyZWFsJTIwZXN0YXRlfGVufDB8fHx8MTc2MjI0NzU0OHww&ixlib=rb-4.1.0&q=80&w=1080"
                 alt="Casa moderna com uma piscina"
                 fill
+                sizes="100vw"
                 className="object-cover -z-10 brightness-50"
                 data-ai-hint="real estate"
                 priority
