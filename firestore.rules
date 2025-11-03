@@ -67,13 +67,5 @@ service cloud.firestore {
       // O autor da mensagem pode ler sua própria mensagem
       allow get: if isOwner(resource.data.senderId);
     }
-
-    // =========================
-    // Regras globais de propriedades (para pesquisa global)
-    // =========================
-    match /{path=**}/properties/{propertyId} {
-      allow list, get: if true;
-      allow write: if false; // Escrita apenas via subcoleção do agente
-    }
   }
 }
