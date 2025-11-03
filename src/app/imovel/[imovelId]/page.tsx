@@ -1,3 +1,4 @@
+
 'use client';
 
 import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
@@ -52,7 +53,6 @@ export default function PropertyPage({ }: Props) {
             const agentRef = doc(firestore, 'agents', agentId);
             const propertyRef = doc(firestore, `agents/${agentId}/properties`, imovelId);
 
-            // 🔹 Busca todos os imóveis e filtra via JS
             const allPropertiesSnap = await getDocs(collection(firestore, `agents/${agentId}/properties`));
 
             const allProps = allPropertiesSnap.docs
@@ -61,7 +61,6 @@ export default function PropertyPage({ }: Props) {
 
             setAllAgentProperties(allProps);
 
-            // 🔹 Busca corretor e imóvel específicos
             const [agentSnap, propertySnap] = await Promise.all([
               getDoc(agentRef),
               getDoc(propertyRef)
@@ -95,7 +94,7 @@ export default function PropertyPage({ }: Props) {
   if (isLoading) {
     return (
       <>
-        <Header />
+        <Header agentId={agentId || undefined} />
         <main className="min-h-[calc(100vh-theme(spacing.14)-theme(spacing.32))] flex items-center justify-center">
             <div className="w-12 h-12 border-4 border-dashed rounded-full animate-spin border-primary"></div>
         </main>
@@ -110,15 +109,14 @@ export default function PropertyPage({ }: Props) {
 
   return (
     <>
-      <Header agentId={agentId} />
-      <main className="min-h-screen">
+      <Header agentId={agentId} agent={agentData} />
+      <main className="container mx-auto px-4 py-8">
+         <BackButton />
          <PropertyView property={propertyData} agent={agentData} />
-        <div className="container mx-auto px-4 mt-8">
-            <BackButton />
-        </div>
         <RelatedProperties currentProperty={propertyData} allProperties={allAgentProperties} />
       </main>
       <Footer agentId={agentId} />
     </>
   );
 }
+
