@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -23,15 +24,16 @@ service cloud.firestore {
     // Coleção de agentes (corretores)
     // =========================
     match /agents/{agentId} {
-      // Dono pode ler o próprio perfil, admins podem listar todos.
-      allow get: if isOwner(agentId) || isAdmin();
-      allow list: if isAdmin();
-      // Escrever apenas dono ou admin
+      // Leitura pública do perfil do agente para o site público.
+      // Escrita apenas dono ou admin
+      allow get: if true;
+      allow list: if isAdmin(); // Apenas admins podem listar todos os agentes.
       allow write: if isOwner(agentId) || isAdmin();
 
       // Subcoleção de propriedades
       match /properties/{propertyId} {
-        allow read: if true;
+        // Leitura e listagem públicas, escrita restrita.
+        allow list, get: if true;
         allow write: if isOwner(agentId) || isAdmin();
       }
 
@@ -44,7 +46,8 @@ service cloud.firestore {
 
       // Subcoleção customSections
       match /customSections/{sectionId} {
-        allow read: if true;
+        // Leitura pública, escrita restrita.
+        allow list, get: if true;
         allow write: if isOwner(agentId) || isAdmin();
       }
 
