@@ -99,12 +99,12 @@ export default function PropertyPage({ }: Props) {
     return (
       <>
         <Header />
-        <main className="min-h-[calc(100vh-theme(spacing.14)-theme(spacing.32))] container mx-auto px-4 py-8">
+        <main className="min-h-[calc(100vh-theme(spacing.14)-theme(spacing.32))]">
              <div className="flex items-center justify-center h-64">
                 <div className="w-12 h-12 border-4 border-dashed rounded-full animate-spin border-primary"></div>
             </div>
         </main>
-        <Footer />
+        <Footer agentId={agentId || ''} />
       </>
     );
   }
@@ -116,12 +116,14 @@ export default function PropertyPage({ }: Props) {
   return (
     <>
       <Header agentId={agentId} />
-      <main className="min-h-screen container mx-auto px-4 py-8">
-        <BackButton />
+      <main className="min-h-screen">
+        <div className="container mx-auto px-4 py-8">
+            <BackButton />
+        </div>
         <PropertyView property={propertyData} agent={agentData} />
         <RelatedProperties currentProperty={propertyData} allProperties={allAgentProperties} />
       </main>
-      <Footer />
+      <Footer agentId={agentId} />
     </>
   );
 }
