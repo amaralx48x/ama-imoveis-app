@@ -37,7 +37,7 @@ export function CustomPropertySection({ title, properties, agentId, sectionId }:
                 </p>
             </div>
             <Button asChild variant="outline">
-                <Link href={`/search?agentId=${agentId}&sectionId=${sectionId}`}>
+                <Link href={`/search-results?agentId=${agentId}&sectionId=${sectionId}`}>
                     Ver Todos os Imóveis
                     <ArrowRight className="ml-2 h-4 w-4"/>
                 </Link>
