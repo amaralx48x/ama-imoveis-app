@@ -56,24 +56,14 @@ function SearchResults() {
     };
     
     try {
-      let q: Query<DocumentData>;
-      const currentAgentId = filters.agentId;
-
-      if (currentAgentId && currentAgentId !== 'global') {
-          // Se um agentId específico for fornecido, busca apenas nas propriedades dele
-          q = query(collectionGroup(firestoreInstance, 'properties'), where('agentId', '==', currentAgentId));
-      } else {
-          // Busca global em todas as propriedades
-          q = query(collectionGroup(firestoreInstance, 'properties'));
-      }
-
+      // Query simplificada: Busca global em todas as propriedades sem filtros no DB
+      const q = query(collectionGroup(firestoreInstance, 'properties'));
+      
       const querySnapshot = await getDocs(q);
       const allProps = querySnapshot.docs.map(doc => ({ ...(doc.data() as Property), id: doc.id, agentId: doc.ref.parent.parent?.id }) as Property);
       
-      const activeProps = allProps.filter(p => p.status !== 'vendido' && p.status !== 'alugado');
-      
       // Aplicar filtros e ordenação no cliente
-      const filtered = filterProperties(activeProps, filters);
+      const filtered = filterProperties(allProps, filters);
       setProperties(filtered);
       
     } catch (error) {

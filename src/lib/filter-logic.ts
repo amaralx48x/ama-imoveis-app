@@ -21,8 +21,13 @@ export function filterProperties(properties: Property[], filters: Filters): Prop
   
   const {
       city, neighborhood, type, operation,
-      minPrice, maxPrice, bedrooms, garage, keyword, sectionId, sortBy
+      minPrice, maxPrice, bedrooms, garage, keyword, sectionId, sortBy, agentId
     } = filters;
+
+  // Filter by agentId first if it's present and not 'global'
+  if (agentId && agentId !== 'global') {
+    filtered = filtered.filter(p => p.agentId === agentId);
+  }
     
   // Primary keyword search on title, city, neighborhood
   if (keyword) {
@@ -34,6 +39,9 @@ export function filterProperties(properties: Property[], filters: Filters): Prop
         p.description.toLowerCase().includes(lowercasedKeyword)
     );
   }
+
+  // Active status filter
+  filtered = filtered.filter(p => ['ativo', 'Ativo', 'active'].includes(p.status ?? ''));
 
   // Structured filters
   if (city) filtered = filtered.filter(p => p.city === city);
