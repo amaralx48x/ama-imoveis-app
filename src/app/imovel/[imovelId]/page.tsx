@@ -1,7 +1,6 @@
-
 'use client';
 
-import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import type { Property, Agent } from '@/lib/data';
 import { notFound, useRouter, useParams, useSearchParams } from 'next/navigation';
 import { Header } from "@/components/layout/header";
@@ -52,12 +51,12 @@ export default function PropertyPage({ }: Props) {
         try {
             const agentRef = doc(firestore, 'agents', agentId);
             const propertyRef = doc(firestore, `agents/${agentId}/properties`, imovelId);
-
-            const allPropertiesSnap = await getDocs(collection(firestore, `agents/${agentId}/properties`));
+            
+            const q = query(collection(firestore, `agents/${agentId}/properties`), where('status', '==', 'ativo'));
+            const allPropertiesSnap = await getDocs(q);
 
             const allProps = allPropertiesSnap.docs
-                .map(d => ({ ...d.data() as Property, id: d.id, agentId }))
-                .filter(p => p.status !== 'vendido' && p.status !== 'alugado');
+                .map(d => ({ ...d.data() as Property, id: d.id, agentId }));
 
             setAllAgentProperties(allProps);
 
@@ -110,13 +109,16 @@ export default function PropertyPage({ }: Props) {
   return (
     <>
       <Header agentId={agentId} agent={agentData} />
-      <main className="container mx-auto px-4 py-8">
-         <BackButton />
+      <main>
+         <div className="container mx-auto px-4 py-8">
+            <BackButton />
+         </div>
          <PropertyView property={propertyData} agent={agentData} />
-        <RelatedProperties currentProperty={propertyData} allProperties={allAgentProperties} />
+         <RelatedProperties currentProperty={propertyData} allProperties={allAgentProperties} />
       </main>
       <Footer agentId={agentId} />
     </>
   );
 }
 
+    
