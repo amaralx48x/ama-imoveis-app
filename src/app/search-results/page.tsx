@@ -63,8 +63,7 @@ function SearchResults() {
 
       if (currentAgentId && currentAgentId !== 'global') {
           // Se um agentId específico for fornecido, busca apenas nas propriedades dele
-          baseQuery = collectionGroup(firestoreInstance, 'properties');
-          baseQuery = query(baseQuery, where('agentId', '==', currentAgentId));
+          baseQuery = query(collectionGroup(firestoreInstance, 'properties'), where('agentId', '==', currentAgentId));
       } else {
           // Busca global em todas as propriedades
           baseQuery = query(collectionGroup(firestoreInstance, 'properties'));
