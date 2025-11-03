@@ -52,7 +52,7 @@ export type SiteSettings = {
     showReviews?: boolean;
     defaultSaleCommission?: number;
     defaultRentCommission?: number;
-    socialLinks?: SocialLink[];
+alLinks?: SocialLink[];
     privacyPolicy?: string;
     termsOfUse?: string;
 }

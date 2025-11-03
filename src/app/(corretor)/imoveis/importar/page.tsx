@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ArrowLeft, CheckCircle, FileUp, ListChecks, Send, XCircle } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
@@ -73,7 +72,7 @@ export default function ImportImoveisPage() {
                 errors.push(`Operação inválida: '${row.operation}'.`);
             }
 
-            const operation = row.operation === 'Venda' ? 'Comprar' : row.operation;
+            const operation = row.operation === 'Venda' ? 'Comprar' : 'Alugar';
 
             const propertyData: Partial<Property> = {
                 title: row.title,
@@ -87,9 +86,8 @@ export default function ImportImoveisPage() {
                 totalArea: Number(row.totalArea),
                 city: row.city,
                 neighborhood: row.neighborhood,
-                type: row.type,
-                operation: operation, 
-                featured: row.featured?.toLowerCase() === 'true',
+                type: row.type as Property['type'],
+                operation: operation as Property['operation'],
                 imageUrls: row.imageUrls ? row.imageUrls.split(',').map((url: string) => url.trim()) : [],
             };
 
@@ -133,7 +131,9 @@ export default function ImportImoveisPage() {
         ...p.data,
         id: propertyId,
         agentId: user.uid,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        status: 'ativo',
+        sectionIds: ['featured']
       });
     });
 

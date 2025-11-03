@@ -19,7 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter, useParams } from "next/navigation";
 import { useFirestore, useUser, useDoc, useMemoFirebase, useCollection } from "@/firebase";
-import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { doc, collection } from "firebase/firestore";
 import { useState, useEffect } from "react";
 import type { CustomSection, Property } from "@/lib/data";
@@ -89,7 +89,7 @@ export default function AssociarSecoesPage() {
         return;
     }
 
-    setDocumentNonBlocking(propertyRef, { sectionIds: values.sectionIds }, { merge: true });
+    updateDocumentNonBlocking(propertyRef, { sectionIds: values.sectionIds });
     
     toast({
         title: "Seções Atualizadas!",

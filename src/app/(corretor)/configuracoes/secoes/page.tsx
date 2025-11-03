@@ -2,7 +2,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useCollection, useFirestore, useUser, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, writeBatch, serverTimestamp, setDoc } from 'firebase/firestore';
 import type { CustomSection, Agent } from '@/lib/data';
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 
 function SettingToggle({ 
@@ -75,14 +75,14 @@ export default function GerenciarSecoesPage() {
         [user, firestore]
     );
 
-    const { data: sections, isLoading, error } = useCollection<CustomSection>(sectionsCollection);
+    const { data: sections, isLoading, error, mutate: mutateSections } = useCollection<CustomSection>(sectionsCollection);
     
     const agentRef = useMemoFirebase(
         () => (user && firestore ? doc(firestore, 'agents', user.uid) : null),
         [user, firestore]
     );
 
-    const { data: agentData, isLoading: isAgentLoading, mutate } = useDoc<Agent>(agentRef);
+    const { data: agentData, isLoading: isAgentLoading, mutate: mutateAgent } = useDoc<Agent>(agentRef);
 
     const [newSectionTitle, setNewSectionTitle] = useState('');
     const [editingSection, setEditingSection] = useState<{ id: string; title: string } | null>(null);
@@ -92,7 +92,7 @@ export default function GerenciarSecoesPage() {
         
         const updatePath = `siteSettings.${key}`;
         updateDocumentNonBlocking(agentRef, { [updatePath]: value });
-        mutate(); // Re-fetch the data to update UI
+        mutateAgent(); // Re-fetch the data to update UI
 
         toast({
             title: "Configuração atualizada!",
@@ -105,7 +105,6 @@ export default function GerenciarSecoesPage() {
 
         const newSection: Omit<CustomSection, 'id'> = {
             title: newSectionTitle,
-            propertyIds: [],
             order: (sections?.length || 0) + 1,
             createdAt: serverTimestamp(),
         };
@@ -113,9 +112,7 @@ export default function GerenciarSecoesPage() {
         const docRef = doc(firestore, `agents/${user.uid}/customSections`, sectionId);
         
         try {
-            const batch = writeBatch(firestore);
-            batch.set(docRef, { ...newSection, id: sectionId });
-            await batch.commit();
+            await setDoc(docRef, { ...newSection, id: sectionId });
             
             toast({ title: 'Seção criada!', description: `A seção "${newSectionTitle}" foi adicionada.` });
             setNewSectionTitle('');

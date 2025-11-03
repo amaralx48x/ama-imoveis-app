@@ -19,24 +19,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "next/navigation";
-import { useFirestore, useUser, useDoc, useMemoFirebase, useCollection } from "@/firebase";
+import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { doc, collection } from "firebase/firestore";
+import { doc } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 import ImageUpload from "@/components/image-upload";
 import { useState, useMemo } from "react";
 import Image from "next/image";
-import type { Agent, CustomSection } from "@/lib/data";
+import type { Agent } from "@/lib/data";
 import Link from "next/link";
-import { ArrowLeft, X, Gem } from "lucide-react";
+import { ArrowLeft, X, Gem, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { usePlan } from "@/context/PlanContext";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 
 const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
+const operationTypes = ["Venda", "Aluguel"];
 
 const formSchema = z.object({
   title: z.string().min(5, "O título deve ter pelo menos 5 caracteres."),
@@ -44,15 +44,14 @@ const formSchema = z.object({
   city: z.string().min(1, "A cidade é obrigatória."),
   neighborhood: z.string().min(2, "O bairro deve ter pelo menos 2 caracteres."),
   type: z.enum(propertyTypes as [string, ...string[]]),
-  operation: z.enum(["Comprar", "Alugar"]),
-  price: z.number().positive("O preço deve ser um número positivo."),
+  operation: z.enum(operationTypes as [string, ...string[]]),
+  price: z.coerce.number().positive("O preço deve ser um número positivo."),
   bedrooms: z.coerce.number().int().min(0),
   bathrooms: z.coerce.number().int().min(0),
   garage: z.coerce.number().int().min(0),
   rooms: z.coerce.number().int().min(0),
   builtArea: z.coerce.number().positive("A área construída deve ser positiva."),
   totalArea: z.coerce.number().positive("A área total deve ser positiva."),
-  sectionIds: z.array(z.string()).default([]),
 });
 
 export default function NovoImovelPage() {
@@ -65,14 +64,8 @@ export default function NovoImovelPage() {
   const agentRef = useMemoFirebase(() => (firestore && user ? doc(firestore, 'agents', user.uid) : null), [firestore, user]);
   const { data: agentData } = useDoc<Agent>(agentRef);
 
-  const sectionsCollection = useMemoFirebase(
-    () => (user && firestore ? collection(firestore, `agents/${user.uid}/customSections`) : null),
-    [user, firestore]
-  );
-  const { data: sections } = useCollection<CustomSection>(sectionsCollection);
-
-
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const propertyId = useMemo(() => uuidv4(), []);
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -89,12 +82,11 @@ export default function NovoImovelPage() {
       rooms: 0,
       builtArea: 0,
       totalArea: 0,
-      sectionIds: [],
     },
   });
 
-  const handleUploadComplete = (urls: string[]) => {
-    setImageUrls(prev => [...prev, ...urls]);
+  const handleUploadComplete = (url: string) => {
+    setImageUrls(prev => [...prev, url]);
   }
 
   const handleRemoveImage = (indexToRemove: number) => {
@@ -111,7 +103,6 @@ export default function NovoImovelPage() {
     const numberValue = Number(rawValue) / 100;
     form.setValue('price', numberValue);
     
-    // Format for display
     e.target.value = new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
@@ -119,12 +110,10 @@ export default function NovoImovelPage() {
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true);
     if (!firestore || !user) {
-        toast({
-            title: "Erro de Autenticação",
-            description: "Você precisa estar logado para adicionar um imóvel.",
-            variant: "destructive"
-        });
+        toast({ title: "Erro de Autenticação", variant: "destructive" });
+        setIsSubmitting(false);
         return;
     }
     
@@ -134,16 +123,19 @@ export default function NovoImovelPage() {
         description: "Por favor, adicione pelo menos uma imagem para o imóvel.",
         variant: "destructive"
       });
+      setIsSubmitting(false);
       return;
     }
 
     const newProperty = {
       ...values,
+      operation: values.operation === 'Venda' ? 'Comprar' : 'Alugar', // Map to internal value
       id: propertyId,
       agentId: user.uid,
       imageUrls: imageUrls,
       createdAt: new Date().toISOString(),
       status: 'ativo' as const,
+      sectionIds: ['featured'], // Automatically add to featured
     };
     
     const propertyRef = doc(firestore, `agents/${user.uid}/properties`, propertyId);
@@ -154,9 +146,8 @@ export default function NovoImovelPage() {
         description: `${values.title} foi cadastrado com sucesso.`,
     });
     router.push('/imoveis');
+    setIsSubmitting(false);
   }
-
-  const allSections = [{ id: 'featured', title: 'Imóveis em Destaque' }, ...(sections || [])];
 
   if (isPlanLoading) {
       return <div>Carregando informações do plano...</div>
@@ -225,11 +216,10 @@ export default function NovoImovelPage() {
                         <FormLabel>Operação</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                            <SelectTrigger><SelectValue placeholder="Comprar ou Alugar" /></SelectTrigger>
+                            <SelectTrigger><SelectValue placeholder="Venda ou Aluguel" /></SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                            <SelectItem value="Comprar">Comprar</SelectItem>
-                            <SelectItem value="Alugar">Alugar</SelectItem>
+                            {operationTypes.map(op => <SelectItem key={op} value={op}>{op}</SelectItem>)}
                         </SelectContent>
                         </Select>
                         <FormMessage />
@@ -342,13 +332,13 @@ export default function NovoImovelPage() {
                 
                 <FormItem>
                 <FormLabel>Imagens do Imóvel</FormLabel>
-                <FormDescription>Envie até 20 fotos do seu imóvel. A primeira será a imagem de capa. Para uma melhor apresentação, use imagens de alta resolução.</FormDescription>
+                <FormDescription>Para uma melhor apresentação, use imagens de alta resolução.</FormDescription>
                 {user && (
                     <ImageUpload
-                    agentId={user.uid}
-                    propertyId={propertyId}
-                    onUploadComplete={handleUploadComplete}
-                    multiple
+                      agentId={user.uid}
+                      propertyId={propertyId}
+                      onUploadComplete={handleUploadComplete}
+                      multiple
                     />
                 )}
                 {imageUrls.length > 0 && (
@@ -372,58 +362,13 @@ export default function NovoImovelPage() {
                 
                  <Separator />
 
-                <FormField
-                  control={form.control}
-                  name="sectionIds"
-                  render={() => (
-                    <FormItem>
-                      <div className="mb-4">
-                        <FormLabel className="text-base">Seções do Site</FormLabel>
-                        <FormDescription>
-                          Selecione em quais seções este imóvel deve aparecer.
-                        </FormDescription>
-                      </div>
-                      {allSections.map((item) => (
-                        <FormField
-                          key={item.id}
-                          control={form.control}
-                          name="sectionIds"
-                          render={({ field }) => {
-                            return (
-                              <FormItem
-                                key={item.id}
-                                className="flex flex-row items-start space-x-3 space-y-0"
-                              >
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value?.includes(item.id)}
-                                    onCheckedChange={(checked) => {
-                                      return checked
-                                        ? field.onChange([...field.value, item.id])
-                                        : field.onChange(
-                                            field.value?.filter(
-                                              (value) => value !== item.id
-                                            )
-                                          )
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                  {item.title}
-                                </FormLabel>
-                              </FormItem>
-                            )
-                          }}
-                        />
-                      ))}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-
-                <Button type="submit" size="lg" className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
-                Salvar Imóvel
+                <Button type="submit" size="lg" className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Salvando...
+                    </>
+                  ) : "Salvar Imóvel"}
                 </Button>
             </form>
             </Form>

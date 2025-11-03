@@ -19,10 +19,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter, useParams } from "next/navigation";
 import { useFirestore, useUser, useDoc, useMemoFirebase, useCollection } from "@/firebase";
-import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { doc, collection } from "firebase/firestore";
 import { useState, useMemo, useEffect } from "react";
 import ImageUpload from "@/components/image-upload";
@@ -35,6 +34,7 @@ import { Separator } from "@/components/ui/separator";
 
 
 const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
+const operationTypes = ["Venda", "Aluguel"];
 
 const formSchema = z.object({
   title: z.string().min(5, "O título deve ter pelo menos 5 caracteres."),
@@ -42,15 +42,14 @@ const formSchema = z.object({
   city: z.string().min(1, "A cidade é obrigatória."),
   neighborhood: z.string().min(2, "O bairro deve ter pelo menos 2 caracteres."),
   type: z.enum(propertyTypes as [string, ...string[]]),
-  operation: z.enum(["Comprar", "Alugar"]),
-  price: z.number().positive("O preço deve ser um número positivo."),
+  operation: z.enum(operationTypes as [string, ...string[]]),
+  price: z.coerce.number().positive("O preço deve ser um número positivo."),
   bedrooms: z.coerce.number().int().min(0),
   bathrooms: z.coerce.number().int().min(0),
   garage: z.coerce.number().int().min(0),
   rooms: z.coerce.number().int().min(0),
   builtArea: z.coerce.number().positive("A área construída deve ser positiva."),
   totalArea: z.coerce.number().positive("A área total deve ser positiva."),
-  sectionIds: z.array(z.string()).default([]),
 });
 
 function EditFormSkeleton() {
@@ -93,12 +92,6 @@ export default function EditarImovelPage() {
   const propertyRef = useMemoFirebase(() => (firestore && user && propertyId ? doc(firestore, `agents/${user.uid}/properties`, propertyId) : null), [firestore, user, propertyId]);
   const { data: propertyData, isLoading: isPropertyLoading } = useDoc<Property>(propertyRef);
   
-  const sectionsCollection = useMemoFirebase(
-    () => (user && firestore ? collection(firestore, `agents/${user.uid}/customSections`) : null),
-    [user, firestore]
-  );
-  const { data: sections } = useCollection<CustomSection>(sectionsCollection);
-
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -115,7 +108,6 @@ export default function EditarImovelPage() {
       rooms: 0,
       builtArea: 0,
       totalArea: 0,
-      sectionIds: [],
     },
   });
   
@@ -123,14 +115,15 @@ export default function EditarImovelPage() {
     if (propertyData) {
       form.reset({
         ...propertyData,
+        operation: propertyData.operation === 'Comprar' ? 'Venda' : 'Aluguel'
       });
       setImageUrls(propertyData.imageUrls || []);
     }
   }, [propertyData, form]);
 
 
-  const handleUploadComplete = (urls: string[]) => {
-    setImageUrls(prev => [...prev, ...urls]);
+  const handleUploadComplete = (url: string) => {
+    setImageUrls(prev => [...prev, url]);
   }
 
   const handleRemoveImage = (indexToRemove: number) => {
@@ -174,12 +167,12 @@ export default function EditarImovelPage() {
 
     const updatedProperty = {
       ...values,
+      operation: values.operation === 'Venda' ? 'Comprar' : 'Alugar', // Correctly map back
       imageUrls: imageUrls,
-      // Retain original creation date
-      createdAt: propertyData?.createdAt || new Date().toISOString(),
+      createdAt: propertyData?.createdAt, // Retain original creation date
     };
     
-    setDocumentNonBlocking(propertyRef, updatedProperty, { merge: true });
+    updateDocumentNonBlocking(propertyRef, updatedProperty);
     
     toast({
         title: "Imóvel Atualizado!",
@@ -187,9 +180,6 @@ export default function EditarImovelPage() {
     });
     router.push('/imoveis');
   }
-
-  const allSections = [{ id: 'featured', title: 'Imóveis em Destaque' }, ...(sections || [])];
-
 
   return (
     <div className="space-y-4">
@@ -231,11 +221,11 @@ export default function EditarImovelPage() {
                         <FormLabel>Operação</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                            <SelectTrigger><SelectValue placeholder="Comprar ou Alugar" /></SelectTrigger>
+                            <SelectTrigger><SelectValue placeholder="Venda ou Aluguel" /></SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                            <SelectItem value="Comprar">Comprar</SelectItem>
-                            <SelectItem value="Alugar">Alugar</SelectItem>
+                            <SelectItem value="Venda">Venda</SelectItem>
+                            <SelectItem value="Aluguel">Aluguel</SelectItem>
                         </SelectContent>
                         </Select>
                         <FormMessage />
@@ -349,13 +339,14 @@ export default function EditarImovelPage() {
                 
                 <FormItem>
                 <FormLabel>Imagens do Imóvel</FormLabel>
-                <FormDescription>Envie até 20 fotos do seu imóvel. A primeira será a imagem de capa. Para uma melhor apresentação, use imagens de alta resolução.</FormDescription>
+                <FormDescription>Para uma melhor apresentação, use imagens de alta resolução.</FormDescription>
                 {user && (
                     <ImageUpload
-                    agentId={user.uid}
-                    propertyId={propertyId}
-                    onUploadComplete={handleUploadComplete}
-                    multiple
+                        onUploadComplete={handleUploadComplete}
+                        currentImageUrl={imageUrls}
+                        multiple
+                        agentId={user.uid}
+                        propertyId={propertyId}
                     />
                 )}
                 {imageUrls.length > 0 && (
@@ -378,56 +369,6 @@ export default function EditarImovelPage() {
                 </FormItem>
                 
                  <Separator />
-
-                <FormField
-                  control={form.control}
-                  name="sectionIds"
-                  render={() => (
-                    <FormItem>
-                      <div className="mb-4">
-                        <FormLabel className="text-base">Seções do Site</FormLabel>
-                        <FormDescription>
-                          Selecione em quais seções este imóvel deve aparecer.
-                        </FormDescription>
-                      </div>
-                      {allSections.map((item) => (
-                        <FormField
-                          key={item.id}
-                          control={form.control}
-                          name="sectionIds"
-                          render={({ field }) => {
-                            return (
-                              <FormItem
-                                key={item.id}
-                                className="flex flex-row items-start space-x-3 space-y-0"
-                              >
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value?.includes(item.id)}
-                                    onCheckedChange={(checked) => {
-                                      const currentValue = field.value || [];
-                                      return checked
-                                        ? field.onChange([...currentValue, item.id])
-                                        : field.onChange(
-                                            currentValue.filter(
-                                              (value) => value !== item.id
-                                            )
-                                          )
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                  {item.title}
-                                </FormLabel>
-                              </FormItem>
-                            )
-                          }}
-                        />
-                      ))}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
                 <Button type="submit" size="lg" className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity" disabled={form.formState.isSubmitting}>
                    {form.formState.isSubmitting ? (
