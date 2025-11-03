@@ -25,6 +25,7 @@ function SearchResults() {
 
   const agentId = searchParams.get('agentId');
 
+  // Mock agent para popular os filtros de cidade, etc.
   const mockAgent: Agent = {
     id: 'global',
     displayName: 'Global Search',
@@ -55,25 +56,24 @@ function SearchResults() {
     };
     
     try {
-      let baseQuery: Query<DocumentData>;
+      let q: Query<DocumentData>;
       const currentAgentId = filters.agentId;
 
       if (currentAgentId && currentAgentId !== 'global') {
-          baseQuery = query(collectionGroup(firestoreInstance, 'properties'), where('agentId', '==', currentAgentId));
+          // Se um agentId específico for fornecido, busca apenas nas propriedades dele
+          q = query(collectionGroup(firestoreInstance, 'properties'), where('agentId', '==', currentAgentId));
       } else {
-          baseQuery = query(collectionGroup(firestoreInstance, 'properties'));
+          // Busca global em todas as propriedades
+          q = query(collectionGroup(firestoreInstance, 'properties'));
       }
-      
-      const querySnapshot = await getDocs(baseQuery);
-      
-      let allProps = querySnapshot.docs.map(doc => ({ ...(doc.data() as Property), id: doc.id, agentId: doc.ref.parent.parent?.id }) as Property);
-      
-      // Client-side filtering for status to avoid composite index
-      allProps = allProps.filter(p => ['ativo', 'Ativo', 'active'].includes(p.status ?? ''));
 
-      const uniqueProperties = Array.from(new Map(allProps.map(p => [p.id, p])).values());
+      const querySnapshot = await getDocs(q);
+      const allProps = querySnapshot.docs.map(doc => ({ ...(doc.data() as Property), id: doc.id, agentId: doc.ref.parent.parent?.id }) as Property);
       
-      const filtered = filterProperties(uniqueProperties, filters);
+      const activeProps = allProps.filter(p => p.status !== 'vendido' && p.status !== 'alugado');
+      
+      // Aplicar filtros e ordenação no cliente
+      const filtered = filterProperties(activeProps, filters);
       setProperties(filtered);
       
     } catch (error) {
@@ -102,7 +102,7 @@ function SearchResults() {
       </div>
       
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-            <h1 className="text-3xl font-bold font-headline">Resultados da Busca ({properties.length})</h1>
+            <h1 className="text-3xl font-bold font-headline">Resultados da Busca</h1>
             <div className="flex items-center gap-2">
                 <ArrowDownUp className="h-4 w-4 text-muted-foreground" />
                 <Select value={sortBy} onValueChange={(value) => setSortBy(value as Filters['sortBy'])}>
