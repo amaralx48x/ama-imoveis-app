@@ -6,14 +6,12 @@ import { notFound, useParams } from 'next/navigation';
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Hero } from "@/components/hero";
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { FeaturedProperties } from '@/components/featured-properties';
+import { FeaturedProperties } from "@/components/featured-properties";
 import { CustomPropertySection } from '@/components/custom-property-section';
 import { AgentProfile } from '@/components/agent-profile';
 import { ClientReviews } from '@/components/client-reviews';
 import { FloatingContactButton } from '@/components/floating-contact-button';
 import { useFirestore, useUser } from '@/firebase';
-import PropertyFilters from '@/components/property-filters';
 import { getPropertyTypes, getReviews as getStaticReviews } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Construction } from 'lucide-react';
@@ -72,7 +70,7 @@ export default function AgentPublicPage({ }: Props) {
                 ]);
 
                 if (!agentSnap.exists()) {
-                    notFound();
+                    setAgent(null);
                     return;
                 }
                 
@@ -137,7 +135,6 @@ export default function AgentPublicPage({ }: Props) {
         )
     }
 
-    const heroImage = PlaceHolderImages.find(img => img.id === 'hero-background');
     const featuredProperties = allProperties.filter(p => (p.sectionIds || []).includes('featured'));
     const propertyTypes = getPropertyTypes();
     const showReviews = agent.siteSettings?.showReviews ?? true;
