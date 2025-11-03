@@ -76,7 +76,8 @@ service cloud.firestore {
     // Regras globais de propriedades (para pesquisa global)
     // =========================
     match /{path=**}/properties/{propertyId} {
-      allow read: if true;
+      allow get: if true;
+      allow list: if true;
       allow write: if false; // Escrita apenas via subcoleção do agente
     }
   }
