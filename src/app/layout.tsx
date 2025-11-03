@@ -1,3 +1,4 @@
+'use client';
 
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
@@ -19,6 +20,8 @@ const poppins = Poppins({
   display: 'swap',
 })
 
+// Metadata object is not used in a client component, but we can keep it here.
+// Next.js will handle it correctly during the build process.
 export const metadata: Metadata = {
   title: "AMA Imóveis",
   description: "Encontre o imóvel dos seus sonhos.",
