@@ -1,11 +1,8 @@
-'use client';
-
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import { Inter, Poppins } from 'next/font/google'
-import { FirebaseClientProvider } from "@/firebase";
-import { PlanProvider } from "@/context/PlanContext";
+import { Providers } from './providers';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -20,8 +17,6 @@ const poppins = Poppins({
   display: 'swap',
 })
 
-// Metadata object is not used in a client component, but we can keep it here.
-// Next.js will handle it correctly during the build process.
 export const metadata: Metadata = {
   title: "AMA Imóveis",
   description: "Encontre o imóvel dos seus sonhos.",
@@ -35,11 +30,9 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`dark ${inter.variable} ${poppins.variable}`}>
       <body className="font-body antialiased">
-        <FirebaseClientProvider>
-          <PlanProvider>
-            {children}
-          </PlanProvider>
-        </FirebaseClientProvider>
+        <Providers>
+          {children}
+        </Providers>
         <Toaster />
       </body>
     </html>
