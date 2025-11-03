@@ -56,7 +56,7 @@ export function Header({ agentName, agentId, agent }: HeaderProps) {
         <div className="flex flex-1 items-center justify-end space-x-2">
           <Dialog open={isProprietarioFormOpen} onOpenChange={setIsProprietarioFormOpen}>
             <DialogTrigger asChild>
-              <Button variant="ghost">É um proprietário?</Button>
+              <Button variant="ghost">Anuncie seu imóvel</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[480px]">
               {agentId && (
