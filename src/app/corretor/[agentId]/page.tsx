@@ -63,7 +63,7 @@ export default function AgentPublicPage({ }: Props) {
             setIsLoading(true);
             try {
                 const agentRef = doc(firestore, 'agents', agentId);
-                const propertiesQuery = query(collection(firestore, `agents/${agentId}/properties`), where('status', 'not-in', ['vendido', 'alugado']));
+                const propertiesQuery = query(collection(firestore, `agents/${agentId}/properties`), where('status', '==', 'ativo'));
                 const sectionsRef = collection(firestore, `agents/${agentId}/customSections`);
 
                 const [agentSnap, propertiesSnap, sectionsSnap] = await Promise.all([
