@@ -38,7 +38,6 @@ export default function AgentPublicPage({ }: Props) {
 
     const loadReviews = useCallback(async () => {
       if (!firestore || !agentId) return;
-      // Simplificado para remover a necessidade de índice composto
       const reviewsRef = collection(firestore, `agents/${agentId}/reviews`);
       const q = query(reviewsRef, where('approved', '==', true), limit(10));
       
@@ -46,7 +45,6 @@ export default function AgentPublicPage({ }: Props) {
         const reviewsSnap = await getDocs(q);
         if (!reviewsSnap.empty) {
           const fetchedReviews = reviewsSnap.docs.map(doc => ({ ...(doc.data() as Omit<Review, 'id'>), id: doc.id }));
-          // Ordenar no lado do cliente
           fetchedReviews.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
           setReviews(fetchedReviews);
         } else {
@@ -64,14 +62,13 @@ export default function AgentPublicPage({ }: Props) {
         const fetchData = async () => {
             setIsLoading(true);
             try {
-                // Fetch agent, properties, and custom sections in parallel
                 const agentRef = doc(firestore, 'agents', agentId);
-                const propertiesRef = collection(firestore, `agents/${agentId}/properties`);
+                const propertiesQuery = query(collection(firestore, `agents/${agentId}/properties`), where('status', 'not-in', ['vendido', 'alugado']));
                 const sectionsRef = collection(firestore, `agents/${agentId}/customSections`);
 
                 const [agentSnap, propertiesSnap, sectionsSnap] = await Promise.all([
                     getDoc(agentRef),
-                    getDocs(propertiesRef), // Simplified query
+                    getDocs(propertiesQuery),
                     getDocs(query(sectionsRef, orderBy('order', 'asc')))
                 ]);
 
@@ -83,10 +80,7 @@ export default function AgentPublicPage({ }: Props) {
                 const agentData = { id: agentSnap.id, ...agentSnap.data() } as Agent;
                 setAgent(agentData);
 
-                // Filter active properties on the client-side
-                const props = propertiesSnap.docs
-                    .map(doc => ({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId: agentId }))
-                    .filter(p => p.status !== 'vendido' && p.status !== 'alugado');
+                const props = propertiesSnap.docs.map(doc => ({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId: agentId }));
                 setAllProperties(props);
 
                 const sections = sectionsSnap.docs.map(doc => ({ ...(doc.data() as Omit<CustomSection, 'id'>), id: doc.id }));
@@ -96,23 +90,6 @@ export default function AgentPublicPage({ }: Props) {
 
             } catch (error) {
                 console.error("Error fetching agent data on client:", error);
-                 // If the complex query fails due to missing index, try a simpler one
-                if ((error as any)?.code === 'failed-precondition') {
-                    try {
-                        const agentRef = doc(firestore, 'agents', agentId);
-                        const propertiesRef = collection(firestore, `agents/${agentId}/properties`);
-                        const agentSnap = await getDoc(agentRef);
-                        const propertiesSnap = await getDocs(propertiesRef);
-                         if (agentSnap.exists()) {
-                            const agentData = { id: agentSnap.id, ...agentSnap.data() } as Agent;
-                            setAgent(agentData);
-                            const props = propertiesSnap.docs.map(doc => ({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId: agentId })).filter(p => p.status !== 'vendido' && p.status !== 'alugado');
-                            setAllProperties(props);
-                        }
-                    } catch (fallbackError) {
-                         console.error("Fallback data fetch also failed:", fallbackError);
-                    }
-                }
             } finally {
                 setIsLoading(false);
             }

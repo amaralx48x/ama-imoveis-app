@@ -55,8 +55,7 @@ export default function PropertyPage({ }: Props) {
             const propertyRef = doc(firestore, `agents/${agentId}/properties`, imovelId);
             const allPropertiesQuery = query(
                 collection(firestore, `agents/${agentId}/properties`),
-                where('status', '!=', 'vendido'),
-                where('status', '!=', 'alugado')
+                where('status', 'not-in', ['vendido', 'alugado'])
             );
             
             const [agentSnap, propertySnap, allPropertiesSnap] = await Promise.all([

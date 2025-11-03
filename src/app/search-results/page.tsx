@@ -58,26 +58,28 @@ function SearchResults() {
     const hasFilters = Object.values(filters).some(v => v !== undefined && v !== '' && v !== 'global');
     
     try {
-      let q: Query<DocumentData>;
+      let baseQuery: Query<DocumentData>;
       const currentAgentId = filters.agentId;
 
       if (currentAgentId && currentAgentId !== 'global') {
           // Se um agentId específico for fornecido, busca apenas nas propriedades dele
-          q = query(collectionGroup(firestoreInstance, 'properties'), where('agentId', '==', currentAgentId));
+          baseQuery = collectionGroup(firestoreInstance, 'properties');
+          baseQuery = query(baseQuery, where('agentId', '==', currentAgentId));
       } else {
           // Busca global em todas as propriedades
-          q = query(collectionGroup(firestoreInstance, 'properties'));
+          baseQuery = query(collectionGroup(firestoreInstance, 'properties'));
       }
+      
+      // Aplicar filtro de status para imóveis ativos. Esta é a correção principal.
+      const finalQuery = query(baseQuery, where('status', 'not-in', ['vendido', 'alugado']));
 
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await getDocs(finalQuery);
       const allProps = querySnapshot.docs.map(doc => ({ ...(doc.data() as Property), id: doc.id, agentId: doc.ref.parent.parent?.id }) as Property);
       
       const uniqueProperties = Array.from(new Map(allProps.map(p => [p.id, p])).values());
-
-      const activeProps = uniqueProperties.filter(p => p.status !== 'vendido' && p.status !== 'alugado');
       
       // Aplicar filtros e ordenação no cliente
-      const filtered = hasFilters ? filterProperties(activeProps, filters) : activeProps;
+      const filtered = hasFilters ? filterProperties(uniqueProperties, filters) : uniqueProperties;
       setProperties(filtered);
       
     } catch (error) {
