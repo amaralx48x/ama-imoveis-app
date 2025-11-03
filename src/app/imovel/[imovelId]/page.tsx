@@ -12,6 +12,17 @@ import { useEffect, useState, useCallback } from 'react';
 import { useFirestore } from '@/firebase';
 import { RelatedProperties } from '@/components/imovel/RelatedProperties';
 
+function BackButton() {
+  const router = useRouter();
+  return (
+    <Button variant="outline" onClick={() => router.back()} className="mb-6">
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Voltar
+    </Button>
+  );
+}
+
+
 export default function PropertyPage() {
   const router = useRouter();
   const params = useParams();
@@ -92,13 +103,8 @@ export default function PropertyPage() {
   return (
     <>
       <Header agentId={agentId} agent={agentData} />
-      <main>
-         <div className="container mx-auto px-4 py-8">
-            <Button variant="outline" onClick={() => router.back()} className="mb-6">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Voltar
-            </Button>
-         </div>
+      <main className="container mx-auto px-4 py-8">
+         <BackButton />
          <PropertyView property={propertyData} agent={agentData} />
          <RelatedProperties currentProperty={propertyData} allProperties={allAgentProperties} />
       </main>
