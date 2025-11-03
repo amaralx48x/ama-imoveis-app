@@ -70,13 +70,14 @@ function SearchResults() {
           baseQuery = query(collectionGroup(firestoreInstance, 'properties'));
       }
       
-      // Aplicar filtro de status para imóveis ativos. Esta é a correção principal.
-      const finalQuery = query(baseQuery, where('status', '==', 'ativo'));
-
-      const querySnapshot = await getDocs(finalQuery);
+      const querySnapshot = await getDocs(baseQuery);
+      
       const allProps = querySnapshot.docs.map(doc => ({ ...(doc.data() as Property), id: doc.id, agentId: doc.ref.parent.parent?.id }) as Property);
       
-      const uniqueProperties = Array.from(new Map(allProps.map(p => [p.id, p])).values());
+      // Filtra por imóveis ativos no lado do cliente para evitar a necessidade de índice
+      const activeProperties = allProps.filter(p => ['ativo', 'Ativo', 'active'].includes(p.status ?? ''));
+
+      const uniqueProperties = Array.from(new Map(activeProperties.map(p => [p.id, p])).values());
       
       // Aplicar filtros e ordenação no cliente
       const filtered = hasFilters ? filterProperties(uniqueProperties, filters) : uniqueProperties;
