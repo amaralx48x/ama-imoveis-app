@@ -1,7 +1,6 @@
-
 'use client';
 
-import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import type { Property, Agent } from '@/lib/data';
 import { notFound, useRouter, useParams, useSearchParams } from 'next/navigation';
 import { Header } from "@/components/layout/header";
@@ -41,7 +40,6 @@ export default function PropertyPage({ }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const firestore = useFirestore();
 
-
   useEffect(() => {
     if (!agentId || !imovelId || !firestore) {
         setIsLoading(false);
@@ -53,19 +51,24 @@ export default function PropertyPage({ }: Props) {
         try {
             const agentRef = doc(firestore, 'agents', agentId);
             const propertyRef = doc(firestore, `agents/${agentId}/properties`, imovelId);
-            const allPropertiesQuery = query(
-                collection(firestore, `agents/${agentId}/properties`),
-                where('status', 'not-in', ['vendido', 'alugado'])
-            );
-            
-            const [agentSnap, propertySnap, allPropertiesSnap] = await Promise.all([
+
+            // 🔹 Busca todos os imóveis e filtra via JS
+            const allPropertiesSnap = await getDocs(collection(firestore, `agents/${agentId}/properties`));
+
+            const allProps = allPropertiesSnap.docs
+                .map(d => ({ ...d.data() as Property, id: d.id, agentId }))
+                .filter(p => p.status !== 'vendido' && p.status !== 'alugado');
+
+            setAllAgentProperties(allProps);
+
+            // 🔹 Busca corretor e imóvel específicos
+            const [agentSnap, propertySnap] = await Promise.all([
               getDoc(agentRef),
-              getDoc(propertyRef),
-              getDocs(allPropertiesQuery)
+              getDoc(propertyRef)
             ]);
 
             if (propertySnap.exists()) {
-                setPropertyData({ id: propertySnap.id, ...(propertySnap.data() as Omit<Property, 'id'>), agentId: agentId });
+                setPropertyData({ id: propertySnap.id, ...(propertySnap.data() as Omit<Property, 'id'>), agentId });
             } else {
                 setPropertyData(null);
             }
@@ -75,12 +78,6 @@ export default function PropertyPage({ }: Props) {
             } else {
                 setAgentData(null);
             }
-
-            if (!allPropertiesSnap.empty) {
-                const props = allPropertiesSnap.docs.map(d => ({...d.data() as Property, id: d.id, agentId}));
-                setAllAgentProperties(props);
-            }
-
 
         } catch (error) {
             console.error("Erro ao buscar imóvel e corretor:", error);
@@ -99,10 +96,8 @@ export default function PropertyPage({ }: Props) {
     return (
       <>
         <Header />
-        <main className="min-h-[calc(100vh-theme(spacing.14)-theme(spacing.32))]">
-             <div className="flex items-center justify-center h-64">
-                <div className="w-12 h-12 border-4 border-dashed rounded-full animate-spin border-primary"></div>
-            </div>
+        <main className="min-h-[calc(100vh-theme(spacing.14)-theme(spacing.32))] flex items-center justify-center">
+            <div className="w-12 h-12 border-4 border-dashed rounded-full animate-spin border-primary"></div>
         </main>
         <Footer agentId={agentId || ''} />
       </>
