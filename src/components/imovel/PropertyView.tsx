@@ -75,7 +75,7 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                     <CarouselContent>
                         {images.map((imageUrl, index) => (
                             <CarouselItem key={index}>
-                                <div className="aspect-video relative h-[70vh] min-h-[500px]">
+                                <div className="aspect-video relative">
                                     <Image
                                         src={imageUrl}
                                         alt={`${property.title || 'Imagem do imóvel'} - Imagem ${index + 1}`}
