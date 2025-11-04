@@ -150,9 +150,10 @@ export default function MarketingPage() {
           </div>
 
           <div className="p-6 rounded-xl bg-white/5 border border-white/10 h-full flex flex-col justify-center">
-            <h4 className="font-bold text-lg">Depoimentos</h4>
-            <p className="mt-4 text-sm text-white/70">“O AMA Imobi transformou nosso fluxo de leads — mais visitas agendadas e vendas concluídas.”</p>
-            <div className="mt-4 font-semibold">— Corretor Fulano, RJ</div>
+            <h4 className="font-bold text-lg">Painel de Controle Intuitivo</h4>
+            <p className="mt-4 text-sm text-white/70">
+              Um painel de controle limpo, harmonioso e funcional. Gerencie seus imóveis, leads e métricas com facilidade, sem distrações. Tudo foi pensado para otimizar seu tempo e maximizar seus resultados.
+            </p>
           </div>
         </section>
 
