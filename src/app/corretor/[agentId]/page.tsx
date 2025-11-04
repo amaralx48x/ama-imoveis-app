@@ -18,7 +18,7 @@ import PropertyFilters from '@/components/property-filters';
 import { getPropertyTypes, getReviews as getStaticReviews } from '@/lib/data';
 
 export default function AgentPublicPage() {
-  const params = React.use(useParams());
+  const params = useParams();
   const agentId = params?.agentId as string | undefined;
   const firestore = useFirestore();
 
