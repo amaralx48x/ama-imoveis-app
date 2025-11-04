@@ -171,6 +171,58 @@ export default function MarketingPage() {
           </div>
         </section>
 
+        {/* Additional Features Section */}
+        <section className="mt-20 py-10">
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={container}>
+            <motion.h3 variants={fadeUp} className="text-3xl font-extrabold text-center">Recursos Adicionais Poderosos</motion.h3>
+            <motion.p variants={fadeUp} className="mt-3 text-white/70 max-w-2xl mx-auto text-center">Ferramentas pensadas para agilizar seu trabalho e ampliar seu alcance.</motion.p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+              {[
+                { t: "Importação em Massa", d: "Suba dezenas de imóveis de uma vez com nossa importação de arquivos CSV." },
+                { t: "Controle de Seções", d: "Crie e organize seções personalizadas, como 'Oportunidades' ou 'Alto Padrão'." },
+                { t: "Agendamento de Visitas", d: "Receba solicitações de visita com data e horário direto no seu painel de leads." },
+              ].map((f, i) => (
+                <motion.div variants={fadeUp} key={i} className="p-6 rounded-lg bg-white/5 border border-white/10">
+                  <div className="font-semibold text-lg">{f.t}</div>
+                  <p className="mt-2 text-sm text-white/70">{f.d}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </section>
+
+        {/* Overlapping Images Section */}
+        <section className="py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="relative h-64 lg:h-80">
+              <motion.div
+                initial={{ opacity: 0, x: -20, rotate: -5 }}
+                whileInView={{ opacity: 1, x: 0, rotate: -8 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="absolute top-0 left-0 w-3/4 rounded-lg overflow-hidden shadow-lg border border-white/10"
+              >
+                <Image src="https://picsum.photos/seed/page1/600/400" alt="Página 1" width={600} height={400} className="object-cover" />
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, x: 20, rotate: 5 }}
+                whileInView={{ opacity: 1, x: 0, rotate: 2 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="absolute bottom-0 right-0 w-3/4 rounded-lg overflow-hidden shadow-2xl border border-white/10"
+              >
+                <Image src="https://picsum.photos/seed/page2/600/400" alt="Página 2" width={600} height={400} className="object-cover" />
+              </motion.div>
+            </div>
+            <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={container}>
+              <motion.h3 variants={fadeUp} className="text-2xl font-bold">Tudo Organizado, Sempre à Mão</motion.h3>
+              <motion.p variants={fadeUp} className="mt-4 text-white/70">
+                Desde a gestão de imóveis e leads até a personalização do seu site público, todas as ferramentas foram desenhadas para serem intuitivas e acessíveis, permitindo que você tenha uma visão completa do seu negócio em um único lugar.
+              </motion.p>
+            </motion.div>
+          </div>
+        </section>
+
         {/* Simple Text Section */}
         <section className="mt-20 py-10">
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={container}>
@@ -178,7 +230,6 @@ export default function MarketingPage() {
             <motion.p variants={fadeUp} className="mt-3 text-white/70 max-w-2xl mx-auto text-center">Deixe a tecnologia conosco. Nossa plataforma automatiza tarefas repetitivas, organiza suas informações e fornece as ferramentas certas para que você possa dedicar seu tempo ao relacionamento com clientes e à negociação de imóveis.</motion.p>
           </motion.div>
         </section>
-
 
         {/* Plans & CTA */}
         <section id="plans" className="mt-20 py-10">
