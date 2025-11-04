@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { doc, getDoc, collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import type { Agent, Property, Review, CustomSection } from '@/lib/data';
 import { notFound, useParams } from 'next/navigation';
@@ -17,13 +17,9 @@ import { useFirestore } from '@/firebase';
 import PropertyFilters from '@/components/property-filters';
 import { getPropertyTypes, getReviews as getStaticReviews } from '@/lib/data';
 
-type Props = {
-  params: { agentId: string };
-};
-
-export default function AgentPublicPage({ }: Props) {
-  const params = useParams();
-  const agentId = params.agentId as string;
+export default function AgentPublicPage() {
+  const params = React.use(useParams());
+  const agentId = params?.agentId as string | undefined;
   const firestore = useFirestore();
 
   const [agent, setAgent] = useState<Agent | null>(null);
@@ -62,11 +58,15 @@ export default function AgentPublicPage({ }: Props) {
 
   // ✅ Carregar corretor, imóveis e seções
   useEffect(() => {
-    if (!firestore || !agentId) return;
+    if (!firestore || !agentId) {
+        setIsLoading(false);
+        return;
+    }
 
     const fetchData = async () => {
       setIsLoading(true);
       try {
+        console.log("🔥 Buscando dados do agente:", agentId);
         const agentRef = doc(firestore, 'agents', agentId);
         const propertiesRef = collection(firestore, `agents/${agentId}/properties`);
         const sectionsRef = collection(firestore, `agents/${agentId}/customSections`);
@@ -83,6 +83,10 @@ export default function AgentPublicPage({ }: Props) {
             return getDocs(sectionsRef);
           })
         ]);
+        
+        console.log("📦 Propriedades encontradas:", propertiesSnap.size);
+        console.log("📄 Seções encontradas:", sectionsSnap.size);
+
 
         if (!agentSnap.exists()) {
           notFound();
