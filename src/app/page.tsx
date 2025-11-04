@@ -146,7 +146,7 @@ export default function MarketingPage() {
         {/* Image gallery + social proof */}
         <section className="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start py-10">
           <div className="lg:col-span-2 rounded-xl overflow-hidden shadow-lg">
-            <Image src="https://picsum.photos/seed/gallery/1200/600" alt="Galeria" width={1200} height={600} className="object-cover w-full h-72" data-ai-hint="dashboard chart" />
+            <Image src="https://picsum.photos/seed/gallery/1200/800" alt="Galeria" width={1200} height={800} className="object-cover w-full h-[480px]" data-ai-hint="dashboard chart" />
           </div>
 
           <div className="p-6 rounded-xl bg-white/5 border border-white/10 h-full flex flex-col justify-center">
