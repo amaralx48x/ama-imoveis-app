@@ -72,6 +72,15 @@ export default function AparenciaPage() {
     }
   }, [agentData, form]);
 
+  const handleThemeChange = (theme: 'light' | 'dark') => {
+    // Atualiza o formulário
+    form.setValue('theme', theme);
+    // Aplica o tema imediatamente ao painel
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(theme);
+  };
+
+
   async function onSubmit(values: z.infer<typeof appearanceFormSchema>) {
     if (!agentRef) return;
     
@@ -79,8 +88,8 @@ export default function AparenciaPage() {
     mutate();
 
     toast({
-        title: 'Tema Atualizado!',
-        description: 'A aparência do seu site e painel foi atualizada.',
+        title: 'Tema Salvo!',
+        description: 'A aparência do seu site público foi atualizada.',
     });
   }
 
@@ -91,7 +100,7 @@ export default function AparenciaPage() {
           <Palette /> Aparência
         </CardTitle>
         <CardDescription>
-          Personalize a aparência do seu site público e do painel de controle.
+          Personalize a aparência do seu site público e do painel de controle. A alteração é aplicada instantaneamente neste painel para pré-visualização.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -106,7 +115,7 @@ export default function AparenciaPage() {
                   <FormLabel className="text-lg font-semibold">Tema de Cores</FormLabel>
                   <FormControl>
                     <RadioGroup
-                      onValueChange={field.onChange}
+                      onValueChange={(value: 'light' | 'dark') => handleThemeChange(value)}
                       value={field.value}
                       className="grid grid-cols-2 gap-4"
                     >
@@ -132,7 +141,7 @@ export default function AparenciaPage() {
                       </FormItem>
                     </RadioGroup>
                   </FormControl>
-                  <FormDescription>Selecione o tema que mais lhe agrada.</FormDescription>
+                  <FormDescription>Selecione o tema para pré-visualizar. Clique em salvar para aplicar no site público.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -144,7 +153,7 @@ export default function AparenciaPage() {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Salvando...
                 </>
-              ) : 'Salvar Aparência'}
+              ) : 'Salvar Aparência para o Site Público'}
             </Button>
           </form>
         </Form>
