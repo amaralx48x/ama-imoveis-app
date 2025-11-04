@@ -1,24 +1,40 @@
 
-import { doc, getDoc } from 'firebase/firestore';
-import { getFirebaseServer } from '@/firebase/server-init';
+'use client';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import type { Agent } from '@/lib/data';
+import { doc } from 'firebase/firestore';
+import { useParams } from 'next/navigation';
+import { useEffect } from 'react';
 
-export default async function PublicAgentLayout({
+function ThemeSetter({ agent }: { agent: Agent | null }) {
+  useEffect(() => {
+    const theme = agent?.siteSettings?.theme || 'dark';
+    document.documentElement.className = theme;
+  }, [agent]);
+
+  return null;
+}
+
+export default function PublicAgentLayout({
     children,
-    params,
 }: {
     children: React.ReactNode;
-    params: { agentId: string };
 }) {
-    const { firestore } = getFirebaseServer();
-    const agentRef = doc(firestore, 'agents', params.agentId);
-    const agentSnap = await getDoc(agentRef);
-    const agent = agentSnap.exists() ? (agentSnap.data() as Agent) : null;
-    const theme = agent?.siteSettings?.theme || 'dark';
+    const params = useParams();
+    const agentId = params.agentId as string;
+    const firestore = useFirestore();
+
+    const agentRef = useMemoFirebase(
+      () => (agentId && firestore ? doc(firestore, 'agents', agentId) : null),
+      [agentId, firestore]
+    );
+
+    const { data: agentData } = useDoc<Agent>(agentRef);
 
     return (
-        <html lang="pt-BR" className={theme}>
-            <body>{children}</body>
-        </html>
+        <>
+            <ThemeSetter agent={agentData} />
+            {children}
+        </>
     );
 }

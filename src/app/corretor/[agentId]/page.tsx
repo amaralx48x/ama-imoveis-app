@@ -36,12 +36,19 @@ export default function AgentPublicPage({ }: Props) {
     const loadReviews = useCallback(async () => {
       if (!firestore || !agentId) return;
       const reviewsRef = collection(firestore, `agents/${agentId}/reviews`);
-      const q = query(reviewsRef, where('approved', '==', true), orderBy('createdAt', 'desc'), limit(10));
+      const q = query(reviewsRef, where('approved', '==', true), limit(10));
       
       try {
         const reviewsSnap = await getDocs(q);
         if (!reviewsSnap.empty) {
-          setReviews(reviewsSnap.docs.map(doc => ({ ...(doc.data() as Omit<Review, 'id'>), id: doc.id })));
+          const fetchedReviews = reviewsSnap.docs.map(doc => ({ ...(doc.data() as Omit<Review, 'id'>), id: doc.id }));
+          // Ordenar no cliente
+          fetchedReviews.sort((a, b) => {
+            const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+            const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+            return dateB - dateA;
+          });
+          setReviews(fetchedReviews);
         } else {
            setReviews(getStaticReviews());
         }
@@ -64,7 +71,7 @@ export default function AgentPublicPage({ }: Props) {
 
                 const [agentSnap, propertiesSnap, sectionsSnap] = await Promise.all([
                     getDoc(agentRef),
-                    getDocs(propertiesRef), // Simplified query
+                    getDocs(query(propertiesRef, where('status', '==', 'ativo'))), 
                     getDocs(query(sectionsRef, orderBy('order', 'asc')))
                 ]);
 
@@ -76,10 +83,7 @@ export default function AgentPublicPage({ }: Props) {
                 const agentData = { id: agentSnap.id, ...agentSnap.data() } as Agent;
                 setAgent(agentData);
 
-                // Filter active properties on the client-side
-                const props = propertiesSnap.docs
-                    .map(doc => ({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId: agentId }))
-                    .filter(p => p.status !== 'vendido' && p.status !== 'alugado');
+                const props = propertiesSnap.docs.map(doc => ({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId: agentId }));
                 setAllProperties(props);
 
                 const sections = sectionsSnap.docs.map(doc => ({ ...(doc.data() as Omit<CustomSection, 'id'>), id: doc.id }));
