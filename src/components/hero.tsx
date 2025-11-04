@@ -3,21 +3,17 @@
 
 import Image from "next/image";
 import type { ReactNode } from "react";
-import PropertyFilters from "./property-filters";
-import type { Agent } from "@/lib/data";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 interface HeroProps {
   children?: ReactNode;
-  agent?: Agent | null;
-  propertyTypes?: string[];
+  heroImage?: (typeof PlaceHolderImages)[0];
 }
 
-export function Hero({ agent, propertyTypes }: HeroProps) {
-  const heroImage = PlaceHolderImages.find(img => img.id === 'hero-background');
+export function Hero({ children, heroImage }: HeroProps) {
 
   return (
-    <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center text-white mb-24">
+    <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center text-white">
        {heroImage && (
         <Image
           src={heroImage.imageUrl}
@@ -37,9 +33,11 @@ export function Hero({ agent, propertyTypes }: HeroProps) {
           As melhores oportunidades do mercado imobiliário para você.
         </p>
       </div>
-       <div className='absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-4 z-20'>
-           {agent && propertyTypes && <PropertyFilters agent={agent} propertyTypes={propertyTypes} />}
+       {children && (
+        <div className='absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-4 z-20'>
+           {children}
         </div>
+       )}
     </section>
   );
 }
