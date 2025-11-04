@@ -1,40 +1,42 @@
-
-'use client';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+'use server'; // Marcando como um componente que pode rodar no servidor
+import { doc, getDoc } from 'firebase/firestore';
 import type { Agent } from '@/lib/data';
-import { doc } from 'firebase/firestore';
-import { useParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { getFirebaseServer } from '@/firebase/server-init';
 
-function ThemeSetter({ agent }: { agent: Agent | null }) {
-  useEffect(() => {
-    const theme = agent?.siteSettings?.theme || 'dark';
-    document.documentElement.className = theme;
-  }, [agent]);
-
-  return null;
-}
-
-export default function PublicAgentLayout({
+// Este é agora um Server Component, o que é mais robusto para buscar dados
+export default async function PublicAgentLayout({
     children,
+    params,
 }: {
     children: React.ReactNode;
+    params: { agentId: string };
 }) {
-    const params = useParams();
-    const agentId = params.agentId as string;
-    const firestore = useFirestore();
+    const { agentId } = params;
+    const { firestore } = getFirebaseServer();
+    let agent: Agent | null = null;
+    let theme = 'dark'; // Padrão é 'dark'
 
-    const agentRef = useMemoFirebase(
-      () => (agentId && firestore ? doc(firestore, 'agents', agentId) : null),
-      [agentId, firestore]
-    );
+    // Como estamos no servidor, podemos fazer a busca de dados diretamente aqui
+    try {
+        if (agentId) {
+            const agentRef = doc(firestore, 'agents', agentId);
+            const agentSnap = await getDoc(agentRef);
+            if (agentSnap.exists()) {
+                agent = agentSnap.data() as Agent;
+                // Lemos a configuração de tema aqui, no servidor
+                theme = agent?.siteSettings?.theme || 'dark';
+            }
+        }
+    } catch (error) {
+        console.error("Failed to fetch agent theme on server:", error);
+        // Em caso de erro, continuamos com o tema padrão 'dark'
+    }
 
-    const { data: agentData } = useDoc<Agent>(agentRef);
-
+    // A classe do tema é aplicada em uma div que envolve o conteúdo.
+    // Isso é seguro e não causa erros de hidratação, pois é definido no servidor.
     return (
-        <>
-            <ThemeSetter agent={agentData} />
+        <div className={theme}>
             {children}
-        </>
+        </div>
     );
 }
