@@ -132,7 +132,7 @@ export default function ImoveisPage() {
     const filteredProperties = useMemo(() => {
         let propertiesByTab;
         if (activeTab === 'ativo') {
-            propertiesByTab = allProperties.filter(p => p.status !== 'vendido' && p.status !== 'alugado');
+            propertiesByTab = allProperties.filter(p => p.status === 'ativo');
         } else {
             propertiesByTab = allProperties.filter(p => p.status === activeTab);
         }
@@ -297,3 +297,5 @@ export default function ImoveisPage() {
         </div>
     );
 }
+
+    

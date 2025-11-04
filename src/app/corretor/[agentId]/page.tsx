@@ -1,6 +1,6 @@
-
 'use client';
-import React, { useState, useEffect, useCallback } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { doc, getDoc, collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import type { Agent, Property, Review, CustomSection } from '@/lib/data';
 import { notFound, useParams } from 'next/navigation';
@@ -18,8 +18,11 @@ import PropertyFilters from '@/components/property-filters';
 import { getPropertyTypes, getReviews as getStaticReviews } from '@/lib/data';
 
 export default function AgentPublicPage() {
-  const params = useParams();
-  const agentId = params?.agentId as string | undefined;
+  // Corrige comportamento do useParams() em versões recentes do Next.js
+  const rawParams = useParams() as unknown;
+  const params = (rawParams && typeof rawParams === 'object') ? rawParams as Record<string, string> : {};
+  const agentId = params?.agentId;
+
   const firestore = useFirestore();
 
   const [agent, setAgent] = useState<Agent | null>(null);
@@ -28,17 +31,18 @@ export default function AgentPublicPage() {
   const [reviews, setReviews] = useState<Review[]>(getStaticReviews());
   const [isLoading, setIsLoading] = useState(true);
 
-  // ✅ Carregar avaliações (reviews)
+  // ---- Carrega avaliações (reviews)
   const loadReviews = useCallback(async () => {
     if (!firestore || !agentId) return;
     try {
       const reviewsRef = collection(firestore, `agents/${agentId}/reviews`);
       const q = query(reviewsRef, where('approved', '==', true), limit(10));
       const reviewsSnap = await getDocs(q);
+
       if (!reviewsSnap.empty) {
         const fetchedReviews = reviewsSnap.docs.map(doc => ({
           ...(doc.data() as Omit<Review, 'id'>),
-          id: doc.id
+          id: doc.id,
         }));
         fetchedReviews.sort((a, b) => {
           const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
@@ -56,22 +60,18 @@ export default function AgentPublicPage() {
     }
   }, [firestore, agentId]);
 
-  // ✅ Carregar corretor, imóveis e seções
+  // ---- Carrega corretor, imóveis e seções
   useEffect(() => {
-    if (!firestore || !agentId) {
-        setIsLoading(false);
-        return;
-    }
+    if (!firestore || !agentId) return;
 
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        console.log("🔥 Buscando dados do agente:", agentId);
         const agentRef = doc(firestore, 'agents', agentId);
         const propertiesRef = collection(firestore, `agents/${agentId}/properties`);
         const sectionsRef = collection(firestore, `agents/${agentId}/customSections`);
 
-        // Queries principais com fallback interno
+        // Busca com fallback interno
         const [agentSnap, propertiesSnap, sectionsSnap] = await Promise.all([
           getDoc(agentRef),
           getDocs(query(propertiesRef, where('status', '==', 'ativo'))).catch(err => {
@@ -81,12 +81,8 @@ export default function AgentPublicPage() {
           getDocs(query(sectionsRef, orderBy('order', 'asc'))).catch(err => {
             console.warn("Query de seções falhou, fallback sem orderBy:", err);
             return getDocs(sectionsRef);
-          })
+          }),
         ]);
-        
-        console.log("📦 Propriedades encontradas:", propertiesSnap.size);
-        console.log("📄 Seções encontradas:", sectionsSnap.size);
-
 
         if (!agentSnap.exists()) {
           notFound();
@@ -140,7 +136,7 @@ export default function AgentPublicPage() {
     fetchData();
   }, [firestore, agentId, loadReviews]);
 
-  // ✅ Estados de carregamento e erro
+  // ---- Estados de carregamento e erro
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
@@ -153,12 +149,14 @@ export default function AgentPublicPage() {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-background text-center">
         <h1 className="text-4xl font-bold mb-4">Corretor não encontrado</h1>
-        <p className="text-muted-foreground">O link que você acessou pode estar quebrado ou o corretor não existe mais.</p>
+        <p className="text-muted-foreground">
+          O link que você acessou pode estar quebrado ou o corretor não existe mais.
+        </p>
       </div>
     );
   }
 
-  // ✅ Dados prontos
+  // ---- Dados prontos
   const heroImage = PlaceHolderImages.find(img => img.id === 'hero-background');
   const featuredProperties = allProperties.filter(p => (p.sectionIds || []).includes('featured'));
   const propertyTypes = getPropertyTypes();
@@ -171,7 +169,7 @@ export default function AgentPublicPage() {
       <main className="min-h-screen">
         <div className="relative mb-24 md:mb-36">
           <Hero heroImage={heroImage}>
-            <div className='absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-4'>
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-4">
               <PropertyFilters agent={agent} propertyTypes={propertyTypes} />
             </div>
           </Hero>
@@ -196,11 +194,13 @@ export default function AgentPublicPage() {
         })}
 
         <AgentProfile agent={agent} />
+
         {showReviews && (
           <div className="container mx-auto px-4 py-16 sm:py-24">
             <ClientReviews reviews={reviews} agentId={agentId} onReviewSubmitted={loadReviews} />
           </div>
         )}
+
         {whatsAppLink && <FloatingContactButton whatsAppLink={whatsAppLink} agent={agent} />}
       </main>
       <Footer agentId={agent.id} />

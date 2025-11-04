@@ -39,7 +39,7 @@ function SearchResults() {
   }
   const propertyTypes = ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
 
-  const fetchData = useCallback(async (firestoreInstance: any, currentParams: any) => {
+  const fetchData = useCallback(async (firestoreInstance: any, currentParams: URLSearchParams) => {
     setLoading(true);
     const filters: Filters = {
         operation: currentParams.get('operation') || undefined,
@@ -60,7 +60,7 @@ function SearchResults() {
       const q = query(collectionGroup(firestoreInstance, 'properties'));
       
       const querySnapshot = await getDocs(q);
-      const allProps = querySnapshot.docs.map(doc => ({ ...(doc.data() as Property), id: doc.id, agentId: doc.ref.parent.parent?.id }) as Property);
+      const allProps = querySnapshot.docs.map(doc => ({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId: doc.ref.parent.parent?.id }) as Property);
       
       // Aplicar filtros e ordenação no cliente
       const filtered = filterProperties(allProps, filters);
@@ -149,3 +149,5 @@ export default function SearchResultsPage() {
         </Suspense>
     );
 }
+
+    
