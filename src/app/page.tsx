@@ -150,9 +150,9 @@ export default function MarketingPage() {
           </div>
 
           <div className="p-6 rounded-xl bg-white/5 border border-white/10 h-full flex flex-col justify-center">
-            <h4 className="font-bold text-lg">Painel de Controle Intuitivo</h4>
+            <h4 className="font-bold text-lg">Seu Centro de Comando para o Sucesso</h4>
             <p className="mt-4 text-sm text-white/70">
-              Um painel de controle limpo, harmonioso e funcional. Gerencie seus imóveis, leads e métricas com facilidade, sem distrações. Tudo foi pensado para otimizar seu tempo e maximizar seus resultados.
+              Nosso painel de controle é mais do que uma ferramenta — é o seu assistente pessoal. Criado com um design limpo e intuitivo, ele elimina a complexidade e permite que você se concentre no que realmente importa: vender imóveis e encantar clientes. Gerencie seu portfólio completo, responda a leads com agilidade, agende visitas e acompanhe seu desempenho financeiro com gráficos claros, tudo em um só lugar. Menos tempo com planilhas, mais tempo fechando negócios.
             </p>
           </div>
         </section>
