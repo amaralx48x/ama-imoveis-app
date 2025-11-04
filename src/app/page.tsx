@@ -1,3 +1,4 @@
+
 'use client'
 
 import React from "react";
@@ -168,6 +169,27 @@ export default function MarketingPage() {
           <div className="lg:col-span-2 rounded-xl overflow-hidden shadow-lg h-full lg:order-first">
             <Image src="https://picsum.photos/seed/agent-site/1200/800" alt="Site público do corretor" width={1200} height={800} className="object-cover w-full h-full" data-ai-hint="real estate website" />
           </div>
+        </section>
+
+        {/* Duplicated Features Section */}
+        <section className="mt-20 py-10">
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={container}>
+            <motion.h3 variants={fadeUp} className="text-3xl font-extrabold text-center">Recursos Adicionais para Potencializar seu Negócio</motion.h3>
+            <motion.p variants={fadeUp} className="mt-3 text-white/70 max-w-2xl mx-auto text-center">Ferramentas projetadas para automação, análise e crescimento contínuo.</motion.p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+              {[
+                { t: "Importação em Massa (CSV)", d: "Cadastre dezenas de imóveis de uma vez com nossa ferramenta de importação inteligente." },
+                { t: "Controle de Seções", d: "Crie seções personalizadas em seu site, como 'Lançamentos' ou 'Oportunidades'." },
+                { t: "Agendamento de Visitas", d: "Receba solicitações de visita diretamente no seu painel com horários sugeridos." },
+              ].map((f, i) => (
+                <motion.div variants={fadeUp} key={i} className="p-6 rounded-lg bg-white/5 border border-white/10">
+                  <div className="font-semibold text-lg">{f.t}</div>
+                  <p className="mt-2 text-sm text-white/70">{f.d}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
         </section>
 
 
