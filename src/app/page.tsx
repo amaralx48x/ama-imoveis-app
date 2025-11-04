@@ -192,6 +192,47 @@ export default function MarketingPage() {
           </motion.div>
         </section>
 
+        {/* New Overlapping Images Section */}
+        <section className="mt-20 py-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <motion.div initial="hidden" whileInView="show" variants={container} viewport={{ once: true }}>
+                    <motion.h3 variants={fadeUp} className="text-3xl font-extrabold">Uma Plataforma, Inúmeras Possibilidades</motion.h3>
+                    <motion.p variants={fadeUp} className="mt-4 text-white/70 max-w-lg">
+                        Do gerenciamento de imóveis e leads ao controle financeiro e personalização do seu site. Cada tela foi desenhada para ser intuitiva, poderosa e integrada, dando a você o controle total do seu negócio imobiliário com uma experiência de uso impecável.
+                    </motion.p>
+                </motion.div>
+                
+                <div className="relative h-64 flex items-center justify-center">
+                    <motion.div
+                        initial={{ opacity: 0, y: 10, rotate: -5 }}
+                        whileInView={{ opacity: 1, y: 0, rotate: -8 }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
+                        viewport={{ once: true }}
+                        className="absolute w-2/3 max-w-sm rounded-lg overflow-hidden shadow-2xl border border-white/10"
+                    >
+                        <Image src="https://picsum.photos/seed/page3/600/400" alt="Tela do sistema 3" width={600} height={400} className="object-cover" data-ai-hint="dashboard analytics" />
+                    </motion.div>
+                    <motion.div
+                        initial={{ opacity: 0, y: 10, rotate: 5 }}
+                        whileInView={{ opacity: 1, y: 0, rotate: 2 }}
+                        transition={{ duration: 0.5, delay: 0.1 }}
+                        viewport={{ once: true }}
+                        className="absolute w-3/4 max-w-md rounded-lg overflow-hidden shadow-2xl border border-white/10"
+                    >
+                        <Image src="https://picsum.photos/seed/page2/600/400" alt="Tela do sistema 2" width={600} height={400} className="object-cover" data-ai-hint="property list" />
+                    </motion.div>
+                    <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                        whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ duration: 0.5 }}
+                        viewport={{ once: true }}
+                        className="relative w-5/6 max-w-lg rounded-lg overflow-hidden shadow-2xl border border-white/10"
+                    >
+                        <Image src="https://picsum.photos/seed/page1/600/400" alt="Tela do sistema 1" width={600} height={400} className="object-cover" data-ai-hint="inbox leads" />
+                    </motion.div>
+                </div>
+            </div>
+        </section>
 
         {/* Plans & CTA */}
         <section id="plans" className="mt-20 py-10">
