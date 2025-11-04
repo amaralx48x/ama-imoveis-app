@@ -1,10 +1,30 @@
-'use server'; // Marcando como um componente que pode rodar no servidor
-import { doc, getDoc } from 'firebase/firestore';
+'use client';
+import { useEffect } from 'react';
+import { useDoc, useFirestore, useMemoFirebase }from '@/firebase';
+import { doc } from 'firebase/firestore';
 import type { Agent } from '@/lib/data';
-import { getFirebaseServer } from '@/firebase/server-init';
 
-// Este é agora um Server Component, o que é mais robusto para buscar dados
-export default async function PublicAgentLayout({
+function ThemeSetter({ agentId }: { agentId: string }) {
+    const firestore = useFirestore();
+    const agentRef = useMemoFirebase(
+        () => (firestore && agentId ? doc(firestore, 'agents', agentId) : null),
+        [firestore, agentId]
+    );
+    const { data: agentData } = useDoc<Agent>(agentRef);
+
+    useEffect(() => {
+        if (agentData?.siteSettings?.theme) {
+            const theme = agentData.siteSettings.theme;
+            // Remove both classes and add the correct one
+            document.documentElement.classList.remove('light', 'dark');
+            document.documentElement.classList.add(theme);
+        }
+    }, [agentData]);
+
+    return null; // This component does not render anything
+}
+
+export default function PublicAgentLayout({
     children,
     params,
 }: {
@@ -12,31 +32,11 @@ export default async function PublicAgentLayout({
     params: { agentId: string };
 }) {
     const { agentId } = params;
-    const { firestore } = getFirebaseServer();
-    let agent: Agent | null = null;
-    let theme = 'dark'; // Padrão é 'dark'
 
-    // Como estamos no servidor, podemos fazer a busca de dados diretamente aqui
-    try {
-        if (agentId) {
-            const agentRef = doc(firestore, 'agents', agentId);
-            const agentSnap = await getDoc(agentRef);
-            if (agentSnap.exists()) {
-                agent = agentSnap.data() as Agent;
-                // Lemos a configuração de tema aqui, no servidor
-                theme = agent?.siteSettings?.theme || 'dark';
-            }
-        }
-    } catch (error) {
-        console.error("Failed to fetch agent theme on server:", error);
-        // Em caso de erro, continuamos com o tema padrão 'dark'
-    }
-
-    // A classe do tema é aplicada em uma div que envolve o conteúdo.
-    // Isso é seguro e não causa erros de hidratação, pois é definido no servidor.
     return (
-        <div className={theme}>
+        <>
+            <ThemeSetter agentId={agentId} />
             {children}
-        </div>
+        </>
     );
 }
