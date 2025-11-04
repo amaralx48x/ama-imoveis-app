@@ -12,8 +12,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MarkAsSoldDialog } from "./mark-as-sold-dialog";
-import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
-import { PropertyPreviewDialog } from "./property-preview-dialog";
 
 
 interface PropertyCardProps {
@@ -25,7 +23,6 @@ interface PropertyCardProps {
 export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCardProps) {
   const router = useRouter();
   const [isSoldDialogOpen, setIsSoldDialogOpen] = useState(false);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const formattedPrice = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -66,11 +63,9 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
 
   return (
     <>
-    <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
     <Card className="w-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 flex flex-col h-full bg-card">
       <CardHeader className="p-0 relative">
-        <DialogTrigger asChild>
-          <div className="block cursor-pointer">
+        <Link href={detailUrl} className="block cursor-pointer">
             <div className="relative w-full h-56">
               <Image
                 src={imageUrl}
@@ -81,8 +76,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
             </div>
-          </div>
-        </DialogTrigger>
+        </Link>
         <div className="absolute top-3 flex justify-between w-full px-3">
           <Badge className="bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] text-primary-foreground border-none">
             {property.operation}
@@ -125,8 +119,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
            )}
         </div>
       </CardHeader>
-      <DialogTrigger asChild>
-        <div className="p-4 flex-grow cursor-pointer">
+      <CardContentTrigger href={detailUrl} className="p-4 flex-grow cursor-pointer">
             <h3 className="font-headline font-bold text-lg truncate hover:text-primary transition-colors">{property.title}</h3>
             <div className="flex items-center text-muted-foreground text-sm mt-1">
               <MapPin className="w-4 h-4 mr-1.5" />
@@ -149,22 +142,15 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
                 <span>{property.builtArea} m²</span>
               </div>
             </div>
-        </div>
-      </DialogTrigger>
+      </CardContentTrigger>
       <CardFooter className="p-4 pt-0">
-        <DialogTrigger asChild>
-          <Button className="w-full" variant="outline">
-              Ver Detalhes
-          </Button>
-        </DialogTrigger>
+        <Button asChild className="w-full" variant="outline">
+          <Link href={detailUrl}>
+            Ver Detalhes
+          </Link>
+        </Button>
       </CardFooter>
     </Card>
-      
-      {isDashboard && (
-          <PropertyPreviewDialog property={property} open={isPreviewOpen} onOpenChange={setIsPreviewOpen} />
-      )}
-
-    </Dialog>
 
     <MarkAsSoldDialog
         isOpen={isSoldDialogOpen}
