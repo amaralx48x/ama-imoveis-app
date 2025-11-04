@@ -222,6 +222,39 @@ export default function MarketingPage() {
             </motion.div>
           </div>
         </section>
+        
+        {/* DUPLICATED Overlapping Images Section */}
+        <section className="py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="relative h-64 lg:h-80">
+              <motion.div
+                initial={{ opacity: 0, x: -20, rotate: -5 }}
+                whileInView={{ opacity: 1, x: 0, rotate: -8 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="absolute top-0 left-0 w-3/4 rounded-lg overflow-hidden shadow-lg border border-white/10"
+              >
+                <Image src="https://picsum.photos/seed/page3/600/400" alt="Página 3" width={600} height={400} className="object-cover" />
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, x: 20, rotate: 5 }}
+                whileInView={{ opacity: 1, x: 0, rotate: 2 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="absolute bottom-0 right-0 w-3/4 rounded-lg overflow-hidden shadow-2xl border border-white/10"
+              >
+                <Image src="https://picsum.photos/seed/page4/600/400" alt="Página 4" width={600} height={400} className="object-cover" />
+              </motion.div>
+            </div>
+            <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={container}>
+              <motion.h3 variants={fadeUp} className="text-2xl font-bold">Tudo Organizado, Sempre à Mão</motion.h3>
+              <motion.p variants={fadeUp} className="mt-4 text-white/70">
+                Desde a gestão de imóveis e leads até a personalização do seu site público, todas as ferramentas foram desenhadas para serem intuitivas e acessíveis, permitindo que você tenha uma visão completa do seu negócio em um único lugar.
+              </motion.p>
+            </motion.div>
+          </div>
+        </section>
+
 
         {/* Simple Text Section */}
         <section className="mt-20 py-10">
