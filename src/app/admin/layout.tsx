@@ -5,7 +5,7 @@ import { useUser, useDoc, useFirestore, useMemoFirebase, useAuth } from '@/fireb
 import { useRouter, usePathname } from 'next/navigation';
 import { doc } from 'firebase/firestore';
 import type { Agent } from '@/lib/data';
-import { LogOut, ShieldCheck, User, LayoutDashboard, LifeBuoy } from 'lucide-react';
+import { LogOut, ShieldCheck, User, LayoutDashboard, LifeBuoy, MonitorPlay } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -70,6 +70,7 @@ export default function AdminLayout({
 
   const menuItems = [
       { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/admin/marketing', label: 'Página de Marketing', icon: MonitorPlay },
       { href: '/admin/support', label: 'Suporte', icon: LifeBuoy },
       { href: '/dashboard', label: 'Visão do Corretor', icon: User },
   ]

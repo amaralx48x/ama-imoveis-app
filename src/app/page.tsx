@@ -1,11 +1,14 @@
 
 'use client'
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
+import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
+import type { MarketingContent } from "@/lib/data";
 
 const neon = "bg-gradient-to-r from-primary via-accent to-[#B794F4]";
 
@@ -23,6 +26,19 @@ const fadeUp = {
 };
 
 export default function MarketingPage() {
+  const firestore = useFirestore();
+  const marketingRef = useMemoFirebase(
+    () => (firestore ? doc(firestore, "marketing", "content") : null),
+    [firestore]
+  );
+  const { data: marketingData, isLoading } = useDoc<MarketingContent>(marketingRef);
+
+  const getImage = (field: keyof MarketingContent, defaultUrl: string) => {
+    if (isLoading) return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"; // transparent pixel
+    return marketingData?.[field] || defaultUrl;
+  };
+
+
   return (
     <div className="min-h-screen text-white bg-black">
       {/* NAV */}
@@ -97,7 +113,7 @@ export default function MarketingPage() {
           <motion.div variants={fadeUp} className="relative">
             <div className="rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/6">
               <Image
-                src="https://picsum.photos/seed/mockup/900/600"
+                src={getImage('section1_image', "https://picsum.photos/seed/mockup/900/600")}
                 alt="Mockup AMA Imobi"
                 width={900}
                 height={600}
@@ -147,7 +163,12 @@ export default function MarketingPage() {
         {/* Image gallery + social proof */}
         <section className="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start py-10 h-auto lg:h-[560px]">
           <div className="lg:col-span-2 rounded-xl overflow-hidden shadow-lg h-full">
-            <Image src="https://picsum.photos/seed/dashboard-chart/1200/800" alt="Galeria" width={1200} height={800} className="object-cover w-full h-full" data-ai-hint="dashboard chart" />
+            <Image 
+                src={getImage('section2_image', "https://picsum.photos/seed/dashboard-chart/1200/800")} 
+                alt="Galeria" 
+                width={1200} height={800} 
+                className="object-cover w-full h-full" 
+                data-ai-hint="dashboard chart" />
           </div>
 
           <div className="p-6 rounded-xl bg-white/5 border border-white/10 h-full flex flex-col justify-center">
@@ -167,7 +188,12 @@ export default function MarketingPage() {
             </p>
           </div>
           <div className="lg:col-span-2 rounded-xl overflow-hidden shadow-lg h-full lg:order-first">
-            <Image src="https://picsum.photos/seed/agent-site/1200/800" alt="Site público do corretor" width={1200} height={800} className="object-cover w-full h-full" data-ai-hint="real estate website" />
+            <Image 
+                src={getImage('section3_image', "https://picsum.photos/seed/agent-site/1200/800")} 
+                alt="Site público do corretor" 
+                width={1200} height={800} 
+                className="object-cover w-full h-full" 
+                data-ai-hint="real estate website" />
           </div>
         </section>
 
@@ -202,7 +228,7 @@ export default function MarketingPage() {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 className="absolute top-0 left-0 w-3/4 rounded-lg overflow-hidden shadow-lg border border-white/10"
               >
-                <Image src="https://picsum.photos/seed/page1/600/400" alt="Página 1" width={600} height={400} className="object-cover" />
+                <Image src={getImage('section4_image1', "https://picsum.photos/seed/page1/600/400")} alt="Página 1" width={600} height={400} className="object-cover" />
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, x: 20, rotate: 5 }}
@@ -211,7 +237,7 @@ export default function MarketingPage() {
                 transition={{ duration: 0.5, delay: 0.3 }}
                 className="absolute bottom-0 right-0 w-3/4 rounded-lg overflow-hidden shadow-2xl border border-white/10"
               >
-                <Image src="https://picsum.photos/seed/page2/600/400" alt="Página 2" width={600} height={400} className="object-cover" />
+                <Image src={getImage('section4_image2', "https://picsum.photos/seed/page2/600/400")} alt="Página 2" width={600} height={400} className="object-cover" />
               </motion.div>
             </div>
             <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={container}>
@@ -234,7 +260,7 @@ export default function MarketingPage() {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 className="absolute top-0 left-0 w-3/4 rounded-lg overflow-hidden shadow-lg border border-white/10"
               >
-                <Image src="https://picsum.photos/seed/page3/600/400" alt="Página 3" width={600} height={400} className="object-cover" />
+                <Image src={getImage('section5_image1', "https://picsum.photos/seed/page3/600/400")} alt="Página 3" width={600} height={400} className="object-cover" />
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, x: 20, rotate: 5 }}
@@ -243,7 +269,7 @@ export default function MarketingPage() {
                 transition={{ duration: 0.5, delay: 0.3 }}
                 className="absolute bottom-0 right-0 w-3/4 rounded-lg overflow-hidden shadow-2xl border border-white/10"
               >
-                <Image src="https://picsum.photos/seed/page4/600/400" alt="Página 4" width={600} height={400} className="object-cover" />
+                <Image src={getImage('section5_image2', "https://picsum.photos/seed/page4/600/400")} alt="Página 4" width={600} height={400} className="object-cover" />
               </motion.div>
             </div>
             <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={container}>

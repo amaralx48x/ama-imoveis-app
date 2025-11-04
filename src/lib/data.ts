@@ -1,4 +1,5 @@
 
+
 export type SocialLink = {
   id: string;
   label: string;
@@ -70,6 +71,8 @@ export type Agent = {
     cities?: string[];
     availability?: Availability;
     siteSettings?: SiteSettings;
+    role?: 'corretor' | 'admin';
+    plan?: 'corretor' | 'imobiliaria';
 }
 
 export type LeadType = "seller" | "buyer" | "other";
@@ -107,6 +110,31 @@ export type CustomSection = {
   order: number;
   createdAt: any;
 };
+
+export type SupportMessage = {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderEmail: string;
+  message: string;
+  images?: string[];
+  status: 'pending' | 'responded';
+  createdAt: any;
+  respondedBy?: string;
+  responseMessage?: string;
+  responseAt?: any;
+}
+
+export type MarketingContent = {
+    section1_image?: string;
+    section2_image?: string;
+    section3_image?: string;
+    section4_image1?: string;
+    section4_image2?: string;
+    section5_image1?: string;
+    section5_image2?: string;
+}
+
 
 // This data is now considered legacy mock data.
 // The app will primarily use Firestore.

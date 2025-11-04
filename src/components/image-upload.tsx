@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { useFirebaseApp } from '@/firebase';
+import { useFirebaseApp, useUser } from '@/firebase';
 import { Loader2, Upload, X } from 'lucide-react';
 import Image from 'next/image';
 
@@ -14,8 +14,8 @@ type Props = {
   onUploadComplete: (url: string) => void;
   multiple?: boolean;
   currentImageUrl?: string | string[] | null;
-  agentId: string;
-  propertyId: string;
+  agentId: string; // Can be a user UID or a general folder like 'marketing'
+  propertyId: string; // Can be a property ID or a specific identifier like 'section_1_image'
 };
 
 export default function ImageUpload({ onUploadComplete, multiple, currentImageUrl, agentId, propertyId }: Props) {
@@ -41,8 +41,11 @@ export default function ImageUpload({ onUploadComplete, multiple, currentImageUr
     const storage = getStorage(firebaseApp);
     
     try {
+      // Always upload to a generic path for marketing or a specific path for agents
+      const basePath = agentId === 'marketing' ? `marketing/${propertyId}` : `agents/${agentId}/properties/${propertyId}`;
+
       const uploadPromises = files.map(async (file) => {
-        const filePath = `agents/${agentId}/properties/${propertyId}/${file.name}`;
+        const filePath = `${basePath}/${file.name}`;
         const fileRef = ref(storage, filePath);
         await uploadBytes(fileRef, file);
         const url = await getDownloadURL(fileRef);
@@ -64,13 +67,14 @@ export default function ImageUpload({ onUploadComplete, multiple, currentImageUr
   const handleRemoveFile = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
+  
+  const displayImages = Array.isArray(currentImageUrl) ? currentImageUrl : (currentImageUrl ? [currentImageUrl] : []);
 
   return (
-    <div className="space-y-4 p-4 border rounded-lg">
+    <div className="space-y-4">
       <div className="grid gap-2">
-        <label htmlFor="file-upload" className="font-medium text-sm">Selecione as imagens</label>
         <Input 
-          id="file-upload"
+          id={`file-upload-${propertyId}`}
           type="file" 
           accept="image/*" 
           onChange={handleFileChange}
@@ -109,6 +113,16 @@ export default function ImageUpload({ onUploadComplete, multiple, currentImageUr
           </>
         )}
       </Button>
+
+      {displayImages.length > 0 && (
+         <div className="mt-4 flex flex-wrap gap-4">
+            {displayImages.map((url, index) => (
+                <div key={index} className="relative w-32 h-32 rounded-md overflow-hidden border">
+                    <Image src={url} alt={`Imagem atual ${index + 1}`} fill sizes="128px" className="object-cover" />
+                </div>
+            ))}
+        </div>
+      )}
     </div>
   );
 }
