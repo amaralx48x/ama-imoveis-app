@@ -17,13 +17,14 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { doc } from 'firebase/firestore';
 import { useEffect } from 'react';
 import type { Agent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Palette, Sun, Moon, Loader2 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 const appearanceFormSchema = z.object({
   theme: z.enum(['light', 'dark'], { required_error: 'Por favor, selecione um tema.' }),
@@ -74,7 +75,7 @@ export default function AparenciaPage() {
   async function onSubmit(values: z.infer<typeof appearanceFormSchema>) {
     if (!agentRef) return;
     
-    setDocumentNonBlocking(agentRef, { 'siteSettings.theme': values.theme }, { merge: true });
+    updateDocumentNonBlocking(agentRef, { 'siteSettings.theme': values.theme });
     mutate();
 
     toast({
