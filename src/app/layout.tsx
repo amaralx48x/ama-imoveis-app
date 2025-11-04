@@ -29,8 +29,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`dark ${inter.variable} ${poppins.variable}`}>
-      <body className="font-body antialiased">
+    <html lang="pt-BR" className="dark">
+      <body className={`font-body antialiased`}>
         <FirebaseClientProvider>
           <PlanProvider>
             {children}

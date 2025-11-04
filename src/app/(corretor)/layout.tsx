@@ -1,7 +1,7 @@
 
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck } from 'lucide-react';
+import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
@@ -45,6 +45,11 @@ export default function CorretorLayout({
     }
   }, [user, isUserLoading, router]);
 
+  useEffect(() => {
+    const theme = agentData?.siteSettings?.theme || 'dark';
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [agentData]);
+
   const handleLogout = () => {
     if(auth) {
       auth.signOut();
@@ -70,6 +75,7 @@ export default function CorretorLayout({
   ]
 
   const settingsItems = [
+      { href: '/configuracoes/aparencia', label: 'Aparência', icon: Palette },
       { href: '/configuracoes/links', label: 'Links e Exibição', icon: LinkIcon },
       { href: '/configuracoes/secoes', label: 'Gerenciar Seções', icon: Folder },
       { href: '/configuracoes/metricas', label: 'Métricas e Comissões', icon: Percent },
