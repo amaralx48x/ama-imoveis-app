@@ -74,9 +74,18 @@ export default function AvaliacoesPage() {
         setLoading(true);
         setError(null);
         try {
-            const q = query(reviewsCollection, orderBy('createdAt', 'desc'));
-            const snap = await getDocs(q);
-            setReviews(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Review));
+            // A consulta agora é simples, sem ordenação no banco.
+            const snap = await getDocs(reviewsCollection);
+            const fetchedReviews = snap.docs.map(d => ({ id: d.id, ...d.data() }) as Review);
+            
+            // Ordenação feita no lado do cliente.
+            fetchedReviews.sort((a, b) => {
+                const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+                const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+                return dateB - dateA; // Descendente
+            });
+
+            setReviews(fetchedReviews);
         } catch (err: any) {
             console.error(err);
             setError('Erro ao carregar avaliações.');
