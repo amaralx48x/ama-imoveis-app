@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -57,7 +58,18 @@ export default function AdminDashboardPage() {
                     return sum + (PLAN_PRICES[plan as keyof typeof PLAN_PRICES] || 0);
                 }, 0);
                 
-                const allProps = propertiesSnap.docs.map(doc => ({ ...doc.data(), id: doc.id }) as Property);
+                const uniqueProperties = new Map<string, Property>();
+                propertiesSnap.forEach(doc => {
+                    const docId = doc.id;
+                    if (!uniqueProperties.has(docId)) {
+                        uniqueProperties.set(docId, {
+                            ...(doc.data() as Omit<Property, 'id'>),
+                            id: docId,
+                            agentId: doc.ref.parent.parent?.id,
+                        } as Property);
+                    }
+                });
+                const allProps = Array.from(uniqueProperties.values());
                 setAllProperties(allProps);
                 
                 const activeProperties = allProps.filter(p => p.status !== 'vendido' && p.status !== 'alugado').length;

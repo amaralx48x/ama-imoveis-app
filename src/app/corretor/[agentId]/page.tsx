@@ -19,7 +19,6 @@ import PropertyFilters from '@/components/property-filters';
 import { getPropertyTypes, getReviews as getStaticReviews } from '@/lib/data';
 
 export default function AgentPublicPage() {
-  // Corrige comportamento do useParams() em versões recentes do Next.js
   const rawParams = useParams() as unknown;
   const params = (rawParams && typeof rawParams === 'object') ? rawParams as Record<string, string> : {};
   const agentId = params?.agentId;
@@ -32,7 +31,6 @@ export default function AgentPublicPage() {
   const [reviews, setReviews] = useState<Review[]>(getStaticReviews());
   const [isLoading, setIsLoading] = useState(true);
 
-  // ---- Carrega avaliações (reviews)
   const loadReviews = useCallback(async () => {
     if (!firestore || !agentId) return;
     try {
@@ -61,7 +59,6 @@ export default function AgentPublicPage() {
     }
   }, [firestore, agentId]);
 
-  // ---- Carrega corretor, imóveis e seções
   useEffect(() => {
     if (!firestore || !agentId) return;
 
@@ -72,20 +69,19 @@ export default function AgentPublicPage() {
         const propertiesRef = collection(firestore, `agents/${agentId}/properties`);
         const sectionsRef = collection(firestore, `agents/${agentId}/customSections`);
 
-        // Busca com fallback interno
         const [agentSnap, propertiesSnap, sectionsSnap] = await Promise.all([
-          getDoc(agentRef),
-          getDocs(query(propertiesRef, where('status', '==', 'ativo'))).catch(err => {
-            console.warn("Query de imóveis falhou, fallback sem filtro:", err);
+          getDoc(agentRef).catch(() => null),
+          getDocs(query(propertiesRef, where('status', '==', 'ativo'))).catch((err) => {
+            console.warn("Query de imóveis com filtro falhou, tentando sem filtro:", err);
             return getDocs(propertiesRef);
           }),
-          getDocs(query(sectionsRef, orderBy('order', 'asc'))).catch(err => {
-            console.warn("Query de seções falhou, fallback sem orderBy:", err);
+          getDocs(query(sectionsRef, orderBy('order', 'asc'))).catch((err) => {
+            console.warn("Query de seções com ordenação falhou, tentando sem ordenação:", err);
             return getDocs(sectionsRef);
           }),
         ]);
 
-        if (!agentSnap.exists()) {
+        if (!agentSnap || !agentSnap.exists()) {
           notFound();
           return;
         }
@@ -95,40 +91,20 @@ export default function AgentPublicPage() {
 
         const props = propertiesSnap.docs.map(doc => ({
           ...(doc.data() as Omit<Property, 'id'>),
-          id: doc.id,
+          id: doc.id, // Usando o ID do documento
           agentId: agentId,
         }));
         setAllProperties(props);
 
         const sections = sectionsSnap.docs.map(doc => ({
           ...(doc.data() as Omit<CustomSection, 'id'>),
-          id: doc.id,
+          id: doc.id, // Usando o ID do documento
         }));
         setCustomSections(sections);
 
         await loadReviews();
       } catch (error) {
         console.error("Erro geral ao buscar dados do corretor:", error);
-        // Tentativa de fallback total
-        try {
-          const agentRef = doc(firestore, 'agents', agentId);
-          const propertiesRef = collection(firestore, `agents/${agentId}/properties`);
-          const agentSnap = await getDoc(agentRef);
-          const propertiesSnap = await getDocs(propertiesRef);
-
-          if (agentSnap.exists()) {
-            const agentData = { id: agentSnap.id, ...agentSnap.data() } as Agent;
-            setAgent(agentData);
-            const props = propertiesSnap.docs.map(doc => ({
-              ...(doc.data() as Omit<Property, 'id'>),
-              id: doc.id,
-              agentId: agentId,
-            }));
-            setAllProperties(props);
-          }
-        } catch (fallbackError) {
-          console.error("Fallback total também falhou:", fallbackError);
-        }
       } finally {
         setIsLoading(false);
       }
@@ -137,7 +113,6 @@ export default function AgentPublicPage() {
     fetchData();
   }, [firestore, agentId, loadReviews]);
 
-  // ---- Estados de carregamento e erro
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
@@ -157,9 +132,8 @@ export default function AgentPublicPage() {
     );
   }
 
-  // ---- Dados prontos
   const heroImage = PlaceHolderImages.find(img => img.id === 'hero-background');
-  const featuredProperties = allProperties.filter(p => (p.sectionIds || []).includes('featured'));
+  const featuredProperties = allProperties.filter(p => (p.sectionIds || []).includes('featured') && p.status === 'ativo');
   const propertyTypes = getPropertyTypes();
   const showReviews = agent.siteSettings?.showReviews ?? true;
   const whatsAppLink = agent.siteSettings?.socialLinks?.find(link => link.icon === 'whatsapp');
@@ -179,7 +153,7 @@ export default function AgentPublicPage() {
         )}
 
         {customSections.map(section => {
-          const sectionProperties = allProperties.filter(p => (p.sectionIds || []).includes(section.id));
+          const sectionProperties = allProperties.filter(p => (p.sectionIds || []).includes(section.id) && p.status === 'ativo');
           if (sectionProperties.length === 0) return null;
           return (
             <CustomPropertySection

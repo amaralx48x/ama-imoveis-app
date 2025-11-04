@@ -63,10 +63,12 @@ function SearchResults() {
       
       const uniqueProperties = new Map<string, Property>();
       querySnapshot.forEach(doc => {
-          if (!uniqueProperties.has(doc.id)) {
-            uniqueProperties.set(doc.id, { 
+          // Garante que o ID do documento do Firestore seja usado, que é sempre único
+          const docId = doc.id;
+          if (!uniqueProperties.has(docId)) {
+            uniqueProperties.set(docId, { 
                 ...(doc.data() as Omit<Property, 'id'>), 
-                id: doc.id, 
+                id: docId, 
                 agentId: doc.ref.parent.parent?.id 
             } as Property);
           }
