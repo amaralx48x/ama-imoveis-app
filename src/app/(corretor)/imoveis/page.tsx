@@ -132,7 +132,8 @@ export default function ImoveisPage() {
     const filteredProperties = useMemo(() => {
         let propertiesByTab;
         if (activeTab === 'ativo') {
-            propertiesByTab = allProperties.filter(p => p.status === 'ativo');
+            // Imóveis ativos são os que têm status 'ativo' ou não têm status definido (legado)
+            propertiesByTab = allProperties.filter(p => p.status === 'ativo' || !p.status);
         } else {
             propertiesByTab = allProperties.filter(p => p.status === activeTab);
         }
