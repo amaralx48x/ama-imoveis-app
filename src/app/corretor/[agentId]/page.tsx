@@ -7,15 +7,15 @@ import { notFound, useParams } from 'next/navigation';
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Hero } from "@/components/hero";
-import { FeaturedProperties } from "@/components/featured-properties";
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { FeaturedProperties } from '@/components/featured-properties';
 import { CustomPropertySection } from '@/components/custom-property-section';
 import { AgentProfile } from '@/components/agent-profile';
 import { ClientReviews } from '@/components/client-reviews';
 import { FloatingContactButton } from '@/components/floating-contact-button';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore } from '@/firebase';
+import PropertyFilters from '@/components/property-filters';
 import { getPropertyTypes, getReviews as getStaticReviews } from '@/lib/data';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Construction } from 'lucide-react';
 
 
 type Props = {
@@ -26,7 +26,6 @@ export default function AgentPublicPage({ }: Props) {
     const params = useParams();
     const agentId = params.agentId as string;
     const firestore = useFirestore();
-    const { user: loggedInUser } = useUser();
     
     const [agent, setAgent] = useState<Agent | null>(null);
     const [allProperties, setAllProperties] = useState<Property[]>([]);
@@ -37,14 +36,12 @@ export default function AgentPublicPage({ }: Props) {
     const loadReviews = useCallback(async () => {
       if (!firestore || !agentId) return;
       const reviewsRef = collection(firestore, `agents/${agentId}/reviews`);
-      const q = query(reviewsRef, where('approved', '==', true), limit(10));
+      const q = query(reviewsRef, where('approved', '==', true), orderBy('createdAt', 'desc'), limit(10));
       
       try {
         const reviewsSnap = await getDocs(q);
         if (!reviewsSnap.empty) {
-          const fetchedReviews = reviewsSnap.docs.map(doc => ({ ...(doc.data() as Omit<Review, 'id'>), id: doc.id }));
-          fetchedReviews.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
-          setReviews(fetchedReviews);
+          setReviews(reviewsSnap.docs.map(doc => ({ ...(doc.data() as Omit<Review, 'id'>), id: doc.id })));
         } else {
            setReviews(getStaticReviews());
         }
@@ -60,28 +57,30 @@ export default function AgentPublicPage({ }: Props) {
         const fetchData = async () => {
             setIsLoading(true);
             try {
+                // Fetch agent, properties, and custom sections in parallel
                 const agentRef = doc(firestore, 'agents', agentId);
-                const propertiesQuery = collection(firestore, `agents/${agentId}/properties`);
+                const propertiesRef = collection(firestore, `agents/${agentId}/properties`);
                 const sectionsRef = collection(firestore, `agents/${agentId}/customSections`);
 
                 const [agentSnap, propertiesSnap, sectionsSnap] = await Promise.all([
                     getDoc(agentRef),
-                    getDocs(propertiesQuery),
+                    getDocs(propertiesRef), // Simplified query
                     getDocs(query(sectionsRef, orderBy('order', 'asc')))
                 ]);
 
                 if (!agentSnap.exists()) {
-                    setAgent(null);
+                    notFound();
                     return;
                 }
                 
                 const agentData = { id: agentSnap.id, ...agentSnap.data() } as Agent;
                 setAgent(agentData);
 
-                const allProps = propertiesSnap.docs.map(doc => ({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId: agentId }));
-                
-                const activeProperties = allProps.filter(p => ['ativo', 'Ativo', 'active'].includes(p.status ?? ''));
-                setAllProperties(activeProperties);
+                // Filter active properties on the client-side
+                const props = propertiesSnap.docs
+                    .map(doc => ({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId: agentId }))
+                    .filter(p => p.status !== 'vendido' && p.status !== 'alugado');
+                setAllProperties(props);
 
                 const sections = sectionsSnap.docs.map(doc => ({ ...(doc.data() as Omit<CustomSection, 'id'>), id: doc.id }));
                 setCustomSections(sections);
@@ -89,13 +88,31 @@ export default function AgentPublicPage({ }: Props) {
                 await loadReviews();
 
             } catch (error) {
-                console.error("Erro ao buscar dados do corretor:", error);
+                console.error("Error fetching agent data on client:", error);
+                 // If the complex query fails due to missing index, try a simpler one
+                if ((error as any)?.code === 'failed-precondition') {
+                    try {
+                        const agentRef = doc(firestore, 'agents', agentId);
+                        const propertiesRef = collection(firestore, `agents/${agentId}/properties`);
+                        const agentSnap = await getDoc(agentRef);
+                        const propertiesSnap = await getDocs(propertiesRef);
+                         if (agentSnap.exists()) {
+                            const agentData = { id: agentSnap.id, ...agentSnap.data() } as Agent;
+                            setAgent(agentData);
+                            const props = propertiesSnap.docs.map(doc => ({ ...(doc.data() as Omit<Property, 'id'>), id: doc.id, agentId: agentId })).filter(p => p.status !== 'vendido' && p.status !== 'alugado');
+                            setAllProperties(props);
+                        }
+                    } catch (fallbackError) {
+                         console.error("Fallback data fetch also failed:", fallbackError);
+                    }
+                }
             } finally {
                 setIsLoading(false);
             }
         };
 
         fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [firestore, agentId, loadReviews]);
 
     if (isLoading) {
@@ -115,30 +132,8 @@ export default function AgentPublicPage({ }: Props) {
         )
     }
 
-    const isOwner = loggedInUser && loggedInUser.uid === agent.id;
-    const isSiteActive = agent.siteSettings?.siteStatus ?? true;
-
-    if (!isSiteActive && !isOwner) {
-        return (
-            <>
-                <Header agent={agent} agentId={agent.id}/>
-                <main className="min-h-[calc(100vh-theme(spacing.14)-theme(spacing.32))] flex items-center justify-center">
-                     <Card className="max-w-md text-center">
-                         <CardHeader>
-                            <CardTitle className="flex items-center justify-center gap-2 text-2xl"><Construction/> Site em Manutenção</CardTitle>
-                         </CardHeader>
-                         <CardContent>
-                             <p className="text-muted-foreground">O corretor está fazendo melhorias no site. Por favor, volte mais tarde!</p>
-                         </CardContent>
-                     </Card>
-                </main>
-                <Footer agentId={agent.id} />
-            </>
-        )
-    }
-
+    const heroImage = PlaceHolderImages.find(img => img.id === 'hero-background');
     const featuredProperties = allProperties.filter(p => (p.sectionIds || []).includes('featured'));
-
     const propertyTypes = getPropertyTypes();
     const showReviews = agent.siteSettings?.showReviews ?? true;
     const whatsAppLink = agent.siteSettings?.socialLinks?.find(link => link.icon === 'whatsapp');
@@ -147,7 +142,13 @@ export default function AgentPublicPage({ }: Props) {
         <>
             <Header agent={agent} agentId={agent.id}/>
             <main className="min-h-screen">
-                 <Hero agent={agent} propertyTypes={propertyTypes}/>
+                <div className="relative mb-24 md:mb-36">
+                    <Hero heroImage={heroImage}>
+                        <div className='absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-4'>
+                           <PropertyFilters agent={agent} propertyTypes={propertyTypes} />
+                        </div>
+                    </Hero>
+                </div>
                 
                 {featuredProperties.length > 0 && (
                     <FeaturedProperties properties={featuredProperties} agentId={agentId} />
@@ -155,9 +156,7 @@ export default function AgentPublicPage({ }: Props) {
 
                 {customSections.map(section => {
                     const sectionProperties = allProperties.filter(p => (p.sectionIds || []).includes(section.id));
-                    if (sectionProperties.length === 0) {
-                        return null;
-                    }
+                    if (sectionProperties.length === 0) return null;
                     return (
                         <CustomPropertySection 
                             key={section.id} 
