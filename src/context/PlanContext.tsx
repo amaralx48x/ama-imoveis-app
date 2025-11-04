@@ -1,6 +1,7 @@
+
 'use client';
 
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import {
   createContext,
   useContext,
@@ -52,19 +53,31 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
   const [currentPropertiesCount, setCurrentPropertiesCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Function to fetch current properties count
+  // Function to fetch current properties count in real-time
   useEffect(() => {
     if (user && firestore) {
       setIsLoading(true);
       const propertiesRef = collection(firestore, `agents/${user.uid}/properties`);
-      getDocs(propertiesRef)
-        .then((snapshot) => {
+      
+      // Use onSnapshot for real-time updates
+      const unsubscribe = onSnapshot(
+        propertiesRef,
+        (snapshot) => {
           setCurrentPropertiesCount(snapshot.size);
-        })
-        .catch(console.error)
-        .finally(() => setIsLoading(false));
+          setIsLoading(false);
+        },
+        (error) => {
+          console.error("Error fetching properties count:", error);
+          setIsLoading(false);
+        }
+      );
+
+      // Cleanup listener on unmount
+      return () => unsubscribe();
     } else {
-        setIsLoading(false);
+      // If there's no user, reset the count and loading state
+      setCurrentPropertiesCount(0);
+      setIsLoading(false);
     }
   }, [user, firestore]);
 
@@ -89,6 +102,7 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
   }, [plan]);
 
   const canAddNewProperty = () => {
+    if (isLoading) return false; // Don't allow adding if count is not confirmed
     return currentPropertiesCount < limits.maxProperties;
   };
 
