@@ -1,10 +1,8 @@
 
 'use client';
 import { useEffect } from 'react';
-import { useUser, useDoc, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
+import { useUser, useAuth } from '@/firebase';
 import { useRouter, usePathname } from 'next/navigation';
-import { doc } from 'firebase/firestore';
-import type { Agent } from '@/lib/data';
 import { LogOut, ShieldCheck, User, LayoutDashboard, LifeBuoy, MonitorPlay } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -19,23 +17,12 @@ export default function AdminLayout({
   const router = useRouter();
   const auth = useAuth();
   const pathname = usePathname();
-  const firestore = useFirestore();
-
-  const agentRef = useMemoFirebase(
-    () => (user && firestore ? doc(firestore, 'agents', user.uid) : null),
-    [user, firestore]
-  );
-  const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.replace('/login');
     }
-    // A condição !isAgentLoading garante que só tomamos a decisão depois de saber o papel do usuário.
-    if (!isUserLoading && !isAgentLoading && agentData && agentData.role !== 'admin') {
-      router.replace('/dashboard');
-    }
-  }, [user, isUserLoading, agentData, isAgentLoading, router]);
+  }, [user, isUserLoading, router]);
 
   const handleLogout = () => {
     if(auth) {
@@ -45,27 +32,13 @@ export default function AdminLayout({
   };
 
 
-  if (isUserLoading || isAgentLoading) {
+  if (isUserLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
         <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
-        <p className="ml-4 text-muted-foreground">Verificando permissões...</p>
+        <p className="ml-4 text-muted-foreground">Carregando...</p>
       </div>
     );
-  }
-
-  // Se, após o carregamento, o usuário não for admin, ele já terá sido redirecionado.
-  // Mas como uma proteção extra, podemos mostrar uma mensagem de acesso negado.
-  if (!agentData || agentData.role !== 'admin') {
-    return (
-        <div className="flex flex-col items-center justify-center h-screen bg-background text-center">
-            <h1 className="text-4xl font-bold text-destructive mb-4">Acesso Negado</h1>
-            <p className="text-muted-foreground mb-6">Você não tem permissão para acessar esta página.</p>
-            <Button asChild>
-                <Link href="/dashboard">Voltar para o Dashboard</Link>
-            </Button>
-        </div>
-    )
   }
 
   const menuItems = [
