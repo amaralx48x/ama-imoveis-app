@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -8,7 +7,7 @@ import {
   useDoc,
   useMemoFirebase,
 } from "@/firebase";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { Agent, SocialLink } from "@/lib/data";
 import { Button } from "@/components/ui/button";
@@ -179,7 +178,7 @@ export default function SocialLinksSettingsPage() {
         if (!agentRef) return;
         
         const updatePath = `siteSettings.${key}`;
-        updateDocumentNonBlocking(agentRef, { [updatePath]: value });
+        setDocumentNonBlocking(agentRef, { [updatePath]: value }, { merge: true });
         mutate(); // Re-fetch the data to update UI
 
         toast({
@@ -213,10 +212,10 @@ export default function SocialLinksSettingsPage() {
             })
         );
         
-      await updateDoc(agentRef, { 
+      await setDoc(agentRef, { 
         "siteSettings.socialLinks": updatedLinks,
         "siteSettings.financingLink": financingLink,
-       });
+       }, { merge: true });
 
       setSocialLinks(updatedLinks); // Update state with new image URLs
       toast({ title: "Links salvos com sucesso!" });

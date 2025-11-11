@@ -1,4 +1,3 @@
-
 'use client';
     
 import {
@@ -23,7 +22,7 @@ export function setDocumentNonBlocking(docRef: DocumentReference, data: any, opt
       'permission-error',
       new FirestorePermissionError({
         path: docRef.path,
-        operation: 'write', // or 'create'/'update' based on options
+        operation: options && 'merge' in options ? 'update' : 'create',
         requestResourceData: data,
       })
     )
@@ -54,11 +53,12 @@ export function addDocumentNonBlocking(colRef: CollectionReference, data: any) {
 
 
 /**
- * Initiates an updateDoc operation for a document reference.
+ * Initiates an updateDoc operation for a document reference using setDoc with merge.
+ * This is safer as it creates the document if it doesn't exist.
  * Does NOT await the write operation internally.
  */
 export function updateDocumentNonBlocking(docRef: DocumentReference, data: any) {
-  updateDoc(docRef, data)
+  setDoc(docRef, data, { merge: true })
     .catch(error => {
       errorEmitter.emit(
         'permission-error',

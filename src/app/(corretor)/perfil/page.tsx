@@ -1,4 +1,3 @@
-
 'use client';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -148,7 +147,7 @@ export default function PerfilPage() {
       await uploadBytes(fileRef, profilePhotoFile);
       const photoUrl = await getDownloadURL(fileRef);
 
-      await updateDoc(agentRef, { photoUrl });
+      setDocumentNonBlocking(agentRef, { photoUrl }, { merge: true });
 
       form.setValue('photoUrl', photoUrl);
       setProfilePhotoFile(null); // Clear file after upload
@@ -169,14 +168,14 @@ export default function PerfilPage() {
       toast({ title: "Cidade já existe", variant: "destructive" });
       return;
     }
-    updateDocumentNonBlocking(agentRef, { cities: arrayUnion(newCity.trim()) });
+    setDocumentNonBlocking(agentRef, { cities: arrayUnion(newCity.trim()) }, { merge: true });
     mutate(); // re-fetch data
     setNewCity('');
   };
 
   const handleRemoveCity = async (cityToRemove: string) => {
     if (!agentRef) return;
-    updateDocumentNonBlocking(agentRef, { cities: arrayRemove(cityToRemove) });
+    setDocumentNonBlocking(agentRef, { cities: arrayRemove(cityToRemove) }, { merge: true });
      mutate(); // re-fetch data
   };
 
