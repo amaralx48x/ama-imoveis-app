@@ -1,7 +1,7 @@
 
 rules_version = '2';
 service firebase.storage {
-  match /b/{bucket}/o {
+  match /b/ama-imveis-041125-945215-63275.appspot.com/o {
 
     // -----------------------
     // Funções auxiliares
@@ -16,6 +16,16 @@ service firebase.storage {
     // Verifica se o usuário é dono
     function isOwner(uid) {
       return request.auth != null && request.auth.uid == uid;
+    }
+
+    // -----------------------
+    // Imagens de marketing (página inicial)
+    // -----------------------
+    match /marketing/{allPaths=**} {
+      // Leitura pública
+      allow read: if true;
+      // Escrita apenas para admins
+      allow write: if isAdmin();
     }
 
     // -----------------------
