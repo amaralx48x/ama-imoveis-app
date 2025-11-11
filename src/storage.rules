@@ -1,7 +1,7 @@
 
 rules_version = '2';
 service firebase.storage {
-  match /b/ama-imveis-041125-945215-63275.appspot.com/o {
+  match /b/ama-imveis-041125-945215-63275.firebasestorage.app/o {
 
     // -----------------------
     // Funções auxiliares
