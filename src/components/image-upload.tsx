@@ -60,12 +60,16 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
     
     try {
       let basePath;
-      if (propertyId.startsWith('support-ticket-')) {
+      if (propertyId === 'profile') {
+          basePath = `agents/${agentId}/profile`;
+      } else if (propertyId.startsWith('support-ticket-')) {
           basePath = `support-images/${agentId}`;
+      } else if (agentId === 'marketing') {
+          basePath = `marketing/${propertyId}`;
+      } else if (propertyId.startsWith('upload-')) {
+          basePath = `agents/${agentId}/links`;
       } else {
-          basePath = agentId === 'marketing' 
-              ? `marketing/${propertyId}` 
-              : (propertyId.startsWith('upload-') ? `agents/${agentId}/links` : `agents/${agentId}/properties/${propertyId}`);
+          basePath = `agents/${agentId}/properties/${propertyId}`;
       }
 
       const uploadPromises = files.map(async (file) => {
@@ -101,7 +105,7 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
   const displayImages = Array.isArray(currentImageUrl) ? currentImageUrl : (currentImageUrl ? [currentImageUrl] : []);
   const inputId = id || `file-upload-${propertyId}`;
   
-  const hasOnUploadComplete = !!onUploadComplete;
+  const hasOnFileSelected = !!onFileChange;
 
   return (
     <div className="space-y-4">
@@ -133,7 +137,7 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
         </div>
       )}
       
-      {hasOnUploadComplete && (
+      {!hasOnFileSelected && (
         <Button onClick={handleUpload} disabled={isUploading || files.length === 0} type="button">
             {isUploading ? (
             <>

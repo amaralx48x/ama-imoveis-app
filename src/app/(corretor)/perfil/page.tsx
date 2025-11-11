@@ -141,7 +141,7 @@ export default function PerfilPage() {
 
     setIsUploading(true);
     const storage = getStorage();
-    const filePath = `agents/${user.uid}/profile.jpg`;
+    const filePath = `agents/${user.uid}/profile/${profilePhotoFile.name}`;
     const fileRef = ref(storage, filePath);
 
     try {
@@ -223,10 +223,14 @@ export default function PerfilPage() {
                     <AvatarFallback>{form.getValues('displayName')?.charAt(0) || 'A'}</AvatarFallback>
                 </Avatar>
                 <div className='flex-grow space-y-2'>
-                    <ImageUpload 
-                        onFileChange={setProfilePhotoFile}
-                        currentImageUrl={agentData?.photoUrl}
-                    />
+                    {user && (
+                        <ImageUpload 
+                            onFileChange={setProfilePhotoFile}
+                            currentImageUrl={agentData?.photoUrl}
+                            agentId={user.uid}
+                            propertyId="profile"
+                        />
+                    )}
                      <Button onClick={handleSavePhoto} disabled={!profilePhotoFile || isUploading}>
                         {isUploading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando...</> : "Salvar Foto"}
                     </Button>
