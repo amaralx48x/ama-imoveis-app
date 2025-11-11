@@ -35,7 +35,7 @@ export default function PropertyFilters({ agent, propertyTypes = [] }: PropertyF
   const handleSearch = () => {
     const query = new URLSearchParams();
     if (operation) query.set('operation', operation);
-    if (city) query.set('city', city);
+    if (city && city !== 'outras') query.set('city', city);
     if (type) query.set('type', type);
     if (bedrooms) query.set('bedrooms', bedrooms);
     if (garage) query.set('garage', garage);
@@ -99,6 +99,7 @@ export default function PropertyFilters({ agent, propertyTypes = [] }: PropertyF
                     </SelectTrigger>
                     <SelectContent>
                         {cities.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        {cities.length > 0 && <SelectItem value="outras">Outras cidades</SelectItem>}
                     </SelectContent>
                 </Select>
                 

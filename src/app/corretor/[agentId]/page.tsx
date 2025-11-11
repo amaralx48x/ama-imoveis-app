@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { doc, getDoc, collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import type { Agent, Property, Review, CustomSection } from '@/lib/data';
 import { notFound, useParams } from 'next/navigation';
@@ -113,6 +113,13 @@ export default function AgentPublicPage() {
     fetchData();
   }, [firestore, agentId, loadReviews]);
 
+  const citiesForFilter = useMemo(() => {
+    if (!agent) return [];
+    const agentCities = agent.cities || [];
+    const propertyCities = allProperties.map(p => p.city).filter(Boolean);
+    return [...new Set([...agentCities, ...propertyCities])].sort();
+  }, [agent, allProperties]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
@@ -144,7 +151,7 @@ export default function AgentPublicPage() {
       <main className="min-h-screen">
         <div className="relative mb-24 md:mb-36">
           <Hero heroImage={heroImage}>
-            <PropertyFilters agent={agent} propertyTypes={propertyTypes} />
+            <PropertyFilters agent={{...agent, cities: citiesForFilter}} propertyTypes={propertyTypes} />
           </Hero>
         </div>
 

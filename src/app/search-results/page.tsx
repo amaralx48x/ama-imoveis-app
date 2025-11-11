@@ -24,6 +24,7 @@ function SearchResults() {
   const firestore = useFirestore();
 
   const agentId = searchParams.get('agentId');
+  const city = searchParams.get('city');
 
   // Mock agent para popular os filtros de cidade, etc.
   const mockAgent: Agent = {
@@ -42,9 +43,11 @@ function SearchResults() {
   const fetchData = useCallback(async (firestoreInstance: any, currentParams: URLSearchParams) => {
     setLoading(true);
     const agentIdFromParams = currentParams.get('agentId');
+    const cityFromParams = currentParams.get('city');
+
     const filters: Filters = {
         operation: currentParams.get('operation') || undefined,
-        city: currentParams.get('city') || undefined,
+        city: cityFromParams === 'outras' ? undefined : cityFromParams || undefined,
         type: currentParams.get('type') || undefined,
         bedrooms: currentParams.get('bedrooms') || undefined,
         garage: currentParams.get('garage') || undefined,
@@ -57,8 +60,6 @@ function SearchResults() {
     };
     
     try {
-      // Se um agentId for fornecido, busca apenas na coleção desse corretor.
-      // Caso contrário, faz uma busca global.
       const q = agentIdFromParams
         ? query(collection(firestoreInstance, `agents/${agentIdFromParams}/properties`))
         : query(collectionGroup(firestoreInstance, 'properties'));
@@ -165,7 +166,3 @@ export default function SearchResultsPage() {
         </Suspense>
     );
 }
-
-    
-
-    
