@@ -85,13 +85,13 @@ export default function PropertyPage({ }: Props) {
   if (isLoading) {
     return (
       <>
-        <Header />
+        <Header agentId={agentId || undefined} />
         <main className="min-h-[calc(100vh-theme(spacing.14)-theme(spacing.32))] container mx-auto px-4 py-8">
              <div className="flex items-center justify-center h-64">
                 <div className="w-12 h-12 border-4 border-dashed rounded-full animate-spin border-primary"></div>
             </div>
         </main>
-        <Footer />
+        <Footer agentId={agentId || undefined} />
       </>
     );
   }
@@ -102,12 +102,12 @@ export default function PropertyPage({ }: Props) {
 
   return (
     <>
-      <Header agentId={agentId} />
+      <Header agent={agentData} agentId={agentId || undefined} />
       <main className="min-h-[calc(100vh-theme(spacing.14)-theme(spacing.32))] container mx-auto px-4 py-8">
         <BackButton />
         <PropertyView property={propertyData} agent={agentData} />
       </main>
-      <Footer />
+      <Footer agentId={agentId || undefined} />
     </>
   );
 }

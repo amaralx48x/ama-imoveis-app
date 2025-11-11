@@ -13,6 +13,8 @@ import { filterProperties, type Filters } from "@/lib/filter-logic";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Frown, ArrowLeft, ArrowDownUp } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 
 
 function SearchResults() {
@@ -61,8 +63,8 @@ function SearchResults() {
     
     try {
       const q = agentIdFromParams
-        ? query(collection(firestoreInstance, `agents/${agentIdFromParams}/properties`))
-        : query(collectionGroup(firestoreInstance, 'properties'));
+        ? query(collection(firestoreInstance, `agents/${agentIdFromParams}/properties`), where('status', '==', 'ativo'))
+        : query(collectionGroup(firestoreInstance, 'properties'), where('status', '==', 'ativo'));
       
       const querySnapshot = await getDocs(q);
       
@@ -96,62 +98,66 @@ function SearchResults() {
   }, [searchParams, firestore, fetchData]);
 
   return (
-    <div className="container mx-auto p-6 min-h-screen">
-      <div className="mb-4">
-        <Button variant="outline" onClick={() => router.back()} className="mb-6 flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Voltar
-        </Button>
-      </div>
+    <>
+      <Header agentId={agentId || undefined} />
+      <main className="container mx-auto p-6 min-h-screen">
+        <div className="mb-4">
+          <Button variant="outline" onClick={() => router.back()} className="mb-6 flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Voltar
+          </Button>
+        </div>
 
-      <div className="mb-8">
-        <PropertyFilters agent={mockAgent} propertyTypes={propertyTypes}/>
-      </div>
-      
-        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-            <h1 className="text-3xl font-bold font-headline">Resultados da Busca</h1>
-            <div className="flex items-center gap-2">
-                <ArrowDownUp className="h-4 w-4 text-muted-foreground" />
-                <Select value={sortBy} onValueChange={(value) => setSortBy(value as Filters['sortBy'])}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Ordenar por" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="price-asc">Preço: Crescente</SelectItem>
-                        <SelectItem value="price-desc">Preço: Decrescente</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-      </div>
-
-      {loading ? (
-         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="flex flex-col space-y-3">
-              <Skeleton className="h-[225px] w-full rounded-xl" />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
+        <div className="mb-8">
+          <PropertyFilters agent={mockAgent} propertyTypes={propertyTypes}/>
+        </div>
+        
+          <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+              <h1 className="text-3xl font-bold font-headline">Resultados da Busca</h1>
+              <div className="flex items-center gap-2">
+                  <ArrowDownUp className="h-4 w-4 text-muted-foreground" />
+                  <Select value={sortBy} onValueChange={(value) => setSortBy(value as Filters['sortBy'])}>
+                      <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Ordenar por" />
+                      </SelectTrigger>
+                      <SelectContent>
+                          <SelectItem value="price-asc">Preço: Crescente</SelectItem>
+                          <SelectItem value="price-desc">Preço: Decrescente</SelectItem>
+                      </SelectContent>
+                  </Select>
               </div>
-            </div>
-          ))}
         </div>
-      ) : properties.length === 0 ? (
-        <div className="text-center py-16 rounded-lg border-2 border-dashed">
-            <Frown className="mx-auto h-12 w-12 text-muted-foreground" />
-            <h2 className="text-2xl font-bold mt-4">Nenhum imóvel encontrado</h2>
-            <p className="text-muted-foreground mt-2">
-                Tente ajustar seus filtros ou fazer uma busca diferente.
-            </p>
-        </div>
-      ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {properties.map((property) => (
-            <PropertyCard key={property.id} property={property} />
-          ))}
-        </div>
-      )}
-    </div>
+
+        {loading ? (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="flex flex-col space-y-3">
+                <Skeleton className="h-[225px] w-full rounded-xl" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : properties.length === 0 ? (
+          <div className="text-center py-16 rounded-lg border-2 border-dashed">
+              <Frown className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h2 className="text-2xl font-bold mt-4">Nenhum imóvel encontrado</h2>
+              <p className="text-muted-foreground mt-2">
+                  Tente ajustar seus filtros ou fazer uma busca diferente.
+              </p>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {properties.map((property) => (
+              <PropertyCard key={property.id} property={property} />
+            ))}
+          </div>
+        )}
+      </main>
+      <Footer agentId={agentId || undefined} />
+    </>
   );
 }
 
