@@ -7,7 +7,7 @@ import PropertyFilters from "@/components/property-filters";
 import { PropertyCard } from "@/components/property-card";
 import { Button } from "@/components/ui/button";
 import { useFirestore } from "@/firebase";
-import { collectionGroup, query, getDocs, DocumentData, Query, where } from "firebase/firestore";
+import { collection, collectionGroup, query, getDocs, DocumentData, Query, where } from "firebase/firestore";
 import type { Property, Agent } from "@/lib/data";
 import { filterProperties, type Filters } from "@/lib/filter-logic";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -41,6 +41,7 @@ function SearchResults() {
 
   const fetchData = useCallback(async (firestoreInstance: any, currentParams: URLSearchParams) => {
     setLoading(true);
+    const agentIdFromParams = currentParams.get('agentId');
     const filters: Filters = {
         operation: currentParams.get('operation') || undefined,
         city: currentParams.get('city') || undefined,
@@ -48,7 +49,7 @@ function SearchResults() {
         bedrooms: currentParams.get('bedrooms') || undefined,
         garage: currentParams.get('garage') || undefined,
         keyword: currentParams.get('keyword') || undefined,
-        agentId: currentParams.get('agentId') || undefined,
+        agentId: agentIdFromParams || undefined,
         sectionId: currentParams.get('sectionId') || undefined,
         minPrice: currentParams.get('minPrice') || undefined,
         maxPrice: currentParams.get('maxPrice') || undefined,
@@ -56,14 +57,16 @@ function SearchResults() {
     };
     
     try {
-      // Query simplificada: Busca global em todas as propriedades sem filtros no DB
-      const q = query(collectionGroup(firestoreInstance, 'properties'));
+      // Se um agentId for fornecido, busca apenas na coleção desse corretor.
+      // Caso contrário, faz uma busca global.
+      const q = agentIdFromParams
+        ? query(collection(firestoreInstance, `agents/${agentIdFromParams}/properties`))
+        : query(collectionGroup(firestoreInstance, 'properties'));
       
       const querySnapshot = await getDocs(q);
       
       const uniqueProperties = new Map<string, Property>();
       querySnapshot.forEach(doc => {
-          // Garante que o ID do documento do Firestore seja usado, que é sempre único
           const docId = doc.id;
           if (!uniqueProperties.has(docId)) {
             uniqueProperties.set(docId, { 
