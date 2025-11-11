@@ -11,14 +11,16 @@ import { Loader2, Upload, X } from 'lucide-react';
 import Image from 'next/image';
 
 type Props = {
-  onUploadComplete: (url: string) => void;
+  onUploadComplete?: (url: string) => void;
+  onFileChange?: (file: File | null) => void;
   multiple?: boolean;
   currentImageUrl?: string | string[] | null;
-  agentId: string; // Can be a user UID or a general folder like 'marketing'
-  propertyId: string; // Can be a property ID or a specific identifier like 'section_1_image'
+  agentId: string;
+  propertyId: string;
+  id?: string;
 };
 
-export default function ImageUpload({ onUploadComplete, multiple, currentImageUrl, agentId, propertyId }: Props) {
+export default function ImageUpload({ onUploadComplete, onFileChange, multiple, currentImageUrl, agentId, propertyId, id }: Props) {
   const [files, setFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
@@ -27,7 +29,17 @@ export default function ImageUpload({ onUploadComplete, multiple, currentImageUr
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files);
-      setFiles(prev => multiple ? [...prev, ...selectedFiles] : [selectedFiles[0]]);
+      if (onFileChange) {
+        if (multiple) {
+            setFiles(prev => [...prev, ...selectedFiles]);
+            selectedFiles.forEach(file => onFileChange(file));
+        } else {
+            setFiles([selectedFiles[0]]);
+            onFileChange(selectedFiles[0]);
+        }
+      } else {
+        setFiles(prev => multiple ? [...prev, ...selectedFiles] : [selectedFiles[0]]);
+      }
     }
   };
 
@@ -37,25 +49,34 @@ export default function ImageUpload({ onUploadComplete, multiple, currentImageUr
       return;
     }
     
+    if (!agentId || !propertyId) {
+        toast({ title: "Erro interno: IDs ausentes para upload", variant: "destructive"});
+        console.error("agentId or propertyId is missing for ImageUpload", { agentId, propertyId });
+        return;
+    }
+
     setIsUploading(true);
     const storage = getStorage(firebaseApp);
     
     try {
-      // Always upload to a generic path for marketing or a specific path for agents
-      const basePath = agentId === 'marketing' ? `marketing/${propertyId}` : `agents/${agentId}/properties/${propertyId}`;
+      const basePath = agentId === 'marketing' 
+        ? `marketing/${propertyId}` 
+        : (propertyId.startsWith('upload-') ? `agents/${agentId}/links` : `agents/${agentId}/properties/${propertyId}`);
 
       const uploadPromises = files.map(async (file) => {
         const filePath = `${basePath}/${file.name}`;
         const fileRef = ref(storage, filePath);
         await uploadBytes(fileRef, file);
         const url = await getDownloadURL(fileRef);
-        onUploadComplete(url);
+        if (onUploadComplete) {
+            onUploadComplete(url);
+        }
       });
       
       await Promise.all(uploadPromises);
       
       toast({ title: `Sucesso! ${files.length} imagem(ns) enviada(s).` });
-      setFiles([]); // Clear selection after successful upload
+      setFiles([]);
     } catch (err) {
       console.error(err);
       toast({ title: "Erro no upload", variant: "destructive" });
@@ -65,16 +86,21 @@ export default function ImageUpload({ onUploadComplete, multiple, currentImageUr
   };
 
   const handleRemoveFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
+    const newFiles = files.filter((_, i) => i !== index);
+    setFiles(newFiles);
+    if(onFileChange && !multiple) {
+        onFileChange(null);
+    }
   };
   
   const displayImages = Array.isArray(currentImageUrl) ? currentImageUrl : (currentImageUrl ? [currentImageUrl] : []);
+  const inputId = id || `file-upload-${propertyId}`;
 
   return (
     <div className="space-y-4">
       <div className="grid gap-2">
         <Input 
-          id={`file-upload-${propertyId}`}
+          id={inputId}
           type="file" 
           accept="image/*" 
           onChange={handleFileChange}
