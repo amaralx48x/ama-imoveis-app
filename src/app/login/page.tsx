@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useFirestore } from '@/firebase';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { setDoc, doc, getDoc } from 'firebase/firestore';
@@ -73,7 +72,49 @@ export default function LoginPage() {
         resolver: zodResolver(signUpSchema),
         defaultValues: { displayName: "", siteName: "", accountType: "corretor", email: "", password: "", confirmPassword: "" },
     });
-    
+
+     useEffect(() => {
+        if (!auth) return;
+        setIsGoogleLoading(true);
+        getRedirectResult(auth)
+            .then(async (result) => {
+                if (!result || !result.user) {
+                    setIsGoogleLoading(false);
+                    return; // No redirect result, do nothing
+                }
+                
+                const user = result.user;
+                if (!firestore) return;
+
+                const agentRef = doc(firestore, "agents", user.uid);
+                const agentSnap = await getDoc(agentRef);
+
+                if (!agentSnap.exists()) {
+                    await setDoc(agentRef, {
+                        id: user.uid,
+                        displayName: user.displayName || 'Novo Usuário',
+                        name: user.displayName ? `${user.displayName.split(' ')[0]} Imóveis` : 'Minha Imobiliária',
+                        accountType: 'corretor',
+                        description: "Edite sua descrição na seção Perfil do seu painel.",
+                        email: user.email,
+                        creci: '000000-F',
+                        photoUrl: user.photoURL || '',
+                        role: 'corretor',
+                    });
+                    toast({ title: "Bem-vindo(a)!", description: "Sua conta foi criada." });
+                } else {
+                    toast({ title: `Bem-vindo(a) de volta, ${user.displayName}!` });
+                }
+
+                router.push('/dashboard');
+
+            }).catch((error) => {
+                handleAuthError(error as FirebaseError);
+            }).finally(() => {
+                setIsGoogleLoading(false);
+            });
+    }, [auth, firestore, router, toast]);
+
     const handleAuthError = (error: FirebaseError) => {
         let title = "Erro de Autenticação";
         let description = "Ocorreu um erro inesperado. Tente novamente.";
@@ -134,7 +175,6 @@ export default function LoginPage() {
             const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
             const user = userCredential.user;
 
-            // Save agent info to Firestore
             const agentRef = doc(firestore, "agents", user.uid);
             await setDoc(agentRef, {
                 id: user.uid,
@@ -143,8 +183,8 @@ export default function LoginPage() {
                 accountType: values.accountType,
                 description: "Edite sua descrição na seção Perfil do seu painel.",
                 email: values.email,
-                creci: '000000-F', // Placeholder
-                photoUrl: '', // Placeholder
+                creci: '000000-F',
+                photoUrl: '',
                 role: 'corretor',
             });
             
@@ -166,34 +206,9 @@ export default function LoginPage() {
 
         const provider = new GoogleAuthProvider();
         try {
-            const result = await signInWithPopup(auth, provider);
-            const user = result.user;
-
-            // Check if user already exists in Firestore 'agents' collection
-            const agentRef = doc(firestore, "agents", user.uid);
-            const agentSnap = await getDoc(agentRef);
-
-            if (!agentSnap.exists()) {
-                 await setDoc(agentRef, {
-                    id: user.uid,
-                    displayName: user.displayName || 'Novo Usuário',
-                    name: user.displayName ? `${user.displayName.split(' ')[0]} Imóveis` : 'Minha Imobiliária',
-                    accountType: 'corretor', // Default
-                    description: "Edite sua descrição na seção Perfil do seu painel.",
-                    email: user.email,
-                    creci: '000000-F', // Placeholder
-                    photoUrl: user.photoURL || '',
-                    role: 'corretor',
-                });
-                toast({ title: "Bem-vindo(a)!", description: "Sua conta foi criada." });
-            } else {
-                 toast({ title: `Bem-vindo(a) de volta, ${user.displayName}!` });
-            }
-
-            router.push('/dashboard');
+            await signInWithRedirect(auth, provider);
         } catch (error) {
             handleAuthError(error as FirebaseError);
-        } finally {
             setIsGoogleLoading(false);
         }
     }
