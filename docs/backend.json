@@ -208,7 +208,7 @@
     }
   },
   "auth": {
-    "providers": ["password", "anonymous"]
+    "providers": ["password", "google"]
   },
   "firestore": {
     "collections": [
