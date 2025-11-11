@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useFirestore } from '@/firebase';
+import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useFirestore, useUser } from '@/firebase';
 import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
@@ -59,6 +59,7 @@ export default function LoginPage() {
     const { toast } = useToast();
     const auth = useAuth();
     const firestore = useFirestore();
+    const { user, isUserLoading } = useUser();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -73,8 +74,18 @@ export default function LoginPage() {
         defaultValues: { displayName: "", siteName: "", accountType: "corretor", email: "", password: "", confirmPassword: "" },
     });
 
+    // Redirect if user is already logged in
+    useEffect(() => {
+        if (!isUserLoading && user) {
+            router.push('/dashboard');
+        }
+    }, [user, isUserLoading, router]);
+
      useEffect(() => {
         if (!auth) return;
+        // Don't set loading if user is already logged in and we are about to redirect
+        if (user) return;
+
         setIsGoogleLoading(true);
         getRedirectResult(auth)
             .then(async (result) => {
@@ -113,7 +124,7 @@ export default function LoginPage() {
             }).finally(() => {
                 setIsGoogleLoading(false);
             });
-    }, [auth, firestore, router, toast]);
+    }, [auth, firestore, router, toast, user]);
 
     const handleAuthError = (error: FirebaseError) => {
         let title = "Erro de Autenticação";
@@ -141,6 +152,11 @@ export default function LoginPage() {
             case 'auth/popup-closed-by-user':
                 title = "Login Cancelado";
                 description = "A janela de login com Google foi fechada antes da conclusão.";
+                break;
+            case 'auth/cancelled-popup-request':
+            case 'auth/popup-blocked':
+                title: "Pop-up Bloqueado";
+                description: "O pop-up de login do Google foi bloqueado pelo navegador. Habilite os pop-ups para este site.";
                 break;
         }
 
@@ -211,6 +227,14 @@ export default function LoginPage() {
             handleAuthError(error as FirebaseError);
             setIsGoogleLoading(false);
         }
+    }
+
+    if (isUserLoading || user) {
+        return (
+             <div className="relative min-h-screen flex items-center justify-center p-4">
+                 <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
+             </div>
+        )
     }
 
 
