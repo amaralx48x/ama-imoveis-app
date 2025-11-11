@@ -59,9 +59,14 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
     const storage = getStorage(firebaseApp);
     
     try {
-      const basePath = agentId === 'marketing' 
-        ? `marketing/${propertyId}` 
-        : (propertyId.startsWith('upload-') ? `agents/${agentId}/links` : `agents/${agentId}/properties/${propertyId}`);
+      let basePath;
+      if (propertyId.startsWith('support-ticket-')) {
+          basePath = `support-images/${agentId}`;
+      } else {
+          basePath = agentId === 'marketing' 
+              ? `marketing/${propertyId}` 
+              : (propertyId.startsWith('upload-') ? `agents/${agentId}/links` : `agents/${agentId}/properties/${propertyId}`);
+      }
 
       const uploadPromises = files.map(async (file) => {
         const filePath = `${basePath}/${file.name}`;
@@ -95,6 +100,8 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
   
   const displayImages = Array.isArray(currentImageUrl) ? currentImageUrl : (currentImageUrl ? [currentImageUrl] : []);
   const inputId = id || `file-upload-${propertyId}`;
+  
+  const hasOnUploadComplete = !!onUploadComplete;
 
   return (
     <div className="space-y-4">
@@ -126,19 +133,21 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
         </div>
       )}
       
-      <Button onClick={handleUpload} disabled={isUploading || files.length === 0} type="button">
-        {isUploading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Enviando...
-          </>
-        ) : (
-          <>
-            <Upload className="mr-2 h-4 w-4" />
-            Enviar {files.length > 0 ? files.length : ''} Imagem(ns)
-          </>
-        )}
-      </Button>
+      {hasOnUploadComplete && (
+        <Button onClick={handleUpload} disabled={isUploading || files.length === 0} type="button">
+            {isUploading ? (
+            <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Enviando...
+            </>
+            ) : (
+            <>
+                <Upload className="mr-2 h-4 w-4" />
+                Enviar {files.length > 0 ? files.length : ''} Imagem(ns)
+            </>
+            )}
+        </Button>
+      )}
 
       {displayImages.length > 0 && (
          <div className="mt-4 flex flex-wrap gap-4">

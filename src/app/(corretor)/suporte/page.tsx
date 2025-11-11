@@ -20,6 +20,7 @@ import { ptBR } from 'date-fns/locale';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import ImageUpload from '@/components/image-upload';
 
 const faqItems = [
   {
@@ -154,23 +155,14 @@ export default function SuportePage() {
   const { toast } = useToast();
 
   const [message, setMessage] = useState('');
-  const [files, setFiles] = useState<File[]>([]);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [messageId] = useState(uuidv4()); // Stable ID for the message being composed
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-        const selectedFiles = Array.from(e.target.files);
-        if (selectedFiles.length + files.length > 5) {
-            toast({ title: 'Limite de 5 arquivos excedido.', variant: 'destructive'});
-            return;
-        }
-        setFiles(prev => [...prev, ...selectedFiles]);
-    }
+  const handleUploadComplete = (url: string) => {
+    setImageUrls(prev => [...prev, url]);
   };
 
-  const handleRemoveFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,17 +172,6 @@ export default function SuportePage() {
     setLoading(true);
     
     try {
-      const messageId = uuidv4();
-      const storage = getStorage(firebaseApp);
-      
-      const imageUrls = await Promise.all(
-        files.map(async (file) => {
-          const imageRef = ref(storage, `support-images/${user.uid}/${file.name}_${messageId}`);
-          await uploadBytes(imageRef, file);
-          return getDownloadURL(imageRef);
-        })
-      );
-      
       const supportCollectionRef = collection(firestore, 'supportMessages');
       await addDoc(supportCollectionRef, {
         id: messageId,
@@ -205,7 +186,7 @@ export default function SuportePage() {
 
       toast({ title: 'Mensagem de suporte enviada!', description: 'Nossa equipe responderá em breve.' });
       setMessage('');
-      setFiles([]);
+      setImageUrls([]); // Reset images
     } catch (err: any) {
       console.error(err);
       toast({ title: 'Erro ao enviar mensagem', description: err.message, variant: 'destructive' });
@@ -259,27 +240,16 @@ export default function SuportePage() {
             />
             <div className="p-4 border rounded-lg bg-card/50">
                  <label htmlFor="file-upload" className="block text-sm font-medium text-muted-foreground mb-2">Anexar imagens (opcional)</label>
-                 <Input 
-                    id="file-upload"
-                    type="file" 
-                    multiple 
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="file:text-primary file:font-semibold"
-                />
+                 {user && (
+                    <ImageUpload 
+                        agentId={user.uid}
+                        propertyId={`support-ticket-${messageId}`}
+                        onUploadComplete={handleUploadComplete}
+                        multiple
+                        currentImageUrl={imageUrls}
+                    />
+                 )}
                 <p className="text-xs text-muted-foreground mt-2">Você pode anexar até 5 imagens (prints de tela, etc).</p>
-                {files.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-4">
-                        {files.map((file, index) => (
-                            <Badge key={index} variant="secondary" className="pl-3 pr-2 py-1 text-sm">
-                                {file.name}
-                                <button onClick={() => handleRemoveFile(index)} className="ml-2 rounded-full hover:bg-destructive/80 p-0.5" disabled={loading}>
-                                    <X className="h-3 w-3" />
-                                </button>
-                            </Badge>
-                        ))}
-                    </div>
-                )}
             </div>
 
             <Button type="submit" disabled={loading} size="lg" className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
