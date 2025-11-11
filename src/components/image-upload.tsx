@@ -9,6 +9,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useFirebaseApp, useUser } from '@/firebase';
 import { Loader2, Upload, X } from 'lucide-react';
 import Image from 'next/image';
+import { v4 as uuidv4 } from 'uuid';
 
 type Props = {
   onUploadComplete?: (url: string) => void;
@@ -59,24 +60,35 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
     const storage = getStorage(firebaseApp);
     
     try {
-      let basePath;
-      if (propertyId === 'profile') {
-          basePath = `agents/${agentId}/profile`;
-      } else if (propertyId.startsWith('support-ticket-')) {
-          basePath = `support-images/${agentId}`;
-      } else if (agentId === 'marketing') {
-          basePath = `marketing/${propertyId}`;
-      } else if (propertyId.startsWith('upload-')) {
-          basePath = `agents/${agentId}/links`;
-      } else {
-          basePath = `agents/${agentId}/properties/${propertyId}`;
-      }
-
       const uploadPromises = files.map(async (file) => {
-        const filePath = `${basePath}/${file.name}`;
+        let basePath;
+        let fileName;
+        const fileExtension = file.name.split('.').pop() || 'jpg';
+
+        if (propertyId === 'profile') {
+            basePath = `agents/${agentId}/profile`;
+            fileName = `profile.${fileExtension}`;
+        } else if (propertyId.startsWith('support-ticket-')) {
+            basePath = `support-images/${agentId}`;
+            fileName = `${Date.now()}_${uuidv4()}.${fileExtension}`;
+        } else if (agentId === 'marketing') {
+            basePath = `marketing`;
+            fileName = `${propertyId}.${fileExtension}`;
+        } else if (propertyId.startsWith('upload-')) {
+            // For links, use the link ID as filename
+            basePath = `agents/${agentId}/links`;
+            const linkId = propertyId.replace('upload-', '');
+            fileName = `${linkId}.${fileExtension}`;
+        } else {
+            basePath = `agents/${agentId}/properties/${propertyId}`;
+            fileName = `${Date.now()}_${uuidv4()}.${fileExtension}`;
+        }
+
+        const filePath = `${basePath}/${fileName}`;
         const fileRef = ref(storage, filePath);
         await uploadBytes(fileRef, file);
         const url = await getDownloadURL(fileRef);
+        
         if (onUploadComplete) {
             onUploadComplete(url);
         }
@@ -88,7 +100,7 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
       setFiles([]);
     } catch (err) {
       console.error(err);
-      toast({ title: "Erro no upload", variant: "destructive" });
+      toast({ title: "Erro no upload", description: "Verifique as permissões de CORS e Storage.", variant: "destructive" });
     } finally {
       setIsUploading(false);
     }
