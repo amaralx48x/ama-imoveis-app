@@ -350,6 +350,13 @@ export default function LoginPage() {
                                     </Button>
                                 </form>
                             </Form>
+                             <div className="relative my-4">
+                                <Separator />
+                                <span className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 bg-card-foreground text-background text-xs px-2">OU</span>
+                            </div>
+                            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isGoogleLoading}>
+                                <GoogleIcon /> {isGoogleLoading ? 'Aguarde...' : 'Criar conta com Google'}
+                            </Button>
                         </TabsContent>
                     </CardContent>
                 </Card>
