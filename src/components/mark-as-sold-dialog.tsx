@@ -15,8 +15,8 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, updateDocumentNonBlocking, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, serverTimestamp } from 'firebase/firestore';
+import { useFirestore, useUser, useDoc, useMemoFirebase } from '@/firebase';
+import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import type { Agent, Property } from '@/lib/data';
 
 interface MarkAsSoldDialogProps {
@@ -68,17 +68,26 @@ export function MarkAsSoldDialog({ isOpen, onOpenChange, property, onConfirm }: 
 
     const docRef = doc(firestore, `agents/${user.uid}/properties`, property.id);
     
-    updateDocumentNonBlocking(docRef, {
-      status: newStatus,
-      soldAt: serverTimestamp(),
-      commissionValue: commissionValue,
-    });
+    try {
+        await updateDoc(docRef, {
+            status: newStatus,
+            soldAt: serverTimestamp(),
+            commissionValue: commissionValue,
+        });
 
-    toast({
-      title: `Imóvel marcado como ${newStatus}!`,
-      description: `${property.title} foi movido para a aba correspondente.`,
-    });
-    onConfirm();
+        toast({
+        title: `Imóvel marcado como ${newStatus}!`,
+        description: `${property.title} foi movido para a aba correspondente.`,
+        });
+        onConfirm();
+    } catch (error) {
+        console.error("Erro ao marcar imóvel:", error);
+        toast({
+            title: "Erro ao atualizar",
+            description: "Não foi possível atualizar o status do imóvel.",
+            variant: "destructive"
+        })
+    }
   };
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);

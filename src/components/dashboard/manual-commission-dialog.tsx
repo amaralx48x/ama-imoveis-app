@@ -14,8 +14,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, updateDocumentNonBlocking } from '@/firebase';
-import { doc, arrayUnion, serverTimestamp } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import { doc, arrayUnion, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 import { Plus, Minus } from 'lucide-react';
 
@@ -48,24 +48,29 @@ export function ManualCommissionDialog({ isOpen, onOpenChange, agentId }: Manual
     
     const valueToStore = operation === 'subtract' ? -Math.abs(adjustmentValue) : Math.abs(adjustmentValue);
 
-    updateDocumentNonBlocking(docRef, {
-      "siteSettings.manualCommissionAdjustments": arrayUnion({
-        value: valueToStore,
-        reason: reason,
-        createdAt: serverTimestamp(),
-      }),
-    });
+    try {
+        await updateDoc(docRef, {
+            "siteSettings.manualCommissionAdjustments": arrayUnion({
+                value: valueToStore,
+                reason: reason,
+                createdAt: serverTimestamp(),
+            }),
+        });
 
-    toast({
-      title: 'Ajuste salvo!',
-      description: 'O ajuste manual foi registrado com sucesso.',
-    });
-    
-    // Reset state and close dialog
-    setAdjustmentValue(0);
-    setReason('');
-    setOperation('add');
-    onOpenChange(false);
+        toast({
+        title: 'Ajuste salvo!',
+        description: 'O ajuste manual foi registrado com sucesso.',
+        });
+        
+        // Reset state and close dialog
+        setAdjustmentValue(0);
+        setReason('');
+        setOperation('add');
+        onOpenChange(false);
+    } catch(e) {
+        console.error("Failed to update manual commission:", e);
+        toast({title: "Erro ao salvar", variant: "destructive"})
+    }
   };
 
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,4 +135,3 @@ export function ManualCommissionDialog({ isOpen, onOpenChange, agentId }: Manual
     </Dialog>
   );
 }
-
