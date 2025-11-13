@@ -95,13 +95,25 @@ export default function EditarImovelPage() {
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      city: "",
+      neighborhood: "",
+      price: 0,
+      bedrooms: 0,
+      bathrooms: 0,
+      garage: 0,
+      rooms: 0,
+      builtArea: 0,
+      totalArea: 0,
+    },
   });
   
   useEffect(() => {
     if (propertyData) {
       form.reset({
         ...propertyData,
-        // Garante que o valor da operação seja compatível com o schema do formulário
         operation: propertyData.operation === 'Comprar' ? 'Venda' : propertyData.operation === 'Alugar' ? 'Aluguel' : propertyData.operation,
       });
       setImageUrls(propertyData.imageUrls || []);
@@ -153,8 +165,8 @@ export default function EditarImovelPage() {
     }
 
     const updatedProperty = {
+      ...propertyData,
       ...values,
-      operation: values.operation === 'Venda' ? 'Comprar' : 'Alugar', // Mapeia de volta para o valor interno se necessário
       imageUrls: imageUrls,
     };
     
@@ -378,5 +390,7 @@ export default function EditarImovelPage() {
     </div>
   );
 }
+
+    
 
     
