@@ -1,8 +1,9 @@
 export const firebaseConfig = {
-  apiKey: "AIzaSyCRXicBSuq6MkjT-07MJByc7TusU1V1Zpk",
-  authDomain: "ama-imveis-041125-945215-63275.firebaseapp.com",
-  projectId: "ama-imveis-041125-945215-63275",
-  storageBucket: "ama-imveis-041125-945215-63275.firebasestorage.app",
-  messagingSenderId: "904973437127",
-  appId: "1:904973437127:web:2a29dbdde7f0d5bb6056e2"
+  apiKey: "AIzaSyDsODegMZvxsDcQF3q2XvwSTgvELmRVrJo",
+  authDomain: "studio-7095998453-3cbf3.firebaseapp.com",
+  databaseURL: "https://studio-7095998453-3cbf3-default-rtdb.firebaseio.com",
+  projectId: "studio-7095998453-3cbf3",
+  storageBucket: "studio-7095998453-3cbf3.firebasestorage.app",
+  messagingSenderId: "943560928567",
+  appId: "1:943560928567:web:cfe30236811e2aadf9feb2"
 };
