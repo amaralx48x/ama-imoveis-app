@@ -78,7 +78,7 @@ function PolicyDialog({ title, content }: { title: string, content: string }) {
                     <DialogTitle className="text-3xl font-headline">{title}</DialogTitle>
                 </DialogHeader>
                 <ScrollArea className="h-full">
-                    <div className="prose prose-invert max-w-none pr-6" dangerouslySetInnerHTML={{ __html: formatText(content) }} />
+                    <div className="prose dark:prose-invert max-w-none pr-6" dangerouslySetInnerHTML={{ __html: formatText(content) }} />
                 </ScrollArea>
             </DialogContent>
         </Dialog>
@@ -107,6 +107,7 @@ export function Footer({ agentId }: { agentId?: string }) {
   );
   
   const { data: agent, isLoading } = useDoc<Agent>(agentRef);
+  
   const privacyPolicy = agent?.siteSettings?.privacyPolicy || defaultPrivacyPolicy;
   const termsOfUse = agent?.siteSettings?.termsOfUse || defaultTermsOfUse;
 

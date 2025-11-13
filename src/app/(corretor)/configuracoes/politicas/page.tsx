@@ -61,8 +61,8 @@ export default function PoliticasPage() {
   const form = useForm<z.infer<typeof policiesFormSchema>>({
     resolver: zodResolver(policiesFormSchema),
     defaultValues: {
-      privacyPolicy: defaultPrivacyPolicy,
-      termsOfUse: defaultTermsOfUse,
+      privacyPolicy: '',
+      termsOfUse: '',
     },
   });
 
@@ -72,8 +72,13 @@ export default function PoliticasPage() {
         privacyPolicy: agentData.siteSettings.privacyPolicy || defaultPrivacyPolicy,
         termsOfUse: agentData.siteSettings.termsOfUse || defaultTermsOfUse,
       });
+    } else if (!isAgentLoading) {
+        form.reset({
+            privacyPolicy: defaultPrivacyPolicy,
+            termsOfUse: defaultTermsOfUse,
+        });
     }
-  }, [agentData, form]);
+  }, [agentData, form, isAgentLoading]);
 
   async function onSubmit(values: z.infer<typeof policiesFormSchema>) {
     if (!agentRef) return;
@@ -84,6 +89,8 @@ export default function PoliticasPage() {
     };
 
     setDocumentNonBlocking(agentRef, settingsToUpdate, { merge: true });
+    
+    // Re-fetch data to update UI
     mutate();
 
     toast({
