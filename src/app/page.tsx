@@ -124,16 +124,9 @@ export default function MarketingPage() {
             </div>
 
             {/* Floating card */}
-            <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.25 }} className="absolute left-6 bottom-6 bg-gradient-to-r from-black/70 to-white/5 border border-white/6 p-4 rounded-xl backdrop-blur-sm w-72 shadow-xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs text-white/60">Imóvel</div>
-                  <div className="font-semibold">Casa térrea — 3 quartos</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm text-white/70">R$ 420.000</div>
-                  <div className="text-xs text-white/50">Venda</div>
-                </div>
+            <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.25 }} className="absolute left-6 bottom-6 bg-gradient-to-r from-black/70 to-white/5 border border-white/6 p-3 rounded-xl backdrop-blur-sm shadow-xl">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm bg-primary">
+                <span className="font-bold">AMA</span>
               </div>
             </motion.div>
           </motion.div>
