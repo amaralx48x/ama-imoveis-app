@@ -191,7 +191,14 @@ export default function SocialLinksSettingsPage() {
 
 const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
+    if (!agentRef) return;
+    
+    // Optimistic UI update for the input field
     setSiteSettings(prev => ({...prev, financingLink: value}));
+    
+    // Non-blocking update to Firestore (debounced or on blur would be even better)
+    updateDocumentNonBlocking(agentRef, { 'siteSettings.financingLink': value });
+    // We don't call mutate() here on every keystroke to avoid excessive reads.
 }
 
   const handleSave = async () => {

@@ -124,6 +124,7 @@ export default function PerfilPage() {
     };
 
     setDocumentNonBlocking(agentRef, dataToSave, { merge: true });
+    mutate(); // Re-fetch data
 
     toast({
         title: 'Perfil Atualizado!',
@@ -148,6 +149,7 @@ export default function PerfilPage() {
       const photoUrl = await getDownloadURL(fileRef);
 
       setDocumentNonBlocking(agentRef, { photoUrl }, { merge: true });
+      mutate(); // Re-fetch data
 
       form.setValue('photoUrl', photoUrl);
       setProfilePhotoFile(null); // Clear file after upload
@@ -168,14 +170,14 @@ export default function PerfilPage() {
       toast({ title: "Cidade já existe", variant: "destructive" });
       return;
     }
-    setDocumentNonBlocking(agentRef, { cities: arrayUnion(newCity.trim()) }, { merge: true });
+    updateDocumentNonBlocking(agentRef, { cities: arrayUnion(newCity.trim()) });
     mutate(); // re-fetch data
     setNewCity('');
   };
 
   const handleRemoveCity = async (cityToRemove: string) => {
     if (!agentRef) return;
-    setDocumentNonBlocking(agentRef, { cities: arrayRemove(cityToRemove) }, { merge: true });
+    updateDocumentNonBlocking(agentRef, { cities: arrayRemove(cityToRemove) });
      mutate(); // re-fetch data
   };
 

@@ -90,7 +90,7 @@ export default function EditarImovelPage() {
   const { data: agentData } = useDoc<Agent>(agentRef);
 
   const propertyRef = useMemoFirebase(() => (firestore && user && propertyId ? doc(firestore, `agents/${user.uid}/properties`, propertyId) : null), [firestore, user, propertyId]);
-  const { data: propertyData, isLoading: isPropertyLoading } = useDoc<Property>(propertyRef);
+  const { data: propertyData, isLoading: isPropertyLoading, mutate } = useDoc<Property>(propertyRef);
   
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   
@@ -115,7 +115,7 @@ export default function EditarImovelPage() {
     if (propertyData) {
       form.reset({
         ...propertyData,
-        operation: propertyData.operation === 'Comprar' ? 'Venda' : 'Aluguel'
+        operation: propertyData.operation === 'Comprar' ? 'Venda' : propertyData.operation,
       });
       setImageUrls(propertyData.imageUrls || []);
     }
@@ -167,12 +167,12 @@ export default function EditarImovelPage() {
 
     const updatedProperty = {
       ...values,
-      operation: values.operation === 'Venda' ? 'Comprar' : 'Alugar', // Correctly map back
       imageUrls: imageUrls,
       createdAt: propertyData?.createdAt, // Retain original creation date
     };
     
     updateDocumentNonBlocking(propertyRef, updatedProperty);
+    mutate();
     
     toast({
         title: "Imóvel Atualizado!",
