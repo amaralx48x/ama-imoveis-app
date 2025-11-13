@@ -110,26 +110,35 @@ export default function MarketingPage() {
           </motion.div>
 
           {/* Mockup / imagem */}
-          <motion.div variants={fadeUp} className="relative">
-            <div className="rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/6">
-              <Image
-                src={getImage('section1_image', "https://picsum.photos/seed/mockup/900/600")}
-                alt="Mockup AMA Imobi"
-                width={900}
-                height={600}
-                className="object-cover w-full h-full"
-                priority
-                data-ai-hint="dashboard screen"
-              />
+          <div className="relative h-80 lg:h-96">
+                <motion.div
+                    initial={{ opacity: 0, x: -20, rotate: -5 }}
+                    whileInView={{ opacity: 1, x: 0, rotate: -8 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                    className="absolute top-0 left-0 w-3/4 rounded-lg overflow-hidden shadow-lg border border-white/10"
+                >
+                    <Image src={getImage('section1_image', "https://picsum.photos/seed/page1/900/600")} alt="Visão do painel" width={900} height={600} className="object-cover" />
+                </motion.div>
+                <motion.div
+                    initial={{ opacity: 0, x: 20, rotate: 5 }}
+                    whileInView={{ opacity: 1, x: 0, rotate: 2 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                    className="absolute bottom-0 right-0 w-3/4 rounded-lg overflow-hidden shadow-2xl border border-white/10"
+                >
+                    <Image src={getImage('section4_image1', "https://picsum.photos/seed/page2/600/400")} alt="Detalhe do painel" width={600} height={400} className="object-cover" />
+                </motion.div>
+                 <motion.div
+                    initial={{ opacity: 0, y: 20, rotate: 3 }}
+                    whileInView={{ opacity: 1, y: 0, rotate: 8 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.5 }}
+                    className="absolute -bottom-10 left-1/4 w-1/2 rounded-lg overflow-hidden shadow-2xl border border-white/10"
+                >
+                    <Image src={getImage('section4_image2', "https://picsum.photos/seed/page2-detail/600/400")} alt="Outro detalhe" width={600} height={400} className="object-cover" />
+                </motion.div>
             </div>
-
-            {/* Floating card */}
-            <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.25 }} className="absolute left-6 bottom-6 bg-gradient-to-r from-black/70 to-white/5 border border-white/6 p-3 rounded-xl backdrop-blur-sm shadow-xl">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm bg-primary">
-                <span className="font-bold">AMA</span>
-              </div>
-            </motion.div>
-          </motion.div>
         </motion.section>
 
         {/* Features */}
