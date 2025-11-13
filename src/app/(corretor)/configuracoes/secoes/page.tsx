@@ -86,13 +86,22 @@ export default function GerenciarSecoesPage() {
 
     const [newSectionTitle, setNewSectionTitle] = useState('');
     const [editingSection, setEditingSection] = useState<{ id: string; title: string } | null>(null);
+    const [siteSettings, setSiteSettings] = useState(agentData?.siteSettings);
 
-    const handleSettingChange = (key: string) => (value: boolean | string) => {
+    useEffect(() => {
+        if(agentData?.siteSettings) {
+            setSiteSettings(agentData.siteSettings);
+        }
+    }, [agentData]);
+
+    const handleSettingChange = (key: string) => (value: boolean) => {
         if (!agentRef) return;
         
+        setSiteSettings(prev => ({ ...prev, [key]: value }));
+
         const updatePath = `siteSettings.${key}`;
         updateDocumentNonBlocking(agentRef, { [updatePath]: value });
-        mutateAgent(); // Re-fetch the data to update UI
+        mutateAgent(); // Re-fetch the data to ensure sync
 
         toast({
             title: "Configuração atualizada!",
@@ -155,8 +164,6 @@ export default function GerenciarSecoesPage() {
             toast({ title: 'Erro ao excluir seção', variant: 'destructive' });
         }
     };
-
-    const siteSettings = agentData?.siteSettings;
 
     return (
         <Card>

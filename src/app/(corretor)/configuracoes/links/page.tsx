@@ -144,16 +144,15 @@ export default function SocialLinksSettingsPage() {
 
   const [socialLinks, setSocialLinks] = useState<LinkState[]>([]);
   const [isSaving, setIsSaving] = useState(false);
-  const [financingLink, setFinancingLink] = useState(agentData?.siteSettings?.financingLink || '');
+  const [siteSettings, setSiteSettings] = useState(agentData?.siteSettings);
 
   useEffect(() => {
-    if (agentData?.siteSettings?.socialLinks) {
-      setSocialLinks(agentData.siteSettings.socialLinks);
+    if (agentData?.siteSettings) {
+      setSiteSettings(agentData.siteSettings);
+      setSocialLinks(agentData.siteSettings.socialLinks || []);
     } else if (!isAgentLoading) {
       setSocialLinks([]);
-    }
-     if (agentData?.siteSettings?.financingLink) {
-        setFinancingLink(agentData.siteSettings.financingLink);
+      setSiteSettings({});
     }
   }, [agentData, isAgentLoading]);
 
@@ -174,22 +173,26 @@ export default function SocialLinksSettingsPage() {
     setSocialLinks((prev) => prev.filter((link) => link.id !== id));
   };
   
-  const handleSettingChange = (key: string) => (value: boolean | string) => {
-        if (!agentRef) return;
-        
-        const updatePath = `siteSettings.${key}`;
-        setDocumentNonBlocking(agentRef, { [updatePath]: value }, { merge: true });
-        mutate(); // Re-fetch the data to update UI
+  const handleSettingChange = (key: string) => (value: boolean) => {
+    if (!agentRef) return;
+    
+    // Optimistic UI update
+    setSiteSettings(prev => ({...prev, [key]: value}));
 
-        toast({
-            title: "Configuração atualizada!",
-            description: "A mudança será refletida no seu site público."
-        });
-    };
+    const updatePath = `siteSettings.${key}`;
+    updateDocumentNonBlocking(agentRef, { [updatePath]: value });
+    mutate(); // Re-fetch the data to ensure sync
 
-    const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFinancingLink(e.target.value);
-    }
+    toast({
+        title: "Configuração atualizada!",
+        description: "A mudança será refletida no seu site público."
+    });
+};
+
+const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setSiteSettings(prev => ({...prev, financingLink: value}));
+}
 
   const handleSave = async () => {
     if (!agentRef || !user) return;
@@ -213,11 +216,14 @@ export default function SocialLinksSettingsPage() {
         );
         
       await setDoc(agentRef, { 
-        "siteSettings.socialLinks": updatedLinks,
-        "siteSettings.financingLink": financingLink,
+        siteSettings: {
+            ...siteSettings,
+            socialLinks: updatedLinks,
+        }
        }, { merge: true });
 
       setSocialLinks(updatedLinks); // Update state with new image URLs
+      mutate();
       toast({ title: "Links salvos com sucesso!" });
     } catch (e) {
       console.error("Erro ao salvar links", e);
@@ -227,7 +233,6 @@ export default function SocialLinksSettingsPage() {
     }
   };
 
-  const siteSettings = agentData?.siteSettings;
 
   return (
     <Card>
@@ -267,7 +272,7 @@ export default function SocialLinksSettingsPage() {
                         isChecked={siteSettings?.showFinancing ?? true}
                         onCheckedChange={handleSettingChange('showFinancing')}
                         isLoading={isAgentLoading}
-                        linkValue={financingLink}
+                        linkValue={siteSettings?.financingLink || ''}
                         onLinkChange={handleLinkChange}
                         linkPlaceholder="https://wa.me/5511999999999"
                     />
