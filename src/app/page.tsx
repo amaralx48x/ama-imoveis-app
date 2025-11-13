@@ -1,14 +1,15 @@
 
 'use client'
 
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import type { MarketingContent } from "@/lib/data";
+import { Card, CardContent } from "@/components/ui/card";
+import { Building2 } from "lucide-react";
 
 const neon = "bg-gradient-to-r from-primary via-accent to-[#B794F4]";
 
@@ -109,27 +110,13 @@ export default function MarketingPage() {
             </div>
           </motion.div>
 
-          {/* Mockup / imagem */}
-          <div className="relative h-80 lg:h-96">
-                <motion.div
-                    initial={{ opacity: 0, x: -20, rotate: -5 }}
-                    whileInView={{ opacity: 1, x: 0, rotate: -8 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: 0.1 }}
-                    className="absolute top-0 left-0 w-3/4 rounded-lg overflow-hidden shadow-lg border border-white/10"
-                >
-                    <Image src={getImage('section1_image', "https://picsum.photos/seed/page1/900/600")} alt="Visão do painel" width={900} height={600} className="object-cover" />
-                </motion.div>
-                <motion.div
-                    initial={{ opacity: 0, x: 20, rotate: 5 }}
-                    whileInView={{ opacity: 1, x: 0, rotate: 2 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                    className="absolute bottom-0 right-0 w-3/4 rounded-lg overflow-hidden shadow-2xl border border-white/10"
-                >
-                    <Image src={getImage('section4_image1', "https://picsum.photos/seed/page2/600/400")} alt="Detalhe do painel" width={600} height={400} className="object-cover" />
-                </motion.div>
-            </div>
+          <div className="relative h-80 lg:h-96 flex items-center justify-center">
+            <motion.div initial={{ opacity: 0, x: -20, rotate: -5 }} whileInView={{ opacity: 1, x: 0, rotate: -8 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }} className="absolute top-0 left-0 w-3/4 h-3/4 rounded-lg overflow-hidden shadow-lg border border-white/10">
+                <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
+                  <img src={getImage('section1_image', "https://picsum.photos/seed/hero1/900/600")} alt="Visão do painel" width={900} height={600} className="object-cover w-full h-full" />
+                </React.Suspense>
+            </motion.div>
+          </div>
         </motion.section>
 
         {/* Features */}
@@ -157,13 +144,14 @@ export default function MarketingPage() {
         <section className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center py-10">
           <div className="relative h-80 lg:h-96">
               <motion.div initial={{ opacity: 0, x: -20, rotate: -5 }} whileInView={{ opacity: 1, x: 0, rotate: -8 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }} className="absolute top-0 left-0 w-3/4 rounded-lg overflow-hidden shadow-lg border border-white/10">
-                  <Image src={getImage('section2_image', "https://picsum.photos/seed/page1/1200/800")} alt="Visão do painel" width={1200} height={800} className="object-cover" />
+                  <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
+                    <img src={getImage('section2_image', "https://picsum.photos/seed/page1/1200/800")} alt="Visão do painel" width={1200} height={800} className="object-cover" />
+                  </React.Suspense>
               </motion.div>
               <motion.div initial={{ opacity: 0, x: 20, rotate: 5 }} whileInView={{ opacity: 1, x: 0, rotate: 2 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }} className="absolute bottom-0 right-0 w-3/4 rounded-lg overflow-hidden shadow-2xl border border-white/10">
-                  <Image src={getImage('section4_image1', "https://picsum.photos/seed/page2/600/400")} alt="Detalhe do painel" width={600} height={400} className="object-cover" />
-              </motion.div>
-              <motion.div initial={{ opacity: 0, y: 20, rotate: 3 }} whileInView={{ opacity: 1, y: 0, rotate: 8 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.5 }} className="absolute -bottom-10 left-1/4 w-1/2 rounded-lg overflow-hidden shadow-2xl border border-white/10">
-                  <Image src={getImage('section4_image2', "https://picsum.photos/seed/page2-detail/600/400")} alt="Outro detalhe" width={600} height={400} className="object-cover" />
+                   <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
+                    <img src={getImage('section4_image1', "https://picsum.photos/seed/page2/600/400")} alt="Detalhe do painel" width={600} height={400} className="object-cover" />
+                  </React.Suspense>
               </motion.div>
           </div>
           <div className="p-6 rounded-xl bg-white/5 border border-white/10 h-full flex flex-col justify-center">
@@ -183,12 +171,14 @@ export default function MarketingPage() {
             </p>
           </div>
           <div className="lg:col-span-2 rounded-xl overflow-hidden shadow-lg h-full lg:order-first">
-            <Image 
-                src={getImage('section3_image', "https://picsum.photos/seed/agent-site/1200/800")} 
-                alt="Site público do corretor" 
-                width={1200} height={800} 
-                className="object-cover w-full h-full" 
-                data-ai-hint="real estate website" />
+            <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
+                <img 
+                    src={getImage('section3_image', "https://picsum.photos/seed/agent-site/1200/800")} 
+                    alt="Site público do corretor" 
+                    width={1200} height={800} 
+                    className="object-cover w-full h-full" 
+                    data-ai-hint="real estate website" />
+             </React.Suspense>
           </div>
         </section>
 
