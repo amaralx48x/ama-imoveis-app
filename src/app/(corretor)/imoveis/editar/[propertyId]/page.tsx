@@ -59,7 +59,7 @@ export default function AssociarSecoesPage() {
   const propertyId = params.propertyId as string;
 
   const propertyRef = useMemoFirebase(() => (firestore && user && propertyId ? doc(firestore, `agents/${user.uid}/properties`, propertyId) : null), [firestore, user, propertyId]);
-  const { data: propertyData, isLoading: isPropertyLoading } = useDoc<Property>(propertyRef);
+  const { data: propertyData, isLoading: isPropertyLoading, mutate } = useDoc<Property>(propertyRef);
   
   const sectionsCollection = useMemoFirebase(
     () => (user && firestore ? collection(firestore, `agents/${user.uid}/customSections`) : null),
@@ -90,6 +90,7 @@ export default function AssociarSecoesPage() {
     }
 
     updateDocumentNonBlocking(propertyRef, { sectionIds: values.sectionIds });
+    mutate();
     
     toast({
         title: "Seções Atualizadas!",

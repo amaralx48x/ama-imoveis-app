@@ -59,7 +59,7 @@ export default function MetricasPage() {
     [firestore, user]
   );
   
-  const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
+  const { data: agentData, isLoading: isAgentLoading, mutate } = useDoc<Agent>(agentRef);
 
   const form = useForm<z.infer<typeof metricsFormSchema>>({
     resolver: zodResolver(metricsFormSchema),
@@ -87,6 +87,7 @@ export default function MetricasPage() {
     };
 
     setDocumentNonBlocking(agentRef, settingsToUpdate, { merge: true });
+    mutate();
 
     toast({
         title: 'Configurações Salvas!',
