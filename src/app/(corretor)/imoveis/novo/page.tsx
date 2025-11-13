@@ -21,8 +21,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
-import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { doc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 import ImageUpload from "@/components/image-upload";
 import { useState, useMemo } from "react";
@@ -140,13 +139,19 @@ export default function NovoImovelPage() {
     
     const propertyRef = doc(firestore, `agents/${user.uid}/properties`, propertyId);
     
-    setDocumentNonBlocking(propertyRef, newProperty, { merge: false });
-    toast({
-        title: "Imóvel Adicionado!",
-        description: `${values.title} foi cadastrado com sucesso.`,
-    });
-    router.push('/imoveis');
-    setIsSubmitting(false);
+    try {
+        await setDoc(propertyRef, newProperty);
+        toast({
+            title: "Imóvel Adicionado!",
+            description: `${values.title} foi cadastrado com sucesso.`,
+        });
+        router.push('/imoveis');
+    } catch (error) {
+        console.error("Erro ao criar imóvel:", error);
+        toast({title: "Erro ao criar imóvel", variant: "destructive"});
+    } finally {
+        setIsSubmitting(false);
+    }
   }
 
   if (isPlanLoading) {

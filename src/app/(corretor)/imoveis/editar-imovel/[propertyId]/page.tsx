@@ -20,13 +20,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRouter, useParams } from "next/navigation";
-import { useFirestore, useUser, useDoc, useMemoFirebase, useCollection } from "@/firebase";
-import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { doc, collection } from "firebase/firestore";
-import { useState, useMemo, useEffect } from "react";
+import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
+import { doc, setDoc } from "firebase/firestore";
+import { useState, useEffect } from "react";
 import ImageUpload from "@/components/image-upload";
 import Image from "next/image";
-import type { Agent, CustomSection, Property } from "@/lib/data";
+import type { Agent, Property } from "@/lib/data";
 import Link from "next/link";
 import { ArrowLeft, X, Loader2, Pencil } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -168,17 +167,21 @@ export default function EditarImovelPage() {
     const updatedProperty = {
       ...values,
       imageUrls: imageUrls,
-      createdAt: propertyData?.createdAt, // Retain original creation date
     };
     
-    updateDocumentNonBlocking(propertyRef, updatedProperty);
-    mutate();
-    
-    toast({
-        title: "Imóvel Atualizado!",
-        description: `${values.title} foi atualizado com sucesso.`,
-    });
-    router.push('/imoveis');
+    try {
+        await setDoc(propertyRef, updatedProperty, { merge: true });
+        mutate();
+        
+        toast({
+            title: "Imóvel Atualizado!",
+            description: `${values.title} foi atualizado com sucesso.`,
+        });
+        router.push('/imoveis');
+    } catch (error) {
+        console.error("Erro ao atualizar imóvel:", error);
+        toast({title: "Erro ao salvar", variant: "destructive"});
+    }
   }
 
   return (

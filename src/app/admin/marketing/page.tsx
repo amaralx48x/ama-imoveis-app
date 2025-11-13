@@ -24,7 +24,6 @@ import type { MarketingContent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MonitorPlay, Loader2 } from 'lucide-react';
 import ImageUpload from '@/components/image-upload';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Separator } from '@/components/ui/separator';
 
 type ImageField = {
@@ -103,12 +102,17 @@ export default function MarketingAdminPage() {
     async function onSubmit(values: z.infer<typeof marketingFormSchema>) {
         if (!marketingRef) return;
         
-        setDocumentNonBlocking(marketingRef, values, { merge: true });
-        mutate();
-        toast({
-            title: 'Conteúdo Atualizado!',
-            description: 'As imagens da página de marketing foram salvas.',
-        });
+        try {
+            await setDoc(marketingRef, values, { merge: true });
+            mutate();
+            toast({
+                title: 'Conteúdo Atualizado!',
+                description: 'As imagens da página de marketing foram salvas.',
+            });
+        } catch (error) {
+            console.error("Erro ao salvar conteúdo de marketing:", error);
+            toast({title: "Erro ao salvar", variant: "destructive"});
+        }
     }
 
     return (

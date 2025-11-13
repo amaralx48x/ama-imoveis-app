@@ -1,3 +1,4 @@
+
 'use client';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,14 +19,13 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { setDoc, doc, updateDoc, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
+import { setDoc, doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useEffect, useState } from 'react';
 import type { Agent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ImageUpload from '@/components/image-upload';
-import { setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { X, Plus, CalendarDays, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -123,13 +123,18 @@ export default function PerfilPage() {
         }
     };
 
-    setDocumentNonBlocking(agentRef, dataToSave, { merge: true });
-    mutate(); // Re-fetch data
+    try {
+        await setDoc(agentRef, dataToSave, { merge: true });
+        mutate();
 
-    toast({
-        title: 'Perfil Atualizado!',
-        description: 'Suas informações foram salvas com sucesso.',
-    });
+        toast({
+            title: 'Perfil Atualizado!',
+            description: 'Suas informações foram salvas com sucesso.',
+        });
+    } catch (error) {
+        console.error("Erro ao salvar perfil:", error);
+        toast({title: "Erro ao salvar", variant: "destructive"});
+    }
   }
 
   const handleSavePhoto = async () => {
@@ -148,8 +153,8 @@ export default function PerfilPage() {
       await uploadBytes(fileRef, profilePhotoFile);
       const photoUrl = await getDownloadURL(fileRef);
 
-      setDocumentNonBlocking(agentRef, { photoUrl }, { merge: true });
-      mutate(); // Re-fetch data
+      await setDoc(agentRef, { photoUrl }, { merge: true });
+      mutate();
 
       form.setValue('photoUrl', photoUrl);
       setProfilePhotoFile(null); // Clear file after upload
@@ -165,20 +170,25 @@ export default function PerfilPage() {
 
   const handleAddCity = async () => {
     if (!agentRef || !newCity.trim()) return;
-    const currentAgentData = (await getDoc(agentRef)).data() as Agent | undefined;
-    if (currentAgentData?.cities?.includes(newCity.trim())) {
-      toast({ title: "Cidade já existe", variant: "destructive" });
-      return;
+    try {
+        await updateDoc(agentRef, { cities: arrayUnion(newCity.trim()) });
+        mutate();
+        setNewCity('');
+    } catch (error) {
+        console.error("Erro ao adicionar cidade:", error);
+        toast({title: "Erro ao adicionar cidade", variant: "destructive"})
     }
-    updateDocumentNonBlocking(agentRef, { cities: arrayUnion(newCity.trim()) });
-    mutate(); // re-fetch data
-    setNewCity('');
   };
 
   const handleRemoveCity = async (cityToRemove: string) => {
     if (!agentRef) return;
-    updateDocumentNonBlocking(agentRef, { cities: arrayRemove(cityToRemove) });
-     mutate(); // re-fetch data
+    try {
+        await updateDoc(agentRef, { cities: arrayRemove(cityToRemove) });
+        mutate();
+    } catch (error) {
+        console.error("Erro ao remover cidade:", error);
+        toast({title: "Erro ao remover cidade", variant: "destructive"});
+    }
   };
 
   if (isAgentLoading) {

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,7 +8,7 @@ import {
   useDoc,
   useMemoFirebase,
 } from "@/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, updateDoc } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { Agent, SocialLink } from "@/lib/data";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import ImageUpload from "@/components/image-upload";
 import Image from "next/image";
-import { setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -41,6 +41,7 @@ function SettingToggle({
     isLoading,
     linkValue,
     onLinkChange,
+    onLinkBlur,
     linkPlaceholder,
     variant
 }: { 
@@ -52,6 +53,7 @@ function SettingToggle({
     isLoading: boolean,
     linkValue?: string,
     onLinkChange?: (e: React.ChangeEvent<HTMLInputElement>) => void,
+    onLinkBlur?: (e: React.FocusEvent<HTMLInputElement>) => void,
     linkPlaceholder?: string,
     variant?: "default" | "destructive"
 }) {
@@ -92,6 +94,7 @@ function SettingToggle({
                         placeholder={linkPlaceholder || "https://seu-link.com"}
                         value={linkValue}
                         onChange={onLinkChange}
+                        onBlur={onLinkBlur}
                         disabled={!isChecked}
                         className="text-sm"
                     />
@@ -173,32 +176,41 @@ export default function SocialLinksSettingsPage() {
     setSocialLinks((prev) => prev.filter((link) => link.id !== id));
   };
   
-  const handleSettingChange = (key: string) => (value: boolean) => {
+  const handleSettingChange = (key: string) => async (value: boolean) => {
     if (!agentRef) return;
     
-    // Optimistic UI update
     setSiteSettings(prev => ({...prev, [key]: value}));
 
     const updatePath = `siteSettings.${key}`;
-    updateDocumentNonBlocking(agentRef, { [updatePath]: value });
-    mutate(); // Re-fetch the data to ensure sync
-
-    toast({
-        title: "Configuração atualizada!",
-        description: "A mudança será refletida no seu site público."
-    });
+    try {
+        await updateDoc(agentRef, { [updatePath]: value });
+        mutate();
+        toast({
+            title: "Configuração atualizada!",
+            description: "A mudança será refletida no seu site público."
+        });
+    } catch (error) {
+        console.error("Erro ao atualizar configuração:", error);
+        toast({title: "Erro ao salvar", variant: "destructive"})
+    }
 };
 
 const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    if (!agentRef) return;
-    
-    // Optimistic UI update for the input field
     setSiteSettings(prev => ({...prev, financingLink: value}));
-    
-    // Non-blocking update to Firestore (debounced or on blur would be even better)
-    updateDocumentNonBlocking(agentRef, { 'siteSettings.financingLink': value });
-    // We don't call mutate() here on every keystroke to avoid excessive reads.
+}
+
+const handleLinkBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+    if (!agentRef) return;
+    const { value } = e.target;
+    try {
+        await updateDoc(agentRef, { 'siteSettings.financingLink': value });
+        mutate();
+        toast({title: "Link de financiamento salvo."})
+    } catch (error) {
+        console.error("Erro ao salvar link:", error);
+        toast({title: "Erro ao salvar link", variant: "destructive"})
+    }
 }
 
   const handleSave = async () => {
@@ -229,7 +241,6 @@ const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         }
        }, { merge: true });
 
-      setSocialLinks(updatedLinks); // Update state with new image URLs
       mutate();
       toast({ title: "Links salvos com sucesso!" });
     } catch (e) {
@@ -281,6 +292,7 @@ const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                         isLoading={isAgentLoading}
                         linkValue={siteSettings?.financingLink || ''}
                         onLinkChange={handleLinkChange}
+                        onLinkBlur={handleLinkBlur}
                         linkPlaceholder="https://wa.me/5511999999999"
                     />
                 </div>

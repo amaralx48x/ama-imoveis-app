@@ -19,9 +19,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter, useParams } from "next/navigation";
 import { useFirestore, useUser, useDoc, useMemoFirebase, useCollection } from "@/firebase";
-import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { doc, collection } from "firebase/firestore";
-import { useState, useEffect } from "react";
+import { doc, collection, setDoc } from "firebase/firestore";
+import { useEffect } from "react";
 import type { CustomSection, Property } from "@/lib/data";
 import Link from "next/link";
 import { ArrowLeft, Loader2, FolderSymlink } from "lucide-react";
@@ -89,14 +88,19 @@ export default function AssociarSecoesPage() {
         return;
     }
 
-    updateDocumentNonBlocking(propertyRef, { sectionIds: values.sectionIds });
-    mutate();
-    
-    toast({
-        title: "Seções Atualizadas!",
-        description: `As seções do imóvel "${propertyData?.title}" foram atualizadas.`,
-    });
-    router.push('/imoveis');
+    try {
+        await setDoc(propertyRef, { sectionIds: values.sectionIds }, { merge: true });
+        mutate();
+        
+        toast({
+            title: "Seções Atualizadas!",
+            description: `As seções do imóvel "${propertyData?.title}" foram atualizadas.`,
+        });
+        router.push('/imoveis');
+    } catch (error) {
+        console.error("Erro ao associar seções:", error);
+        toast({title: "Erro ao salvar", variant: "destructive"});
+    }
   }
 
   const isLoading = isPropertyLoading || areSectionsLoading;

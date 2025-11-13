@@ -17,8 +17,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { doc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { useEffect } from 'react';
 import type { Agent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -84,13 +83,22 @@ export default function AparenciaPage() {
   async function onSubmit(values: z.infer<typeof appearanceFormSchema>) {
     if (!agentRef) return;
     
-    updateDocumentNonBlocking(agentRef, { 'siteSettings.theme': values.theme });
-    mutate();
+    try {
+        await setDoc(agentRef, { siteSettings: { theme: values.theme } }, { merge: true });
+        mutate();
 
-    toast({
-        title: 'Tema Salvo!',
-        description: 'A aparência do seu site público foi atualizada.',
-    });
+        toast({
+            title: 'Tema Salvo!',
+            description: 'A aparência do seu site público foi atualizada.',
+        });
+    } catch (error) {
+        console.error("Erro ao salvar o tema:", error);
+        toast({
+            title: 'Erro ao Salvar',
+            description: 'Não foi possível atualizar a aparência.',
+            variant: 'destructive'
+        });
+    }
   }
 
   return (

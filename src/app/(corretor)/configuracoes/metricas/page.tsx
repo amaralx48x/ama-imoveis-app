@@ -18,8 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { doc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { useEffect } from 'react';
 import type { Agent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -82,17 +81,24 @@ export default function MetricasPage() {
     if (!agentRef) return;
     
     const settingsToUpdate = {
-        'siteSettings.defaultSaleCommission': values.defaultSaleCommission,
-        'siteSettings.defaultRentCommission': values.defaultRentCommission,
+        siteSettings: {
+            defaultSaleCommission: values.defaultSaleCommission,
+            defaultRentCommission: values.defaultRentCommission,
+        }
     };
+    
+    try {
+        await setDoc(agentRef, settingsToUpdate, { merge: true });
+        mutate();
 
-    setDocumentNonBlocking(agentRef, settingsToUpdate, { merge: true });
-    mutate();
-
-    toast({
-        title: 'Configurações Salvas!',
-        description: 'Seus percentuais de comissão padrão foram atualizados.',
-    });
+        toast({
+            title: 'Configurações Salvas!',
+            description: 'Seus percentuais de comissão padrão foram atualizados.',
+        });
+    } catch (error) {
+        console.error("Erro ao salvar métricas:", error);
+        toast({title: "Erro ao salvar", variant: "destructive"});
+    }
   }
 
   return (

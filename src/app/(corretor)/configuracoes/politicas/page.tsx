@@ -18,8 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { doc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { useEffect } from 'react';
 import type { Agent } from '@/lib/data';
 import { defaultPrivacyPolicy, defaultTermsOfUse } from '@/lib/data';
@@ -84,19 +83,24 @@ export default function PoliticasPage() {
     if (!agentRef) return;
     
     const settingsToUpdate = {
-        'siteSettings.privacyPolicy': values.privacyPolicy,
-        'siteSettings.termsOfUse': values.termsOfUse,
+        siteSettings: {
+            privacyPolicy: values.privacyPolicy,
+            termsOfUse: values.termsOfUse,
+        }
     };
 
-    setDocumentNonBlocking(agentRef, settingsToUpdate, { merge: true });
-    
-    // Re-fetch data to update UI
-    mutate();
+    try {
+        await setDoc(agentRef, settingsToUpdate, { merge: true });
+        mutate();
 
-    toast({
-        title: 'Configurações Salvas!',
-        description: 'Seus documentos de políticas e termos foram atualizados.',
-    });
+        toast({
+            title: 'Configurações Salvas!',
+            description: 'Seus documentos de políticas e termos foram atualizados.',
+        });
+    } catch (error) {
+        console.error("Erro ao salvar políticas:", error);
+        toast({title: "Erro ao salvar", variant: "destructive"});
+    }
   }
 
   return (

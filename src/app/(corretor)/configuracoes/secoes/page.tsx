@@ -2,7 +2,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useCollection, useFirestore, useUser, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc, writeBatch, serverTimestamp, setDoc } from 'firebase/firestore';
+import { collection, doc, writeBatch, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import type { CustomSection, Agent } from '@/lib/data';
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 
 function SettingToggle({ 
@@ -94,19 +93,24 @@ export default function GerenciarSecoesPage() {
         }
     }, [agentData]);
 
-    const handleSettingChange = (key: string) => (value: boolean) => {
+    const handleSettingChange = async (key: string, value: boolean) => {
         if (!agentRef) return;
         
         setSiteSettings(prev => ({ ...prev, [key]: value }));
 
         const updatePath = `siteSettings.${key}`;
-        updateDocumentNonBlocking(agentRef, { [updatePath]: value });
-        mutateAgent(); // Re-fetch the data to ensure sync
+        try {
+            await updateDoc(agentRef, { [updatePath]: value });
+            mutateAgent();
 
-        toast({
-            title: "Configuração atualizada!",
-            description: "A mudança será refletida no seu site público."
-        });
+            toast({
+                title: "Configuração atualizada!",
+                description: "A mudança será refletida no seu site público."
+            });
+        } catch (error) {
+            console.error("Erro ao atualizar configuração:", error);
+            toast({ title: "Erro ao salvar", variant: "destructive" });
+        }
     };
 
     const handleCreateSection = async () => {
@@ -122,7 +126,7 @@ export default function GerenciarSecoesPage() {
         
         try {
             await setDoc(docRef, { ...newSection, id: sectionId });
-            
+            mutateSections();
             toast({ title: 'Seção criada!', description: `A seção "${newSectionTitle}" foi adicionada.` });
             setNewSectionTitle('');
         } catch (err) {
@@ -137,10 +141,8 @@ export default function GerenciarSecoesPage() {
         const docRef = doc(firestore, `agents/${user.uid}/customSections`, editingSection.id);
         
         try {
-             const batch = writeBatch(firestore);
-             batch.update(docRef, { title: editingSection.title });
-             await batch.commit();
-
+             await updateDoc(docRef, { title: editingSection.title });
+             mutateSections();
              toast({ title: 'Seção atualizada!', description: 'O título da seção foi alterado.' });
              setEditingSection(null);
         } catch (err) {
@@ -158,6 +160,7 @@ export default function GerenciarSecoesPage() {
             const batch = writeBatch(firestore);
             batch.delete(docRef);
             await batch.commit();
+            mutateSections();
             toast({ title: 'Seção excluída com sucesso!' });
         } catch (err) {
             console.error(err);
@@ -250,7 +253,7 @@ export default function GerenciarSecoesPage() {
                             label="Seção de Avaliações de Clientes"
                             description="Mostra o carrossel com as avaliações e depoimentos dos seus clientes."
                             isChecked={siteSettings?.showReviews ?? true}
-                            onCheckedChange={handleSettingChange('showReviews')}
+                            onCheckedChange={(value) => handleSettingChange('showReviews', value)}
                             isLoading={isAgentLoading}
                         />
                     </div>
