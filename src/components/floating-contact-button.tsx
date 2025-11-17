@@ -55,7 +55,7 @@ export function FloatingContactButton({ whatsAppLink, agent }: FloatingContactBu
                         <Button asChild className="w-full bg-green-500 hover:bg-green-600">
                             <Link href={href} target="_blank" rel="noopener noreferrer">
                             <WhatsAppIcon className="mr-2" />
-                            Falar pelo WhatsApp
+                            WhatsApp
                             </Link>
                         </Button>
                         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
