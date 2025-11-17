@@ -24,12 +24,31 @@ export function RelatedProperties({ currentProperty, allProperties }: RelatedPro
             return [];
         }
 
-        return allProperties.filter(prop => 
+        // Critério 1: Busca por imóveis com mesmo tipo, cidade e operação.
+        const primaryMatches = allProperties.filter(prop => 
             prop.id !== currentProperty.id &&
             prop.city === currentProperty.city &&
             prop.type === currentProperty.type &&
             prop.operation === currentProperty.operation
-        ).slice(0, 4); // Pega até 4 imóveis relacionados
+        );
+
+        if (primaryMatches.length > 0) {
+            return primaryMatches.slice(0, 4); // Limita a 4 imóveis
+        }
+
+        // Critério 2 (Fallback): Busca por imóveis na mesma faixa de preço (+/- 20%)
+        const priceRange = {
+            min: currentProperty.price * 0.8,
+            max: currentProperty.price * 1.2,
+        };
+
+        const priceMatches = allProperties.filter(prop => 
+            prop.id !== currentProperty.id &&
+            prop.price >= priceRange.min &&
+            prop.price <= priceRange.max
+        );
+        
+        return priceMatches.slice(0, 4); // Limita a 4 imóveis
 
     }, [currentProperty, allProperties]);
 
