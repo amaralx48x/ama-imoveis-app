@@ -10,6 +10,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { MonthlyPerformanceChart } from '@/components/dashboard/monthly-chart';
 import { Button } from '@/components/ui/button';
 import { AgentList } from '@/components/dashboard/agent-list';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 
 const PLAN_PRICES = {
@@ -135,9 +141,18 @@ export default function AdminDashboardPage() {
                                 <Skeleton className="h-10 w-40 mb-2" />
                              ) : (
                                 <>
-                                    <div className="text-4xl font-bold">
-                                        {formatCurrency(metrics.monthlyRevenue)}
-                                    </div>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <div className="text-4xl font-bold">
+                                                    {formatCurrency(metrics.monthlyRevenue)}
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>{metrics.monthlyRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 </>
                              )}
                         </CardContent>

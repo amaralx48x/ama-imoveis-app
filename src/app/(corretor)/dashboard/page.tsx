@@ -17,7 +17,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ManualCommissionDialog } from '@/components/dashboard/manual-commission-dialog';
-
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 const MotionCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <div className={`transition-all duration-500 ease-out hover:scale-105 hover:shadow-primary/20 ${className}`}>
@@ -142,9 +147,18 @@ export default function DashboardPage() {
                                 </>
                              ) : (
                                 <>
-                                    <div className="text-4xl font-bold">
-                                        {formatCurrency(commissionsThisMonth)}
-                                    </div>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <div className="text-4xl font-bold">
+                                                    {formatCurrency(commissionsThisMonth)}
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>{commissionsThisMonth.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
                                     <p className="text-xs text-muted-foreground">Total de comissões no mês atual</p>
                                 </>
                              )}
