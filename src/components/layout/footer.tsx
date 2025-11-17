@@ -117,7 +117,7 @@ export function Footer({ agentId }: { agentId?: string }) {
 
 
   return (
-    <footer id="footer" className="bg-footer-background">
+    <footer id="footer" className="bg-muted">
       <div className="container mx-auto px-4 py-8">
 
         <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-6 min-h-[56px]">
