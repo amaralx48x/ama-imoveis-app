@@ -36,6 +36,7 @@ const profileFormSchema = z.object({
   siteName: z.string().min(3, { message: 'O nome do site deve ter pelo menos 3 caracteres.' }),
   description: z.string().min(10, { message: 'A descrição deve ter pelo menos 10 caracteres.' }).max(500, { message: 'A descrição não pode ter mais de 500 caracteres.' }),
   accountType: z.enum(['corretor', 'imobiliaria'], { required_error: 'Selecione um tipo de conta.' }),
+  creci: z.string().optional(),
   photoUrl: z.string().url().optional().or(z.literal('')),
   phone: z.string().optional(),
   availabilityDays: z.object({
@@ -76,6 +77,7 @@ export default function PerfilPage() {
       siteName: '',
       description: '',
       accountType: 'corretor',
+      creci: '',
       photoUrl: '',
       phone: '',
       availabilityDays: { Segunda: false, Terça: false, Quarta: false, Quinta: false, Sexta: false, Sábado: false, Domingo: false },
@@ -91,6 +93,7 @@ export default function PerfilPage() {
         siteName: agentData.name || '',
         description: agentData.description || '',
         accountType: agentData.accountType || 'corretor',
+        creci: agentData.creci || '',
         photoUrl: agentData.photoUrl || '',
         phone: agentData.phone || '',
         availabilityDays: agentData.availability?.days || { Segunda: false, Terça: false, Quarta: false, Quinta: false, Sexta: false, Sábado: false, Domingo: false },
@@ -115,6 +118,7 @@ export default function PerfilPage() {
         name: values.siteName,
         description: values.description,
         accountType: values.accountType,
+        creci: values.creci,
         phone: values.phone,
         availability: {
           days: values.availabilityDays,
@@ -279,6 +283,21 @@ export default function PerfilPage() {
                     <Input placeholder="Ex: AMA Imóveis" {...field} />
                   </FormControl>
                    <FormDescription>Este nome aparecerá no cabeçalho do seu site público.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+             <FormField
+              control={form.control}
+              name="creci"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>CRECI</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: 123456-F" {...field} />
+                  </FormControl>
+                   <FormDescription>Seu número de registro no Conselho Regional de Corretores de Imóveis.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

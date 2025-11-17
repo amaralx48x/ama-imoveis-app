@@ -41,7 +41,7 @@ export function AgentProfile({ agent }: AgentProfileProps) {
               Sobre <span className="text-gradient">{aboutYouTitle}</span>
             </h2>
             <p className="mt-4 text-2xl font-semibold text-primary">{displayName}</p>
-            <p className="text-muted-foreground font-medium">CRECI {creci}</p>
+            {creci && <p className="text-muted-foreground font-medium">CRECI {creci}</p>}
             <p className="mt-6 text-lg text-muted-foreground max-w-xl">
                 {description}
             </p>
