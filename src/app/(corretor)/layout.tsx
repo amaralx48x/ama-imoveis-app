@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
 import { useEffect } from 'react';
 import { collection, query, where, doc } from 'firebase/firestore';
-import type { Lead, Agent } from '@/lib/data';
+import type { Lead, Agent, Review } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
@@ -39,6 +39,16 @@ export default function CorretorLayout({
   const { data: unreadLeads } = useCollection<Lead>(unreadLeadsQuery);
   const unreadCount = unreadLeads?.length || 0;
 
+  const pendingReviewsQuery = useMemoFirebase(
+    () => user && firestore 
+      ? query(collection(firestore, `agents/${user.uid}/reviews`), where('approved', '==', false)) 
+      : null,
+    [user, firestore]
+  );
+  const { data: pendingReviews } = useCollection<Review>(pendingReviewsQuery);
+  const pendingReviewsCount = pendingReviews?.length || 0;
+
+
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login');
@@ -64,7 +74,7 @@ export default function CorretorLayout({
     { href: '/imoveis', label: 'Meus Imóveis', icon: Briefcase },
     { href: '/inbox', label: 'Caixa de Entrada', icon: Mail, badgeCount: unreadCount },
     { href: '/perfil', label: 'Perfil', icon: User },
-    { href: '/avaliacoes', label: 'Avaliações', icon: Star },
+    { href: '/avaliacoes', label: 'Avaliações', icon: Star, badgeCount: pendingReviewsCount, badgeClass: 'bg-yellow-500 text-black' },
     { href: '/suporte', label: 'Suporte', icon: LifeBuoy },
     { href: '/meu-plano', label: 'Meu Plano', icon: Gem },
     { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' },
@@ -118,7 +128,7 @@ export default function CorretorLayout({
                     <item.icon />
                     <span className="flex-1">{item.label}</span>
                      {item.badgeCount && item.badgeCount > 0 && (
-                        <Badge className="h-5 group-data-[collapsible=icon]:hidden">{item.badgeCount}</Badge>
+                        <Badge className={`h-5 group-data-[collapsible=icon]:hidden ${item.badgeClass || ''}`}>{item.badgeCount}</Badge>
                     )}
                   </Link>
                 </SidebarMenuButton>
