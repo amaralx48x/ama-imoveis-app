@@ -74,9 +74,6 @@ export function Header({ agentName, agentId, agent }: HeaderProps) {
           <Button asChild>
             <Link href={`${agentBaseUrl}#footer`}>Fale Conosco</Link>
           </Button>
-           <Button asChild variant="outline">
-              <Link href="/login">Área do Corretor</Link>
-          </Button>
         </div>
       </div>
     </header>
