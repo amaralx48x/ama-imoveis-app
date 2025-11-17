@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ContactForm } from "@/components/contact-form";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SchedulingForm } from "@/components/scheduling-form";
 
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -39,6 +39,39 @@ interface PropertyViewProps {
 export function PropertyView({ property, agent }: PropertyViewProps) {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
+    const [currentUrl, setCurrentUrl] = useState('');
+
+    useEffect(() => {
+        // This ensures the URL is only read on the client-side
+        setCurrentUrl(window.location.href);
+    }, []);
+
+    const handleShare = (platform: 'whatsapp' | 'facebook' | 'twitter' | 'email') => {
+        const encodedUrl = encodeURIComponent(currentUrl);
+        const encodedTitle = encodeURIComponent(property.title || 'Confira este imóvel!');
+
+        let shareUrl = '';
+        switch(platform) {
+            case 'whatsapp':
+                shareUrl = `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`;
+                break;
+            case 'facebook':
+                shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+                break;
+            case 'twitter':
+                shareUrl = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`;
+                break;
+            case 'email':
+                shareUrl = `mailto:?subject=${encodedTitle}&body=Olá,%0D%0A%0D%0AConfira este imóvel que encontrei: ${encodedUrl}`;
+                break;
+        }
+        window.open(shareUrl, '_blank', 'noopener,noreferrer');
+    };
+
+    const handlePrint = () => {
+        window.print();
+    }
+
 
     const isValidUrl = (url: string | undefined): boolean => {
         return !!url && (url.startsWith('http://') || url.startsWith('https://'));
@@ -217,11 +250,11 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                         <div className="text-center pt-4">
                             <p className="text-sm font-semibold mb-3">COMPARTILHAR</p>
                             <div className="flex justify-center gap-3">
-                                <Button variant="outline" size="icon" className="rounded-full h-11 w-11"><WhatsAppIcon className="h-5 w-5" /></Button>
-                                <Button variant="outline" size="icon" className="rounded-full h-11 w-11"><FacebookIcon /></Button>
-                                <Button variant="outline" size="icon" className="rounded-full h-11 w-11"><XIcon /></Button>
-                                <Button variant="outline" size="icon" className="rounded-full h-11 w-11"><Mail /></Button>
-                                <Button variant="outline" size="icon" className="rounded-full h-11 w-11"><Printer /></Button>
+                                <Button variant="outline" size="icon" className="rounded-full h-11 w-11" onClick={() => handleShare('whatsapp')}><WhatsAppIcon className="h-5 w-5" /></Button>
+                                <Button variant="outline" size="icon" className="rounded-full h-11 w-11" onClick={() => handleShare('facebook')}><FacebookIcon /></Button>
+                                <Button variant="outline" size="icon" className="rounded-full h-11 w-11" onClick={() => handleShare('twitter')}><XIcon /></Button>
+                                <Button variant="outline" size="icon" className="rounded-full h-11 w-11" onClick={() => handleShare('email')}><Mail /></Button>
+                                <Button variant="outline" size="icon" className="rounded-full h-11 w-11" onClick={handlePrint}><Printer /></Button>
                             </div>
                         </div>
                     </CardContent>
@@ -230,7 +263,3 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
         </div>
     );
 }
-
-    
-
-    
