@@ -2,7 +2,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
@@ -25,11 +25,18 @@ export default function PropertyFilters({ agent, propertyTypes = [] }: PropertyF
   const [city, setCity] = useState(searchParams.get('city') || '');
   const [type, setType] = useState(searchParams.get('type') || '');
   const [bedrooms, setBedrooms] = useState(searchParams.get('bedrooms') || '');
-  const [garage, setGarage] = useState(searchParams.get('garage') || '');
+  const [garage, setGarage] = useState(search_params.get('garage') || '');
   const [keyword, setKeyword] = useState(searchParams.get('keyword') || '');
   const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
   const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
   const [showMoreFilters, setShowMoreFilters] = useState(false);
+
+  useEffect(() => {
+    // Expand advanced filters if any of them have a value on page load
+    if (minPrice || maxPrice || bedrooms || garage) {
+      setShowMoreFilters(true);
+    }
+  }, [minPrice, maxPrice, bedrooms, garage]);
 
 
   const handleSearch = () => {
