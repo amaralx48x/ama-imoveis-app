@@ -23,6 +23,14 @@ const MotionCard = ({ children, className, onClick }: { children: React.ReactNod
     </div>
 );
 
+function formatCurrency(value: number): string {
+    if (value >= 100000) {
+        return `R$ ${(value / 1000).toFixed(0)}k`;
+    }
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+
 export default function AdminDashboardPage() {
     const [viewMode, setViewMode] = useState<'chart' | 'agents'>('chart');
     const [agents, setAgents] = useState<Agent[]>([]);
@@ -128,7 +136,7 @@ export default function AdminDashboardPage() {
                              ) : (
                                 <>
                                     <div className="text-4xl font-bold">
-                                        {metrics.monthlyRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                        {formatCurrency(metrics.monthlyRevenue)}
                                     </div>
                                 </>
                              )}

@@ -25,6 +25,14 @@ const MotionCard = ({ children, className }: { children: React.ReactNode, classN
     </div>
 );
 
+function formatCurrency(value: number): string {
+    if (value >= 100000) {
+        return `R$ ${(value / 1000).toFixed(0)}k`;
+    }
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+
 export default function DashboardPage() {
     const [greeting, setGreeting] = useState('');
     const [isCommissionDialogOpen, setIsCommissionDialogOpen] = useState(false);
@@ -135,7 +143,7 @@ export default function DashboardPage() {
                              ) : (
                                 <>
                                     <div className="text-4xl font-bold">
-                                        {commissionsThisMonth.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                        {formatCurrency(commissionsThisMonth)}
                                     </div>
                                     <p className="text-xs text-muted-foreground">Total de comissões no mês atual</p>
                                 </>
