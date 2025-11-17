@@ -31,7 +31,7 @@ export function FeaturedProperties({ properties, agentId }: FeaturedPropertiesPr
                 </p>
             </div>
             <Button asChild variant="outline">
-                <Link href={`/search?agentId=${agentId}`}>
+                <Link href={`/search-results?agentId=${agentId}`}>
                     Ver Todos os Imóveis
                     <ArrowRight className="ml-2 h-4 w-4"/>
                 </Link>
