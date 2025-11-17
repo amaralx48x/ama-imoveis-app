@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect } from 'react';
 import { useDoc, useFirestore, useMemoFirebase }from '@/firebase';
@@ -14,15 +15,21 @@ function ThemeSetter({ agentId }: { agentId: string }) {
     const { data: agentData } = useDoc<Agent>(agentRef);
 
     useEffect(() => {
-        if (agentData?.siteSettings?.theme) {
+        // On initial load, respect saved user preference first, then agent's setting
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light' || savedTheme === 'dark') {
+            document.documentElement.classList.remove('light', 'dark');
+            document.documentElement.classList.add(savedTheme);
+        } else if (agentData?.siteSettings?.theme) {
             const theme = agentData.siteSettings.theme;
-            // Remove both classes and add the correct one
             document.documentElement.classList.remove('light', 'dark');
             document.documentElement.classList.add(theme);
+            localStorage.setItem('theme', theme); // Save agent's default if no user pref
         } else {
-            // Fallback to dark theme if not set
+            // Fallback to dark theme if nothing is set
             document.documentElement.classList.remove('light');
             document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
         }
     }, [agentData]);
 

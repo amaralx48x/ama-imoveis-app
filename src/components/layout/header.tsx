@@ -4,10 +4,10 @@ import Link from "next/link";
 import { Building2 } from "lucide-react";
 import { Button } from "../ui/button";
 import type { Agent } from '@/lib/data';
-import { usePathname } from 'next/navigation';
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import { ContactForm } from "@/components/contact-form";
 import { useState } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface HeaderProps {
     agentName?: string;
@@ -70,6 +70,8 @@ export function Header({ agentName, agentId, agent }: HeaderProps) {
               )}
             </DialogContent>
           </Dialog>
+          
+          <ThemeToggle />
 
           <Button asChild>
             <Link href={`${agentBaseUrl}#footer`}>Fale Conosco</Link>
