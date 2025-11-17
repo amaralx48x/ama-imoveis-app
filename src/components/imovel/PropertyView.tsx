@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Property, Agent } from "@/lib/data";
@@ -14,10 +15,15 @@ import { ContactForm } from "@/components/contact-form";
 import { useState } from "react";
 import { SchedulingForm } from "@/components/scheduling-form";
 
-// Simple inline SVG for WhatsApp and Facebook as they are not in lucide-react
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 32 32" className="w-5 h-5" {...props}><path d=" M19.11 17.205c-.372 0-1.088 1.39-1.088 1.39s-1.088-1.39-1.088-1.39c-1.615 0-2.822-1.207-2.822-2.822s1.207-2.822 2.822-2.822c.433 0 .837.103 1.188.29l-1.188-1.188-1.188 1.188c-.35-.187-.755-.29-1.188-.29-1.615 0-2.822 1.207-2.822 2.822s1.207 2.822 2.822 2.822c.372 0 1.088-1.39 1.088-1.39s1.088 1.39 1.088 1.39c1.615 0 2.822-1.207 2.822-2.822s-1.207-2.822-2.822-2.822c-.433 0-.837.103-1.188.29l1.188-1.188-1.188 1.188c.35-.187.755-.29 1.188-.29 1.615 0 2.822 1.207 2.822 2.822s-1.207 2.822-2.822-2.822z" fill="currentColor"></path></svg>
+    <svg viewBox="0 0 24 24" {...props}>
+      <path
+        fill="currentColor"
+        d="M16.75 13.96c.25.42.43.87.55 1.36c.12.49.11 1.01-.04 1.5c-.15.49-.43.95-.83 1.32c-.4.37-.89.65-1.42.82c-.53.17-1.09.23-1.64.15c-.55-.08-1.09-.27-1.6-.54c-2.43-1.28-4.5-3.35-5.78-5.78c-.27-.51-.46-1.05-.54-1.6c-.08-.55-.02-1.11.15-1.64c.17-.53.45-1.02.82-1.42c.37-.4.83-.68 1.32-.83c.49-.15 1.01-.16 1.5-.04c.49.12.94.3 1.36.55c.42.25.78.58 1.07.98c.29.4.49.85.6 1.34c.11.49.11.99.02 1.48c-.1.49-.32.96-.63 1.38l-1.3 1.3c-.02.02-.03.05-.03.08c.01.21.08.41.19.6c.11.19.26.36.44.52c.49.49 1.04.88 1.63 1.15c.16.08.34.13.52.14c.03 0 .06-.01.08-.03l1.3-1.3c.42-.31.89-.52 1.38-.63c.49-.09.99-.09 1.48.02c.49.11.94.31 1.34.6c.4.29.73.65.98 1.07zM12 2a10 10 0 1 1 0 20a10 10 0 0 1 0-20z"
+      />
+    </svg>
 );
+
 const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" className="w-5 h-5" {...props}><path d="M12 2.04c-5.5 0-10 4.49-10 10s4.5 10 10 10 10-4.49 10-10-4.5-10-10-10zm1.5 10.96h-2v6h-3v-6h-1.5v-2.5h1.5v-2c0-1.2.7-2.5 2.5-2.5h2v2.5h-1.5c-.2 0-.5.2-.5.5v1.5h2l-.5 2.5z" fill="currentColor"></path></svg>
 );
@@ -155,7 +161,7 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
 
                         <Button asChild className="w-full bg-green-500 hover:bg-green-600 text-white" size="lg" disabled={!whatsappNumber}>
                             <Link href={whatsappLink} target="_blank" rel="noopener noreferrer">
-                                <WhatsAppIcon className="mr-2"/>
+                                <WhatsAppIcon className="mr-2 h-5 w-5"/>
                                 WhatsApp
                             </Link>
                         </Button>
@@ -211,7 +217,7 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                         <div className="text-center pt-4">
                             <p className="text-sm font-semibold mb-3">COMPARTILHAR</p>
                             <div className="flex justify-center gap-3">
-                                <Button variant="outline" size="icon" className="rounded-full h-11 w-11"><WhatsAppIcon /></Button>
+                                <Button variant="outline" size="icon" className="rounded-full h-11 w-11"><WhatsAppIcon className="h-5 w-5" /></Button>
                                 <Button variant="outline" size="icon" className="rounded-full h-11 w-11"><FacebookIcon /></Button>
                                 <Button variant="outline" size="icon" className="rounded-full h-11 w-11"><XIcon /></Button>
                                 <Button variant="outline" size="icon" className="rounded-full h-11 w-11"><Mail /></Button>
@@ -224,3 +230,5 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
         </div>
     );
 }
+
+    
