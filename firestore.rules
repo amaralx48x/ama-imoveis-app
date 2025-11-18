@@ -28,18 +28,18 @@ service cloud.firestore {
       allow write: if isOwner(agentId) || isAdmin();
 
       // --- SUBCOLEÇÕES ---
-      
+
       match /properties/{propertyId} {
         allow list, get: if true;
         allow write: if isOwner(agentId) || isAdmin();
       }
-      
+
       match /contacts/{contactId} {
-        allow get, list, create, update, delete: if isOwner(agentId) || isAdmin();
+        allow read, write: if isOwner(agentId) || isAdmin();
       }
 
       match /reviews/{reviewId} {
-        allow create: if isSignedIn(); 
+        allow create: if isSignedIn();
         allow list, get: if resource.data.approved == true || isOwner(agentId) || isAdmin();
         allow update, delete: if isOwner(agentId) || isAdmin();
       }
@@ -50,7 +50,7 @@ service cloud.firestore {
       }
 
       match /leads/{leadId} {
-        allow create: if true; 
+        allow create: if true;
         allow read, update, delete: if isOwner(agentId) || isAdmin();
       }
     }
@@ -63,7 +63,7 @@ service cloud.firestore {
       allow create: if isSignedIn();
       allow get: if isOwner(resource.data.senderId);
     }
-    
+
     // =========================
     // Conteúdo da página de marketing
     // =========================
