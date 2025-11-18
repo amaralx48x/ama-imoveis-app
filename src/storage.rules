@@ -1,7 +1,9 @@
 
 rules_version = '2';
+
+// Use {bucket} como um curinga para o nome do seu bucket
 service firebase.storage {
-  match /b/studio-7095998453-3cbf3.firebasestorage.app/o {
+  match /b/{bucket}/o {
 
     // -----------------------
     // Funções auxiliares
@@ -9,11 +11,13 @@ service firebase.storage {
     
     // Verifica se o usuário é admin
     function isAdmin() {
+      // get() no Firestore para verificar a role do usuário.
+      // Requer que as regras do Firestore permitam esta leitura.
       return request.auth != null 
              && get(/databases/$(database)/documents/agents/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Verifica se o usuário é dono
+    // Verifica se o usuário é dono do recurso
     function isOwner(uid) {
       return request.auth != null && request.auth.uid == uid;
     }
@@ -22,9 +26,7 @@ service firebase.storage {
     // Imagens de marketing (página inicial)
     // -----------------------
     match /marketing/{allPaths=**} {
-      // Leitura pública
       allow read: if true;
-      // Escrita apenas para admins
       allow write: if isAdmin();
     }
     
@@ -32,22 +34,20 @@ service firebase.storage {
     // Imagens de SEO
     // -----------------------
     match /seo/assets/{fileName} {
-        allow read: if true;
-        allow write: if isAdmin();
+      allow read: if true;
+      allow write: if isAdmin();
     }
     
     match /agents/{agentId}/site-assets/{fileName} {
-        allow read: if true;
-        allow write: if isOwner(agentId) || isAdmin();
+      allow read: if true;
+      allow write: if isOwner(agentId) || isAdmin();
     }
 
     // -----------------------
     // Imagens de suporte
     // -----------------------
     match /support-images/{userId}/{fileName} {
-      // Escrita permitida apenas pelo dono da pasta
       allow write: if isOwner(userId);
-      // Leitura permitida pelo admin ou dono da pasta
       allow read: if isOwner(userId) || isAdmin();
     }
 
@@ -55,14 +55,12 @@ service firebase.storage {
     // Imagens de perfil e imóveis de agentes
     // -----------------------
     match /agents/{agentId}/{allPaths=**} {
-      // Leitura pública para que o site possa mostrar as imagens
       allow read: if true;
-      // Escrita permitida apenas pelo dono do agente ou admin
       allow write: if isOwner(agentId) || isAdmin();
     }
 
     // -----------------------
-    // Bloqueio padrão
+    // Bloqueio padrão para todos os outros caminhos
     // -----------------------
     match /{allPaths=**} {
       allow read, write: if false;

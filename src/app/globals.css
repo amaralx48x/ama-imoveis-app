@@ -26,9 +26,6 @@
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
 
-    --header-background: 0 0% 100%;
-    --footer-background: 210 40% 96.1%;
-
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -64,9 +61,6 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-
-    --header-background: 0 0% 10%;
-    --footer-background: 0 0% 10%;
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
