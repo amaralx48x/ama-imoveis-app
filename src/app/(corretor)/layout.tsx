@@ -57,6 +57,7 @@ export default function CorretorLayout({
   useEffect(() => {
     const theme = agentData?.siteSettings?.theme || 'dark';
     document.documentElement.classList.toggle('dark', theme === 'dark');
+    document.documentElement.classList.toggle('light', theme === 'light');
   }, [agentData]);
 
   useEffect(() => {

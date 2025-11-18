@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -33,9 +34,11 @@ service cloud.firestore {
         allow write: if isOwner(agentId) || isAdmin();
       }
 
-      // Permissões para a subcoleção de contatos
       match /contacts/{contactId} {
-        allow list, get, create, update, delete: if isOwner(agentId) || isAdmin();
+        allow get, update, delete: if isOwner(agentId) || isAdmin();
+      }
+      match /contacts {
+        allow list, create: if isOwner(agentId) || isAdmin();
       }
 
       match /reviews/{reviewId} {
@@ -70,6 +73,16 @@ service cloud.firestore {
     match /marketing/content {
       allow get: if true;
       allow write: if isAdmin();
+    }
+    
+    // =========================
+    // SEO
+    // =========================
+    match /seo/{page} {
+      allow get: if true;
+      // Admin can write to any SEO doc.
+      // A regular user can only write to their own agent SEO doc.
+      allow write: if isAdmin() || (isSignedIn() && page == 'agent-' + request.auth.uid);
     }
   }
 }
