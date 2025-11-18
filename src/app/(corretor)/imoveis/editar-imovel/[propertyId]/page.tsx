@@ -175,7 +175,7 @@ export default function EditarImovelPage() {
       ...propertyData,
       ...values,
       imageUrls: imageUrls,
-      ownerContactId: values.ownerContactId || null,
+      ownerContactId: values.ownerContactId === 'none' ? null : values.ownerContactId,
     };
     
     try {
@@ -313,7 +313,7 @@ export default function EditarImovelPage() {
                             </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                            <SelectItem value="">Nenhum</SelectItem>
+                            <SelectItem value="none">Nenhum</SelectItem>
                             {owners.map((owner: Contact) => (
                                 <SelectItem key={owner.id} value={owner.id}>{owner.name}</SelectItem>
                             ))}

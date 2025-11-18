@@ -142,7 +142,7 @@ export default function NovoImovelPage() {
       createdAt: new Date().toISOString(),
       status: 'ativo' as const,
       sectionIds: ['featured'], // Automatically add to featured
-      ownerContactId: values.ownerContactId || null,
+      ownerContactId: values.ownerContactId === 'none' ? null : values.ownerContactId,
     };
     
     const propertyRef = doc(firestore, `agents/${user.uid}/properties`, propertyId);
@@ -308,7 +308,7 @@ export default function NovoImovelPage() {
                             </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                            <SelectItem value="">Nenhum</SelectItem>
+                            <SelectItem value="none">Nenhum</SelectItem>
                             {owners.map((owner: Contact) => (
                                 <SelectItem key={owner.id} value={owner.id}>{owner.name}</SelectItem>
                             ))}
