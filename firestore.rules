@@ -28,30 +28,29 @@ service cloud.firestore {
       allow write: if isOwner(agentId) || isAdmin();
 
       // --- SUBCOLEÇÕES ---
-      // Esta regra genérica aplica-se a todas as subcoleções como 
-      // properties, contacts, reviews, etc.
-      match /{subcollection}/{docId} {
-        // O dono do perfil de agente (agentId) ou um admin pode ler e escrever
-        // em qualquer documento de qualquer subcoleção.
-        // A permissão de 'read' inclui 'get' e 'list'.
-        // A permissão de 'write' inclui 'create', 'update', e 'delete'.
-        allow read, write: if isOwner(agentId) || isAdmin();
+      
+      match /properties/{propertyId} {
+        allow list, get: if true;
+        allow write: if isOwner(agentId) || isAdmin();
       }
       
-      // Regras mais específicas podem sobrescrever a regra genérica acima.
-      // Por exemplo, a regra de criação de reviews é mais permissiva.
+      match /contacts/{contactId} {
+        allow get, list, create, update, delete: if isOwner(agentId) || isAdmin();
+      }
+
       match /reviews/{reviewId} {
-        allow create: if isSignedIn(); // qualquer usuário autenticado pode criar
-        // A leitura/escrita usa a regra genérica acima (isOwner ou isAdmin)
-        // mas a listagem pública precisa ser permitida.
+        allow create: if isSignedIn(); 
         allow list, get: if resource.data.approved == true || isOwner(agentId) || isAdmin();
-        // A atualização e exclusão usam a regra genérica (isOwner ou isAdmin)
         allow update, delete: if isOwner(agentId) || isAdmin();
       }
 
+       match /customSections/{sectionId} {
+        allow list, get: if true;
+        allow write: if isOwner(agentId) || isAdmin();
+      }
+
       match /leads/{leadId} {
-        allow create: if true; // formulário público pode criar leads
-        // A leitura e manipulação usam a regra genérica (isOwner ou isAdmin)
+        allow create: if true; 
         allow read, update, delete: if isOwner(agentId) || isAdmin();
       }
     }
