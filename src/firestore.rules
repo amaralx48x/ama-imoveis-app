@@ -79,10 +79,9 @@ service cloud.firestore {
     // SEO
     // =========================
     match /seo/{page} {
-      allow get: if true;
-      // Admin can write to any SEO doc.
-      // A regular user can only write to their own agent SEO doc.
-      allow write: if isAdmin() || (isSignedIn() && page == 'agent-' + request.auth.uid);
+      // Admin can read/write any SEO doc.
+      // A regular user can only read/write their own agent SEO doc.
+      allow read, write: if isAdmin() || (isSignedIn() && page == 'agent-' + request.auth.uid);
     }
   }
 }
