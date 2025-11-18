@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -77,7 +76,11 @@ export default function LoginPage() {
                 const result = await getRedirectResult(auth);
                 if (result) {
                     setIsGoogleLoading(true);
-                    await saveUserToFirestore(result.user);
+                    await saveUserToFirestore(result.user, {
+                        displayName: result.user.displayName,
+                        name: result.user.displayName, // Default name to display name
+                        accountType: 'corretor',
+                    });
                     toast({ title: "Login bem-sucedido!" });
                     router.push('/dashboard');
                 }
@@ -160,7 +163,12 @@ export default function LoginPage() {
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
             const user = userCredential.user;
-            await saveUserToFirestore(user);
+            // Pass additional data to saveUserToFirestore
+            await saveUserToFirestore(user, {
+                displayName: values.displayName,
+                name: values.siteName,
+                accountType: values.accountType,
+            });
             
             toast({
                 title: "Conta criada com sucesso!",

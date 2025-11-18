@@ -1,9 +1,8 @@
-
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, User } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 // This function ensures Firebase is initialized only once.
@@ -30,7 +29,13 @@ export function initializeFirebase() {
 
 export const { auth, firestore, googleProvider } = initializeFirebase();
 
-export const saveUserToFirestore = async (user: any) => {
+interface AdditionalAgentData {
+    displayName?: string | null;
+    name?: string | null;
+    accountType?: 'corretor' | 'imobiliaria';
+}
+
+export const saveUserToFirestore = async (user: User, additionalData?: AdditionalAgentData) => {
     if (!user?.uid || !firestore) return;
 
     const userRef = doc(firestore, "agents", user.uid);
@@ -39,9 +44,9 @@ export const saveUserToFirestore = async (user: any) => {
     if (!snapshot.exists()) {
         const agentData = {
             id: user.uid,
-            displayName: user.displayName,
-            name: user.displayName, // Default site name to display name
-            accountType: 'corretor',
+            displayName: additionalData?.displayName || user.displayName || 'Corretor sem nome',
+            name: additionalData?.name || user.displayName || 'Imóveis', // Default site name
+            accountType: additionalData?.accountType || 'corretor',
             description: "Edite sua descrição na seção Perfil do seu painel.",
             email: user.email,
             creci: '000000-F',
@@ -49,6 +54,12 @@ export const saveUserToFirestore = async (user: any) => {
             role: 'corretor',
             plan: 'corretor',
             createdAt: serverTimestamp(),
+            siteSettings: {
+                siteStatus: true,
+                showFinancing: true,
+                showReviews: true,
+                theme: 'dark',
+            }
         };
         await setDoc(userRef, agentData);
         console.log("Novo usuário criado no Firestore");
