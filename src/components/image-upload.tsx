@@ -75,7 +75,6 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
             basePath = `marketing`;
             fileName = `${propertyId}.${fileExtension}`;
         } else if (propertyId.startsWith('upload-')) {
-            // For links, use the link ID as filename
             basePath = `agents/${agentId}/links`;
             const linkId = propertyId.replace('upload-', '');
             fileName = `${linkId}.${fileExtension}`;
