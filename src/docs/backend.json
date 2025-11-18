@@ -224,7 +224,8 @@
         "section4_image1": { "type": "string", "format": "uri" },
         "section4_image2": { "type": "string", "format": "uri" },
         "section5_image1": { "type": "string", "format": "uri" },
-        "section5_image2": { "type": "string", "format": "uri" }
+        "section5_image2": { "type": "string", "format": "uri" },
+        "section6_image": { "type": "string", "format": "uri" }
       }
     },
     "SeoSettings": {

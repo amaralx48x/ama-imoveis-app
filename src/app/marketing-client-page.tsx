@@ -9,7 +9,7 @@ import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import type { MarketingContent } from "@/lib/data";
 import { Card, CardContent } from "@/components/ui/card";
-import { Building2 } from "lucide-react";
+import { Building2, Search, Share2 } from "lucide-react";
 
 const neon = "bg-gradient-to-r from-primary via-accent to-[#B794F4]";
 
@@ -201,6 +201,31 @@ export default function MarketingClientPage() {
             </div>
           </motion.div>
         </section>
+
+        {/* SEO Section */}
+        <section className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center py-10">
+            <div className="p-6 rounded-xl bg-white/5 border border-white/10 h-full flex flex-col justify-center">
+                <h4 className="font-bold text-lg flex items-center gap-2"><Search className="text-primary w-5 h-5"/> Visibilidade no Google e Redes Sociais</h4>
+                <p className="mt-4 text-sm text-white/70">
+                    Sua página pública é automaticamente otimizada para os motores de busca. Com nosso painel de SEO, você controla o título, descrição e imagem que aparecem no Google e ao compartilhar seu link. Garanta uma apresentação profissional e atraia mais clientes.
+                </p>
+                <div className="mt-4 space-y-2 text-xs">
+                    <p className="flex items-center gap-2 text-white/80"><Share2 className="w-4 h-4 text-primary"/> Tags Open Graph para compartilhamento</p>
+                    <p className="flex items-center gap-2 text-white/80"><Search className="w-4 h-4 text-primary"/> Metadados para o Google</p>
+                </div>
+            </div>
+             <div className="rounded-xl overflow-hidden shadow-lg h-full aspect-video">
+                <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
+                    <img 
+                        src={getImage('section6_image', "https://picsum.photos/seed/seo-example/1200/630")} 
+                        alt="Exemplo de SEO" 
+                        width={1200} height={630} 
+                        className="object-cover w-full h-full" 
+                        data-ai-hint="search engine optimization" />
+                </React.Suspense>
+            </div>
+        </section>
+
 
         {/* Plans & CTA */}
         <section id="plans" className="mt-20 py-10">
