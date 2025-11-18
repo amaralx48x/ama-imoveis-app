@@ -26,6 +26,55 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
+type Gender = 'male' | 'female' | 'unknown';
+
+function inferGenderFromName(name: string): Gender {
+    if (!name) return 'unknown';
+
+    const firstName = name.trim().split(' ')[0].toLowerCase();
+    
+    // Common Portuguese name endings
+    const femaleEndings = ['a', 'e'];
+    const maleEndings = ['o', 'r', 'l', 'm'];
+
+    // List of exceptions or common unisex/specific names
+    const femaleNames = ['alice', 'beatriz', 'caroline', 'viviane', 'raquel', 'isabel'];
+    const maleNames = ['alexandre', 'felipe', 'guilherme', 'jorge'];
+
+    if (femaleNames.includes(firstName)) return 'female';
+    if (maleNames.includes(firstName)) return 'male';
+
+    const lastChar = firstName.slice(-1);
+    if (femaleEndings.includes(lastChar)) return 'female';
+    if (maleEndings.includes(lastChar)) return 'male';
+
+    return 'unknown';
+}
+
+
+function getAvatarForReview(reviewId: string, reviewerName: string): string {
+    const allClientAvatars = PlaceHolderImages.filter(img => img.id.startsWith('client-'));
+    if (allClientAvatars.length === 0) {
+        return `https://picsum.photos/seed/default-client/100/100`; // Fallback
+    }
+    
+    const inferredGender = inferGenderFromName(reviewerName);
+
+    let suitableAvatars = allClientAvatars;
+    if (inferredGender !== 'unknown') {
+        const genderSpecificAvatars = allClientAvatars.filter(
+            (avatar) => (avatar as any).gender === inferredGender
+        );
+        if (genderSpecificAvatars.length > 0) {
+            suitableAvatars = genderSpecificAvatars;
+        }
+    }
+
+    const hash = reviewId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const index = hash % suitableAvatars.length;
+    return suitableAvatars[index].imageUrl;
+};
+
 interface ClientReviewsProps {
   reviews: Review[];
   agentId: string;
@@ -33,18 +82,6 @@ interface ClientReviewsProps {
 }
 
 export function ClientReviews({ reviews, agentId, onReviewSubmitted }: ClientReviewsProps) {
-
-  const getAvatarForReview = (reviewId: string) => {
-    // Select a static avatar from placeholder data to ensure it works in production
-    const clientAvatars = PlaceHolderImages.filter(img => img.id.startsWith('client-'));
-    if (clientAvatars.length === 0) {
-      return `https://picsum.photos/seed/default-client/100/100`; // Fallback
-    }
-    const hash = reviewId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const index = hash % clientAvatars.length;
-    return clientAvatars[index].imageUrl;
-  };
-
   return (
     <div id="avaliacoes">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12">
@@ -71,7 +108,7 @@ export function ClientReviews({ reviews, agentId, onReviewSubmitted }: ClientRev
         
         <div className="space-y-6">
           {reviews.map((review) => {
-            const avatarUrl = getAvatarForReview(review.id);
+            const avatarUrl = getAvatarForReview(review.id, review.name);
             return (
                 <Card key={review.id} className="bg-card border-border/50 flex flex-col">
                 <CardContent className="p-6">

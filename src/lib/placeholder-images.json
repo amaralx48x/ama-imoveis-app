@@ -61,40 +61,46 @@
       "imageHint": "land plot"
     },
     {
-      "id": "client-1",
+      "id": "client-female-1",
       "description": "Avatar for a client review",
-      "imageUrl": "https://images.unsplash.com/photo-1635131902146-6957477a4ff4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwZXJzb24lMjBzbWlsaW5nfGVufDB8fHx8MTc2MTk3MTA1Nnww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "person smiling"
+      "imageUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+      "imageHint": "happy person",
+      "gender": "female"
     },
     {
-      "id": "client-2",
+      "id": "client-female-2",
       "description": "Avatar for a client review",
-      "imageUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxoYXBweSUyMHBlcnNvbnxlbnwwfHx8fDE3NjE5Njc1MDN8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "happy person"
+      "imageUrl": "https://images.unsplash.com/photo-1610655507808-a59293f4e332?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+      "imageHint": "woman portrait",
+      "gender": "female"
     },
     {
-      "id": "client-3",
+      "id": "client-female-3",
       "description": "Avatar for a client review",
-      "imageUrl": "https://images.unsplash.com/photo-1703759354715-17fcbeea4b66?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxzYXRpc2ZpZWQlMjBjdXN0b21lcnxlbnwwfHx8fDE3NjE5MDY2ODF8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "satisfied customer"
+      "imageUrl": "https://images.unsplash.com/photo-1635131902146-6957477a4ff4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+      "imageHint": "person smiling",
+      "gender": "female"
     },
     {
-      "id": "client-4",
+      "id": "client-male-1",
       "description": "Avatar for a client review",
-      "imageUrl": "https://images.unsplash.com/photo-1594672830234-ba4cfe1202dc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWFuJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzYxOTk1ODg3fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "man portrait"
+      "imageUrl": "https://images.unsplash.com/photo-1594672830234-ba4cfe1202dc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+      "imageHint": "man portrait",
+      "gender": "male"
     },
     {
-      "id": "client-5",
+      "id": "client-male-2",
       "description": "Avatar for a client review",
-      "imageUrl": "https://images.unsplash.com/photo-1610655507808-a59293f4e332?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx3b21hbiUyMHBvcnRyYWl0fGVufDB8fHx8MTc2MTkwOTQyNXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "woman portrait"
+      "imageUrl": "https://images.unsplash.com/photo-1583195763986-0231686dcd43?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+      "imageHint": "man portrait",
+      "gender": "male"
     },
     {
-      "id": "client-6",
+      "id": "client-male-3",
       "description": "Avatar for a client review",
-      "imageUrl": "https://images.unsplash.com/photo-1583195763986-0231686dcd43?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtYW4lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjE5OTU4ODd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "man portrait"
+      "imageUrl": "https://images.unsplash.com/photo-1703759354715-17fcbeea4b66?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+      "imageHint": "satisfied customer",
+      "gender": "male"
     }
   ]
 }
