@@ -8,14 +8,12 @@ import { PlanProvider } from "@/context/PlanContext";
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
-  display: 'swap',
 })
  
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['600', '700', '800'],
   variable: '--font-poppins',
-  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -29,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className="dark">
+    <html lang="pt-BR" className={`${inter.variable} ${poppins.variable} dark`}>
       <body className={`font-body antialiased`}>
         <FirebaseClientProvider>
           <PlanProvider>
