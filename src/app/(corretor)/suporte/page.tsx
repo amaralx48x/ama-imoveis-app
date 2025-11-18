@@ -42,8 +42,9 @@ const faqItems = [
 ];
 
 const formatDate = (timestamp: any) => {
-    if (!timestamp?.toDate) return 'Data indisponível';
-    return format(timestamp.toDate(), "d 'de' MMMM, yyyy 'às' HH:mm", { locale: ptBR });
+    if (!timestamp) return 'Data indisponível';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return format(date, "d 'de' MMMM, yyyy 'às' HH:mm", { locale: ptBR });
 }
 
 function MessagesHistory() {
@@ -69,7 +70,15 @@ function MessagesHistory() {
         }
 
         const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
-            const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SupportMessage));
+            const msgs = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return { 
+                    id: doc.id, 
+                    ...data,
+                    createdAt: data.createdAt?.toDate().toISOString(),
+                    responseAt: data.responseAt?.toDate().toISOString(),
+                } as SupportMessage;
+            });
             setMessages(msgs);
             setIsLoading(false);
             setError(null);

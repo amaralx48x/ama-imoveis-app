@@ -37,18 +37,26 @@ async function getAgentData(agentId: string) {
 
     let reviews: Review[];
     if (!reviewsSnap.empty) {
-      const fetchedReviews = reviewsSnap.docs.map(doc => ({ ...(doc.data() as Omit<Review, 'id'>), id: doc.id }));
-      fetchedReviews.sort((a, b) => {
-          const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
-          const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
-          return dateB - dateA;
+      const fetchedReviews = reviewsSnap.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...(data as Omit<Review, 'id' | 'createdAt'>),
+          id: doc.id,
+          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+        };
       });
+      fetchedReviews.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       reviews = fetchedReviews;
     } else {
       reviews = getStaticReviews();
     }
 
-    return { agent, allProperties, customSections, reviews };
+    return { 
+        agent: JSON.parse(JSON.stringify(agent)),
+        allProperties: JSON.parse(JSON.stringify(allProperties)), 
+        customSections: JSON.parse(JSON.stringify(customSections)),
+        reviews: JSON.parse(JSON.stringify(reviews)),
+    };
 
   } catch (error) {
     console.error("Failed to fetch agent data on server:", error);
@@ -58,12 +66,17 @@ async function getAgentData(agentId: string) {
 
 async function getAgentSeoData(agentId: string) {
     const agentSeo = await getSEO(`agent-${agentId}`);
-    const defaultSeo = await getSEO("homepage");
+    
+    // Get agent data only if SEO data is not sufficient
+    let agent = null;
+    if (!agentSeo?.title || !agentSeo?.description) {
+      const { firestore } = getFirebaseServer();
+      const agentSnap = await getDoc(doc(firestore, 'agents', agentId));
+      agent = agentSnap.exists() ? agentSnap.data() as Agent : null;
+    }
   
-    const { firestore } = getFirebaseServer();
-    const agentSnap = await getDoc(doc(firestore, 'agents', agentId));
-    const agent = agentSnap.exists() ? agentSnap.data() as Agent : null;
-
+    const defaultSeo = await getSEO("homepage");
+    
     return { agentSeo, defaultSeo, agent };
 }
 

@@ -16,7 +16,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 function ReviewCard({ review, onApprove, onRemove }: { review: Review, onApprove: (id: string) => void, onRemove: (id: string) => void }) {
-    const createdAt = review.createdAt?.toDate ? format(review.createdAt.toDate(), "d 'de' MMMM, yyyy 'às' HH:mm", { locale: ptBR }) : 'Data indisponível';
+    const createdAt = review.createdAt ? format(new Date(review.createdAt), "d 'de' MMMM, yyyy 'às' HH:mm", { locale: ptBR }) : 'Data indisponível';
 
     return (
         <Card className={`transition-all ${review.approved ? 'bg-card' : 'bg-secondary/50 border-primary/50'}`}>
@@ -74,17 +74,15 @@ export default function AvaliacoesPage() {
         setLoading(true);
         setError(null);
         try {
-            // A consulta agora é simples, sem ordenação no banco.
-            const snap = await getDocs(reviewsCollection);
-            const fetchedReviews = snap.docs.map(d => ({ id: d.id, ...d.data() }) as Review);
-            
-            // Ordenação feita no lado do cliente.
-            fetchedReviews.sort((a, b) => {
-                const dateA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
-                const dateB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
-                return dateB - dateA; // Descendente
+            const snap = await getDocs(query(reviewsCollection, orderBy('createdAt', 'desc')));
+            const fetchedReviews = snap.docs.map(d => {
+                const data = d.data();
+                return { 
+                    id: d.id, 
+                    ...data,
+                    createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString()
+                } as Review
             });
-
             setReviews(fetchedReviews);
         } catch (err: any) {
             console.error(err);
