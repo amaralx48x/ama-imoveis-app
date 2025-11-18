@@ -1,37 +1,33 @@
 "use client";
 
 import { addDoc, updateDoc, deleteDoc, collection, doc, serverTimestamp, arrayUnion, arrayRemove } from "firebase/firestore";
-import { useFirestore } from "./index";
-import { errorEmitter } from './error-emitter';
-import { FirestorePermissionError } from './errors';
+import { useFirestore, errorEmitter, FirestorePermissionError } from "./index";
 
-const contactsCollection = (agentId: string) => collection(useFirestore(), "agents", agentId, "contacts");
 
-export async function createContact(agentId: string, data: any) {
-    const firestore = useFirestore();
-    if (!firestore) throw new Error("Firestore not initialized");
+export async function createContact(agentId: string, payload: any) {
+  const firestore = useFirestore();
+  if (!firestore) throw new Error("Firestore not initialized");
 
-    const ref = collection(firestore, "agents", agentId, "contacts");
-    
-    try {
-        const docRef = await addDoc(ref, {
-            ...data,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-            linkedPropertyIds: [],
-        });
-        return { id: docRef.id, ...data };
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: ref.path,
-            operation: 'create',
-            requestResourceData: data,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        throw permissionError;
-    }
+  const collRef = collection(firestore, "agents", agentId, "contacts");
+  
+  try {
+    const docRef = await addDoc(collRef, {
+        ...payload,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        linkedPropertyIds: [],
+    });
+    return { id: docRef.id, ...payload };
+  } catch (serverError) {
+      const permissionError = new FirestorePermissionError({
+          path: collRef.path,
+          operation: 'create',
+          requestResourceData: payload,
+      });
+      errorEmitter.emit('permission-error', permissionError);
+      throw permissionError;
+  }
 }
-
 
 export async function updateContact(agentId: string, contactId: string, data: any) {
     const firestore = useFirestore();

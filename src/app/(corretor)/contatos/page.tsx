@@ -3,7 +3,7 @@ import { useUser } from "@/firebase"; // seu hook
 import { useContacts } from "@/firebase/hooks/useContacts";
 import ContactCard from "@/components/contacts/ContactCard";
 import ContactFormModal from "@/components/contacts/ContactFormModal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Plus, Users, User, Building } from "lucide-react";
@@ -15,6 +15,15 @@ import { Contact } from "@/lib/data";
 export default function ContactsPage() {
   const { user } = useUser();
   const agentId = user?.uid || null;
+
+  // Adicionando logs para depuração
+  useEffect(() => {
+    if (user) {
+      console.log("UID do usuário logado:", user.uid);
+      console.log("agentId passado para o hook useContacts:", agentId);
+    }
+  }, [user, agentId]);
+  
   const { contacts, loading, error } = useContacts(agentId);
   const [openNew, setOpenNew] = useState(false);
   const [editing, setEditing] = useState<Contact | null>(null);
