@@ -15,22 +15,27 @@ export async function listContactsOnce(agentId: string) {
   return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-export function createContact(agentId: string, payload: Partial<any>) {
+export async function createContact(agentId: string, payload: Partial<any>) {
     const collRef = contactsCollection(agentId);
     
-    addDoc(collRef, {
-        ...payload,
-        linkedPropertyIds: payload.linkedPropertyIds || [],
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-    }).catch(async (serverError) => {
+    try {
+        const docRef = await addDoc(collRef, {
+            ...payload,
+            linkedPropertyIds: payload.linkedPropertyIds || [],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+        return { id: docRef.id, ...payload };
+    } catch (serverError) {
         const permissionError = new FirestorePermissionError({
             path: collRef.path,
             operation: 'create',
             requestResourceData: payload,
         });
         errorEmitter.emit('permission-error', permissionError);
-    });
+        // Re-throw or handle as needed, for now we let the emitter handle it
+        throw permissionError;
+    }
 }
 
 export async function updateContact(agentId: string, contactId: string, payload: Partial<any>) {
