@@ -124,6 +124,7 @@
             "showReviews": { "type": "boolean", "description": "Show or hide the client reviews section." },
             "defaultSaleCommission": { "type": "number", "description": "Default commission percentage for sales." },
             "defaultRentCommission": { "type": "number", "description": "Default commission percentage for rentals." },
+            "faviconUrl": { "type": "string", "format": "uri", "description": "URL for the site's favicon." },
             "socialLinks": {
               "type": "array",
               "description": "List of social media links.",
@@ -225,6 +226,20 @@
         "section5_image1": { "type": "string", "format": "uri" },
         "section5_image2": { "type": "string", "format": "uri" }
       }
+    },
+    "SeoSettings": {
+      "title": "SEO Settings",
+      "type": "object",
+      "description": "Represents the SEO settings for a specific page.",
+      "properties": {
+        "id": { "type": "string", "description": "The page identifier (e.g., 'homepage')." },
+        "title": { "type": "string", "description": "The meta title for the page." },
+        "description": { "type": "string", "description": "The meta description for the page." },
+        "keywords": { "type": "array", "items": { "type": "string" }, "description": "Keywords for the page." },
+        "image": { "type": "string", "format": "uri", "description": "URL for the Open Graph image." },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "description"]
     }
   },
   "auth": {
@@ -271,6 +286,11 @@
         "path": "/marketing/content",
         "schema": { "$ref": "#/entities/MarketingContent" },
         "description": "Stores content for the public marketing page. This is a single-document collection."
+      },
+      {
+        "path": "/seo/{pageId}",
+        "schema": { "$ref": "#/entities/SeoSettings" },
+        "description": "Stores dynamic SEO settings for various pages of the marketing and agent sites."
       }
     ]
   }

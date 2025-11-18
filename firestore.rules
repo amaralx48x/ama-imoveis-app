@@ -74,5 +74,13 @@ service cloud.firestore {
       allow get: if true;
       allow write: if isAdmin();
     }
+    
+    // =========================
+    // SEO
+    // =========================
+    match /seo/{page} {
+      allow get: if true;
+      allow write: if isAdmin();
+    }
   }
 }

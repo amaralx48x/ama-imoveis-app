@@ -17,6 +17,31 @@ import { FloatingContactButton } from '@/components/floating-contact-button';
 import { useFirestore } from '@/firebase';
 import PropertyFilters from '@/components/property-filters';
 import { getPropertyTypes, getReviews as getStaticReviews } from '@/lib/data';
+import { getSEO } from "@/firebase/seo";
+import type { Metadata } from 'next';
+
+
+export async function generateMetadata({ params }: { params: { agentId: string } }): Promise<Metadata> {
+  const seoData = await getSEO(`agent-${params.agentId}`);
+  const defaultSeo = await getSEO('homepage');
+  
+  const title = seoData?.title || defaultSeo?.title || 'Encontre seu Imóvel';
+  const description = seoData?.description || defaultSeo?.description || 'Seu próximo lar está aqui.';
+  const keywords = seoData?.keywords || defaultSeo?.keywords || [];
+  const imageUrl = seoData?.image || defaultSeo?.image || '';
+
+  return {
+    title,
+    description,
+    keywords,
+    openGraph: {
+      title,
+      description,
+      images: imageUrl ? [imageUrl] : [],
+    },
+  };
+}
+
 
 export default function AgentPublicPage() {
   const rawParams = useParams() as unknown;
