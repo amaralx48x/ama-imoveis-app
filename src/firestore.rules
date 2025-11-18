@@ -1,4 +1,3 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -35,7 +34,7 @@ service cloud.firestore {
       }
 
       match /contacts/{contactId} {
-        allow get, create, update, delete: if isOwner(agentId) || isAdmin();
+        allow read, write: if isOwner(agentId) || isAdmin();
       }
       match /contacts {
         allow list: if isOwner(agentId) || isAdmin();
