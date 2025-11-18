@@ -1,4 +1,3 @@
-
 'use client';
 import { useEffect } from 'react';
 import { useDoc, useFirestore, useMemoFirebase }from '@/firebase';
@@ -6,7 +5,7 @@ import { doc } from 'firebase/firestore';
 import type { Agent } from '@/lib/data';
 import { useParams } from 'next/navigation';
 
-function ThemeSetter({ agentId }: { agentId: string }) {
+function AgentSiteLayoutUpdater({ agentId }: { agentId: string }) {
     const firestore = useFirestore();
     const agentRef = useMemoFirebase(
         () => (firestore && agentId ? doc(firestore, 'agents', agentId) : null),
@@ -15,7 +14,7 @@ function ThemeSetter({ agentId }: { agentId: string }) {
     const { data: agentData } = useDoc<Agent>(agentRef);
 
     useEffect(() => {
-        // On initial load, respect saved user preference first, then agent's setting
+        // Theme logic
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'light' || savedTheme === 'dark') {
             document.documentElement.classList.remove('light', 'dark');
@@ -24,16 +23,27 @@ function ThemeSetter({ agentId }: { agentId: string }) {
             const theme = agentData.siteSettings.theme;
             document.documentElement.classList.remove('light', 'dark');
             document.documentElement.classList.add(theme);
-            localStorage.setItem('theme', theme); // Save agent's default if no user pref
+            localStorage.setItem('theme', theme);
         } else {
-            // Fallback to dark theme if nothing is set
             document.documentElement.classList.remove('light');
             document.documentElement.classList.add('dark');
             localStorage.setItem('theme', 'dark');
         }
+        
+        // Favicon logic
+        if (agentData?.siteSettings?.faviconUrl) {
+            let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                document.getElementsByTagName('head')[0].appendChild(link);
+            }
+            link.href = agentData.siteSettings.faviconUrl;
+        }
+
     }, [agentData]);
 
-    return null; // This component does not render anything
+    return null;
 }
 
 export default function PublicAgentLayout({
@@ -46,7 +56,7 @@ export default function PublicAgentLayout({
 
     return (
         <>
-            <ThemeSetter agentId={agentId} />
+            <AgentSiteLayoutUpdater agentId={agentId} />
             {children}
         </>
     );

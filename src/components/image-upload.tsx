@@ -65,9 +65,9 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
         let fileName;
         const fileExtension = file.name.split('.').pop() || 'jpg';
 
-        if (propertyId === 'profile') {
-            basePath = `agents/${agentId}/profile`;
-            fileName = `profile.${fileExtension}`;
+        if (propertyId === 'profile' || propertyId === 'favicon') {
+            basePath = `agents/${agentId}/site-assets`;
+            fileName = `${propertyId}.${fileExtension}`;
         } else if (propertyId.startsWith('support-ticket-')) {
             basePath = `support-images/${agentId}`;
             fileName = `${Date.now()}_${uuidv4()}.${fileExtension}`;
@@ -125,7 +125,7 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
         <Input 
           id={inputId}
           type="file" 
-          accept="image/*" 
+          accept="image/*,.ico" 
           onChange={handleFileChange}
           className='file:text-primary file:font-semibold'
           multiple={multiple}

@@ -1,7 +1,6 @@
-
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users } from 'lucide-react';
+import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
@@ -60,6 +59,18 @@ export default function CorretorLayout({
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [agentData]);
 
+  useEffect(() => {
+    if (agentData?.siteSettings?.faviconUrl) {
+      let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = agentData.siteSettings.faviconUrl;
+    }
+  }, [agentData]);
+
   const handleLogout = () => {
     if(auth) {
       auth.signOut();
@@ -87,6 +98,7 @@ export default function CorretorLayout({
 
   const settingsItems = [
       { href: '/configuracoes/aparencia', label: 'Aparência', icon: Palette },
+      { href: '/configuracoes/favicon', label: 'Favicon', icon: ImageIcon },
       { href: '/configuracoes/links', label: 'Links e Exibição', icon: LinkIcon },
       { href: '/configuracoes/secoes', label: 'Gerenciar Seções', icon: Folder },
       { href: '/configuracoes/metricas', label: 'Métricas e Comissões', icon: Percent },

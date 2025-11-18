@@ -28,12 +28,32 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was created." },
         "status": { "type": "string", "enum": ["ativo", "vendido", "alugado"], "description": "The current status of the property.", "default": "ativo" },
         "soldAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was sold or rented." },
-        "commissionValue": { "type": "number", "description": "The final commission value earned from the transaction." }
+        "commissionValue": { "type": "number", "description": "The final commission value earned from the transaction." },
+        "ownerContactId": { "type": "string", "description": "Reference to the contact who owns this property." }
       },
       "required": [
         "id", "title", "description", "price", "bedrooms", "bathrooms", "garage", "rooms", 
         "builtArea", "totalArea", "imageUrls", "city", "neighborhood", "type", "operation", "sectionIds", "agentId", "createdAt", "status"
       ]
+    },
+    "Contact": {
+        "title": "Contact",
+        "type": "object",
+        "description": "Represents a contact, either an owner or a client.",
+        "properties": {
+            "id": { "type": "string" },
+            "type": { "type": "string", "enum": ["owner", "client"] },
+            "name": { "type": "string" },
+            "cpf": { "type": "string" },
+            "phone": { "type": "string" },
+            "email": { "type": "string", "format": "email" },
+            "age": { "type": "number" },
+            "notes": { "type": "string" },
+            "linkedPropertyIds": { "type": "array", "items": { "type": "string" }},
+            "createdAt": { "type": "string", "format": "date-time" },
+            "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "type", "name", "createdAt"]
     },
     "SocialLink": {
       "title": "Social Link",
@@ -104,6 +124,7 @@
             "showReviews": { "type": "boolean", "description": "Show or hide the client reviews section." },
             "defaultSaleCommission": { "type": "number", "description": "Default commission percentage for sales." },
             "defaultRentCommission": { "type": "number", "description": "Default commission percentage for rentals." },
+            "faviconUrl": { "type": "string", "format": "uri", "description": "URL for the site's favicon." },
             "socialLinks": {
               "type": "array",
               "description": "List of social media links.",
@@ -197,18 +218,18 @@
       "type": "object",
       "description": "Stores content for the public marketing page.",
       "properties": {
-        "section1_image": { "type": "string", "format": "uri", "description": "Main image for the hero section." },
-        "section2_image": { "type": "string", "format": "uri", "description": "Primary image for the 'Command Center' section." },
-        "section3_image": { "type": "string", "format": "uri", "description": "Image for the 'Online Showcase' section." },
-        "section4_image1": { "type": "string", "format": "uri", "description": "First overlapping image for a features section." },
-        "section4_image2": { "type": "string", "format": "uri", "description": "Second overlapping image for a features section." },
-        "section5_image1": { "type": "string", "format": "uri", "description": "First overlapping image for another features section." },
-        "section5_image2": { "type": "string", "format": "uri", "description": "Second overlapping image for another features section." }
+        "section1_image": { "type": "string", "format": "uri" },
+        "section2_image": { "type": "string", "format": "uri" },
+        "section3_image": { "type": "string", "format": "uri" },
+        "section4_image1": { "type": "string", "format": "uri" },
+        "section4_image2": { "type": "string", "format": "uri" },
+        "section5_image1": { "type": "string", "format": "uri" },
+        "section5_image2": { "type": "string", "format": "uri" }
       }
     }
   },
   "auth": {
-    "providers": ["password", "google"]
+    "providers": ["password", "anonymous"]
   },
   "firestore": {
     "collections": [
@@ -221,6 +242,11 @@
         "path": "/agents/{agentId}/properties/{propertyId}",
         "schema": { "$ref": "#/entities/Property" },
         "description": "Stores properties listed by a specific agent."
+      },
+      {
+        "path": "/agents/{agentId}/contacts/{contactId}",
+        "schema": { "$ref": "#/entities/Contact" },
+        "description": "Stores contacts (owners, clients) for a specific agent."
       },
       {
         "path": "/agents/{agentId}/reviews/{reviewId}",
