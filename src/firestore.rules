@@ -35,10 +35,7 @@ service cloud.firestore {
       }
 
       match /contacts/{contactId} {
-        allow get, update, delete: if isOwner(agentId) || isAdmin();
-      }
-      match /contacts {
-        allow list, create: if isOwner(agentId) || isAdmin();
+        allow list, get, create, update, delete: if isOwner(agentId) || isAdmin();
       }
 
       match /reviews/{reviewId} {
@@ -78,11 +75,13 @@ service cloud.firestore {
     // =========================
     // SEO
     // =========================
-    match /seo/{page} {
-      // Admin can do anything.
-      // A regular user can only read/write their own agent SEO doc.
-      allow get, write: if isAdmin() || (isSignedIn() && page == 'agent-' + request.auth.uid);
-      allow read: if isAdmin(); // List is admin-only.
+    match /seo/{seoId} {
+      // qualquer pessoa pode ler o SEO (para permitir indexação e acesso público)
+      allow get: if true;
+      allow list: if false; // ninguém deve listar todos os SEOs
+
+      // corretor só pode editar o SEO dele
+      allow write: if request.auth != null && (seoId == 'agent-' + request.auth.uid || isAdmin());
     }
   }
 }
