@@ -23,34 +23,37 @@ service cloud.firestore {
     // Coleção de agentes (corretores)
     // =========================
     match /agents/{agentId} {
-      // Leitura pública para o site, escrita restrita
       allow get: if true;
       allow list: if isAdmin();
       allow write: if isOwner(agentId) || isAdmin();
 
-      // Subcoleção de propriedades
+      // --- SUBCOLEÇÕES ---
+
       match /properties/{propertyId} {
-        // Leitura e listagem públicas, escrita restrita.
         allow list, get: if true;
         allow write: if isOwner(agentId) || isAdmin();
       }
 
-      // Subcoleção de reviews
+      match /contacts/{contactId} {
+        allow get, create, update, delete: if isOwner(agentId) || isAdmin();
+      }
+      match /contacts {
+        allow list: if isOwner(agentId) || isAdmin();
+      }
+
       match /reviews/{reviewId} {
-        allow create: if isSignedIn(); // qualquer usuário autenticado
-        allow list, get: if resource.data.approved == true || isOwner(agentId) || isAdmin(); 
+        allow create: if isSignedIn();
+        allow list, get: if resource.data.approved == true || isOwner(agentId) || isAdmin();
         allow update, delete: if isOwner(agentId) || isAdmin();
       }
 
-      // Subcoleção customSections
-      match /customSections/{sectionId} {
+       match /customSections/{sectionId} {
         allow list, get: if true;
         allow write: if isOwner(agentId) || isAdmin();
       }
 
-      // Subcoleção leads
       match /leads/{leadId} {
-        allow create: if true; // formulário público
+        allow create: if true;
         allow read, update, delete: if isOwner(agentId) || isAdmin();
       }
     }
@@ -59,23 +62,16 @@ service cloud.firestore {
     // Mensagens de suporte
     // =========================
     match /supportMessages/{messageId} {
-      // Admins têm acesso total
       allow read, write: if isAdmin();
-      
-      // Usuários autenticados podem criar mensagens
       allow create: if isSignedIn();
-
-      // O autor da mensagem pode ler sua própria mensagem
       allow get: if isOwner(resource.data.senderId);
     }
-    
+
     // =========================
     // Conteúdo da página de marketing
     // =========================
     match /marketing/content {
-      // Leitura pública
       allow get: if true;
-      // Escrita apenas para admins
       allow write: if isAdmin();
     }
   }
