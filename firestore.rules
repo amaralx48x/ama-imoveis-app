@@ -73,5 +73,15 @@ service cloud.firestore {
       // O autor da mensagem pode ler sua própria mensagem
       allow get: if isOwner(resource.data.senderId);
     }
+    
+    // =========================
+    // Conteúdo da página de marketing
+    // =========================
+    match /marketing/content {
+      // Leitura pública
+      allow get: if true;
+      // Escrita apenas para admins
+      allow write: if isAdmin();
+    }
   }
 }
