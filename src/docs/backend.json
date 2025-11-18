@@ -28,12 +28,32 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was created." },
         "status": { "type": "string", "enum": ["ativo", "vendido", "alugado"], "description": "The current status of the property.", "default": "ativo" },
         "soldAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was sold or rented." },
-        "commissionValue": { "type": "number", "description": "The final commission value earned from the transaction." }
+        "commissionValue": { "type": "number", "description": "The final commission value earned from the transaction." },
+        "ownerContactId": { "type": "string", "description": "Reference to the contact who owns this property." }
       },
       "required": [
         "id", "title", "description", "price", "bedrooms", "bathrooms", "garage", "rooms", 
         "builtArea", "totalArea", "imageUrls", "city", "neighborhood", "type", "operation", "sectionIds", "agentId", "createdAt", "status"
       ]
+    },
+    "Contact": {
+        "title": "Contact",
+        "type": "object",
+        "description": "Represents a contact, either an owner or a client.",
+        "properties": {
+            "id": { "type": "string" },
+            "type": { "type": "string", "enum": ["owner", "client"] },
+            "name": { "type": "string" },
+            "cpf": { "type": "string" },
+            "phone": { "type": "string" },
+            "email": { "type": "string", "format": "email" },
+            "age": { "type": "number" },
+            "notes": { "type": "string" },
+            "linkedPropertyIds": { "type": "array", "items": { "type": "string" }},
+            "createdAt": { "type": "string", "format": "date-time" },
+            "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "type", "name", "createdAt"]
     },
     "SocialLink": {
       "title": "Social Link",
@@ -221,6 +241,11 @@
         "path": "/agents/{agentId}/properties/{propertyId}",
         "schema": { "$ref": "#/entities/Property" },
         "description": "Stores properties listed by a specific agent."
+      },
+      {
+        "path": "/agents/{agentId}/contacts/{contactId}",
+        "schema": { "$ref": "#/entities/Contact" },
+        "description": "Stores contacts (owners, clients) for a specific agent."
       },
       {
         "path": "/agents/{agentId}/reviews/{reviewId}",

@@ -31,6 +31,22 @@ export type Property = {
   status: 'ativo' | 'vendido' | 'alugado';
   soldAt?: any; // ou rentedAt
   commissionValue?: number;
+  ownerContactId?: string | null;
+};
+
+export type Contact = {
+    id: string;
+    type: "owner" | "client";
+    name: string;
+    cpf?: string;
+    phone?: string;
+    email?: string;
+    age?: number;
+    notes?: string;
+    linkedPropertyIds?: string[];
+    createdAt?: any;
+    updatedAt?: any;
+    agentId?: string;
 };
 
 export type Availability = {
@@ -270,3 +286,4 @@ export const getProperties = () => properties;
 export const getReviews = () => staticReviews;
 export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Guarujá', 'Rio de Janeiro', 'Belo Horizonte', 'Curitiba', 'Porto Alegre'];
 export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
+

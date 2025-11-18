@@ -73,6 +73,7 @@ export default function CorretorLayout({
     { href: '/dashboard', label: 'Dashboard', icon: Home },
     { href: '/imoveis', label: 'Meus Imóveis', icon: Briefcase },
     { href: '/inbox', label: 'Caixa de Entrada', icon: Mail, badgeCount: unreadCount },
+    { href: '/contatos', label: 'Contatos', icon: Users },
     { href: '/perfil', label: 'Perfil', icon: User },
     { href: '/avaliacoes', label: 'Avaliações', icon: Star, badgeCount: pendingReviewsCount, badgeClass: 'bg-yellow-500 text-black' },
     { href: '/suporte', label: 'Suporte', icon: LifeBuoy },

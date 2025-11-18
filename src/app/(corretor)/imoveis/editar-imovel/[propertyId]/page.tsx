@@ -21,13 +21,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRouter, useParams } from "next/navigation";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
+import { useContacts } from "@/firebase/hooks/useContacts";
 import { doc, setDoc, collection } from "firebase/firestore";
 import { useState, useEffect, useMemo } from "react";
 import ImageUpload from "@/components/image-upload";
 import Image from "next/image";
-import type { Agent, Property } from "@/lib/data";
+import type { Agent, Property, Contact } from "@/lib/data";
 import Link from "next/link";
-import { ArrowLeft, X, Loader2, Pencil } from "lucide-react";
+import { ArrowLeft, X, Loader2, Pencil, User } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 
@@ -49,6 +50,7 @@ const formSchema = z.object({
   rooms: z.coerce.number().int().min(0),
   builtArea: z.coerce.number().positive("A área construída deve ser positiva."),
   totalArea: z.coerce.number().positive("A área total deve ser positiva."),
+  ownerContactId: z.string().optional(),
 });
 
 function EditFormSkeleton() {
@@ -91,6 +93,9 @@ export default function EditarImovelPage() {
   const propertyRef = useMemoFirebase(() => (firestore && user && propertyId ? doc(firestore, `agents/${user.uid}/properties`, propertyId) : null), [firestore, user, propertyId]);
   const { data: propertyData, isLoading: isPropertyLoading, mutate } = useDoc<Property>(propertyRef);
   
+  const { contacts } = useContacts(user?.uid || null);
+  const owners = useMemo(() => contacts.filter((c: Contact) => c.type === 'owner'), [contacts]);
+
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -107,6 +112,7 @@ export default function EditarImovelPage() {
       rooms: 0,
       builtArea: 0,
       totalArea: 0,
+      ownerContactId: '',
     },
   });
   
@@ -115,6 +121,7 @@ export default function EditarImovelPage() {
       form.reset({
         ...propertyData,
         operation: propertyData.operation === 'Comprar' ? 'Venda' : propertyData.operation === 'Alugar' ? 'Aluguel' : propertyData.operation,
+        ownerContactId: propertyData.ownerContactId || '',
       });
       setImageUrls(propertyData.imageUrls || []);
     }
@@ -168,6 +175,7 @@ export default function EditarImovelPage() {
       ...propertyData,
       ...values,
       imageUrls: imageUrls,
+      ownerContactId: values.ownerContactId || null,
     };
     
     try {
@@ -292,6 +300,30 @@ export default function EditarImovelPage() {
                     )}
                     />
                 </div>
+                <FormField
+                    control={form.control}
+                    name="ownerContactId"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel className="flex items-center gap-2"><User className="w-4 h-4"/> Proprietário (Opcional)</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Selecione o proprietário do imóvel" />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            <SelectItem value="">Nenhum</SelectItem>
+                            {owners.map((owner: Contact) => (
+                                <SelectItem key={owner.id} value={owner.id}>{owner.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                        <FormDescription>Associe um contato cadastrado a este imóvel. Você pode cadastrar novos proprietários na seção "Contatos".</FormDescription>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <FormField
                     control={form.control}
                     name="price"

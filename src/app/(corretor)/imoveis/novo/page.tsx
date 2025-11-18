@@ -21,14 +21,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
+import { useContacts } from "@/firebase/hooks/useContacts";
 import { doc, setDoc, collection } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 import ImageUpload from "@/components/image-upload";
 import { useState, useMemo } from "react";
 import Image from "next/image";
-import type { Agent } from "@/lib/data";
+import type { Agent, Contact } from "@/lib/data";
 import Link from "next/link";
-import { ArrowLeft, X, Gem, Loader2 } from "lucide-react";
+import { ArrowLeft, X, Gem, Loader2, User } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { usePlan } from "@/context/PlanContext";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -51,6 +52,7 @@ const formSchema = z.object({
   rooms: z.coerce.number().int().min(0),
   builtArea: z.coerce.number().positive("A área construída deve ser positiva."),
   totalArea: z.coerce.number().positive("A área total deve ser positiva."),
+  ownerContactId: z.string().optional(),
 });
 
 export default function NovoImovelPage() {
@@ -62,6 +64,10 @@ export default function NovoImovelPage() {
 
   const agentRef = useMemoFirebase(() => (firestore && user ? doc(firestore, 'agents', user.uid) : null), [firestore, user]);
   const { data: agentData } = useDoc<Agent>(agentRef);
+  
+  const { contacts } = useContacts(user?.uid || null);
+  const owners = useMemo(() => contacts.filter((c: Contact) => c.type === 'owner'), [contacts]);
+
 
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -81,6 +87,7 @@ export default function NovoImovelPage() {
       rooms: 0,
       builtArea: 0,
       totalArea: 0,
+      ownerContactId: '',
     },
   });
 
@@ -135,6 +142,7 @@ export default function NovoImovelPage() {
       createdAt: new Date().toISOString(),
       status: 'ativo' as const,
       sectionIds: ['featured'], // Automatically add to featured
+      ownerContactId: values.ownerContactId || null,
     };
     
     const propertyRef = doc(firestore, `agents/${user.uid}/properties`, propertyId);
@@ -287,6 +295,30 @@ export default function NovoImovelPage() {
                     )}
                     />
                 </div>
+                 <FormField
+                    control={form.control}
+                    name="ownerContactId"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel className="flex items-center gap-2"><User className="w-4 h-4"/> Proprietário (Opcional)</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Selecione o proprietário do imóvel" />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            <SelectItem value="">Nenhum</SelectItem>
+                            {owners.map((owner: Contact) => (
+                                <SelectItem key={owner.id} value={owner.id}>{owner.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                        <FormDescription>Associe um contato cadastrado a este imóvel. Você pode cadastrar novos proprietários na seção "Contatos".</FormDescription>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <FormField
                     control={form.control}
                     name="price"
