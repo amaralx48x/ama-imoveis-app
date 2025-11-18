@@ -24,6 +24,7 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Image from "next/image";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 interface ClientReviewsProps {
   reviews: Review[];
@@ -34,10 +35,15 @@ interface ClientReviewsProps {
 export function ClientReviews({ reviews, agentId, onReviewSubmitted }: ClientReviewsProps) {
 
   const getAvatarForReview = (reviewId: string) => {
-    // Simple hash function to get a consistent avatar for a review
+    // Select a static avatar from placeholder data to ensure it works in production
+    const clientAvatars = PlaceHolderImages.filter(img => img.id.startsWith('client-'));
+    if (clientAvatars.length === 0) {
+      return `https://picsum.photos/seed/default-client/100/100`; // Fallback
+    }
     const hash = reviewId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return `https://picsum.photos/seed/client${hash}/100/100`;
-  }
+    const index = hash % clientAvatars.length;
+    return clientAvatars[index].imageUrl;
+  };
 
   return (
     <div id="avaliacoes">
