@@ -1,4 +1,3 @@
-
 "use client";
 import { useUser } from "@/firebase"; // seu hook
 import { useContacts } from "@/firebase/hooks/useContacts";
