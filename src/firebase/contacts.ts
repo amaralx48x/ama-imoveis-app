@@ -1,83 +1,89 @@
+"use client";
 
-'use client';
-import { collection, addDoc, doc, getDocs, query, where, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
-import { firestore } from "@/firebase"; // seu export já existente
-import { doc as docRef, updateDoc as updateDocRef, arrayUnion, arrayRemove, getDoc } from "firebase/firestore";
-import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError } from "@/firebase/errors";
+import { addDoc, updateDoc, deleteDoc, collection, doc, serverTimestamp, arrayUnion, arrayRemove } from "firebase/firestore";
+import { useFirestore } from "./index";
+import { errorEmitter } from './error-emitter';
+import { FirestorePermissionError } from './errors';
 
-const contactsCollection = (agentId: string) => collection(firestore, "agents", agentId, "contacts");
+const contactsCollection = (agentId: string) => collection(useFirestore(), "agents", agentId, "contacts");
 
-// listar (realtime hook preferível, mas manter util)
-export async function listContactsOnce(agentId: string) {
-  const q = query(contactsCollection(agentId));
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-}
+export async function createContact(agentId: string, data: any) {
+    const firestore = useFirestore();
+    if (!firestore) throw new Error("Firestore not initialized");
 
-export async function createContact(agentId: string, payload: Partial<any>) {
-    const collRef = contactsCollection(agentId);
+    const ref = collection(firestore, "agents", agentId, "contacts");
     
     try {
-        const docRef = await addDoc(collRef, {
-            ...payload,
-            linkedPropertyIds: payload.linkedPropertyIds || [],
+        const docRef = await addDoc(ref, {
+            ...data,
             createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
+            updatedAt: serverTimestamp(),
+            linkedPropertyIds: [],
         });
-        return { id: docRef.id, ...payload };
+        return { id: docRef.id, ...data };
     } catch (serverError) {
         const permissionError = new FirestorePermissionError({
-            path: collRef.path,
+            path: ref.path,
             operation: 'create',
-            requestResourceData: payload,
+            requestResourceData: data,
         });
         errorEmitter.emit('permission-error', permissionError);
-        // Re-throw or handle as needed, for now we let the emitter handle it
         throw permissionError;
     }
 }
 
-export async function updateContact(agentId: string, contactId: string, payload: Partial<any>) {
-  const ref = doc(firestore, "agents", agentId, "contacts", contactId);
-  await updateDoc(ref, { ...payload, updatedAt: serverTimestamp() });
+
+export async function updateContact(agentId: string, contactId: string, data: any) {
+    const firestore = useFirestore();
+    if (!firestore) throw new Error("Firestore not initialized");
+
+    const ref = doc(firestore, "agents", agentId, "contacts", contactId);
+
+    return await updateDoc(ref, {
+        ...data,
+        updatedAt: serverTimestamp(),
+    });
 }
 
 export async function deleteContact(agentId: string, contactId: string) {
-  const ref = doc(firestore, "agents", agentId, "contacts", contactId);
-  await deleteDoc(ref);
+    const firestore = useFirestore();
+    if (!firestore) throw new Error("Firestore not initialized");
+
+    const ref = doc(firestore, "agents", agentId, "contacts", contactId);
+
+    return await deleteDoc(ref);
 }
 
-// Vincular/Desvincular propriedade (modifica contact.linkedPropertyIds e property.ownerId)
-
 export async function linkContactToProperty(agentId: string, contactId: string, propertyId: string) {
-  const contactRef = docRef(firestore, "agents", agentId, "contacts", contactId);
-  const propertyRef = docRef(firestore, "agents", agentId, "properties", propertyId);
+    const firestore = useFirestore();
+    if (!firestore) throw new Error("Firestore not initialized");
+    const contactRef = doc(firestore, "agents", agentId, "contacts", contactId);
+    const propertyRef = doc(firestore, "agents", agentId, "properties", propertyId);
 
-  // Atualiza contact
-  await updateDocRef(contactRef, {
-    linkedPropertyIds: arrayUnion(propertyId),
-    updatedAt: serverTimestamp()
-  });
+    await updateDoc(contactRef, {
+        linkedPropertyIds: arrayUnion(propertyId),
+        updatedAt: serverTimestamp()
+    });
 
-  // Atualiza property com owner link (só interno; não exibe publicamente)
-  await updateDocRef(propertyRef, {
-    ownerContactId: contactId,
-    updatedAt: serverTimestamp()
-  });
+    await updateDoc(propertyRef, {
+        ownerContactId: contactId,
+        updatedAt: serverTimestamp()
+    });
 }
 
 export async function unlinkContactFromProperty(agentId: string, contactId: string, propertyId: string) {
-  const contactRef = docRef(firestore, "agents", agentId, "contacts", contactId);
-  const propertyRef = docRef(firestore, "agents", agentId, "properties", propertyId);
+    const firestore = useFirestore();
+    if (!firestore) throw new Error("Firestore not initialized");
+    const contactRef = doc(firestore, "agents", agentId, "contacts", contactId);
+    const propertyRef = doc(firestore, "agents", agentId, "properties", propertyId);
 
-  await updateDocRef(contactRef, {
-    linkedPropertyIds: arrayRemove(propertyId),
-    updatedAt: serverTimestamp()
-  });
+    await updateDoc(contactRef, {
+        linkedPropertyIds: arrayRemove(propertyId),
+        updatedAt: serverTimestamp()
+    });
 
-  await updateDocRef(propertyRef, {
-    ownerContactId: null,
-    updatedAt: serverTimestamp()
-  });
+    await updateDoc(propertyRef, {
+        ownerContactId: null,
+        updatedAt: serverTimestamp()
+    });
 }
