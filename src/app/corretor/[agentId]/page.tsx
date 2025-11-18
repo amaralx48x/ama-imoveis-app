@@ -5,7 +5,7 @@ import { getFirebaseServer } from "@/firebase/server-init";
 import { doc, getDoc, collection, getDocs, query, where, orderBy, limit } from "firebase/firestore";
 import type { Agent, Property, Review, CustomSection } from "@/lib/data";
 import { notFound } from "next/navigation";
-import { getReviews as getStaticReviews } from '@/lib/data';
+import { getReviews as getStaticReviews, getProperties as getStaticProperties } from '@/lib/data';
 import { getSEO } from "@/firebase/server-actions/seo";
 
 
@@ -31,7 +31,13 @@ async function getAgentData(agentId: string) {
 
     const agent = { id: agentSnap.id, ...agentSnap.data() } as Agent;
     
-    const allProperties = propertiesSnap.docs.map(d => ({ ...(d.data() as Omit<Property, 'id'>), id: d.id, agentId }) as Property);
+    let allProperties: Property[];
+    if (!propertiesSnap.empty) {
+        allProperties = propertiesSnap.docs.map(d => ({ ...(d.data() as Omit<Property, 'id'>), id: d.id, agentId }) as Property);
+    } else {
+        // Se o corretor não tiver imóveis, use os exemplos
+        allProperties = getStaticProperties();
+    }
     
     const customSections = sectionsSnap.docs.map(d => ({ ...(d.data() as Omit<CustomSection, 'id'>), id: d.id }) as CustomSection);
 
@@ -48,6 +54,7 @@ async function getAgentData(agentId: string) {
       fetchedReviews.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       reviews = fetchedReviews;
     } else {
+      // Se o corretor não tiver avaliações, use os exemplos
       reviews = getStaticReviews();
     }
 
