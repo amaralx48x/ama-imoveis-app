@@ -33,15 +33,10 @@ service cloud.firestore {
         allow write: if isOwner(agentId) || isAdmin();
       }
 
-      // Permissões para documentos individuais em 'contacts'
+      // Permissões para a subcoleção de contatos
       match /contacts/{contactId} {
-        allow get, update, delete: if isOwner(agentId) || isAdmin();
+        allow list, get, create, update, delete: if isOwner(agentId) || isAdmin();
       }
-      // Permissões para a coleção 'contacts' como um todo
-      match /contacts {
-        allow list, create: if isOwner(agentId) || isAdmin();
-      }
-
 
       match /reviews/{reviewId} {
         allow create: if isSignedIn();
