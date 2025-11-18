@@ -1,4 +1,3 @@
-
 import type { Metadata } from "next";
 import AgentPageClient from "@/app/corretor/[agentId]/agent-page-client";
 import { getSEO } from "@/firebase/seo";
