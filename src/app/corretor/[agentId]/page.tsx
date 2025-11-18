@@ -1,4 +1,3 @@
-
 import type { Metadata } from "next";
 import AgentPageClient from "@/app/corretor/[agentId]/agent-page-client";
 import { getFirebaseServer } from "@/firebase/server-init";
@@ -6,6 +5,7 @@ import { doc, getDoc, collection, getDocs, query, where, orderBy, limit } from "
 import type { Agent, Property, Review, CustomSection } from "@/lib/data";
 import { notFound } from "next/navigation";
 import { getReviews as getStaticReviews } from '@/lib/data';
+import { getSEO } from "@/firebase/server-actions/seo";
 
 
 async function getAgentData(agentId: string) {
@@ -55,34 +55,22 @@ async function getAgentData(agentId: string) {
   }
 }
 
-async function getAgentSeoData(agentId: string) {
-  const { firestore } = getFirebaseServer();
-  const agentSeoRef = doc(firestore, "seo", `agent-${agentId}`);
-  const defaultSeoRef = doc(firestore, "seo", "homepage");
-  const agentRef = doc(firestore, 'agents', agentId);
-  
-  const [agentSeoSnap, defaultSeoSnap, agentSnap] = await Promise.all([
-    getDoc(agentSeoRef),
-    getDoc(defaultSeoRef),
-    getDoc(agentRef)
-  ]);
 
-  const agentSeoData = agentSeoSnap.exists() ? agentSeoSnap.data() : null;
-  const defaultSeo = defaultSeoSnap.exists() ? defaultSeoSnap.data() : null;
+export async function generateMetadata({ params }: { params: { agentId: string } }): Promise<Metadata> {
+  const { agentId } = params;
+
+  // Use the server-safe SEO function
+  const agentSeoData = await getSEO(`agent-${agentId}`);
+  const defaultSeo = await getSEO("homepage");
+  
+  const { firestore } = getFirebaseServer();
+  const agentSnap = await getDoc(doc(firestore, 'agents', agentId));
   const agent = agentSnap.exists() ? agentSnap.data() as Agent : null;
 
   const title = agentSeoData?.title || agent?.name || defaultSeo?.title || 'Encontre seu Imóvel';
   const description = agentSeoData?.description || agent?.description || defaultSeo?.description || 'Seu próximo lar está aqui.';
   const keywords = agentSeoData?.keywords || defaultSeo?.keywords || [];
   const imageUrl = agentSeoData?.image || agent?.photoUrl || defaultSeo?.image || '';
-  
-  return { title, description, keywords, imageUrl };
-}
-
-
-export async function generateMetadata({ params }: { params: { agentId: string } }): Promise<Metadata> {
-  const { agentId } = params;
-  const { title, description, keywords, imageUrl } = await getAgentSeoData(agentId);
 
   const metadata: Metadata = {
     title,
@@ -93,19 +81,15 @@ export async function generateMetadata({ params }: { params: { agentId: string }
       url: `/corretor/${agentId}`,
       title,
       description,
+      images: imageUrl ? [imageUrl] : [],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
+      images: imageUrl ? [imageUrl] : [],
     },
   };
-
-  if (imageUrl) {
-    const images = [imageUrl];
-    if (metadata.openGraph) metadata.openGraph.images = images;
-    if (metadata.twitter) metadata.twitter.images = images;
-  }
 
   return metadata;
 }

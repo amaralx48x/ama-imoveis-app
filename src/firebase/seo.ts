@@ -6,7 +6,7 @@ import { errorEmitter } from "./error-emitter";
 import { FirestorePermissionError } from "./errors";
 
 // Função para ser usada no LADO DO CLIENTE (ex: formulário de edição)
-export async function saveSEO(page: string, data: any) {
+export async function saveSEOClient(page: string, data: any) {
   const ref = doc(firestore, "seo", page);
   const dataToSave = { ...data, updatedAt: serverTimestamp() };
   try {

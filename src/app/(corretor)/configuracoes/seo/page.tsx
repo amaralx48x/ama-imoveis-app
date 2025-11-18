@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
-import { saveSEO } from '@/firebase/seo'; 
+import { saveSEOClient } from '@/firebase/seo'; 
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Input } from '@/components/ui/input';
@@ -86,7 +85,7 @@ export default function SEOPage() {
     }
     setIsSaving(true);
     try {
-        await saveSEO(seoKey, {
+        await saveSEOClient(seoKey, {
             title: seo.title,
             description: seo.description,
             keywords: seo.keywords.split(',').map(k => k.trim()).filter(Boolean),

@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
-import { saveSEO } from '@/firebase/seo'; 
+import { saveSEOClient } from '@/firebase/seo'; 
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -79,7 +78,7 @@ export default function SEOPage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-        await saveSEO('homepage', {
+        await saveSEOClient('homepage', {
             title: seo.title,
             description: seo.description,
             keywords: seo.keywords.split(',').map(k => k.trim()).filter(Boolean),
