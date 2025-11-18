@@ -31,33 +31,28 @@ export async function generateMetadata({ params }: { params: { agentId: string }
   const title = agentSeoData?.title || agent?.name || defaultSeo?.title || 'Encontre seu Imóvel';
   const description = agentSeoData?.description || agent?.description || defaultSeo?.description || 'Seu próximo lar está aqui.';
   const keywords = agentSeoData?.keywords || defaultSeo?.keywords || [];
-  const imageUrl = agentSeoData?.image || agent?.photoUrl || defaultSeo?.image;
+  const imageUrl = agentSeoData?.image || agent?.photoUrl || defaultSeo?.image || '';
 
   // Assume a URL base se não estiver disponível. Adapte conforme necessário.
   const pageUrl = `https://[SUA_URL_BASE]/corretor/${params.agentId}`;
-
-  const openGraphData: any = {
-      type: "website",
-      url: pageUrl,
-      title,
-      description,
-  };
-
-  if (imageUrl) {
-      openGraphData.images = [{ url: imageUrl }];
-  }
 
   return {
     title,
     description,
     keywords,
-    openGraph: openGraphData,
-    twitter: {
-      card: "summary_large_image",
+    openGraph: {
+      type: 'website',
       url: pageUrl,
-      title,
-      description,
-      ...(imageUrl && { images: [imageUrl] }),
+      title: title,
+      description: description,
+      images: imageUrl ? [{ url: imageUrl }] : [],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      url: pageUrl,
+      title: title,
+      description: description,
+      images: imageUrl ? [imageUrl] : [],
     },
   };
 }
