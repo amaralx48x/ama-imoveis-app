@@ -1,4 +1,3 @@
-
 import type { Metadata } from "next";
 import AgentPageClient from "@/app/corretor/[agentId]/agent-page-client";
 import { getFirebaseServer } from "@/firebase/server-init";
@@ -24,7 +23,7 @@ async function getAgentData(agentId: string) {
       getDocs(query(reviewsRef, where('approved', '==', true), limit(10))),
     ]);
 
-    if (!agentSnap.exists()) {
+    if (!agentSnap.exists() || (agentSnap.data() as Agent).siteSettings?.siteStatus === false) {
       return null;
     }
 
@@ -87,6 +86,8 @@ export async function generateMetadata({ params }: { params: { agentId: string }
     description,
     keywords,
     openGraph: {
+      type: 'website',
+      url: `/corretor/${agentId}`, // Assuming this is the correct path structure
       title,
       description,
     },
@@ -98,8 +99,9 @@ export async function generateMetadata({ params }: { params: { agentId: string }
   };
 
   if (imageUrl) {
-    metadata.openGraph!.images = [{ url: imageUrl }];
-    metadata.twitter!.images = [imageUrl];
+    const images = [imageUrl];
+    if (metadata.openGraph) metadata.openGraph.images = images;
+    if (metadata.twitter) metadata.twitter.images = images;
   }
 
   return metadata;
