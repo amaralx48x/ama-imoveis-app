@@ -23,9 +23,9 @@ service cloud.firestore {
     // Coleção de agentes (corretores)
     // =========================
     match /agents/{agentId} {
-      allow get: if true; // Qualquer um pode ler os dados de um corretor específico
-      allow list: if isAdmin(); // Apenas admin pode listar todos os corretores
-      allow write: if isOwner(agentId) || isAdmin(); // Apenas o dono ou admin pode editar
+      allow get: if true;
+      allow list: if isAdmin();
+      allow write: if isOwner(agentId) || isAdmin();
 
       // --- SUBCOLEÇÕES ---
 
@@ -78,10 +78,10 @@ service cloud.firestore {
     // =========================
     // SEO
     // =========================
-    match /seo/{pageId} {
+    match /seo/{page} {
       allow get: if true;
-      allow list: if false;
-      allow write: if (isOwner(pageId.split('-')[1]) && pageId.startsWith('agent-')) || isAdmin();
+      allow list: if false; // Ninguém deve listar todos os SEOs
+      allow write: if (isOwner(page.split('-')[1]) && page.startsWith('agent-')) || isAdmin();
     }
   }
 }
