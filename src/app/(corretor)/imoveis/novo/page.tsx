@@ -20,13 +20,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
-import { useFirestore, useUser, useDoc, useMemoFirebase, useCollection } from "@/firebase";
+import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, setDoc, collection } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 import ImageUpload from "@/components/image-upload";
 import { useState, useMemo } from "react";
 import Image from "next/image";
-import type { Agent, Contact } from "@/lib/data";
+import type { Agent } from "@/lib/data";
 import Link from "next/link";
 import { ArrowLeft, X, Gem, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
@@ -51,7 +51,6 @@ const formSchema = z.object({
   rooms: z.coerce.number().int().min(0),
   builtArea: z.coerce.number().positive("A área construída deve ser positiva."),
   totalArea: z.coerce.number().positive("A área total deve ser positiva."),
-  ownerId: z.string().optional(),
 });
 
 export default function NovoImovelPage() {
@@ -63,14 +62,6 @@ export default function NovoImovelPage() {
 
   const agentRef = useMemoFirebase(() => (firestore && user ? doc(firestore, 'agents', user.uid) : null), [firestore, user]);
   const { data: agentData } = useDoc<Agent>(agentRef);
-
-  const contactsCollection = useMemoFirebase(
-    () => (user && firestore ? collection(firestore, `agents/${user.uid}/contacts`) : null),
-    [user, firestore]
-  );
-  const { data: contacts } = useCollection<Contact>(contactsCollection);
-
-  const owners = useMemo(() => contacts?.filter(c => c.type === 'proprietario') || [], [contacts]);
 
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -90,7 +81,6 @@ export default function NovoImovelPage() {
       rooms: 0,
       builtArea: 0,
       totalArea: 0,
-      ownerId: "",
     },
   });
 
@@ -297,54 +287,23 @@ export default function NovoImovelPage() {
                     )}
                     />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                        control={form.control}
-                        name="price"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Preço (R$)</FormLabel>
-                            <FormControl>
-                                <Input 
-                                type="text" 
-                                placeholder="R$ 850.000,00" 
-                                onChange={handlePriceChange} 
-                                />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                     <FormField
-                        control={form.control}
-                        name="ownerId"
-                        render={({ field }) => (
+                <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Proprietário (Opcional)</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecione o proprietário do imóvel" />
-                                </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {owners.length > 0 ? (
-                                    owners.map(owner => (
-                                        <SelectItem key={owner.id} value={owner.id}>{owner.name}</SelectItem>
-                                    ))
-                                ) : (
-                                    <SelectItem value="none" disabled>Nenhum proprietário cadastrado</SelectItem>
-                                )}
-                            </SelectContent>
-                            </Select>
-                            <FormDescription>
-                                Você pode cadastrar novos proprietários na seção <Link href="/contatos" className="underline">Contatos</Link>.
-                            </FormDescription>
-                            <FormMessage />
+                        <FormLabel>Preço (R$)</FormLabel>
+                        <FormControl>
+                            <Input 
+                            type="text" 
+                            placeholder="R$ 850.000,00" 
+                            onChange={handlePriceChange} 
+                            />
+                        </FormControl>
+                        <FormMessage />
                         </FormItem>
-                        )}
-                    />
-                </div>
+                    )}
+                />
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <FormField control={form.control} name="bedrooms" render={({ field }) => (<FormItem><FormLabel>Quartos</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />

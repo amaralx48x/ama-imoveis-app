@@ -25,7 +25,6 @@
         "sectionIds": { "type": "array", "items": { "type": "string" }, "description": "Array of section IDs this property belongs to. Includes 'featured' for featured properties." },
         "phone": { "type": "string", "description": "Specific contact phone number for this property." },
         "agentId": { "type": "string", "description": "ID of the agent who listed the property." },
-        "ownerId": { "type": "string", "description": "ID of the contact who owns the property." },
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was created." },
         "status": { "type": "string", "enum": ["ativo", "vendido", "alugado"], "description": "The current status of the property.", "default": "ativo" },
         "soldAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was sold or rented." },
@@ -35,24 +34,6 @@
         "id", "title", "description", "price", "bedrooms", "bathrooms", "garage", "rooms", 
         "builtArea", "totalArea", "imageUrls", "city", "neighborhood", "type", "operation", "sectionIds", "agentId", "createdAt", "status"
       ]
-    },
-    "Contact": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "title": "Contact",
-        "type": "object",
-        "description": "Represents a contact, who can be a property owner or a client.",
-        "properties": {
-            "id": { "type": "string", "description": "Unique identifier for the contact." },
-            "name": { "type": "string", "description": "Full name of the contact." },
-            "cpf": { "type": "string", "description": "CPF of the contact." },
-            "phone": { "type": "string", "description": "Contact phone number." },
-            "email": { "type": "string", "format": "email", "description": "Contact email address." },
-            "age": { "type": "number", "description": "Age of the contact." },
-            "type": { "type": "string", "enum": ["proprietario", "cliente"], "description": "Type of contact." },
-            "agentId": { "type": "string", "description": "ID of the agent this contact belongs to." },
-            "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of creation." }
-        },
-        "required": ["id", "name", "phone", "email", "type", "agentId", "createdAt"]
     },
     "SocialLink": {
       "title": "Social Link",
@@ -240,11 +221,6 @@
         "path": "/agents/{agentId}/properties/{propertyId}",
         "schema": { "$ref": "#/entities/Property" },
         "description": "Stores properties listed by a specific agent."
-      },
-       {
-        "path": "/agents/{agentId}/contacts/{contactId}",
-        "schema": { "$ref": "#/entities/Contact" },
-        "description": "Stores contacts (owners, clients) for a specific agent."
       },
       {
         "path": "/agents/{agentId}/reviews/{reviewId}",

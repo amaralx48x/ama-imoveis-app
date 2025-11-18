@@ -25,7 +25,6 @@ export type Property = {
   type: 'Apartamento' | 'Casa' | 'Chácara' | 'Galpão' | 'Sala' | 'Kitnet' | 'Terreno' | 'Lote' | 'Alto Padrão';
   operation: 'Comprar' | 'Alugar';
   sectionIds: string[];
-  ownerId?: string;
   phone?: string;
   agentId?: string; 
   createdAt?: any;
@@ -33,18 +32,6 @@ export type Property = {
   soldAt?: any; // ou rentedAt
   commissionValue?: number;
 };
-
-export type Contact = {
-    id: string;
-    name: string;
-    cpf: string;
-    phone: string;
-    email: string;
-    age: number;
-    type: 'proprietario' | 'cliente';
-    agentId: string;
-    createdAt: any;
-}
 
 export type Availability = {
   days: {
