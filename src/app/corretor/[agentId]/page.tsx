@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import AgentPageClient from "@/app/corretor/[agentId]/agent-page-client";
 import { getFirebaseServer } from "@/firebase/server-init";
@@ -50,18 +51,12 @@ async function getAgentData(agentId: string) {
 
   } catch (error) {
     console.error("Failed to fetch agent data on server:", error);
-    // In case of error (e.g., permission denied on one collection), we can decide to return null or partial data.
-    // Returning null will lead to a 404, which is a safe default.
     return null;
   }
 }
 
-
-export async function generateMetadata({ params }: { params: { agentId: string } }): Promise<Metadata> {
+async function getAgentSeoData(agentId: string) {
   const { firestore } = getFirebaseServer();
-  const agentId = params.agentId;
-
-  // Fetch SEO and Agent data in parallel
   const agentSeoRef = doc(firestore, "seo", `agent-${agentId}`);
   const defaultSeoRef = doc(firestore, "seo", "homepage");
   const agentRef = doc(firestore, 'agents', agentId);
@@ -80,6 +75,14 @@ export async function generateMetadata({ params }: { params: { agentId: string }
   const description = agentSeoData?.description || agent?.description || defaultSeo?.description || 'Seu próximo lar está aqui.';
   const keywords = agentSeoData?.keywords || defaultSeo?.keywords || [];
   const imageUrl = agentSeoData?.image || agent?.photoUrl || defaultSeo?.image || '';
+  
+  return { title, description, keywords, imageUrl };
+}
+
+
+export async function generateMetadata({ params }: { params: { agentId: string } }): Promise<Metadata> {
+  const { agentId } = params;
+  const { title, description, keywords, imageUrl } = await getAgentSeoData(agentId);
 
   const metadata: Metadata = {
     title,
@@ -87,7 +90,7 @@ export async function generateMetadata({ params }: { params: { agentId: string }
     keywords,
     openGraph: {
       type: 'website',
-      url: `/corretor/${agentId}`, // Assuming this is the correct path structure
+      url: `/corretor/${agentId}`,
       title,
       description,
     },
