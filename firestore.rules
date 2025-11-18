@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -32,6 +33,11 @@ service cloud.firestore {
       match /properties/{propertyId} {
         allow list, get: if true;
         allow write: if isOwner(agentId) || isAdmin();
+      }
+      
+      // Subcoleção de contatos
+      match /contacts/{contactId} {
+        allow read, write: if isOwner(agentId) || isAdmin();
       }
 
       // Subcoleção de reviews
