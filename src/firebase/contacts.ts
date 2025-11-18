@@ -3,6 +3,8 @@
 import { collection, addDoc, doc, getDocs, query, where, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { firestore } from "@/firebase"; // seu export já existente
 import { doc as docRef, updateDoc as updateDocRef, arrayUnion, arrayRemove, getDoc } from "firebase/firestore";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 const contactsCollection = (agentId: string) => collection(firestore, "agents", agentId, "contacts");
 
@@ -13,15 +15,22 @@ export async function listContactsOnce(agentId: string) {
   return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-export async function createContact(agentId: string, payload: Partial<any>) {
-  const ref = await addDoc(contactsCollection(agentId), {
-    ...payload,
-    linkedPropertyIds: payload.linkedPropertyIds || [],
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
-  });
-  // retorna id + dados
-  return { id: ref.id, ...payload };
+export function createContact(agentId: string, payload: Partial<any>) {
+    const collRef = contactsCollection(agentId);
+    
+    addDoc(collRef, {
+        ...payload,
+        linkedPropertyIds: payload.linkedPropertyIds || [],
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+    }).catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: collRef.path,
+            operation: 'create',
+            requestResourceData: payload,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    });
 }
 
 export async function updateContact(agentId: string, contactId: string, payload: Partial<any>) {
@@ -67,4 +76,3 @@ export async function unlinkContactFromProperty(agentId: string, contactId: stri
     updatedAt: serverTimestamp()
   });
 }
-
