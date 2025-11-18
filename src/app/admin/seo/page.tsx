@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getSEO as getSEOServer, saveSEO } from '@/firebase/seo'; // getSEOServer is for server, saveSEO is for client
+import { saveSEO } from '@/firebase/seo'; 
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -9,12 +9,15 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import type { MarketingContent } from '@/lib/data'; // Re-using a type, we should create a proper one for SEO
 
-// A client-side fetcher, since useSEO hook was removed.
-async function getSEOClient(page: string) {
-    const res = await fetch(`/api/seo?page=${page}`);
-    if (!res.ok) return null;
-    return res.json();
+type SeoData = {
+    title: string;
+    description: string;
+    keywords: string[];
+    image: string;
 }
 
 
@@ -44,8 +47,12 @@ function SEOPageSkeleton() {
 
 export default function SEOPage() {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  
+  const firestore = useFirestore();
+  const seoRef = useMemoFirebase(() => firestore ? doc(firestore, "seo", "homepage") : null, [firestore]);
+  const { data: seoData, isLoading, mutate } = useDoc<SeoData>(seoRef);
+
   const [seo, setSeo] = useState({
     title: '',
     description: '',
@@ -54,18 +61,15 @@ export default function SEOPage() {
   });
 
   useEffect(() => {
-    // We can't use the server-side getSEO here directly.
-    // Let's assume we would fetch this data via a client-side mechanism if needed,
-    // for now we simulate the fetch or use a client-side specific function.
-    // This component is for ADMINS to WRITE SEO, so pre-loading isn't as critical
-    // as having the save function work correctly.
-    
-    // For demonstration, we'll try to fetch it, but this might need an API route
-    // if we were to make this robust. For now, we adapt to use the new saveSEO.
-    // getSEO('homepage').then(data => { ... }) -> This would be the old call.
-    setLoading(false); // Let's just enable the form.
-
-  }, []);
+    if (seoData) {
+      setSeo({
+        title: seoData.title || '',
+        description: seoData.description || '',
+        keywords: (seoData.keywords || []).join(', '),
+        image: seoData.image || '',
+      });
+    }
+  }, [seoData]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -76,6 +80,7 @@ export default function SEOPage() {
             keywords: seo.keywords.split(',').map(k => k.trim()).filter(Boolean),
             image: seo.image,
         });
+        mutate();
         toast({ title: 'SEO salvo com sucesso!' });
     } catch(err) {
         console.error(err);
@@ -94,7 +99,7 @@ export default function SEOPage() {
             </CardDescription>
         </CardHeader>
         <CardContent>
-            {loading ? <SEOPageSkeleton /> : (
+            {isLoading ? <SEOPageSkeleton /> : (
                 <div className="space-y-6">
                     <div>
                         <label className="text-sm font-medium">Título da Página</label>

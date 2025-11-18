@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { saveSEO } from '@/firebase/seo'; // Only saveSEO is needed on the client
-import { useUser } from '@/firebase';
+import { saveSEO } from '@/firebase/seo'; 
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -11,12 +12,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Loader2, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// This is a simplified client-side fetcher. In a real app, this would be an API route.
-async function getSEOClient(page: string) {
-  // This is a placeholder. In a real app, you would fetch from an API endpoint
-  // that uses the server-side getSEO function.
-  // For now, we will just let the user fill the form.
-  return null;
+type SeoData = {
+    title: string;
+    description: string;
+    keywords: string[];
+    image: string;
 }
 
 function SEOPageSkeleton() {
@@ -46,8 +46,14 @@ function SEOPageSkeleton() {
 export default function SEOPage() {
   const { toast } = useToast();
   const { user } = useUser();
-  const [loading, setLoading] = useState(true);
+  const firestore = useFirestore();
+
+  const seoKey = user ? `agent-${user.uid}` : null;
+  const seoRef = useMemoFirebase(() => (firestore && seoKey ? doc(firestore, "seo", seoKey) : null), [firestore, seoKey]);
+  
+  const { data: seoData, isLoading, mutate } = useDoc<SeoData>(seoRef);
   const [isSaving, setIsSaving] = useState(false);
+  
   const [seo, setSeo] = useState({
     title: '',
     description: '',
@@ -55,16 +61,16 @@ export default function SEOPage() {
     image: '',
   });
 
-  const seoKey = user ? `agent-${user.uid}` : null;
-
   useEffect(() => {
-    if (!seoKey) return;
-    setLoading(true);
-    // In a real app, you would fetch initial data.
-    // For now, we just enable the form for editing.
-    // getSEOClient(seoKey).then(data => { ... });
-    setLoading(false);
-  }, [seoKey]);
+    if (seoData) {
+      setSeo({
+        title: seoData.title || '',
+        description: seoData.description || '',
+        keywords: (seoData.keywords || []).join(', '),
+        image: seoData.image || '',
+      });
+    }
+  }, [seoData]);
 
   const handleSave = async () => {
     if (!seoKey) {
@@ -79,6 +85,7 @@ export default function SEOPage() {
             keywords: seo.keywords.split(',').map(k => k.trim()).filter(Boolean),
             image: seo.image,
         });
+        mutate();
         toast({ title: 'SEO salvo com sucesso!' });
     } catch(err) {
         console.error(err);
@@ -99,7 +106,7 @@ export default function SEOPage() {
             </CardDescription>
         </CardHeader>
         <CardContent>
-            {loading ? <SEOPageSkeleton /> : (
+            {isLoading ? <SEOPageSkeleton /> : (
                 <div className="space-y-6">
                     <div>
                         <label className="text-sm font-medium">Título da Página</label>

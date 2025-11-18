@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
 import AgentPageClient from "@/app/corretor/[agentId]/agent-page-client";
-import { getSEO } from "@/firebase/seo";
 import { getFirebaseServer } from "@/firebase/server-init";
 import { doc, getDoc } from "firebase/firestore";
 import type { Agent } from "@/lib/data";
+
+async function getSEO(page: string) {
+  const { firestore } = getFirebaseServer();
+  const ref = doc(firestore, "seo", page);
+  const snap = await getDoc(ref);
+  return snap.exists() ? snap.data() : null;
+}
 
 async function getAgent(agentId: string): Promise<Agent | null> {
   const { firestore } = getFirebaseServer();
@@ -17,7 +23,6 @@ async function getAgent(agentId: string): Promise<Agent | null> {
 
 
 export async function generateMetadata({ params }: { params: { agentId: string } }): Promise<Metadata> {
-  // Use a combinação de SEO do agente e SEO global como fallback
   const agentSeoKey = `agent-${params.agentId}`;
   const agentSeoData = await getSEO(agentSeoKey);
   const defaultSeo = await getSEO('homepage');
