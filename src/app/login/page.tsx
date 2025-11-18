@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -55,42 +56,39 @@ const GoogleIcon = () => (
 export default function LoginPage() {
     const { toast } = useToast();
     const auth = useAuth();
-    const firestore = useFirestore();
     const { user, isUserLoading } = useUser();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
-    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+    const [isGoogleLoading, setIsGoogleLoading] = useState(true); // Start true to handle redirect
 
     // Redirect if user is already logged in
     useEffect(() => {
         if (!isUserLoading && user) {
-            router.push('/dashboard');
+            router.replace('/dashboard');
         }
     }, [user, isUserLoading, router]);
 
     // Handle Google Redirect Result
     useEffect(() => {
         if (!auth) return;
-        const processRedirect = async () => {
-            try {
-                const result = await getRedirectResult(auth);
+        getRedirectResult(auth)
+            .then(async (result) => {
                 if (result) {
-                    setIsGoogleLoading(true);
                     await saveUserToFirestore(result.user, {
                         displayName: result.user.displayName,
-                        name: result.user.displayName, // Default name to display name
+                        name: result.user.displayName,
                         accountType: 'corretor',
                     });
                     toast({ title: "Login bem-sucedido!" });
                     router.push('/dashboard');
+                } else {
+                    setIsGoogleLoading(false); // No redirect result, stop loading
                 }
-            } catch (error) {
+            })
+            .catch((error) => {
                 handleAuthError(error as FirebaseError);
-            } finally {
                 setIsGoogleLoading(false);
-            }
-        };
-        processRedirect();
+            });
     }, [auth, router, toast]);
 
     const loginForm = useForm<z.infer<typeof loginSchema>>({
@@ -149,7 +147,7 @@ export default function LoginPage() {
                 title: "Login bem-sucedido!",
                 description: "Redirecionando para o seu painel...",
             });
-            router.push('/dashboard');
+            // Let the useEffect handle the redirect
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -158,12 +156,11 @@ export default function LoginPage() {
     }
 
     async function handleSignUp(values: z.infer<typeof signUpSchema>) {
-        if (!auth || !firestore) return;
+        if (!auth) return;
         setIsLoading(true);
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
             const user = userCredential.user;
-            // Pass additional data to saveUserToFirestore
             await saveUserToFirestore(user, {
                 displayName: values.displayName,
                 name: values.siteName,
@@ -174,7 +171,7 @@ export default function LoginPage() {
                 title: "Conta criada com sucesso!",
                 description: "Redirecionando para o seu painel...",
             });
-            router.push('/dashboard');
+             // Let the useEffect handle the redirect
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
