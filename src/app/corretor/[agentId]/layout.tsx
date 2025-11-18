@@ -15,19 +15,16 @@ function AgentSiteLayoutUpdater({ agentId }: { agentId: string }) {
 
     useEffect(() => {
         // Theme logic
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'light' || savedTheme === 'dark') {
-            document.documentElement.classList.remove('light', 'dark');
-            document.documentElement.classList.add(savedTheme);
-        } else if (agentData?.siteSettings?.theme) {
+        if (agentData?.siteSettings?.theme) {
             const theme = agentData.siteSettings.theme;
             document.documentElement.classList.remove('light', 'dark');
             document.documentElement.classList.add(theme);
-            localStorage.setItem('theme', theme);
         } else {
-            document.documentElement.classList.remove('light');
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
+            // Fallback to dark theme if not set
+            if (!document.documentElement.classList.contains('dark')) {
+                 document.documentElement.classList.remove('light');
+                 document.documentElement.classList.add('dark');
+            }
         }
         
         // Favicon logic
