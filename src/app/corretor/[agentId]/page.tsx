@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import AgentPageClient from "@/app/corretor/[agentId]/agent-page-client";
 import { getFirebaseServer } from "@/firebase/server-init";
@@ -55,22 +56,27 @@ async function getAgentData(agentId: string) {
   }
 }
 
+async function getAgentSeoData(agentId: string) {
+    const agentSeo = await getSEO(`agent-${agentId}`);
+    const defaultSeo = await getSEO("homepage");
+  
+    const { firestore } = getFirebaseServer();
+    const agentSnap = await getDoc(doc(firestore, 'agents', agentId));
+    const agent = agentSnap.exists() ? agentSnap.data() as Agent : null;
+
+    return { agentSeo, defaultSeo, agent };
+}
+
 
 export async function generateMetadata({ params }: { params: { agentId: string } }): Promise<Metadata> {
   const { agentId } = params;
 
-  // Use the server-safe SEO function
-  const agentSeoData = await getSEO(`agent-${agentId}`);
-  const defaultSeo = await getSEO("homepage");
-  
-  const { firestore } = getFirebaseServer();
-  const agentSnap = await getDoc(doc(firestore, 'agents', agentId));
-  const agent = agentSnap.exists() ? agentSnap.data() as Agent : null;
+  const { agentSeo, defaultSeo, agent } = await getAgentSeoData(agentId);
 
-  const title = agentSeoData?.title || agent?.name || defaultSeo?.title || 'Encontre seu Imóvel';
-  const description = agentSeoData?.description || agent?.description || defaultSeo?.description || 'Seu próximo lar está aqui.';
-  const keywords = agentSeoData?.keywords || defaultSeo?.keywords || [];
-  const imageUrl = agentSeoData?.image || agent?.photoUrl || defaultSeo?.image || '';
+  const title = agentSeo?.title || agent?.name || defaultSeo?.title || 'Encontre seu Imóvel';
+  const description = agentSeo?.description || agent?.description || defaultSeo?.description || 'Seu próximo lar está aqui.';
+  const keywords = agentSeo?.keywords || defaultSeo?.keywords || [];
+  const imageUrl = agentSeo?.image || agent?.photoUrl || defaultSeo?.image || '';
 
   const metadata: Metadata = {
     title,

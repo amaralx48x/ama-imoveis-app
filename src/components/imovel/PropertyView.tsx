@@ -95,8 +95,8 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
     const prefilledMessage = encodeURIComponent(`Olá! Tenho interesse no imóvel: ${property.title}, localizado no bairro ${property.neighborhood}.`);
     const whatsappLink = whatsappNumber ? `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${prefilledMessage}` : '#';
 
-    const financingLink = whatsappLink; 
-    const isFinancingButtonActionable = showFinancingButton && !!whatsappNumber;
+    const financingLink = agent.siteSettings?.financingLink || whatsappLink; 
+    const isFinancingButtonActionable = showFinancingButton && !!financingLink;
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -138,7 +138,7 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                             </div>
                             <div className="text-right flex-shrink-0">
                                 <p className="text-3xl font-bold text-primary">
-                                    {property.operation === 'Comprar' ? formattedPrice(property.price) : `${formattedPrice(property.price)} /mês`}
+                                    {property.operation === 'Venda' ? formattedPrice(property.price) : `${formattedPrice(property.price)} /mês`}
                                 </p>
                             </div>
                         </div>
@@ -239,9 +239,9 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                         </Dialog>
                         <Separator className="my-4"/>
                         
-                        {showFinancingButton && (
-                            <Button asChild className="w-full" size="lg" variant="outline" disabled={!isFinancingButtonActionable}>
-                                <Link href={financingLink || '#'} target="_blank" rel="noopener noreferrer">
+                        {isFinancingButtonActionable && (
+                            <Button asChild className="w-full" size="lg" variant="outline">
+                                <Link href={financingLink} target="_blank" rel="noopener noreferrer">
                                     <LinkIcon className="mr-2"/>
                                     Simule o Financiamento
                                 </Link>

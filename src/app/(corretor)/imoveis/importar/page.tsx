@@ -72,8 +72,6 @@ export default function ImportImoveisPage() {
                 errors.push(`Operação inválida: '${row.operation}'.`);
             }
 
-            const operation = row.operation === 'Venda' ? 'Comprar' : 'Alugar';
-
             const propertyData: Partial<Property> = {
                 title: row.title,
                 description: row.description,
@@ -87,7 +85,7 @@ export default function ImportImoveisPage() {
                 city: row.city,
                 neighborhood: row.neighborhood,
                 type: row.type as Property['type'],
-                operation: operation as Property['operation'],
+                operation: row.operation as Property['operation'],
                 imageUrls: row.imageUrls ? row.imageUrls.split(',').map((url: string) => url.trim()) : [],
             };
 
@@ -248,5 +246,3 @@ export default function ImportImoveisPage() {
     </div>
   );
 }
-
-    

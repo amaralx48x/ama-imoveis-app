@@ -98,61 +98,41 @@ export default function ImoveisPage() {
     const { user } = useUser();
     const { toast } = useToast();
     const { limits, canAddNewProperty, currentPropertiesCount } = usePlan();
-
     const [activeTab, setActiveTab] = useState<'ativo' | 'vendido' | 'alugado'>('ativo');
     const [searchTerm, setSearchTerm] = useState('');
-    const [allProperties, setAllProperties] = useState<Property[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<Error | null>(null);
+    const [needsRefetch, setNeedsRefetch] = useState(false);
 
-    const propertiesCollection = useMemoFirebase(() => {
+    // This is the core optimization. Instead of fetching all documents,
+    // we create a specific query based on the active tab.
+    const propertiesQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
-        return collection(firestore, `agents/${user.uid}/properties`);
-    }, [firestore, user]);
-
-    const fetchProperties = useCallback(async () => {
-        if (!propertiesCollection) return;
-        setIsLoading(true);
-        setError(null);
-        try {
-            const snapshot = await getDocs(propertiesCollection);
-            const props = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Property));
-            setAllProperties(props);
-        } catch (e: any) {
-            setError(e);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [propertiesCollection]);
-    
-    useEffect(() => {
-        fetchProperties();
-    }, [fetchProperties]);
-    
-    const filteredProperties = useMemo(() => {
-        let propertiesByTab;
-        if (activeTab === 'ativo') {
-            propertiesByTab = allProperties.filter(p => p.status === 'ativo' || !p.status);
-        } else {
-            propertiesByTab = allProperties.filter(p => p.status === activeTab);
-        }
         
-        if (!searchTerm) {
-            return propertiesByTab;
+        let q = query(collection(firestore, `agents/${user.uid}/properties`));
+
+        if (activeTab === 'ativo') {
+            // Firestore queries for "not equal" are tricky. It's often easier to query for the statuses you DON'T want.
+            // But since a new property's status might be null or 'ativo', we query for what we want.
+            q = query(q, where('status', 'in', ['ativo', null]));
+        } else {
+            q = query(q, where('status', '==', activeTab));
         }
+        return q;
+    }, [firestore, user, activeTab, needsRefetch]);
+
+    const { data: properties, isLoading, error, mutate } = useCollection<Property>(propertiesQuery);
+    
+    // Client-side search on the already-filtered data from Firestore
+    const filteredProperties = useMemo(() => {
+        if (!properties) return [];
+        if (!searchTerm) return properties;
 
         const lowercasedTerm = searchTerm.toLowerCase();
-        return propertiesByTab.filter(property => {
-            const title = property.title?.toLowerCase() ?? '';
-            const city = property.city?.toLowerCase() ?? '';
-            const neighborhood = property.neighborhood?.toLowerCase() ?? '';
-
-            return title.includes(lowercasedTerm) ||
-                   city.includes(lowercasedTerm) ||
-                   neighborhood.includes(lowercasedTerm);
-        });
-
-    }, [allProperties, activeTab, searchTerm]);
+        return properties.filter(property => 
+            (property.title?.toLowerCase() ?? '').includes(lowercasedTerm) ||
+            (property.city?.toLowerCase() ?? '').includes(lowercasedTerm) ||
+            (property.neighborhood?.toLowerCase() ?? '').includes(lowercasedTerm)
+        );
+    }, [properties, searchTerm]);
 
     
     const handleDeleteProperty = async (id: string) => {
@@ -173,8 +153,7 @@ export default function ImoveisPage() {
         
         try {
             await deleteDoc(docRef);
-            // Optimistic UI update for immediate feedback
-            setAllProperties(prev => prev.filter(p => p.id !== id));
+            mutate(); // Re-trigger the useCollection hook
             toast({ title: 'Imóvel excluído com sucesso!' });
         } catch (error) {
             console.error("Erro ao excluir imóvel: ", error);
@@ -187,8 +166,10 @@ export default function ImoveisPage() {
     };
     
     const handleStatusChange = () => {
-        // Just refetch all data to ensure UI is in sync
-        fetchProperties();
+        // Trigger a refetch of the current query
+        mutate();
+        // A more robust way if properties move between tabs
+        setNeedsRefetch(prev => !prev);
     }
     
     const canAdd = canAddNewProperty();
@@ -297,5 +278,3 @@ export default function ImoveisPage() {
         </div>
     );
 }
-
-    

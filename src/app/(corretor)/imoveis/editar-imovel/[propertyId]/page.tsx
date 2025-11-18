@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useRouter, useParams } from "next/navigation";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
 import { useContacts } from "@/firebase/hooks/useContacts";
-import { doc, setDoc, collection } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { useState, useEffect, useMemo } from "react";
 import ImageUpload from "@/components/image-upload";
 import Image from "next/image";
@@ -120,7 +120,6 @@ export default function EditarImovelPage() {
     if (propertyData) {
       form.reset({
         ...propertyData,
-        operation: propertyData.operation === 'Comprar' ? 'Venda' : propertyData.operation === 'Alugar' ? 'Aluguel' : propertyData.operation,
         ownerContactId: propertyData.ownerContactId || '',
       });
       setImageUrls(propertyData.imageUrls || []);

@@ -135,7 +135,6 @@ export default function NovoImovelPage() {
 
     const newProperty = {
       ...values,
-      operation: values.operation === 'Venda' ? 'Comprar' : 'Alugar', // Map to internal value
       id: propertyId,
       agentId: user.uid,
       imageUrls: imageUrls,
@@ -227,7 +226,7 @@ export default function NovoImovelPage() {
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Operação</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                             <SelectTrigger><SelectValue placeholder="Venda ou Aluguel" /></SelectTrigger>
                         </FormControl>
@@ -245,7 +244,7 @@ export default function NovoImovelPage() {
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Tipo de Imóvel</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                             <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
                         </FormControl>
@@ -266,7 +265,7 @@ export default function NovoImovelPage() {
                         render={({ field }) => (
                         <FormItem>
                             <FormLabel>Cidade</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                                 <SelectTrigger><SelectValue placeholder="Selecione a cidade de atuação" /></SelectTrigger>
                             </FormControl>
