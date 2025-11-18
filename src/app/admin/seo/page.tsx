@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,11 +8,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import type { MarketingContent } from '@/lib/data'; // Re-using a type, we should create a proper one for SEO
+import ImageUpload from '@/components/image-upload';
+import Image from 'next/image';
 
 type SeoData = {
     title: string;
@@ -19,7 +21,6 @@ type SeoData = {
     keywords: string[];
     image: string;
 }
-
 
 function SEOPageSkeleton() {
     return (
@@ -38,7 +39,7 @@ function SEOPageSkeleton() {
             </div>
              <div className="space-y-2">
                 <Skeleton className="h-5 w-1/4" />
-                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-24 w-full" />
             </div>
             <Skeleton className="h-12 w-full" />
         </div>
@@ -71,6 +72,10 @@ export default function SEOPage() {
     }
   }, [seoData]);
 
+  const handleUploadComplete = (url: string) => {
+    setSeo(prev => ({ ...prev, image: url }));
+  }
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -93,9 +98,11 @@ export default function SEOPage() {
   return (
     <Card>
         <CardHeader>
-            <CardTitle className="text-3xl font-bold">Configurações de SEO</CardTitle>
+            <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2">
+              <Search /> Configurações de SEO (Página Principal)
+            </CardTitle>
             <CardDescription>
-                Gerencie como seu site aparece em mecanismos de busca como o Google.
+                Gerencie como a página inicial de marketing aparece em mecanismos de busca como o Google.
             </CardDescription>
         </CardHeader>
         <CardContent>
@@ -133,12 +140,13 @@ export default function SEOPage() {
                     </div>
 
                     <div>
-                        <label className="text-sm font-medium">URL da Imagem de Compartilhamento (OG Image)</label>
-                        <Input 
-                            value={seo.image} 
-                            onChange={e => setSeo({ ...seo, image: e.target.value })}
-                            placeholder="https://.../sua-imagem.jpg"
-                        />
+                        <label className="text-sm font-medium">Imagem de Compartilhamento (OG Image)</label>
+                         <ImageUpload
+                            onUploadComplete={handleUploadComplete}
+                            currentImageUrl={seo.image}
+                            agentId="admin"
+                            propertyId="seo-homepage"
+                         />
                          <p className="text-xs text-muted-foreground mt-1">A imagem que aparece ao compartilhar seu site em redes sociais. Tamanho recomendado: 1200x630px.</p>
                     </div>
 

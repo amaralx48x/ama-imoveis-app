@@ -79,6 +79,12 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
             basePath = `agents/${agentId}/links`;
             const linkId = propertyId.replace('upload-', '');
             fileName = `${linkId}.${fileExtension}`;
+        } else if (propertyId === 'seo-homepage' && agentId === 'admin') {
+            basePath = `seo/assets`;
+            fileName = `homepage-og-image.${fileExtension}`;
+        } else if (propertyId === 'seo-image') {
+             basePath = `agents/${agentId}/site-assets`;
+             fileName = `seo-og-image.${fileExtension}`;
         } else {
             basePath = `agents/${agentId}/properties/${propertyId}`;
             fileName = `${Date.now()}_${uuidv4()}.${fileExtension}`;

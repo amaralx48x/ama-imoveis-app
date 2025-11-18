@@ -27,6 +27,19 @@ service firebase.storage {
       // Escrita apenas para admins
       allow write: if isAdmin();
     }
+    
+    // -----------------------
+    // Imagens de SEO
+    // -----------------------
+    match /seo/assets/{fileName} {
+        allow read: if true;
+        allow write: if isAdmin();
+    }
+    
+    match /agents/{agentId}/site-assets/{fileName} {
+        allow read: if true;
+        allow write: if isOwner(agentId) || isAdmin();
+    }
 
     // -----------------------
     // Imagens de suporte
