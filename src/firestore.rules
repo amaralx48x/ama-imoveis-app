@@ -34,7 +34,8 @@ service cloud.firestore {
       }
 
       match /contacts/{contactId} {
-        allow read, write: if isOwner(agentId) || isAdmin();
+        allow get: if isOwner(agentId) || isAdmin();
+        allow create, update, delete: if isOwner(agentId) || isAdmin();
       }
       match /contacts {
         allow list: if isOwner(agentId) || isAdmin();
