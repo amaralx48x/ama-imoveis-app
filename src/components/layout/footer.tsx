@@ -164,7 +164,7 @@ export function Footer({ agentId }: { agentId?: string }) {
             {/* Ícones Sociais no Centro/Direita */}
             <div className="flex flex-wrap justify-center items-center gap-6 flex-grow md:justify-end">
               {isLoading && <FooterSkeleton />}
-              {!isLoading && agent?.siteSettings?.socialLinks?.map((link) => {
+              {!isLoading && socialLinks.map((link) => {
                 const Icon = iconMap[link.icon] || Globe;
                 const href = formatLink(link.icon, link.url);
                 return (
