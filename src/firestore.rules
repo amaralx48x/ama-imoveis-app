@@ -75,15 +75,15 @@ service cloud.firestore {
     // =========================
     // SEO
     // =========================
-    match /seo/{page} {
-      // Apenas administrador pode listar SEO de todas as páginas
-      allow list: if isAdmin();
+    match /seo/{pageId} {
+      // Qualquer pessoa pode ler (essencial para SSR/SEO)
+      allow get: if true;
+      
+      // Ninguém pode listar todos os documentos de SEO
+      allow list: if false;
 
-      // Admin pode ler/escrever qualquer coisa
-      allow get, update, delete: if isAdmin();
-
-      // Corretor só pode acessar a própria página SEO (agent-uid)
-      allow get, write: if isSignedIn() && page == 'agent-' + request.auth.uid;
+      // Apenas o dono ou um admin podem escrever
+      allow write: if (isOwner(pageId.split('-')[1]) && pageId.startsWith('agent-')) || isAdmin();
     }
   }
 }
