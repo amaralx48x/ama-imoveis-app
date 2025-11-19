@@ -130,7 +130,7 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
         <Input 
           id={inputId}
           type="file" 
-          accept="image/*,video/mp4,.ico" 
+          accept="image/*,video/mp4,.ico"
           onChange={handleFileChange}
           className='file:text-primary file:font-semibold'
           multiple={multiple}
@@ -175,7 +175,7 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
             {displayImages.map((url, index) => (
                 <div key={index} className="relative w-32 h-32 rounded-md overflow-hidden border">
                     {url.includes('.mp4') ? (
-                       <video src={url} className="object-cover w-full h-full" muted loop autoPlay />
+                       <video src={url} className="object-cover w-full h-full" muted loop autoPlay playsInline />
                     ) : (
                        <Image src={url} alt={`Imagem atual ${index + 1}`} fill sizes="128px" className="object-cover" />
                     )}
