@@ -86,10 +86,6 @@ const faqTopics = [
         question: 'Como funcionam os planos?',
         answer: 'Oferecemos diferentes planos para se adequar ao seu volume de negócios. Na seção **Meu Plano**, você pode ver os detalhes e limites do seu plano atual. O plano "Corretor Plus" é ótimo para começar, enquanto o "Imobiliária Plus" oferece recursos avançados, como imóveis ilimitados e importação via CSV.',
       },
-       {
-        question: 'A troca de planos gera cobrança?',
-        answer: 'Não. Este é um ambiente de demonstração e desenvolvimento. A troca de planos nesta plataforma serve apenas para simular e testar as funcionalidades de cada nível. Nenhuma cobrança real será efetuada.',
-      },
     ],
   },
 ];
@@ -129,8 +125,8 @@ function MessagesHistory() {
                 return { 
                     id: doc.id, 
                     ...data,
-                    createdAt: data.createdAt?.toDate().toISOString(),
-                    responseAt: data.responseAt?.toDate().toISOString(),
+                    createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
+                    responseAt: data.responseAt?.toDate ? data.responseAt.toDate().toISOString() : data.responseAt,
                 } as SupportMessage;
             });
             setMessages(msgs);
