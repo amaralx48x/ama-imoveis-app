@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useToast } from '@/hooks/use-toast';
-import { LifeBuoy, Loader2, Upload, X, MessageSquare, AlertTriangle } from 'lucide-react';
+import { LifeBuoy, Loader2, Upload, X, MessageSquare, AlertTriangle, Briefcase, Users, Gem, Settings } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { v4 as uuidv4 } from 'uuid';
 import type { SupportMessage } from '@/lib/data';
@@ -23,24 +23,77 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import ImageUpload from '@/components/image-upload';
 import { InfoCard } from '@/components/info-card';
 
-const faqItems = [
+const faqTopics = [
   {
-    question: 'Como cadastrar um novo imóvel?',
-    answer: 'Vá para a seção "Meus Imóveis" no menu lateral e clique no botão "Adicionar Imóvel". Preencha todos os campos do formulário e adicione as fotos. A primeira foto será a capa do anúncio.',
+    topic: 'Gerenciamento de Imóveis',
+    icon: Briefcase,
+    questions: [
+      {
+        question: 'Como cadastrar um novo imóvel?',
+        answer: '1. **Acesse a Seção:** No menu lateral, clique em "Meus Imóveis".\n2. **Inicie o Cadastro:** No canto superior direito, clique no botão roxo "Adicionar Imóvel".\n3. **Preencha os Dados:** Complete todos os campos do formulário com as informações do imóvel. Quanto mais detalhes, melhor para o anúncio.\n4. **Envie as Imagens:** Na seção de imagens, envie fotos de alta qualidade. A primeira imagem que você enviar será a foto de capa do anúncio no seu site.\n5. **Salve:** Após preencher tudo, clique em "Salvar Imóvel". Ele aparecerá instantaneamente na aba "Ativos" e no seu site público.',
+      },
+      {
+        question: 'Como editar um imóvel já cadastrado?',
+        answer: '1. **Encontre o Imóvel:** Na lista de "Meus Imóveis", localize o card do imóvel que deseja alterar.\n2. **Acesse o Menu:** Clique no ícone de três pontinhos (⋮) no canto superior direito do card do imóvel.\n3. **Selecione Editar:** No menu que aparecer, escolha a opção "Editar Imóvel".\n4. **Faça as Alterações:** Modifique os campos necessários no formulário e clique em "Salvar Alterações" no final da página.',
+      },
+      {
+        question: 'Como marcar um imóvel como "Vendido" ou "Alugado"?',
+        answer: '1. **Acesse o Menu:** Na página "Meus Imóveis", encontre o imóvel e clique no menu de três pontinhos (⋮).\n2. **Selecione a Opção:** Escolha a opção "Marcar como Vendido" ou "Marcar como Alugado".\n3. **Confirme os Valores:** Uma janela aparecerá para você confirmar o valor final da transação e o percentual de comissão. O sistema calcula o valor final da comissão automaticamente, mas você pode ajustá-lo.\n4. **Confirme:** Ao confirmar, o imóvel será movido para a aba correspondente ("Vendidos" ou "Alugados") e a comissão será registrada no seu Dashboard.',
+      },
+      {
+        question: 'Como funciona a importação de imóveis por CSV?',
+        answer: 'Este recurso está disponível no plano **Imobiliária Plus**.\n1. **Acesse a Página:** Em "Meus Imóveis", clique no botão "Importar CSV".\n2. **Baixe o Modelo:** Para garantir a formatação correta, baixe nosso arquivo de exemplo clicando no link disponível na página.\n3. **Preencha a Planilha:** Adicione os dados dos seus imóveis na planilha, seguindo as colunas do modelo.\n4. **Faça o Upload:** Selecione o arquivo preenchido. O sistema fará uma pré-validação, mostrando quantos imóveis estão corretos e quantos contêm erros.\n5. **Importe:** Se houver imóveis válidos, clique no botão para importá-los para sua conta.',
+      },
+    ],
   },
   {
-    question: 'Como faço para editar um imóvel já cadastrado?',
-    answer: 'Na lista "Meus Imóveis", clique nos três pontinhos no canto do card do imóvel desejado e selecione a opção "Editar Imóvel".',
+    topic: 'Leads, Contatos e Avaliações',
+    icon: Users,
+    questions: [
+      {
+        question: 'Onde vejo os contatos dos clientes interessados?',
+        answer: 'Todos os contatos e solicitações de agendamento gerados pelos formulários do seu site público chegam na **Caixa de Entrada**. As mensagens novas são marcadas como "Não lida" e ficam na aba principal para sua atenção.',
+      },
+      {
+        question: 'Como gerencio as avaliações dos clientes?',
+        answer: 'Acesse a seção **Avaliações**. Todas as novas avaliações enviadas pelo seu site chegam lá com o status "Pendente". Você tem a opção de "Aprovar" para que ela apareça publicamente no seu site, ou "Remover".',
+      },
+    ],
+  },
+   {
+    topic: 'Configurações do Site Público',
+    icon: Settings,
+    questions: [
+      {
+        question: 'Como altero a aparência (cores) do meu site?',
+        answer: 'Vá em **Configurações > Aparência**. Você pode escolher entre o tema Claro e Escuro. A alteração é aplicada instantaneamente no seu painel para você pré-visualizar. Clique em "Salvar" para aplicar a mudança também no seu site público.',
+      },
+       {
+        question: 'O que são as "Seções Personalizadas"?',
+        answer: 'Em **Configurações > Gerenciar Seções**, você pode criar categorias para agrupar seus imóveis, como "Lançamentos" ou "Imóveis de Luxo". Após criar uma seção, vá para "Meus Imóveis", clique no menu de um imóvel (⋮) e escolha "Associar a Seção" para adicioná-lo. Essas seções aparecerão como carrosséis de destaque em seu site público.',
+      },
+      {
+        question: 'Como melhoro a visibilidade do meu site no Google (SEO)?',
+        answer: 'Em **Configurações > SEO da Página**, você pode definir o título, descrição, palavras-chave e imagem de compartilhamento do seu site. Preencher esses campos ajuda seu site a ser melhor ranqueado no Google e a ter uma aparência mais profissional ao ser compartilhado em redes sociais.',
+      },
+    ],
   },
   {
-    question: 'Onde vejo os contatos dos clientes interessados?',
-    answer: 'Todos os contatos gerados pelos formulários do seu site público ficam na "Caixa de Entrada". As mensagens não lidas são destacadas para sua atenção.',
-  },
-  {
-    question: 'Como funcionam os planos?',
-    answer: 'Você pode ver os detalhes e limites do seu plano atual na seção "Meu Plano". Lá você também pode simular a troca para um plano superior para liberar mais funcionalidades, como imóveis ilimitados e importação via CSV.',
+    topic: 'Planos e Assinatura',
+    icon: Gem,
+    questions: [
+      {
+        question: 'Como funcionam os planos?',
+        answer: 'Oferecemos diferentes planos para se adequar ao seu volume de negócios. Na seção **Meu Plano**, você pode ver os detalhes e limites do seu plano atual. O plano "Corretor Plus" é ótimo para começar, enquanto o "Imobiliária Plus" oferece recursos avançados, como imóveis ilimitados e importação via CSV.',
+      },
+       {
+        question: 'A troca de planos gera cobrança?',
+        answer: 'Não. Este é um ambiente de demonstração e desenvolvimento. A troca de planos nesta plataforma serve apenas para simular e testar as funcionalidades de cada nível. Nenhuma cobrança real será efetuada.',
+      },
+    ],
   },
 ];
+
 
 const formatDate = (timestamp: any) => {
     if (!timestamp) return 'Data indisponível';
@@ -85,7 +138,11 @@ function MessagesHistory() {
             setError(null);
         }, (err) => {
             console.error(err);
-            setError('Não foi possível carregar suas mensagens.');
+            if (err.code === 'permission-denied') {
+                setError("Você não tem permissão para visualizar estas mensagens. Verifique as regras de segurança do Firestore.");
+            } else {
+                setError('Não foi possível carregar suas mensagens.');
+            }
             setIsLoading(false);
         });
 
@@ -121,7 +178,7 @@ function MessagesHistory() {
                                     <div className="flex justify-between items-center w-full">
                                         <p className="font-semibold truncate pr-4">{msg.message}</p>
                                         <div className="text-right flex items-center gap-4 flex-shrink-0">
-                                            <span className="text-xs text-muted-foreground hidden sm:inline">{formatDate(new Date(msg.createdAt))}</span>
+                                            <span className="text-xs text-muted-foreground hidden sm:inline">{msg.createdAt ? formatDate(new Date(msg.createdAt)) : '...'}</span>
                                             <Badge variant={msg.status === 'pending' ? 'default' : 'secondary'}>
                                                 {msg.status === 'pending' ? 'Pendente' : 'Respondido'}
                                             </Badge>
@@ -144,7 +201,7 @@ function MessagesHistory() {
                                             <div className="border-t pt-4 mt-4">
                                                 <p className="font-semibold text-sm mb-2">Resposta do Suporte:</p>
                                                 <p className="text-sm bg-muted p-3 rounded-md whitespace-pre-wrap">{msg.responseMessage}</p>
-                                                <p className="text-xs text-muted-foreground mt-2">Respondido em {formatDate(new Date(msg.responseAt))}</p>
+                                                <p className="text-xs text-muted-foreground mt-2">Respondido em {msg.responseAt ? formatDate(new Date(msg.responseAt)) : '...'}</p>
                                             </div>
                                         )}
                                     </div>
@@ -230,16 +287,35 @@ export default function SuportePage() {
           <CardTitle>Perguntas Frequentes (FAQ)</CardTitle>
         </CardHeader>
         <CardContent>
-          <Accordion type="single" collapsible className="w-full">
-            {faqItems.map((item, index) => (
-              <AccordionItem value={`item-${index}`} key={index}>
-                <AccordionTrigger>{item.question}</AccordionTrigger>
-                <AccordionContent>{item.answer}</AccordionContent>
+          <Accordion type="single" collapsible className="w-full space-y-2">
+            {faqTopics.map((topic) => (
+              <AccordionItem value={topic.topic} key={topic.topic} className="border-b-0">
+                <AccordionTrigger className="border rounded-md px-4 py-3 bg-card hover:bg-muted/50 font-bold text-lg [&[data-state=open]]:rounded-b-none">
+                  <div className="flex items-center gap-3">
+                    <topic.icon className="h-5 w-5 text-primary" />
+                    {topic.topic}
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="border border-t-0 rounded-b-md p-0">
+                    <Accordion type="single" collapsible className="w-full">
+                         {topic.questions.map((q, i) => (
+                            <AccordionItem value={`sub-item-${i}`} key={i} className={i === topic.questions.length - 1 ? "border-b-0" : ""}>
+                                <AccordionTrigger className="px-4 py-3 text-base hover:no-underline">
+                                    {q.question}
+                                </AccordionTrigger>
+                                <AccordionContent className="px-6 pb-4">
+                                    <p className="text-muted-foreground whitespace-pre-line leading-relaxed">{q.answer}</p>
+                                </AccordionContent>
+                            </AccordionItem>
+                         ))}
+                    </Accordion>
+                </AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
         </CardContent>
       </Card>
+
 
       <Card>
         <CardHeader>
