@@ -112,7 +112,12 @@ export default function MarketingAdminPage() {
         if (!marketingRef) return;
         
         try {
-            await setDoc(marketingRef, values, { merge: true });
+            // Firestore does not accept `undefined`. Clean the object before saving.
+            const cleanedValues = Object.fromEntries(
+                Object.entries(values).map(([key, value]) => [key, value === undefined ? null : value])
+            );
+
+            await setDoc(marketingRef, cleanedValues, { merge: true });
             mutate();
             toast({
                 title: 'Conteúdo Atualizado!',
