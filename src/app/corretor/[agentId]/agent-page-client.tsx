@@ -40,8 +40,11 @@ export default function AgentPageClient({
     // Though we check in the server component, this is a safeguard.
     return notFound();
   }
+  
+  const customHeroImage = agent.siteSettings?.heroImageUrl;
+  const defaultHeroImage = PlaceHolderImages.find(img => img.id === 'hero-background');
+  const heroImage = customHeroImage ? { id: 'custom-hero', imageUrl: customHeroImage, description: 'Imagem de capa', imageHint: 'real estate' } : defaultHeroImage;
 
-  const heroImage = PlaceHolderImages.find(img => img.id === 'hero-background');
   const featuredProperties = allProperties.filter(p => (p.sectionIds || []).includes('featured') && p.status === 'ativo');
   const propertyTypes = getPropertyTypes();
   const showReviews = agent.siteSettings?.showReviews ?? true;

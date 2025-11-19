@@ -1,6 +1,6 @@
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search } from 'lucide-react';
+import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search, PictureInPicture } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
@@ -99,6 +99,7 @@ export default function CorretorLayout({
 
   const settingsItems = [
       { href: '/configuracoes/aparencia', label: 'Aparência', icon: Palette },
+      { href: '/configuracoes/hero', label: 'Imagem de Capa', icon: PictureInPicture },
       { href: '/configuracoes/favicon', label: 'Favicon', icon: ImageIcon },
       { href: '/configuracoes/links', label: 'Links e Exibição', icon: LinkIcon },
       { href: '/configuracoes/secoes', label: 'Gerenciar Seções', icon: Folder },
