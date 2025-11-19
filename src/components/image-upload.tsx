@@ -101,7 +101,7 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
       
       await Promise.all(uploadPromises);
       
-      toast({ title: `Sucesso! ${files.length} imagem(ns) enviada(s).` });
+      toast({ title: `Sucesso! ${files.length} arquivo(s) enviado(s).` });
       setFiles([]);
     } catch (err) {
       console.error(err);
@@ -130,7 +130,7 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
         <Input 
           id={inputId}
           type="file" 
-          accept="image/*,.ico" 
+          accept="image/*,video/mp4,.ico" 
           onChange={handleFileChange}
           className='file:text-primary file:font-semibold'
           multiple={multiple}
@@ -164,7 +164,7 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
             ) : (
             <>
                 <Upload className="mr-2 h-4 w-4" />
-                Enviar {files.length > 0 ? files.length : ''} Imagem(ns)
+                Enviar {files.length > 0 ? files.length : ''} Arquivo(s)
             </>
             )}
         </Button>
@@ -174,7 +174,11 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
          <div className="mt-4 flex flex-wrap gap-4">
             {displayImages.map((url, index) => (
                 <div key={index} className="relative w-32 h-32 rounded-md overflow-hidden border">
-                    <Image src={url} alt={`Imagem atual ${index + 1}`} fill sizes="128px" className="object-cover" />
+                    {url.includes('.mp4') ? (
+                       <video src={url} className="object-cover w-full h-full" muted loop autoPlay />
+                    ) : (
+                       <Image src={url} alt={`Imagem atual ${index + 1}`} fill sizes="128px" className="object-cover" />
+                    )}
                 </div>
             ))}
         </div>
