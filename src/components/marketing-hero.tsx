@@ -36,27 +36,26 @@ export function MarketingHero({ content }: MarketingHeroProps) {
       variants={container}
       className="relative w-full h-[70vh] min-h-[500px] md:h-[80vh] overflow-hidden flex items-center justify-center text-center text-white"
     >
-      {/* Vídeo ou Imagem em Background */}
-      {mediaUrl && (
-        <>
-          {mediaType === 'video' ? (
-            <video
-              key={mediaUrl}
-              className="absolute top-0 left-0 w-full h-full object-cover -z-10"
-              src={mediaUrl}
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
-          ) : (
-            <img
-              src={mediaUrl}
-              alt="Plataforma para corretores e imobiliárias"
-              className="absolute top-0 left-0 w-full h-full object-cover -z-10"
-            />
-          )}
-        </>
+      {/* Vídeo ou Imagem em Background (Versão à prova de falhas) */}
+      {mediaUrl && mediaType === "video" && (
+        <video
+          key={mediaUrl}
+          src={`${mediaUrl}${mediaUrl.includes("?") ? "" : "?alt=media"}`}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0"
+          onError={(e) => console.error("Erro ao carregar o vídeo:", e)}
+        />
+      )}
+      {mediaUrl && mediaType !== "video" && (
+        <img
+          src={mediaUrl}
+          alt="Plataforma para corretores e imobiliárias"
+          className="absolute inset-0 w-full h-full object-cover z-0"
+        />
       )}
 
       {/* Camada de escurecimento opcional */}
