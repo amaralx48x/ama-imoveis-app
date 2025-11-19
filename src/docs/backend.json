@@ -218,7 +218,8 @@
       "type": "object",
       "description": "Stores content for the public marketing page.",
       "properties": {
-        "section1_image": { "type": "string", "format": "uri" },
+        "hero_media_url": { "type": "string", "format": "uri", "description": "URL for the main hero media (video or image)." },
+        "hero_media_type": { "type": "string", "enum": ["image", "video"], "description": "Type of the hero media." },
         "section2_image": { "type": "string", "format": "uri" },
         "section3_image": { "type": "string", "format": "uri" },
         "section4_image1": { "type": "string", "format": "uri" },

@@ -4,12 +4,12 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Header } from "@/components/layout/header";
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import type { MarketingContent } from "@/lib/data";
 import { Card, CardContent } from "@/components/ui/card";
 import { Building2, Search, Share2 } from "lucide-react";
+import { MarketingHero } from "@/components/marketing-hero";
 
 const neon = "bg-gradient-to-r from-primary via-accent to-[#B794F4]";
 
@@ -64,63 +64,15 @@ export default function MarketingClientPage() {
           </nav>
         </div>
       </header>
-
+      
       {/* HERO */}
+      <MarketingHero content={marketingData} />
+
+      {/* MAIN CONTENT */}
       <main className="container mx-auto px-6 py-20">
-        <motion.section initial="hidden" whileInView="show" viewport={{ once: true }} variants={container} className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <motion.div variants={fadeUp}>
-            <h2 className="text-4xl md:text-5xl font-extrabold leading-tight">
-              A plataforma completa para <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C4B5FD] to-[#A78BFA]">corretores e imobiliárias</span>
-            </h2>
-
-            <p className="mt-6 text-lg text-white/70 max-w-xl">
-              Gerencie anúncios, leads, visitas e comissões — tudo num só lugar. Painéis inteligentes, agenda integrada e site público para cada corretor.
-            </p>
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/login" className={`inline-flex items-center gap-3 px-6 py-3 rounded-lg font-semibold ${neon} text-white shadow-lg hover:scale-[1.02] transition`}>
-                Iniciar 7 dias grátis
-              </Link>
-
-              <a href="#features" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10 text-sm hover:bg-white/5 transition">
-                Conhecer recursos
-              </a>
-            </div>
-
-            <div className="mt-8 flex gap-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-md flex items-center justify-center bg-white/5">
-                  ⭐
-                </div>
-                <div>
-                  <div className="font-semibold">Avaliações reais</div>
-                  <div className="text-xs text-white/60">Mais de 4.8 de satisfação</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-md flex items-center justify-center bg-white/5">
-                  🔒
-                </div>
-                <div>
-                  <div className="font-semibold">Segurança</div>
-                  <div className="text-xs text-white/60">Dados criptografados</div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          <div className="relative h-80 lg:h-96 flex items-center justify-center">
-             <motion.div initial={{ opacity: 0, x: 20, rotate: 5 }} whileInView={{ opacity: 1, x: 0, rotate: 2 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }} className="absolute bottom-0 right-0 w-full h-full rounded-lg overflow-hidden shadow-2xl border border-white/10">
-                <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
-                  <img src={getImage('section1_image', "https://picsum.photos/seed/page2/900/600")} alt="Detalhe do painel" width={900} height={600} className="object-cover w-full h-full" />
-                </React.Suspense>
-              </motion.div>
-          </div>
-        </motion.section>
-
+        
         {/* Features */}
-        <section id="features" className="mt-20 py-10">
+        <section id="features" className="py-10">
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={container}>
             <motion.h3 variants={fadeUp} className="text-3xl font-extrabold text-center">Recursos que fazem a diferença</motion.h3>
             <motion.p variants={fadeUp} className="mt-3 text-white/70 max-w-2xl mx-auto text-center">Tudo que um corretor precisa para anunciar, vender e fidelizar clientes — com simplicidade.</motion.p>

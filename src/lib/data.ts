@@ -1,6 +1,7 @@
 
 
 
+
 export type SocialLink = {
   id: string;
   label: string;
@@ -24,7 +25,7 @@ export type Property = {
   city: string;
   neighborhood: string;
   type: 'Apartamento' | 'Casa' | 'Chácara' | 'Galpão' | 'Sala' | 'Kitnet' | 'Terreno' | 'Lote' | 'Alto Padrão';
-  operation: 'Comprar' | 'Alugar';
+  operation: 'Venda' | 'Alugar';
   sectionIds: string[];
   phone?: string;
   agentId?: string; 
@@ -145,7 +146,8 @@ export type SupportMessage = {
 }
 
 export type MarketingContent = {
-    section1_image?: string;
+    hero_media_url?: string;
+    hero_media_type?: 'image' | 'video';
     section2_image?: string;
     section3_image?: string;
     section4_image1?: string;
@@ -175,7 +177,7 @@ const properties: Property[] = [
     city: 'São Paulo',
     neighborhood: 'Centro',
     type: 'Apartamento',
-    operation: 'Comprar',
+    operation: 'Venda',
     sectionIds: ['featured'],
     status: 'ativo',
   },
@@ -195,7 +197,7 @@ const properties: Property[] = [
     city: 'Campinas',
     neighborhood: 'Taquaral',
     type: 'Casa',
-    operation: 'Comprar',
+    operation: 'Venda',
     sectionIds: ['featured'],
     status: 'ativo',
   },
@@ -215,7 +217,7 @@ const properties: Property[] = [
     city: 'Ubatuba',
     neighborhood: 'Praia Grande',
     type: 'Casa',
-    operation: 'Comprar',
+    operation: 'Venda',
     sectionIds: ['featured'],
     status: 'ativo'
   },
@@ -332,6 +334,7 @@ export const getProperties = () => properties;
 export const getReviews = () => staticReviews;
 export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Guarujá', 'Rio de Janeiro', 'Belo Horizonte', 'Curitiba', 'Porto Alegre'];
 export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
+
 
 
 
