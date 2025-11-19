@@ -72,7 +72,7 @@ export default function MarketingClientPage() {
           alt="Plataforma para corretores e imobiliárias"
           className="absolute inset-0 w-full h-full object-cover z-0"
         />
-        <div className="absolute inset-0 bg-black/40"></div>
+        <div className="absolute inset-0 bg-black/60"></div>
         <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={container} className="relative z-10 max-w-3xl px-4">
             <motion.h2 variants={fadeUp} className="text-4xl md:text-5xl font-extrabold leading-tight">
               A plataforma completa para <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C4B5FD] to-[#A78BFA]">corretores e imobiliárias</span>
