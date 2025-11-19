@@ -36,7 +36,7 @@ async function getAgentData(agentId: string) {
         allProperties = propertiesSnap.docs.map(d => ({ ...(d.data() as Omit<Property, 'id'>), id: d.id, agentId }) as Property);
     } else {
         // Se o corretor não tiver imóveis, use os exemplos
-        allProperties = getStaticProperties();
+        allProperties = getStaticProperties().map(p => ({...p, agentId}));
     }
     
     const customSections = sectionsSnap.docs.map(d => ({ ...(d.data() as Omit<CustomSection, 'id'>), id: d.id }) as CustomSection);
@@ -88,8 +88,8 @@ async function getAgentSeoData(agentId: string) {
 }
 
 
-export async function generateMetadata({ params }: { params: { agentId: string } }): Promise<Metadata> {
-  const { agentId } = params;
+export async function generateMetadata({ params }: { params: Promise<{ agentId: string }> }): Promise<Metadata> {
+  const { agentId } = await params;
 
   const { agentSeo, defaultSeo, agent } = await getAgentSeoData(agentId);
 
@@ -121,8 +121,9 @@ export async function generateMetadata({ params }: { params: { agentId: string }
 }
 
 
-export default async function AgentPublicPage({ params }: { params: { agentId: string } }) {
-  const data = await getAgentData(params.agentId);
+export default async function AgentPublicPage({ params }: { params: Promise<{ agentId: string }> }) {
+  const { agentId } = await params;
+  const data = await getAgentData(agentId);
 
   if (!data) {
     return notFound();
