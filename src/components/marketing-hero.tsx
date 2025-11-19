@@ -1,4 +1,3 @@
-
 'use client';
 
 import { MarketingContent } from '@/lib/data';
@@ -41,6 +40,7 @@ export function MarketingHero({ content }: MarketingHeroProps) {
           <div className="absolute inset-0 bg-black -z-20"></div>
           {mediaType === 'video' ? (
             <video
+              key={mediaUrl} // Add key to force re-render on src change
               src={mediaUrl}
               autoPlay
               loop
