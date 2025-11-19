@@ -12,7 +12,7 @@ service firebase.storage {
     // Verifica se o usuário é admin
     function isAdmin() {
       // get() no Firestore para verificar a role do usuário.
-      // Requer que as regras do Firestore permitam esta leitura.
+      // Requer que as regras do Firestore permitam esta leitura (`allow get` na coleção de agentes).
       return request.auth != null 
              && get(/databases/$(database)/documents/agents/$(request.auth.uid)).data.role == 'admin';
     }
@@ -57,13 +57,6 @@ service firebase.storage {
     match /agents/{agentId}/{allPaths=**} {
       allow read: if true;
       allow write: if isOwner(agentId) || isAdmin();
-    }
-
-    // -----------------------
-    // Bloqueio padrão para todos os outros caminhos
-    // -----------------------
-    match /{allPaths=**} {
-      allow read, write: if false;
     }
   }
 }
