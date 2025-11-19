@@ -169,7 +169,6 @@ export default function LoginPage() {
                 accountType: 'corretor',
             });
             toast({ title: "Login bem-sucedido!" });
-            router.push('/dashboard');
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
