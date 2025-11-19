@@ -1,5 +1,6 @@
 
 
+
 export type SocialLink = {
   id: string;
   label: string;
@@ -160,6 +161,7 @@ export type MarketingContent = {
 const properties: Property[] = [
   {
     id: '1',
+    agentId: 'exemplo',
     title: 'Apartamento Luxuoso no Centro',
     description: 'Um deslumbrante apartamento de luxo no coração da cidade, com vistas panorâmicas e acabamentos de alta qualidade. Ideal para quem busca conforto e sofisticação. Com 3 quartos, sendo 2 suítes, sala de estar ampla com varanda gourmet e cozinha planejada. O condomínio oferece lazer completo com piscina, academia e salão de festas.',
     price: 1200000,
@@ -169,7 +171,7 @@ const properties: Property[] = [
     rooms: 7,
     builtArea: 150,
     totalArea: 150,
-    imageUrls: ['property-1-1', 'property-1-2', 'property-1-3'],
+    imageUrls: ['https://images.unsplash.com/photo-1621070659899-40b6b6f6731d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxtb2Rlcm4lMjBhcGFydG1lbnR8ZW58MHx8fHwxNzYxOTY5MTY4fDA&ixlib=rb-4.1.0&q=80&w=1080', 'https://images.unsplash.com/photo-1742453161018-73e39a241541?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxhcGFydG1lbnQlMjBsaXZpbmclMjByb29tfGVufDB8fHx8MTc2MjAxMDk0NHww&ixlib=rb-4.1.0&q=80&w=1080', 'https://images.unsplash.com/photo-1630699294197-6ac1c11ae156?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxhcGFydG1lbnQlMjBraXRjaGVufGVufDB8fHx8MTc2MTkxOTE1MHww&ixlib=rb-4.1.0&q=80&w=1080'],
     city: 'São Paulo',
     neighborhood: 'Centro',
     type: 'Apartamento',
@@ -179,6 +181,7 @@ const properties: Property[] = [
   },
   {
     id: '2',
+    agentId: 'exemplo',
     title: 'Casa Espaçosa com Quintal',
     description: 'Casa familiar espaçosa em bairro tranquilo, com um grande quintal perfeito para crianças e animais de estimação. Possui 4 quartos, cozinha americana и área de churrasqueira. Próxima a escolas, parques e comércios locais.',
     price: 850000,
@@ -188,13 +191,53 @@ const properties: Property[] = [
     rooms: 9,
     builtArea: 250,
     totalArea: 400,
-    imageUrls: ['property-2-1', 'property-2-2'],
+    imageUrls: ['https://images.unsplash.com/photo-1572120360610-d971b9d7767c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzdWJ1cmJhbiUyMGhvdXNlfGVufDB8fHx8MTc2MTkwODc5N3ww&ixlib=rb-4.1.0&q=80&w=1080', 'https://images.unsplash.com/photo-1726968335694-02219ed7ce96?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxob3VzZSUyMGJhY2t5YXJkfGVufDB8fHx8MTc2MjAwOTc0Mnww&ixlib=rb-4.1.0&q=80&w=1080'],
     city: 'Campinas',
     neighborhood: 'Taquaral',
     type: 'Casa',
     operation: 'Comprar',
     sectionIds: ['featured'],
     status: 'ativo',
+  },
+  {
+    id: '3',
+    agentId: 'exemplo',
+    title: 'Casa de Praia com Vista para o Mar',
+    description: 'Desfrute de uma vista deslumbrante do oceano nesta casa de praia espaçosa. Com acesso direto à praia, piscina privativa e um design moderno e arejado. Perfeito para férias ou como residência permanente.',
+    price: 2500000,
+    bedrooms: 5,
+    bathrooms: 6,
+    garage: 3,
+    rooms: 10,
+    builtArea: 400,
+    totalArea: 600,
+    imageUrls: ['https://images.unsplash.com/photo-1634351580440-8fcf7813367e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxiZWFjaGZyb250JTIwaG91c2V8ZW58MHx8fHwxNzYxOTQ1NTg4fDA&ixlib=rb-4.1.0&q=80&w=1080'],
+    city: 'Ubatuba',
+    neighborhood: 'Praia Grande',
+    type: 'Casa',
+    operation: 'Comprar',
+    sectionIds: ['featured'],
+    status: 'ativo'
+  },
+  {
+      id: '4',
+      agentId: 'exemplo',
+      title: 'Apartamento Aconchegante no Itaim Bibi',
+      description: 'Apartamento charmoso e bem iluminado em uma das áreas mais nobres de São Paulo. Próximo a restaurantes, bares e parques. Totalmente mobiliado e pronto para morar. Ideal para jovens profissionais e casais.',
+      price: 5500,
+      bedrooms: 1,
+      bathrooms: 1,
+      garage: 1,
+      rooms: 3,
+      builtArea: 50,
+      totalArea: 50,
+      imageUrls: ['https://images.unsplash.com/photo-1737737210863-387afd35344e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjb3p5JTIwYXBhcnRtZW50fGVufDB8fHx8MTc2MjAxMDk0NXww&ixlib=rb-4.1.0&q=80&w=1080'],
+      city: 'São Paulo',
+      neighborhood: 'Itaim Bibi',
+      type: 'Apartamento',
+      operation: 'Alugar',
+      sectionIds: [],
+      status: 'ativo'
   },
 ];
 
@@ -289,6 +332,7 @@ export const getProperties = () => properties;
 export const getReviews = () => staticReviews;
 export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Guarujá', 'Rio de Janeiro', 'Belo Horizonte', 'Curitiba', 'Porto Alegre'];
 export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
+
 
 
 

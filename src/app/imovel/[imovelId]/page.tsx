@@ -12,6 +12,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useFirestore } from '@/firebase';
 import { RelatedProperties } from '@/components/imovel/RelatedProperties';
+import { getProperties as getStaticProperties } from '@/lib/data';
 
 function BackButton() {
     const router = useRouter();
@@ -43,40 +44,64 @@ export default function PropertyPage({ }: Props) {
 
 
   useEffect(() => {
-    if (!agentId || !imovelId || !firestore) {
+    if (!imovelId || !firestore) {
         setIsLoading(false);
         return;
     }
 
     const fetchPropertyAndAgent = async () => {
         setIsLoading(true);
+        let property: Property | null = null;
+        let agent: Agent | null = null;
+        let relatedProps: Property[] = [];
+
         try {
-            const agentRef = doc(firestore, 'agents', agentId);
-            const propertyRef = doc(firestore, `agents/${agentId}/properties`, imovelId);
-            const allPropertiesQuery = query(collection(firestore, `agents/${agentId}/properties`), where('status', '==', 'ativo'));
-            
-            const [agentSnap, propertySnap, allPropertiesSnap] = await Promise.all([
-              getDoc(agentRef),
-              getDoc(propertyRef),
-              getDocs(allPropertiesQuery)
-            ]);
+            // Se houver um agentId, buscamos no Firestore primeiro.
+            if (agentId) {
+                const agentRef = doc(firestore, 'agents', agentId);
+                const propertyRef = doc(firestore, `agents/${agentId}/properties`, imovelId);
+                const allPropertiesQuery = query(collection(firestore, `agents/${agentId}/properties`), where('status', '==', 'ativo'));
+                
+                const [agentSnap, propertySnap, allPropertiesSnap] = await Promise.all([
+                  getDoc(agentRef),
+                  getDoc(propertyRef),
+                  getDocs(allPropertiesQuery)
+                ]);
 
-            if (propertySnap.exists()) {
-                setPropertyData({ id: propertySnap.id, ...(propertySnap.data() as Omit<Property, 'id'>), agentId: agentId });
-            } else {
-                setPropertyData(null);
+                if (propertySnap.exists()) {
+                    property = { id: propertySnap.id, ...(propertySnap.data() as Omit<Property, 'id'>), agentId: agentId };
+                }
+
+                if (agentSnap.exists()) {
+                    agent = { id: agentSnap.id, ...(agentSnap.data() as Omit<Agent, 'id'>) };
+                }
+
+                if (!allPropertiesSnap.empty) {
+                    relatedProps = allPropertiesSnap.docs.map(d => ({ ...(d.data() as Omit<Property, 'id'>), id: d.id, agentId }));
+                }
             }
 
-            if (agentSnap.exists()) {
-                setAgentData({ id: agentSnap.id, ...(agentSnap.data() as Omit<Agent, 'id'>) });
-            } else {
-                setAgentData(null);
+            // Fallback para dados estáticos se não encontrado no Firestore ou se for imóvel de exemplo
+            if (!property) {
+                const staticProperties = getStaticProperties();
+                const staticProp = staticProperties.find(p => p.id === imovelId);
+                if (staticProp) {
+                    property = { ...staticProp, agentId: agentId || 'exemplo' }; // Garante agentId para o link
+                    // Se o corretor não foi encontrado, usamos um mock para os exemplos
+                    if (!agent && agentId) {
+                         const agentRef = doc(firestore, 'agents', agentId);
+                         const agentSnap = await getDoc(agentRef);
+                         if(agentSnap.exists()){
+                            agent = { id: agentSnap.id, ...(agentSnap.data() as Omit<Agent, 'id'>) };
+                         }
+                    }
+                    relatedProps = staticProperties;
+                }
             }
 
-            if (!allPropertiesSnap.empty) {
-                const props = allPropertiesSnap.docs.map(d => ({ ...(d.data() as Omit<Property, 'id'>), id: d.id, agentId }));
-                setAllProperties(props);
-            }
+            setPropertyData(property);
+            setAgentData(agent);
+            setAllProperties(relatedProps);
 
         } catch (error) {
             console.error("Erro ao buscar imóvel e corretor:", error);
