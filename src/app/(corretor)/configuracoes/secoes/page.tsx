@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { InfoCard } from '@/components/info-card';
 
 
 function SettingToggle({ 
@@ -169,97 +170,108 @@ export default function GerenciarSecoesPage() {
     };
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2">
-                    <Folder /> Gerenciar Seções do Site
-                </CardTitle>
-                <CardDescription>
-                    Crie e organize seções personalizadas de imóveis e controle a visibilidade de outras áreas do seu site.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <div className="space-y-2">
-                    <h3 className="text-lg font-semibold">Nova Seção Personalizada</h3>
-                    <div className="flex gap-2">
-                        <Input
-                            placeholder="Ex: Oportunidades no Centro"
-                            value={newSectionTitle}
-                            onChange={(e) => setNewSectionTitle(e.target.value)}
-                        />
-                        <Button onClick={handleCreateSection} disabled={!newSectionTitle.trim()}>
-                            <Plus className="mr-2 h-4 w-4" /> Criar
-                        </Button>
+        <div className="space-y-6">
+            <InfoCard cardId="secoes-info" title="Organize seus Imóveis em Seções">
+                <p>
+                    As seções personalizadas permitem agrupar imóveis no seu site público. Crie categorias como "Oportunidades", "Lançamentos" ou "Imóveis de Luxo" para guiar seus clientes.
+                </p>
+                <p>
+                    Após criar uma seção aqui, vá para a página <a href="/imoveis" className="text-primary underline">Meus Imóveis</a>, clique no menu de um imóvel e escolha "Associar a Seção" para adicioná-lo. Você também pode controlar a exibição de outras seções, como a de Avaliações.
+                </p>
+            </InfoCard>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2">
+                        <Folder /> Gerenciar Seções do Site
+                    </CardTitle>
+                    <CardDescription>
+                        Crie e organize seções personalizadas de imóveis e controle a visibilidade de outras áreas do seu site.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                        <h3 className="text-lg font-semibold">Nova Seção Personalizada</h3>
+                        <div className="flex gap-2">
+                            <Input
+                                placeholder="Ex: Oportunidades no Centro"
+                                value={newSectionTitle}
+                                onChange={(e) => setNewSectionTitle(e.target.value)}
+                            />
+                            <Button onClick={handleCreateSection} disabled={!newSectionTitle.trim()}>
+                                <Plus className="mr-2 h-4 w-4" /> Criar
+                            </Button>
+                        </div>
                     </div>
-                </div>
 
-                <div className="space-y-4">
-                     <h3 className="text-lg font-semibold">Minhas Seções</h3>
-                    {isLoading && (
-                        <div className="space-y-3">
-                            {[...Array(2)].map((_, i) => <Skeleton key={i} className="h-12 w-full rounded-md" />)}
-                        </div>
-                    )}
-                    {error && (
-                        <Alert variant="destructive">
-                            <AlertTriangle className="h-4 w-4" />
-                            <AlertTitle>Erro</AlertTitle>
-                            <AlertDescription>Não foi possível carregar as seções.</AlertDescription>
-                        </Alert>
-                    )}
-                    {!isLoading && !error && sections?.length === 0 && (
-                        <p className="text-muted-foreground text-sm">Nenhuma seção personalizada criada ainda.</p>
-                    )}
-                    {!isLoading && sections && (
-                        <div className="space-y-2">
-                            {sections.map(section => (
-                                <div key={section.id} className="flex items-center justify-between p-3 border rounded-md bg-muted/50">
-                                    {editingSection?.id === section.id ? (
-                                        <Input 
-                                            value={editingSection.title}
-                                            onChange={(e) => setEditingSection({...editingSection, title: e.target.value})}
-                                            className="h-9"
-                                        />
-                                    ) : (
-                                        <span className="font-medium">{section.title}</span>
-                                    )}
-
-                                    <div className="flex gap-2">
-                                        {editingSection?.id === section.id ? (
-                                             <>
-                                                <Button size="icon" variant="outline" className="h-9 w-9" onClick={handleUpdateSection}><Check className="h-4 w-4 text-green-500"/></Button>
-                                                <Button size="icon" variant="outline" className="h-9 w-9" onClick={() => setEditingSection(null)}><X className="h-4 w-4"/></Button>
-                                             </>
-                                        ) : (
-                                            <>
-                                                <Button size="icon" variant="outline" className="h-9 w-9" onClick={() => setEditingSection({id: section.id, title: section.title})}><Edit className="h-4 w-4" /></Button>
-                                                <Button size="icon" variant="destructive" className="h-9 w-9" onClick={() => handleDeleteSection(section.id, section.title)}><Trash2 className="h-4 w-4" /></Button>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                <Separator />
-                
-                <div>
-                    <h3 className="text-lg font-semibold mb-4">Outras Seções da Página</h3>
                     <div className="space-y-4">
-                        <SettingToggle
-                            id="showReviews"
-                            label="Seção de Avaliações de Clientes"
-                            description="Mostra o carrossel com as avaliações e depoimentos dos seus clientes."
-                            isChecked={siteSettings?.showReviews ?? true}
-                            onCheckedChange={(value) => handleSettingChange('showReviews', value)}
-                            isLoading={isAgentLoading}
-                        />
-                    </div>
-                </div>
+                        <h3 className="text-lg font-semibold">Minhas Seções</h3>
+                        {isLoading && (
+                            <div className="space-y-3">
+                                {[...Array(2)].map((_, i) => <Skeleton key={i} className="h-12 w-full rounded-md" />)}
+                            </div>
+                        )}
+                        {error && (
+                            <Alert variant="destructive">
+                                <AlertTriangle className="h-4 w-4" />
+                                <AlertTitle>Erro</AlertTitle>
+                                <AlertDescription>Não foi possível carregar as seções.</AlertDescription>
+                            </Alert>
+                        )}
+                        {!isLoading && !error && sections?.length === 0 && (
+                            <p className="text-muted-foreground text-sm">Nenhuma seção personalizada criada ainda.</p>
+                        )}
+                        {!isLoading && sections && (
+                            <div className="space-y-2">
+                                {sections.map(section => (
+                                    <div key={section.id} className="flex items-center justify-between p-3 border rounded-md bg-muted/50">
+                                        {editingSection?.id === section.id ? (
+                                            <Input 
+                                                value={editingSection.title}
+                                                onChange={(e) => setEditingSection({...editingSection, title: e.target.value})}
+                                                className="h-9"
+                                            />
+                                        ) : (
+                                            <span className="font-medium">{section.title}</span>
+                                        )}
 
-            </CardContent>
-        </Card>
+                                        <div className="flex gap-2">
+                                            {editingSection?.id === section.id ? (
+                                                <>
+                                                    <Button size="icon" variant="outline" className="h-9 w-9" onClick={handleUpdateSection}><Check className="h-4 w-4 text-green-500"/></Button>
+                                                    <Button size="icon" variant="outline" className="h-9 w-9" onClick={() => setEditingSection(null)}><X className="h-4 w-4"/></Button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Button size="icon" variant="outline" className="h-9 w-9" onClick={() => setEditingSection({id: section.id, title: section.title})}><Edit className="h-4 w-4" /></Button>
+                                                    <Button size="icon" variant="destructive" className="h-9 w-9" onClick={() => handleDeleteSection(section.id, section.title)}><Trash2 className="h-4 w-4" /></Button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <Separator />
+                    
+                    <div>
+                        <h3 className="text-lg font-semibold mb-4">Outras Seções da Página</h3>
+                        <div className="space-y-4">
+                            <SettingToggle
+                                id="showReviews"
+                                label="Seção de Avaliações de Clientes"
+                                description="Mostra o carrossel com as avaliações e depoimentos dos seus clientes."
+                                isChecked={siteSettings?.showReviews ?? true}
+                                onCheckedChange={(value) => handleSettingChange('showReviews', value)}
+                                isLoading={isAgentLoading}
+                            />
+                        </div>
+                    </div>
+
+                </CardContent>
+            </Card>
+        </div>
     );
 }

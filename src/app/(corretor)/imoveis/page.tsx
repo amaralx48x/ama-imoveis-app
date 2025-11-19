@@ -20,6 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { InfoCard } from '@/components/info-card';
 
 
 function PropertyList({ 
@@ -73,12 +74,15 @@ function PropertyList({
                 <h2 className="text-2xl font-bold mb-2">{emptyStateTitle}</h2>
                 <p className="text-muted-foreground mb-4">{emptyStateDescription}</p>
                  {emptyStateTitle.includes("Nenhum imóvel ativo") && (
-                     <Button asChild>
-                        <Link href="/imoveis/novo">
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Adicionar Primeiro Imóvel
-                        </Link>
-                    </Button>
+                     <>
+                        <Button asChild>
+                            <Link href="/imoveis/novo">
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Adicionar Primeiro Imóvel
+                            </Link>
+                        </Button>
+                        <p className="text-xs text-muted-foreground mt-3">Fique tranquilo, ao adicionar seu primeiro imóvel, os exemplos do seu site público não aparecerão mais.</p>
+                     </>
                  )}
             </div>
         )
@@ -176,6 +180,15 @@ export default function ImoveisPage() {
 
     return (
         <div className="space-y-8">
+            <InfoCard cardId="meus-imoveis-info" title="Gerencie seu Portfólio">
+                <p>
+                    Aqui você pode adicionar, editar e visualizar todos os seus imóveis. Use as abas para ver os imóveis <strong>Ativos</strong>, <strong>Vendidos</strong> ou <strong>Alugados</strong>.
+                </p>
+                <p>
+                    <strong>Dica:</strong> No menu de cada imóvel (três pontinhos), você pode marcá-lo como vendido/alugado, o que o moverá para a aba correspondente e atualizará suas métricas no Dashboard.
+                </p>
+            </InfoCard>
+
             <div className="flex justify-between items-center animate-fade-in-up">
                 <div>
                     <h1 className="text-3xl font-bold font-headline">Meus Imóveis ({currentPropertiesCount} / {limits.maxProperties === Infinity ? 'Ilimitado' : limits.maxProperties})</h1>

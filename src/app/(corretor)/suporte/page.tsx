@@ -21,6 +21,7 @@ import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import ImageUpload from '@/components/image-upload';
+import { InfoCard } from '@/components/info-card';
 
 const faqItems = [
   {
@@ -120,7 +121,7 @@ function MessagesHistory() {
                                     <div className="flex justify-between items-center w-full">
                                         <p className="font-semibold truncate pr-4">{msg.message}</p>
                                         <div className="text-right flex items-center gap-4 flex-shrink-0">
-                                            <span className="text-xs text-muted-foreground hidden sm:inline">{formatDate(msg.createdAt)}</span>
+                                            <span className="text-xs text-muted-foreground hidden sm:inline">{formatDate(new Date(msg.createdAt))}</span>
                                             <Badge variant={msg.status === 'pending' ? 'default' : 'secondary'}>
                                                 {msg.status === 'pending' ? 'Pendente' : 'Respondido'}
                                             </Badge>
@@ -143,7 +144,7 @@ function MessagesHistory() {
                                             <div className="border-t pt-4 mt-4">
                                                 <p className="font-semibold text-sm mb-2">Resposta do Suporte:</p>
                                                 <p className="text-sm bg-muted p-3 rounded-md whitespace-pre-wrap">{msg.responseMessage}</p>
-                                                <p className="text-xs text-muted-foreground mt-2">Respondido em {formatDate(msg.responseAt)}</p>
+                                                <p className="text-xs text-muted-foreground mt-2">Respondido em {formatDate(new Date(msg.responseAt))}</p>
                                             </div>
                                         )}
                                     </div>
@@ -206,6 +207,15 @@ export default function SuportePage() {
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
+      <InfoCard cardId="suporte-info" title="Bem-vindo à Central de Suporte">
+        <p>
+            Este é o seu canal direto para tirar dúvidas ou reportar problemas. Nossa equipe de suporte está pronta para ajudar.
+        </p>
+        <p>
+            Consulte as <strong>Perguntas Frequentes (FAQ)</strong> para respostas rápidas. Se não encontrar o que precisa, use o formulário para nos enviar uma mensagem detalhada. Você pode acompanhar o status das suas solicitações no <strong>Histórico</strong>.
+        </p>
+      </InfoCard>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2"><LifeBuoy/> Central de Suporte</CardTitle>

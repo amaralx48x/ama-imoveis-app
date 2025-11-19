@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -13,6 +14,7 @@ import { Loader2, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import ImageUpload from '@/components/image-upload';
 import Image from 'next/image';
+import { InfoCard } from '@/components/info-card';
 
 type SeoData = {
     title: string;
@@ -102,68 +104,82 @@ export default function SEOPage() {
   };
 
   return (
-    <Card>
-        <CardHeader>
-            <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2">
-                <Search /> SEO da Página Pública
-            </CardTitle>
-            <CardDescription>
-                Gerencie como seu site aparece em mecanismos de busca como o Google.
-            </CardDescription>
-        </CardHeader>
-        <CardContent>
-            {isLoading ? <SEOPageSkeleton /> : (
-                <div className="space-y-6">
-                    <div>
-                        <label className="text-sm font-medium">Título da Página</label>
-                        <Input 
-                            value={seo.title} 
-                            onChange={e => setSeo({ ...seo, title: e.target.value })} 
-                            placeholder="Ex: AMA Imóveis - Encontre seu lar"
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">O título principal que aparece na aba do navegador e nos resultados de busca.</p>
-                    </div>
+    <div className="space-y-6">
+        <InfoCard cardId="seo-info" title="Otimize sua Visibilidade (SEO)">
+            <p>
+                SEO (Search Engine Optimization) ajuda seu site a ser encontrado em mecanismos de busca como o Google. Preencha os campos abaixo para melhorar seu posicionamento.
+            </p>
+            <ul className="list-disc pl-5 space-y-1 mt-2">
+                <li><strong>Título:</strong> O nome que aparece na aba do navegador e como título principal no Google.</li>
+                <li><strong>Descrição:</strong> O texto que aparece abaixo do título nos resultados da busca.</li>
+                <li><strong>Palavras-chave:</strong> Termos que seus clientes usariam para te encontrar (ex: "imóveis em campinas", "casa para alugar").</li>
+                <li><strong>Imagem de Compartilhamento:</strong> A imagem que aparece quando você ou alguém compartilha o link do seu site no WhatsApp ou redes sociais.</li>
+            </ul>
+        </InfoCard>
 
-                    <div>
-                        <label className="text-sm font-medium">Descrição (Meta Description)</label>
-                        <Textarea 
-                            value={seo.description} 
-                            onChange={e => setSeo({ ...seo, description: e.target.value })} 
-                            placeholder="Descreva seu site em até 160 caracteres."
-                            maxLength={160}
-                        />
-                         <p className="text-xs text-muted-foreground mt-1">Este texto aparece abaixo do título nos resultados de busca.</p>
-                    </div>
-
-                    <div>
-                        <label className="text-sm font-medium">Palavras-chave (separadas por vírgula)</label>
-                        <Input 
-                            value={seo.keywords} 
-                            onChange={e => setSeo({ ...seo, keywords: e.target.value })}
-                            placeholder="Ex: imóveis em sp, comprar casa, apartamento em campinas, aluguel"
-                        />
-                         <p className="text-xs text-muted-foreground mt-1">Termos que descrevem seu negócio e localização.</p>
-                    </div>
-
-                    <div>
-                        <label className="text-sm font-medium">Imagem de Compartilhamento (OG Image)</label>
-                        {user && seoKey && (
-                            <ImageUpload
-                                onUploadComplete={handleUploadComplete}
-                                currentImageUrl={seo.image}
-                                agentId={user.uid}
-                                propertyId={`seo-image`} // Unique ID for this purpose
+        <Card>
+            <CardHeader>
+                <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2">
+                    <Search /> SEO da Página Pública
+                </CardTitle>
+                <CardDescription>
+                    Gerencie como seu site aparece em mecanismos de busca como o Google.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                {isLoading ? <SEOPageSkeleton /> : (
+                    <div className="space-y-6">
+                        <div>
+                            <label className="text-sm font-medium">Título da Página</label>
+                            <Input 
+                                value={seo.title} 
+                                onChange={e => setSeo({ ...seo, title: e.target.value })} 
+                                placeholder="Ex: AMA Imóveis - Encontre seu lar"
                             />
-                        )}
-                         <p className="text-xs text-muted-foreground mt-1">A imagem que aparece ao compartilhar seu site em redes sociais. Tamanho recomendado: 1200x630px.</p>
-                    </div>
+                            <p className="text-xs text-muted-foreground mt-1">O título principal que aparece na aba do navegador e nos resultados de busca.</p>
+                        </div>
 
-                    <Button onClick={handleSave} disabled={isSaving} size="lg" className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
-                        {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando...</> : 'Salvar Configurações de SEO'}
-                    </Button>
-                </div>
-            )}
-        </CardContent>
-    </Card>
+                        <div>
+                            <label className="text-sm font-medium">Descrição (Meta Description)</label>
+                            <Textarea 
+                                value={seo.description} 
+                                onChange={e => setSeo({ ...seo, description: e.target.value })} 
+                                placeholder="Descreva seu site em até 160 caracteres."
+                                maxLength={160}
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">Este texto aparece abaixo do título nos resultados de busca.</p>
+                        </div>
+
+                        <div>
+                            <label className="text-sm font-medium">Palavras-chave (separadas por vírgula)</label>
+                            <Input 
+                                value={seo.keywords} 
+                                onChange={e => setSeo({ ...seo, keywords: e.target.value })}
+                                placeholder="Ex: imóveis em sp, comprar casa, apartamento em campinas, aluguel"
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">Termos que descrevem seu negócio e localização.</p>
+                        </div>
+
+                        <div>
+                            <label className="text-sm font-medium">Imagem de Compartilhamento (OG Image)</label>
+                            {user && seoKey && (
+                                <ImageUpload
+                                    onUploadComplete={handleUploadComplete}
+                                    currentImageUrl={seo.image}
+                                    agentId={user.uid}
+                                    propertyId={`seo-image`} // Unique ID for this purpose
+                                />
+                            )}
+                            <p className="text-xs text-muted-foreground mt-1">A imagem que aparece ao compartilhar seu site em redes sociais. Tamanho recomendado: 1200x630px.</p>
+                        </div>
+
+                        <Button onClick={handleSave} disabled={isSaving} size="lg" className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
+                            {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando...</> : 'Salvar Configurações de SEO'}
+                        </Button>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    </div>
   );
 }

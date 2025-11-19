@@ -3,10 +3,19 @@
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Wrench } from "lucide-react";
+import { InfoCard } from '@/components/info-card';
 
 export default function ContactsPage() {
   return (
     <div className="space-y-6">
+       <InfoCard cardId="contatos-info" title="Gerenciamento de Contatos">
+          <p>
+            Esta seção está em desenvolvimento. Em breve, você poderá cadastrar, organizar e vincular seus contatos (proprietários e clientes) diretamente aos seus imóveis.
+          </p>
+          <p>
+            Isso facilitará o controle de quem são os donos das propriedades e quais clientes estão interessados em cada uma delas.
+          </p>
+        </InfoCard>
        <Card>
         <CardHeader>
           <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2">

@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { InfoCard } from '@/components/info-card';
 
 function ReviewCard({ review, onApprove, onRemove }: { review: Review, onApprove: (id: string) => void, onRemove: (id: string) => void }) {
     const createdAt = review.createdAt ? format(new Date(review.createdAt), "d 'de' MMMM, yyyy 'às' HH:mm", { locale: ptBR }) : 'Data indisponível';
@@ -125,62 +126,73 @@ export default function AvaliacoesPage() {
     const hasApprovedReviews = reviews.some(r => r.approved);
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2"><Star /> Gerenciar Avaliações</CardTitle>
-                <CardDescription>
-                    Aprove, remova e gerencie as avaliações enviadas pelos seus clientes. As avaliações aprovadas aparecerão no seu site público.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                {!loading && !hasApprovedReviews && (
-                    <Alert>
-                        <Info className="h-4 w-4" />
-                        <AlertTitle>Site Público</AlertTitle>
-                        <AlertDescription>
-                            Enquanto você não tiver avaliações aprovadas, seu site público exibirá exemplos genéricos para manter uma aparência profissional.
-                        </AlertDescription>
-                    </Alert>
-                )}
+        <div className="space-y-6">
+            <InfoCard cardId="avaliacoes-info" title="Gerenciando a Reputação">
+                <p>
+                    As avaliações enviadas pelos seus clientes através do site público aparecerão aqui como "Pendentes".
+                </p>
+                <p>
+                    Você tem total controle para <strong>Aprovar</strong> ou <strong>Remover</strong> cada uma. Apenas as avaliações que você aprovar serão exibidas na seção "O que nossos clientes dizem" do seu site.
+                </p>
+            </InfoCard>
 
-                {loading && (
-                    <div className="space-y-4">
-                        {[...Array(3)].map((_, i) => (
-                           <div key={i} className="flex space-x-4 border rounded-lg p-4">
-                               <div className="flex-1 space-y-3">
-                                   <Skeleton className="h-5 w-1/4" />
-                                   <Skeleton className="h-4 w-3/4" />
-                                   <Skeleton className="h-4 w-1/2" />
-                               </div>
-                               <Skeleton className="h-10 w-24" />
-                           </div>
-                        ))}
-                    </div>
-                )}
-                {error && (
-                    <Alert variant="destructive">
-                        <AlertTriangle className="h-4 w-4" />
-                        <AlertTitle>Erro</AlertTitle>
-                        <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                )}
-                {!loading && !error && reviews.length === 0 && (
-                    <div className="text-center py-16 rounded-lg border-2 border-dashed">
-                        <Smile className="mx-auto h-12 w-12 text-muted-foreground" />
-                        <h2 className="text-2xl font-bold mt-4">Nenhuma avaliação encontrada</h2>
-                        <p className="text-muted-foreground mt-2">
-                           Seus clientes ainda não enviaram nenhuma avaliação.
-                        </p>
-                    </div>
-                )}
-                {!loading && !error && reviews.length > 0 && (
-                    <div className="space-y-4">
-                        {reviews.map(review => (
-                            <ReviewCard key={review.id} review={review} onApprove={handleApprove} onRemove={handleRemove} />
-                        ))}
-                    </div>
-                )}
-            </CardContent>
-        </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2"><Star /> Gerenciar Avaliações</CardTitle>
+                    <CardDescription>
+                        Aprove, remova e gerencie as avaliações enviadas pelos seus clientes. As avaliações aprovadas aparecerão no seu site público.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {!loading && !hasApprovedReviews && (
+                        <Alert>
+                            <Info className="h-4 w-4" />
+                            <AlertTitle>Site Público</AlertTitle>
+                            <AlertDescription>
+                                Enquanto você não tiver avaliações aprovadas, seu site público exibirá exemplos genéricos para manter uma aparência profissional.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+
+                    {loading && (
+                        <div className="space-y-4">
+                            {[...Array(3)].map((_, i) => (
+                            <div key={i} className="flex space-x-4 border rounded-lg p-4">
+                                <div className="flex-1 space-y-3">
+                                    <Skeleton className="h-5 w-1/4" />
+                                    <Skeleton className="h-4 w-3/4" />
+                                    <Skeleton className="h-4 w-1/2" />
+                                </div>
+                                <Skeleton className="h-10 w-24" />
+                            </div>
+                            ))}
+                        </div>
+                    )}
+                    {error && (
+                        <Alert variant="destructive">
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertTitle>Erro</AlertTitle>
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                    )}
+                    {!loading && !error && reviews.length === 0 && (
+                        <div className="text-center py-16 rounded-lg border-2 border-dashed">
+                            <Smile className="mx-auto h-12 w-12 text-muted-foreground" />
+                            <h2 className="text-2xl font-bold mt-4">Nenhuma avaliação encontrada</h2>
+                            <p className="text-muted-foreground mt-2">
+                            Seus clientes ainda não enviaram nenhuma avaliação.
+                            </p>
+                        </div>
+                    )}
+                    {!loading && !error && reviews.length > 0 && (
+                        <div className="space-y-4">
+                            {reviews.map(review => (
+                                <ReviewCard key={review.id} review={review} onApprove={handleApprove} onRemove={handleRemove} />
+                            ))}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
     );
 }

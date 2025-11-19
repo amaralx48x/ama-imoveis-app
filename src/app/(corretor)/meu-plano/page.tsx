@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, Gem } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { InfoCard } from '@/components/info-card';
 
 export default function MeuPlanoPage() {
   const { plan, setPlan, limits, currentPropertiesCount, isLoading } = usePlan();
@@ -43,6 +44,15 @@ export default function MeuPlanoPage() {
 
   return (
     <div className="space-y-8">
+        <InfoCard cardId="meu-plano-info" title="Seu Plano e Limites">
+            <p>
+                Aqui você pode visualizar os recursos do seu plano atual e o que cada um oferece. A troca de planos é simulada para que você possa entender as vantagens de cada um.
+            </p>
+            <p>
+                O plano <strong>Corretor Plus</strong> é ideal para começar, enquanto o <strong>Imobiliária Plus</strong> oferece recursos avançados como imóveis ilimitados e importação de dados, perfeito para quem tem um portfólio maior.
+            </p>
+        </InfoCard>
+
         <div>
             <h1 className="text-3xl font-bold font-headline flex items-center gap-2"><Gem /> Meu Plano e Assinatura</h1>
             <p className="text-muted-foreground">Gerencie sua assinatura, veja seus limites e faça upgrade.</p>

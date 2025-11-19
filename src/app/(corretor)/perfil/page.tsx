@@ -30,6 +30,7 @@ import { X, Plus, CalendarDays, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
+import { InfoCard } from '@/components/info-card';
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, { message: 'O nome de exibição deve ter pelo menos 2 caracteres.' }),
@@ -222,6 +223,16 @@ export default function PerfilPage() {
   }
 
   return (
+    <div className="space-y-6">
+    <InfoCard cardId="perfil-info" title="Suas Informações Públicas">
+        <p>
+            Tudo que você preencher aqui será usado para construir seu site público. O "Nome do Site" aparecerá no topo, a foto de perfil e a descrição "Sobre Você" criarão sua seção de apresentação.
+        </p>
+        <p>
+            As cidades de atuação e a disponibilidade para visitas serão usadas nos formulários de busca e agendamento dos seus clientes.
+        </p>
+    </InfoCard>
+
     <Card>
       <CardHeader>
         <CardTitle className="text-3xl font-bold font-headline">Meu Perfil</CardTitle>
@@ -475,5 +486,6 @@ export default function PerfilPage() {
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }

@@ -23,6 +23,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { InfoCard } from '@/components/info-card';
 
 const MotionCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <div className={`transition-all duration-500 ease-out hover:scale-105 hover:shadow-primary/20 ${className}`}>
@@ -92,6 +93,15 @@ export default function DashboardPage() {
     return (
         <>
         <div className="space-y-8">
+             <InfoCard cardId="dashboard-welcome" title={`Bem-vindo(a) ao seu Painel, ${displayName}!`}>
+                <p>
+                    Este é o seu centro de comando. Acompanhe as métricas mais importantes do seu negócio, como imóveis ativos, comissões e o desempenho de vendas ao longo do mês.
+                </p>
+                <p>
+                    Use o menu à esquerda para navegar entre as funcionalidades, como gerenciar seus imóveis, leads e configurar seu site público.
+                </p>
+            </InfoCard>
+
             <div className="animate-fade-in-up">
                 <h1 className="text-3xl font-bold font-headline">
                     {greeting}, <span className="text-gradient">{isLoading ? <Skeleton className="h-8 w-32 inline-block" /> : displayName}</span>!
