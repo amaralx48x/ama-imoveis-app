@@ -79,12 +79,20 @@ service cloud.firestore {
     // Mensagens de suporte
     // =========================
     match /supportMessages/{messageId} {
-      // Apenas admins podem ler/escrever em todos os tickets.
-      allow read, write: if isAdmin();
+      // Admins podem ler qualquer mensagem individualmente e listar todas.
+      allow get, list: if isAdmin();
+      
+      // Admins podem responder (update) ou excluir.
+      allow write: if isAdmin();
+
       // Usuários autenticados podem criar tickets.
       allow create: if isSignedIn();
-      // O remetente pode ler seu próprio ticket.
+      
+      // O remetente pode ler seu próprio ticket individualmente.
       allow get: if isOwner(resource.data.senderId);
+
+      // Usuários podem listar APENAS os seus próprios tickets.
+      allow list: if isSignedIn() && request.query.where.senderId == request.auth.uid;
     }
 
     // =========================
