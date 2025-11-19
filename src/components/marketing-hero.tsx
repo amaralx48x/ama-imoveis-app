@@ -37,17 +37,19 @@ export function MarketingHero({ content }: MarketingHeroProps) {
     >
       {mediaUrl && (
         <>
-          <div className="absolute inset-0 bg-black -z-20"></div>
+          <div className="absolute inset-0 bg-black -z-20" />
           {mediaType === 'video' ? (
             <video
-              key={mediaUrl} // Add key to force re-render on src change
-              src={mediaUrl}
+              key={mediaUrl}
               autoPlay
               loop
               muted
               playsInline
               className="absolute inset-0 w-full h-full object-cover -z-10 brightness-50"
-            />
+            >
+              <source src={mediaUrl} type="video/mp4" />
+              Seu navegador não suporta a tag de vídeo.
+            </video>
           ) : (
             <img
               src={mediaUrl}
