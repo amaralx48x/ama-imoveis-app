@@ -66,7 +66,32 @@ export default function MarketingClientPage() {
       </header>
       
       {/* HERO */}
-      <MarketingHero content={marketingData} />
+       <section className="relative w-full h-[70vh] min-h-[500px] md:h-[80vh] overflow-hidden flex items-center justify-center text-center text-white">
+        <img
+          src={getImage('hero_image_url', "https://picsum.photos/seed/hero-bg/1920/1080")}
+          alt="Plataforma para corretores e imobiliárias"
+          className="absolute inset-0 w-full h-full object-cover z-0"
+        />
+        <div className="absolute inset-0 bg-black/40"></div>
+        <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={container} className="relative z-10 max-w-3xl px-4">
+            <motion.h2 variants={fadeUp} className="text-4xl md:text-5xl font-extrabold leading-tight">
+              A plataforma completa para <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C4B5FD] to-[#A78BFA]">corretores e imobiliárias</span>
+            </motion.h2>
+
+            <motion.p variants={fadeUp} className="mt-6 text-lg text-white/70">
+              Gerencie anúncios, leads, visitas e comissões — tudo num só lugar. Painéis inteligentes, agenda integrada e site público para cada corretor.
+            </motion.p>
+
+            <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-3 justify-center">
+              <Link href="/login" className={`inline-flex items-center gap-3 px-6 py-3 rounded-lg font-semibold ${neon} text-white shadow-lg hover:scale-[1.02] transition`}>
+                Iniciar 7 dias grátis
+              </Link>
+              <a href="#features" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10 text-sm hover:bg-white/5 transition">
+                Conhecer recursos
+              </a>
+            </motion.div>
+        </motion.div>
+      </section>
 
       {/* MAIN CONTENT */}
       <main className="container mx-auto px-6 py-20">
@@ -91,6 +116,9 @@ export default function MarketingClientPage() {
             </div>
           </motion.div>
         </section>
+
+        {/* Video Section */}
+        <MarketingHero content={marketingData} />
 
         {/* Image gallery + social proof */}
         <section className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center py-10">

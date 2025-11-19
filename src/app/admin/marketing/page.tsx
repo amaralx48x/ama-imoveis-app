@@ -47,8 +47,8 @@ const formSchemaDefinition = otherImageFields.reduce((acc, field) => {
     acc[field.name] = z.string().url('URL inválida').optional().or(z.literal(''));
     return acc;
 }, {
-    hero_media_url: z.string().url('URL inválida').optional().or(z.literal('')),
-    hero_media_type: z.enum(['image', 'video']).optional(),
+    hero_image_url: z.string().url('URL inválida').optional().or(z.literal('')),
+    feature_video_url: z.string().url('URL inválida').optional().or(z.literal('')),
 } as Record<keyof MarketingContent, z.ZodType<any, any>>);
 
 const marketingFormSchema = z.object(formSchemaDefinition);
@@ -90,16 +90,13 @@ export default function MarketingAdminPage() {
 
     const form = useForm<z.infer<typeof marketingFormSchema>>({
         resolver: zodResolver(marketingFormSchema),
-        defaultValues: {
-            hero_media_type: 'image',
-        },
+        defaultValues: {},
     });
 
     useEffect(() => {
         if (marketingData) {
             form.reset({
                 ...marketingData,
-                hero_media_type: marketingData.hero_media_type || 'image',
             });
         }
     }, [marketingData, form]);
@@ -112,7 +109,6 @@ export default function MarketingAdminPage() {
         if (!marketingRef) return;
         
         try {
-            // Firestore does not accept `undefined`. Clean the object before saving.
             const cleanedValues = Object.fromEntries(
                 Object.entries(values).map(([key, value]) => [key, value === undefined ? null : value])
             );
@@ -143,49 +139,42 @@ export default function MarketingAdminPage() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Seção de Herói</CardTitle>
-                            <CardDescription>A mídia principal que aparece no topo da página.</CardDescription>
+                            <CardTitle>Mídias Principais</CardTitle>
+                            <CardDescription>A imagem do topo da página e o vídeo de destaque.</CardDescription>
                         </CardHeader>
                         <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                            <FormField
-                                control={form.control}
-                                name="hero_media_type"
-                                render={({ field }) => (
-                                <FormItem className="space-y-3">
-                                    <FormLabel>Tipo de Mídia</FormLabel>
-                                    <FormControl>
-                                    <RadioGroup
-                                        onValueChange={field.onChange}
-                                        value={field.value}
-                                        className="flex space-x-2"
-                                    >
-                                        <FormItem className="flex items-center space-x-2 space-y-0">
-                                            <FormControl><RadioGroupItem value="image" /></FormControl>
-                                            <FormLabel className="font-normal">Imagem</FormLabel>
-                                        </FormItem>
-                                        <FormItem className="flex items-center space-x-2 space-y-0">
-                                            <FormControl><RadioGroupItem value="video" /></FormControl>
-                                            <FormLabel className="font-normal">Vídeo</FormLabel>
-                                        </FormItem>
-                                    </RadioGroup>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                                )}
-                            />
-                            <FormField
-                                name="hero_media_url"
+                                name="hero_image_url"
                                 control={form.control}
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Upload da Mídia do Herói</FormLabel>
-                                        <FormDescription>Envie um vídeo (.mp4) ou imagem.</FormDescription>
+                                        <FormLabel>Imagem do Herói</FormLabel>
+                                        <FormDescription>Imagem de fundo do topo da página.</FormDescription>
                                         <FormControl>
                                             <ImageUpload
-                                                onUploadComplete={handleUploadComplete('hero_media_url')}
+                                                onUploadComplete={handleUploadComplete('hero_image_url')}
                                                 currentImageUrl={field.value}
                                                 agentId="marketing"
-                                                propertyId="hero_media"
+                                                propertyId="hero_image"
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                             />
+                              <FormField
+                                name="feature_video_url"
+                                control={form.control}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Vídeo de Destaque</FormLabel>
+                                        <FormDescription>Vídeo que aparecerá abaixo da seção de recursos.</FormDescription>
+                                        <FormControl>
+                                            <ImageUpload
+                                                onUploadComplete={handleUploadComplete('feature_video_url')}
+                                                currentImageUrl={field.value}
+                                                agentId="marketing"
+                                                propertyId="feature_video"
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -216,8 +205,8 @@ export default function MarketingAdminPage() {
                                         <ImageUpload
                                                 onUploadComplete={handleUploadComplete(fieldInfo.name)}
                                                 currentImageUrl={field.value}
-                                                agentId="marketing" // Use a dedicated folder
-                                                propertyId={fieldInfo.name} // Use field name for uniqueness
+                                                agentId="marketing" 
+                                                propertyId={fieldInfo.name}
                                             />
                                         </FormControl>
                                         <FormMessage />
