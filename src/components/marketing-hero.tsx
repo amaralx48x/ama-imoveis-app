@@ -1,3 +1,4 @@
+
 'use client';
 
 import { MarketingContent } from '@/lib/data';
@@ -33,34 +34,36 @@ export function MarketingHero({ content }: MarketingHeroProps) {
       whileInView="show"
       viewport={{ once: true }}
       variants={container}
-      className="relative min-h-[70vh] flex items-center justify-center text-white text-center py-20 px-6"
+      className="relative w-full h-[70vh] min-h-[500px] md:h-[80vh] overflow-hidden flex items-center justify-center text-center text-white"
     >
+      {/* Vídeo ou Imagem em Background */}
       {mediaUrl && (
         <>
-          <div className="absolute inset-0 bg-black -z-20" />
           {mediaType === 'video' ? (
             <video
               key={mediaUrl}
+              className="absolute top-0 left-0 w-full h-full object-cover -z-10"
+              src={mediaUrl}
               autoPlay
               loop
               muted
               playsInline
-              className="absolute inset-0 w-full h-full object-cover -z-10 brightness-50"
-            >
-              <source src={mediaUrl} type="video/mp4" />
-              Seu navegador não suporta a tag de vídeo.
-            </video>
+            />
           ) : (
             <img
               src={mediaUrl}
               alt="Plataforma para corretores e imobiliárias"
-              className="absolute inset-0 w-full h-full object-cover -z-10 brightness-50"
+              className="absolute top-0 left-0 w-full h-full object-cover -z-10"
             />
           )}
         </>
       )}
 
-      <motion.div variants={fadeUp} className="max-w-3xl z-10">
+      {/* Camada de escurecimento opcional */}
+      <div className="absolute inset-0 bg-black/40"></div>
+
+      {/* Conteúdo por cima do vídeo */}
+      <motion.div variants={fadeUp} className="relative z-10 max-w-3xl px-4">
         <h2 className="text-4xl md:text-5xl font-extrabold leading-tight">
           A plataforma completa para <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C4B5FD] to-[#A78BFA]">corretores e imobiliárias</span>
         </h2>
@@ -78,29 +81,6 @@ export function MarketingHero({ content }: MarketingHeroProps) {
             Conhecer recursos
           </a>
         </div>
-
-        <div className="mt-8 flex gap-6 justify-center">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-md flex items-center justify-center bg-white/5">
-                  ⭐
-                </div>
-                <div>
-                  <div className="font-semibold">Avaliações reais</div>
-                  <div className="text-xs text-white/60">Mais de 4.8 de satisfação</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-md flex items-center justify-center bg-white/5">
-                  🔒
-                </div>
-                <div>
-                  <div className="font-semibold">Segurança</div>
-                  <div className="text-xs text-white/60">Dados criptografados</div>
-                </div>
-              </div>
-            </div>
-
       </motion.div>
     </motion.section>
   );
