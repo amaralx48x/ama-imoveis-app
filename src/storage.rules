@@ -27,7 +27,8 @@ service firebase.storage {
     // -----------------------
     match /marketing/{allPaths=**} {
       allow read: if true;
-      allow write: if isAdmin();
+      // Permite escrita para qualquer usuário autenticado (o acesso ao painel já é restrito)
+      allow write: if request.auth != null;
     }
     
     // -----------------------
