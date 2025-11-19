@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -18,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useFirestore, useUser, googleProvider, signInWithRedirect, getRedirectResult, saveUserToFirestore } from '@/firebase';
+import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useFirestore, useUser, googleProvider, signInWithPopup, saveUserToFirestore } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { setDoc, doc } from 'firebase/firestore';
@@ -58,7 +59,7 @@ export default function LoginPage() {
     const { user, isUserLoading } = useUser();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
-    const [isGoogleLoading, setIsGoogleLoading] = useState(true); // Start true to handle redirect
+    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
     // Redirect if user is already logged in
     useEffect(() => {
@@ -66,29 +67,6 @@ export default function LoginPage() {
             router.replace('/dashboard');
         }
     }, [user, isUserLoading, router]);
-
-    // Handle Google Redirect Result
-    useEffect(() => {
-        if (!auth) return;
-        getRedirectResult(auth)
-            .then(async (result) => {
-                if (result) {
-                    await saveUserToFirestore(result.user, {
-                        displayName: result.user.displayName,
-                        name: result.user.displayName,
-                        accountType: 'corretor',
-                    });
-                    toast({ title: "Login bem-sucedido!" });
-                    router.push('/dashboard');
-                } else {
-                    setIsGoogleLoading(false); // No redirect result, stop loading
-                }
-            })
-            .catch((error) => {
-                handleAuthError(error as FirebaseError);
-                setIsGoogleLoading(false);
-            });
-    }, [auth, router, toast]);
 
     const loginForm = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
@@ -107,9 +85,7 @@ export default function LoginPage() {
         switch (error.code) {
             case 'auth/cancelled-popup-request':
             case 'auth/popup-closed-by-user':
-                title = "Login Cancelado";
-                description = "A janela de login foi fechada antes da conclusão.";
-                break;
+                return; // User closed the popup, no need to show an error.
             case 'auth/user-not-found':
             case 'auth/wrong-password':
             case 'auth/invalid-credential':
@@ -185,7 +161,20 @@ export default function LoginPage() {
     async function handleGoogleLogin() {
         if (!auth) return;
         setIsGoogleLoading(true);
-        signInWithRedirect(auth, googleProvider);
+        try {
+            const result = await signInWithPopup(auth, googleProvider);
+            await saveUserToFirestore(result.user, {
+                displayName: result.user.displayName,
+                name: result.user.displayName,
+                accountType: 'corretor',
+            });
+            toast({ title: "Login bem-sucedido!" });
+            router.push('/dashboard');
+        } catch (error) {
+            handleAuthError(error as FirebaseError);
+        } finally {
+            setIsGoogleLoading(false);
+        }
     }
 
 
