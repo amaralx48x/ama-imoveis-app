@@ -23,7 +23,7 @@ type AgentPageClientProps = {
 function AgentPageContent({ serverData }: AgentPageClientProps) {
   const searchParams = useSearchParams();
   const isDemo = searchParams.get('demo') === 'true';
-  const { demoState, updateDemoData } = useDemo();
+  const { demoState, isLoading: isDemoLoading } = useDemo();
 
   // A lógica central: se for demo, usa o demoState, senão, usa os dados do servidor.
   const data = isDemo ? demoState : serverData;
@@ -46,7 +46,7 @@ function AgentPageContent({ serverData }: AgentPageClientProps) {
   };
 
   // Se for demo e os dados ainda não carregaram, mostra um estado de carregamento.
-  if (isDemo && !demoState) {
+  if (isDemo && (isDemoLoading || !demoState)) {
       return (
         <div className="flex items-center justify-center min-h-screen">
           Carregando demonstração...
