@@ -8,11 +8,12 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { PropertyView } from '@/components/imovel/PropertyView';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useFirestore } from '@/firebase';
 import { RelatedProperties } from '@/components/imovel/RelatedProperties';
 import { getProperties as getStaticProperties, getAgent as getStaticAgent } from '@/lib/data';
+import { useDemo } from '@/context/DemoContext';
 
 
 function BackButton() {
@@ -70,9 +71,11 @@ async function getPropertyAndAgent(firestore: any, agentId: string, imovelId: st
 export default function PropertyPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const { isDemo, demoState } = useDemo();
   
   const imovelId = params.imovelId as string;
-  const agentId = searchParams.get('agentId');
+  const agentIdFromUrl = searchParams.get('agentId');
+  const agentId = isDemo ? demoState?.agent?.id : agentIdFromUrl;
   
   const [propertyData, setPropertyData] = useState<Property | null>(null);
   const [agentData, setAgentData] = useState<Agent | null>(null);
@@ -84,25 +87,32 @@ export default function PropertyPage() {
   useEffect(() => {
     const fetchData = async () => {
         setIsLoading(true);
-        if (!agentId || !firestore) {
-          const staticProp = getStaticProperties().find(p => p.id === imovelId);
-          if (staticProp) {
-            setPropertyData(staticProp);
-            setAgentData(getStaticAgent());
-            setAllProperties(getStaticProperties());
-          }
-        } else {
+        
+        if (isDemo) {
+            if (demoState) {
+                const prop = demoState.properties.find(p => p.id === imovelId);
+                setPropertyData(prop || null);
+                setAgentData(demoState.agent);
+                setAllProperties(demoState.properties);
+            }
+        } else if (agentId && firestore) {
             const { property, agent, allProperties } = await getPropertyAndAgent(firestore, agentId, imovelId);
             setPropertyData(property);
             setAgentData(agent);
             setAllProperties(allProperties);
+        } else {
+            const staticProp = getStaticProperties().find(p => p.id === imovelId);
+            setPropertyData(staticProp || null);
+            setAgentData(getStaticAgent());
+            setAllProperties(getStaticProperties());
         }
+
         setIsLoading(false);
     };
     
     fetchData();
 
-  }, [firestore, agentId, imovelId]);
+  }, [firestore, agentId, imovelId, isDemo, demoState]);
 
   if (isLoading) {
     return (
@@ -110,7 +120,7 @@ export default function PropertyPage() {
         <Header agentId={agentId || undefined} />
         <main className="min-h-[calc(100vh-theme(spacing.14)-theme(spacing.32))] container mx-auto px-4 py-8">
              <div className="flex items-center justify-center h-64">
-                <div className="w-12 h-12 border-4 border-dashed rounded-full animate-spin border-primary"></div>
+                <Loader2 className="w-12 h-12 animate-spin text-primary"/>
             </div>
         </main>
         <Footer agentId={agentId || undefined} />

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import type { Agent, Property, Review, CustomSection } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { Header } from "@/components/layout/header";
@@ -14,20 +14,31 @@ import { AgentProfile } from '@/components/agent-profile';
 import { ClientReviews } from '@/components/client-reviews';
 import { FloatingContactButton } from '@/components/floating-contact-button';
 import PropertyFilters from '@/components/property-filters';
-import { getPropertyTypes, getReviews as getStaticReviews } from '@/lib/data';
+import { getPropertyTypes } from '@/lib/data';
+import { useDemo, DemoState } from '@/context/DemoContext';
 
 
-export default function AgentPageClient({
-  agent,
-  allProperties,
-  customSections,
-  reviews,
-}: {
-  agent: Agent | null;
-  allProperties: Property[];
-  customSections: CustomSection[];
-  reviews: Review[];
-}) {
+type AgentPageClientProps = {
+    isDemo: boolean;
+    serverData: DemoState | null;
+}
+
+export default function AgentPageClient({ isDemo, serverData }: AgentPageClientProps) {
+  const { demoState } = useDemo();
+  const [data, setData] = useState<DemoState | null>(serverData);
+
+  useEffect(() => {
+    if (isDemo) {
+        setData(demoState);
+    } else {
+        setData(serverData);
+    }
+  }, [isDemo, demoState, serverData]);
+
+  const agent = data?.agent;
+  const allProperties = data?.properties || [];
+  const customSections = data?.customSections || [];
+  const reviews = data?.reviews || [];
 
   const citiesForFilter = useMemo(() => {
     if (!agent) return [];
@@ -37,7 +48,7 @@ export default function AgentPageClient({
   }, [agent, allProperties]);
 
   if (!agent) {
-    // Though we check in the server component, this is a safeguard.
+    if (isDemo && !demoState) return <div>Carregando demonstração...</div>;
     return notFound();
   }
   

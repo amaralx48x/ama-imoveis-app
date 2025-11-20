@@ -8,8 +8,20 @@ import { getReviews as getStaticReviews, getProperties as getStaticProperties, g
 import { getSEO } from "@/firebase/server-actions/seo";
 
 
-export async function generateMetadata({ params }: { params: { agentId: string } }): Promise<Metadata> {
-  const seoData = await getSEO(`agent-${params.agentId}`);
+export async function generateMetadata({ params, searchParams }: { params: { agentId: string }, searchParams: { [key: string]: string | string[] | undefined } }): Promise<Metadata> {
+  
+  const isDemo = searchParams.demo === 'true';
+  const seoKey = isDemo ? `agent-DEMO_AGENT_ID_999` : `agent-${params.agentId}`;
+
+  // For demo, we might want to return static metadata or fetch from a demo-specific SEO doc
+  if(isDemo){
+     return {
+        title: "Página do Corretor (Demonstração)",
+        description: "Confira os imóveis deste corretor em modo de demonstração.",
+     }
+  }
+
+  const seoData = await getSEO(seoKey);
   
   const title = seoData?.title || "Página do Corretor";
   const description = seoData?.description || "Confira os imóveis deste corretor.";
@@ -92,13 +104,20 @@ async function getAgentData(agentId: string) {
   }
 }
 
-export default async function AgentPublicPage({ params }: { params: { agentId: string } }) {
+export default async function AgentPublicPage({ params, searchParams }: { params: { agentId: string }, searchParams: { [key: string]: string | string[] | undefined } }) {
   const { agentId } = params;
+  const isDemo = searchParams.demo === 'true';
+
+  if (isDemo) {
+      // In demo mode, the client component will handle fetching from context
+      return <AgentPageClient isDemo={true} serverData={null} />;
+  }
+  
   const data = await getAgentData(agentId);
   
   if (!data) {
     return notFound();
   }
 
-  return <AgentPageClient {...data} />;
+  return <AgentPageClient isDemo={false} serverData={data} />;
 }

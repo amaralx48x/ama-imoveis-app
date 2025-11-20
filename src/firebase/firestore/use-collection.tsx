@@ -12,6 +12,7 @@ import {
   getDocs,
 } from 'firebase/firestore';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { useDemo } from '@/context/DemoContext';
 
 
 /** Utility type to add an 'id' field to a given type T. */
@@ -41,6 +42,7 @@ export interface InternalQuery extends Query<DocumentData> {
 export function useCollection<T = any>(
     memoizedTargetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>) & {__memo?: boolean})  | null | undefined,
 ): UseCollectionResult<T> {
+  const { isDemo, demoState } = useDemo();
   type ResultItemType = WithId<T>;
   type StateDataType = ResultItemType[] | null;
 
@@ -48,8 +50,34 @@ export function useCollection<T = any>(
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
+  useEffect(() => {
+    if (isDemo) {
+        setIsLoading(true);
+        if (memoizedTargetRefOrQuery && demoState) {
+             const path = (memoizedTargetRefOrQuery as CollectionReference).path;
+             // e.g. agents/DEMO_AGENT_ID_999/properties
+             const pathSegments = path.split('/');
+
+             if(pathSegments.includes('properties')) {
+                 setData(demoState.properties as WithId<T>[]);
+             } else if(pathSegments.includes('customSections')) {
+                 setData(demoState.customSections as WithId<T>[]);
+             } else if(pathSegments.includes('reviews')) {
+                 setData(demoState.reviews as WithId<T>[]);
+             }
+             else {
+                 setData([]);
+             }
+        } else {
+            setData(null);
+        }
+        setIsLoading(false);
+        return;
+    }
+  }, [isDemo, demoState, memoizedTargetRefOrQuery]);
+
   const fetchData = useCallback(async () => {
-    if (!memoizedTargetRefOrQuery) return;
+    if (isDemo || !memoizedTargetRefOrQuery) return;
     setIsLoading(true);
     try {
         const snapshot = await getDocs(memoizedTargetRefOrQuery);
@@ -67,9 +95,15 @@ export function useCollection<T = any>(
     } finally {
         setIsLoading(false);
     }
-  }, [memoizedTargetRefOrQuery]);
+  }, [memoizedTargetRefOrQuery, isDemo]);
 
   useEffect(() => {
+    if (isDemo) {
+        // Data is already handled by the demo-specific useEffect
+        setIsLoading(false);
+        return;
+    }
+    
     if (!memoizedTargetRefOrQuery) {
       setData(null);
       setIsLoading(false);
@@ -109,9 +143,9 @@ export function useCollection<T = any>(
     );
 
     return () => unsubscribe();
-  }, [memoizedTargetRefOrQuery]);
+  }, [memoizedTargetRefOrQuery, isDemo]);
 
-  if (memoizedTargetRefOrQuery && !memoizedTargetRefOrQuery.__memo) {
+  if (!isDemo && memoizedTargetRefOrQuery && !memoizedTargetRefOrQuery.__memo) {
     throw new Error(memoizedTargetRefOrQuery + ' was not properly memoized using useMemoFirebase');
   }
 

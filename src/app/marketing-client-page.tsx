@@ -7,9 +7,10 @@ import Link from "next/link";
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import type { MarketingContent } from "@/lib/data";
-import { Building2, Search, Share2 } from "lucide-react";
+import { Building2, Search, Share2, Loader2 } from "lucide-react";
 import { MarketingHero } from "@/components/marketing-hero";
 import { useRouter } from "next/navigation";
+import { useDemo } from "@/context/DemoContext";
 
 const neon = "bg-gradient-to-r from-primary via-accent to-[#B794F4]";
 
@@ -29,6 +30,7 @@ const fadeUp = {
 export default function MarketingClientPage() {
   const firestore = useFirestore();
   const router = useRouter();
+  const { startDemo, isLoading: isDemoLoading } = useDemo();
 
   const marketingRef = useMemoFirebase(
     () => (firestore ? doc(firestore, "marketing", "content") : null),
@@ -41,8 +43,9 @@ export default function MarketingClientPage() {
     return marketingData?.[field] || defaultUrl;
   };
 
-  const handleStartDemo = () => {
-    router.push('/login?demo=true');
+  const handleStartDemo = async () => {
+    await startDemo();
+    router.push('/dashboard');
   }
 
 
@@ -92,8 +95,8 @@ export default function MarketingClientPage() {
               <Link href="/login" className={`inline-flex items-center gap-3 px-6 py-3 rounded-lg font-semibold ${neon} text-white shadow-lg hover:scale-[1.02] transition`}>
                 Criar Conta
               </Link>
-              <button onClick={handleStartDemo} className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10 text-sm hover:bg-white/5 transition">
-                Testar o AMA IMOBI
+              <button onClick={handleStartDemo} className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10 text-sm hover:bg-white/5 transition" disabled={isDemoLoading}>
+                {isDemoLoading ? <><Loader2 className="animate-spin mr-2"/> Carregando...</> : 'Testar o AMA IMOBI'}
               </button>
             </motion.div>
         </motion.div>

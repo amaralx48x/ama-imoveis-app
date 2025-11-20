@@ -11,6 +11,7 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { useDemo } from '@/context/DemoContext';
 
 
 /** Utility type to add an 'id' field to a given type T. */
@@ -30,14 +31,35 @@ export interface UseDocResult<T> {
 export function useDoc<T = any>(
   memoizedDocRef: DocumentReference<DocumentData> | null | undefined,
 ): UseDocResult<T> {
+  const { isDemo, demoState } = useDemo();
   type StateDataType = WithId<T> | null;
 
   const [data, setData] = useState<StateDataType>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
+  useEffect(() => {
+    if (isDemo) {
+        setIsLoading(true);
+        if (memoizedDocRef && demoState) {
+            const path = memoizedDocRef.path; // e.g., "agents/DEMO_AGENT_ID"
+            const [collection, id] = path.split('/');
+
+            if (collection === 'agents' && id === demoState.agent.id) {
+                setData(demoState.agent as WithId<T>);
+            } else {
+                 setData(null);
+            }
+        } else {
+            setData(null);
+        }
+        setIsLoading(false);
+        return;
+    }
+  }, [isDemo, demoState, memoizedDocRef])
+
   const fetchData = useCallback(async () => {
-    if (!memoizedDocRef) {
+    if (isDemo || !memoizedDocRef) {
         setIsLoading(false);
         return;
     }
@@ -60,9 +82,15 @@ export function useDoc<T = any>(
     } finally {
         setIsLoading(false);
     }
-  }, [memoizedDocRef]);
+  }, [memoizedDocRef, isDemo]);
   
   useEffect(() => {
+     if (isDemo) {
+        // Data is already set by the other useEffect, so just stop loading.
+        setIsLoading(false);
+        return;
+    }
+
     if (!memoizedDocRef) {
       setData(null);
       setIsLoading(false);
@@ -96,7 +124,7 @@ export function useDoc<T = any>(
     );
 
     return () => unsubscribe();
-  }, [memoizedDocRef]);
+  }, [memoizedDocRef, isDemo]);
 
   return { data, isLoading, error, mutate: fetchData };
 }
