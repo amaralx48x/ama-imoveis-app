@@ -81,6 +81,7 @@ export default function CorretorLayout({
   const handleLogout = () => {
     if (isDemo) {
         sessionStorage.removeItem('demo_data');
+        sessionStorage.removeItem('isDemo');
         router.push('/');
         return;
     }
@@ -90,7 +91,8 @@ export default function CorretorLayout({
     }
   };
 
-  const agentSiteUrl = user ? `/corretor/${user.uid}` : '/';
+  const agentSiteUrl = user ? (isDemo ? `/corretor/demo-user-arthur` : `/corretor/${user.uid}`) : '/';
+
 
   const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
@@ -101,7 +103,7 @@ export default function CorretorLayout({
     { href: '/avaliacoes', label: 'Avaliações', icon: Star, badgeCount: pendingReviewsCount, badgeClass: 'bg-yellow-500 text-black' },
     { href: '/suporte', label: 'Suporte', icon: LifeBuoy },
     { href: '/meu-plano', label: 'Meu Plano', icon: Gem },
-    ...(!isDemo ? [{ href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' }] : []),
+    { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' },
   ];
   
   const adminMenuItems = [

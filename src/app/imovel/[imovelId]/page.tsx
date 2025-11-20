@@ -12,7 +12,9 @@ import { ArrowLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useFirestore } from '@/firebase';
 import { RelatedProperties } from '@/components/imovel/RelatedProperties';
-import { getProperties as getStaticProperties } from '@/lib/data';
+import { getProperties as getStaticProperties, getAgent as getStaticAgent } from '@/lib/data';
+import { useDemo } from '@/context/DemoContext';
+
 
 function BackButton() {
     const router = useRouter();
@@ -24,14 +26,11 @@ function BackButton() {
     );
 }
 
-type Props = {
-  params: { imovelId: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-};
 
-export default function PropertyPage({ }: Props) {
+export default function PropertyPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const { isDemo, demoData, isLoading: isDemoLoading } = useDemo();
   
   const imovelId = params.imovelId as string;
   const agentId = searchParams.get('agentId');
@@ -44,10 +43,7 @@ export default function PropertyPage({ }: Props) {
 
 
   useEffect(() => {
-    if (!imovelId || !firestore) {
-        setIsLoading(false);
-        return;
-    }
+    if (isDemoLoading) return;
 
     const fetchPropertyAndAgent = async () => {
         setIsLoading(true);
@@ -56,8 +52,11 @@ export default function PropertyPage({ }: Props) {
         let relatedProps: Property[] = [];
 
         try {
-            // Se houver um agentId, buscamos no Firestore primeiro.
-            if (agentId) {
+            if (isDemo && agentId === 'demo-user-arthur') {
+                property = demoData.properties.find(p => p.id === imovelId) || null;
+                agent = demoData.agent;
+                relatedProps = demoData.properties;
+            } else if (!isDemo && firestore && agentId) {
                 const agentRef = doc(firestore, 'agents', agentId);
                 const propertyRef = doc(firestore, `agents/${agentId}/properties`, imovelId);
                 const allPropertiesQuery = query(collection(firestore, `agents/${agentId}/properties`), where('status', '==', 'ativo'));
@@ -81,20 +80,15 @@ export default function PropertyPage({ }: Props) {
                 }
             }
 
-            // Fallback para dados estáticos se não encontrado no Firestore ou se for imóvel de exemplo
+            // Fallback for static/example properties if not found in any other way
             if (!property) {
                 const staticProperties = getStaticProperties();
                 const staticProp = staticProperties.find(p => p.id === imovelId);
                 if (staticProp) {
-                    property = { ...staticProp, agentId: agentId || 'exemplo' }; // Garante agentId para o link
-                    // Se o corretor não foi encontrado, usamos um mock para os exemplos
-                    if (!agent && agentId) {
-                         const agentRef = doc(firestore, 'agents', agentId);
-                         const agentSnap = await getDoc(agentRef);
-                         if(agentSnap.exists()){
-                            agent = { id: agentSnap.id, ...(agentSnap.data() as Omit<Agent, 'id'>) };
-                         }
-                    }
+                    property = { ...staticProp, agentId: agentId || 'demo-user-arthur' };
+                     if (!agent) {
+                         agent = getStaticAgent()
+                     }
                     relatedProps = staticProperties;
                 }
             }
@@ -105,8 +99,6 @@ export default function PropertyPage({ }: Props) {
 
         } catch (error) {
             console.error("Erro ao buscar imóvel e corretor:", error);
-            setPropertyData(null);
-            setAgentData(null);
         } finally {
             setIsLoading(false);
         }
@@ -114,9 +106,9 @@ export default function PropertyPage({ }: Props) {
     
     fetchPropertyAndAgent();
 
-  }, [firestore, agentId, imovelId]);
+  }, [firestore, agentId, imovelId, isDemo, isDemoLoading, demoData]);
 
-  if (isLoading) {
+  if (isLoading || isDemoLoading) {
     return (
       <>
         <Header agentId={agentId || undefined} />
@@ -131,7 +123,7 @@ export default function PropertyPage({ }: Props) {
   }
 
   if (!propertyData || !agentData) {
-    notFound();
+    return notFound();
   }
 
   return (

@@ -67,8 +67,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
   const mockUser: User = useMemo(() => ({
     uid: 'demo-user-arthur', // Use a real UID for read rules if needed
-    email: 'demo@cliente.com',
-    displayName: 'Arthur (Demo)',
+    email: demoData.agent?.email || 'demo@cliente.com',
+    displayName: demoData.agent?.displayName || 'Arthur (Demo)',
     photoURL: demoData.agent?.photoUrl,
     emailVerified: true,
     isAnonymous: false,
@@ -172,10 +172,8 @@ export const useAuth = (): Auth | null => {
 
 /** Hook to access Firestore instance. */
 export const useFirestore = (): Firestore | null => {
-  const { isDemo } = useDemo();
   const context = useContext(FirebaseContext);
-  // In demo mode, we still need a firestore instance for certain functions, but they will be intercepted.
-  if (!context || !context.firestore) throw new Error('useFirestore must be used within a FirebaseProvider.');
+  if (!context) throw new Error('useFirestore must be used within a FirebaseProvider.');
   return context.firestore;
 };
 

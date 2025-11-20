@@ -1,15 +1,18 @@
 
+'use client';
+import { useEffect, useState } from 'react';
 import type { Metadata } from "next";
 import AgentPageClient from "@/app/corretor/[agentId]/agent-page-client";
 import { getFirebaseServer } from "@/firebase/server-init";
 import { doc, getDoc, collection, getDocs, query, where, orderBy, limit } from "firebase/firestore";
 import type { Agent, Property, Review, CustomSection } from "@/lib/data";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import { getReviews as getStaticReviews, getProperties as getStaticProperties } from '@/lib/data';
 import { getSEO } from "@/firebase/server-actions/seo";
+import { useDemo } from '@/context/DemoContext';
+import { useFirestore } from '@/firebase';
 
-
-async function getAgentData(agentId: string) {
+async function getAgentDataServer(agentId: string) {
   const { firestore } = getFirebaseServer();
   
   const agentRef = doc(firestore, 'agents', agentId);
@@ -35,7 +38,6 @@ async function getAgentData(agentId: string) {
     if (!propertiesSnap.empty) {
         allProperties = propertiesSnap.docs.map(d => ({ ...(d.data() as Omit<Property, 'id'>), id: d.id, agentId }) as Property);
     } else {
-        // Se o corretor não tiver imóveis, use os exemplos
         allProperties = getStaticProperties().map(p => ({...p, agentId}));
     }
     
@@ -54,7 +56,6 @@ async function getAgentData(agentId: string) {
       fetchedReviews.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       reviews = fetchedReviews;
     } else {
-      // Se o corretor não tiver avaliações, use os exemplos
       reviews = getStaticReviews();
     }
 
@@ -71,60 +72,50 @@ async function getAgentData(agentId: string) {
   }
 }
 
-async function getAgentSeoData(agentId: string) {
-    const agentSeo = await getSEO(`agent-${agentId}`);
-    
-    // Get agent data only if SEO data is not sufficient
-    let agent = null;
-    if (!agentSeo?.title || !agentSeo?.description) {
-      const { firestore } = getFirebaseServer();
-      const agentSnap = await getDoc(doc(firestore, 'agents', agentId));
-      agent = agentSnap.exists() ? agentSnap.data() as Agent : null;
-    }
+export default function AgentPublicPage() {
+  const params = useParams();
+  const agentId = params.agentId as string;
+  const { isDemo, demoData, isLoading: isDemoLoading } = useDemo();
   
-    const defaultSeo = await getSEO("homepage");
-    
-    return { agentSeo, defaultSeo, agent };
-}
+  const [data, setData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      let fetchedData;
+      if (isDemo && agentId === 'demo-user-arthur') {
+        // In demo mode, use the data from context
+        fetchedData = {
+          agent: demoData.agent,
+          allProperties: demoData.properties.filter(p => p.status === 'ativo'),
+          customSections: demoData.customSections,
+          reviews: demoData.reviews.filter(r => r.approved),
+        };
+      } else if (!isDemo) {
+        // In live mode, fetch from server (this part is tricky on client)
+        // For simplicity, we'll keep the client-side fetch for live mode too.
+        // This deviates from SSR but makes demo/live switching easier in one component.
+        const serverData = await getAgentDataServer(agentId);
+        fetchedData = serverData;
+      }
+      setData(fetchedData);
+      setIsLoading(false);
+    };
 
-export async function generateMetadata({ params }: { params: Promise<{ agentId: string }> }): Promise<Metadata> {
-  const { agentId } = await params;
+    if (!isDemoLoading) {
+       fetchData();
+    }
+  }, [agentId, isDemo, isDemoLoading, demoData]);
 
-  const { agentSeo, defaultSeo, agent } = await getAgentSeoData(agentId);
-
-  const title = agentSeo?.title || agent?.name || defaultSeo?.title || 'Encontre seu Imóvel';
-  const description = agentSeo?.description || agent?.description || defaultSeo?.description || 'Seu próximo lar está aqui.';
-  const keywords = agentSeo?.keywords || defaultSeo?.keywords || [];
-  const imageUrl = agentSeo?.image || agent?.photoUrl || defaultSeo?.image || '';
-
-  const metadata: Metadata = {
-    title,
-    description,
-    keywords,
-    openGraph: {
-      type: 'website',
-      url: `/corretor/${agentId}`,
-      title,
-      description,
-      images: imageUrl ? [imageUrl] : [],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: imageUrl ? [imageUrl] : [],
-    },
-  };
-
-  return metadata;
-}
-
-
-export default async function AgentPublicPage({ params }: { params: Promise<{ agentId: string }> }) {
-  const { agentId } = await params;
-  const data = await getAgentData(agentId);
-
+  if (isLoading || isDemoLoading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
+      </div>
+    );
+  }
+  
   if (!data) {
     return notFound();
   }

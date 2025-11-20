@@ -2,8 +2,12 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
-import { getProperties, getReviews, defaultPrivacyPolicy, defaultTermsOfUse } from '@/lib/data';
+import { getProperties, getReviews, defaultPrivacyPolicy, defaultTermsOfUse, getAgent } from '@/lib/data';
 import type { Agent, Property, Review, CustomSection, Lead, Contact } from '@/lib/data';
+import { getFirebaseServer } from '@/firebase/server-init';
+import { doc, getDoc, collection, getDocs, query, where, orderBy, limit } from "firebase/firestore";
+import { initializeFirebase } from '@/firebase';
+
 
 // --- Tipos e Interfaces ---
 interface DemoDataContext {
@@ -20,48 +24,15 @@ interface DemoContextProps {
   demoData: DemoDataContext;
   updateDemoData: (key: keyof DemoDataContext, data: any) => void;
   isLoading: boolean;
-  startDemo: () => void;
+  startDemo: () => Promise<void>;
 }
+
+const DEMO_AGENT_ID = '4vEISo4pEORjFhv6RzD7eC42cgm2';
 
 // --- Dados Iniciais para o Modo Demo ---
 const createInitialDemoData = (): DemoDataContext => {
-  const demoAgent: Agent = {
-    id: 'demo-user-arthur',
-    displayName: 'Arthur',
-    name: 'Arthur Imóveis',
-    accountType: 'imobiliaria',
-    email: 'arthur99.com@gmail.com',
-    creci: '12345-J',
-    description: 'Com mais de 10 anos de experiência no mercado imobiliário de luxo, nossa missão é conectar pessoas aos seus lares dos sonhos, oferecendo um serviço de excelência, transparência e dedicação total.',
-    photoUrl: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdCUyMG1hbGV8ZW58MHx8fHwxNzYyODU0MDUzfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    phone: '(11) 91234-5678',
-    cities: ['São Paulo', 'Campinas', 'Ubatuba'],
-    role: 'corretor', // No modo demo, mesmo que o user base seja admin, o painel de admin será ocultado
-    plan: 'imobiliaria',
-    availability: {
-      days: { Segunda: true, Terça: true, Quarta: true, Quinta: true, Sexta: true, Sábado: true, Domingo: false },
-      startTime: '08:00',
-      endTime: '19:00',
-    },
-    siteSettings: {
-      theme: 'dark',
-      siteStatus: true,
-      showFinancing: true,
-      financingLink: 'https://www.google.com/search?q=simular+financiamento+imobiliario',
-      showReviews: true,
-      defaultSaleCommission: 6,
-      defaultRentCommission: 100,
-      faviconUrl: 'https://fav.farm/🚀',
-      heroImageUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyZWFsJTIwZXN0YXRlJTIwaG9tZXxlbnwwfHx8fDE3NjI4NTM2NDd8MA&ixlib=rb-4.1.0&q=80&w=1080',
-      socialLinks: [
-        { id: '1', label: 'WhatsApp', url: '5511912345678', icon: 'whatsapp' },
-        { id: '2', label: 'Instagram', url: 'arthur_imoveis', icon: 'instagram' },
-        { id: '3', label: 'Facebook', url: 'https://facebook.com/arthurimoveis', icon: 'facebook' },
-      ],
-      privacyPolicy: defaultPrivacyPolicy.replace('[Nome do Site/Corretor]', 'Arthur Imóveis'),
-      termsOfUse: defaultTermsOfUse.replace('[Nome do Site/Corretor]', 'Arthur Imóveis'),
-    },
-  };
+    const demoAgent: Agent = getAgent();
+    demoAgent.id = 'demo-user-arthur';
 
   const demoProperties = getProperties().map(p => ({ ...p, agentId: 'demo-user-arthur' }));
   const demoReviews = getReviews();
@@ -107,6 +78,50 @@ const setSessionStorage = (key: string, value: any) => {
   }
 };
 
+const fetchDemoAccountSnapshot = async (): Promise<DemoDataContext> => {
+    const { firestore } = initializeFirebase();
+    const agentId = DEMO_AGENT_ID;
+
+    const agentRef = doc(firestore, 'agents', agentId);
+    const propertiesRef = collection(firestore, `agents/${agentId}/properties`);
+    const sectionsRef = collection(firestore, `agents/${agentId}/customSections`);
+    const reviewsRef = collection(firestore, `agents/${agentId}/reviews`);
+    const leadsRef = collection(firestore, `agents/${agentId}/leads`);
+    const contactsRef = collection(firestore, `agents/${agentId}/contacts`);
+
+    try {
+        const [agentSnap, propertiesSnap, sectionsSnap, reviewsSnap, leadsSnap, contactsSnap] = await Promise.all([
+            getDoc(agentRef),
+            getDocs(propertiesRef),
+            getDocs(query(sectionsRef, orderBy('order', 'asc'))),
+            getDocs(query(reviewsRef, orderBy('createdAt', 'desc'))),
+            getDocs(query(leadsRef, orderBy('createdAt', 'desc'), limit(10))),
+            getDocs(query(contactsRef, orderBy('createdAt', 'desc'))),
+        ]);
+        
+        if (!agentSnap.exists()) {
+            console.warn("Demo account not found, using fallback data.");
+            return createInitialDemoData();
+        }
+        
+        const agent = { id: 'demo-user-arthur', ...agentSnap.data() } as Agent;
+        agent.role = 'corretor'; // Demote admin to prevent showing admin panel in demo
+
+        const properties = propertiesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Property));
+        const customSections = sectionsSnap.docs.map(d => ({ id: d.id, ...d.data() } as CustomSection));
+        const reviews = reviewsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Review));
+        const leads = leadsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Lead));
+        const contacts = contactsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Contact));
+
+        return { agent, properties, customSections, reviews, leads, contacts };
+
+    } catch (error) {
+        console.error("Failed to fetch demo account snapshot:", error);
+        // Fallback to static data in case of Firestore error
+        return createInitialDemoData();
+    }
+};
+
 // --- Contexto ---
 const DemoContext = createContext<DemoContextProps | undefined>(undefined);
 
@@ -118,21 +133,17 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
     getSessionStorage('demo_data', createInitialDemoData())
   );
 
-  const startDemo = useCallback(() => {
+  const startDemo = useCallback(async () => {
+    setIsLoading(true);
+    const snapshot = await fetchDemoAccountSnapshot();
+    setDemoDataState(snapshot);
+    setSessionStorage('demo_data', snapshot);
     setIsDemo(true);
-    const initialData = getSessionStorage('demo_data', null);
-    if (!initialData) {
-      const data = createInitialDemoData();
-      setDemoDataState(data);
-      setSessionStorage('demo_data', data);
-    } else {
-      setDemoDataState(initialData);
-    }
     setSessionStorage('isDemo', true);
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    // Only check sessionStorage on initial client load
     setIsDemo(getSessionStorage('isDemo', false));
     setIsLoading(false);
   }, []);

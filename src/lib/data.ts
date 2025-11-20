@@ -1,8 +1,5 @@
 
 
-
-
-
 export type SocialLink = {
   id: string;
   label: string;
@@ -67,6 +64,7 @@ export type Availability = {
 }
 
 export type SiteSettings = {
+    heroImageUrl?: string;
     showFinancing?: boolean;
     financingLink?: string;
     showReviews?: boolean;
@@ -336,8 +334,19 @@ export const getReviews = () => staticReviews;
 export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Guarujá', 'Rio de Janeiro', 'Belo Horizonte', 'Curitiba', 'Porto Alegre'];
 export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
 
-
-
-
-
-
+export const getAgent = (): Agent => ({
+  id: 'exemplo',
+  displayName: 'Corretor Exemplo',
+  name: 'Imóveis Exemplo',
+  accountType: 'corretor',
+  email: 'contato@exemplo.com',
+  creci: '123456-F',
+  description: 'Corretor dedicado a encontrar o imóvel ideal para você.',
+  photoUrl: '',
+  cities: getPropertyCities(),
+  siteSettings: {
+    theme: 'dark',
+    showReviews: true,
+    showFinancing: true,
+  }
+});
