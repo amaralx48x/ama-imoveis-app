@@ -11,7 +11,6 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { useDemo } from '@/context/DemoContext';
 
 
 /** Utility type to add an 'id' field to a given type T. */
@@ -31,39 +30,14 @@ export interface UseDocResult<T> {
 export function useDoc<T = any>(
   memoizedDocRef: DocumentReference<DocumentData> | null | undefined,
 ): UseDocResult<T> {
-  const { isDemo, demoState } = useDemo();
   type StateDataType = WithId<T> | null;
 
   const [data, setData] = useState<StateDataType>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
-  useEffect(() => {
-    if (isDemo) {
-        setIsLoading(true);
-        if (memoizedDocRef && demoState) {
-            const path = memoizedDocRef.path;
-            const pathSegments = path.split('/');
-            
-            if (pathSegments.includes('agents')) {
-                 setData(demoState.agent as WithId<T>);
-            } else if (pathSegments.includes('properties')) {
-                 const prop = demoState.properties.find(p => p.id === pathSegments[pathSegments.length - 1]);
-                 setData(prop ? prop as WithId<T> : null);
-            }
-             else {
-                 setData(null);
-            }
-        } else {
-            setData(null);
-        }
-        setIsLoading(false);
-        return;
-    }
-  }, [isDemo, demoState, memoizedDocRef])
-
   const fetchData = useCallback(async () => {
-    if (isDemo || !memoizedDocRef) {
+    if (!memoizedDocRef) {
         setIsLoading(false);
         return;
     }
@@ -86,14 +60,9 @@ export function useDoc<T = any>(
     } finally {
         setIsLoading(false);
     }
-  }, [memoizedDocRef, isDemo]);
+  }, [memoizedDocRef]);
   
   useEffect(() => {
-     if (isDemo) {
-        setIsLoading(false);
-        return;
-    }
-
     if (!memoizedDocRef) {
       setData(null);
       setIsLoading(false);
@@ -127,7 +96,7 @@ export function useDoc<T = any>(
     );
 
     return () => unsubscribe();
-  }, [memoizedDocRef, isDemo]);
+  }, [memoizedDocRef]);
 
   return { data, isLoading, error, mutate: fetchData };
 }

@@ -12,7 +12,6 @@ import {
   getDocs,
 } from 'firebase/firestore';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { useDemo } from '@/context/DemoContext';
 
 
 /** Utility type to add an 'id' field to a given type T. */
@@ -42,7 +41,6 @@ export interface InternalQuery extends Query<DocumentData> {
 export function useCollection<T = any>(
     memoizedTargetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>) & {__memo?: boolean})  | null | undefined,
 ): UseCollectionResult<T> {
-  const { isDemo, demoState } = useDemo();
   type ResultItemType = WithId<T>;
   type StateDataType = ResultItemType[] | null;
 
@@ -50,33 +48,8 @@ export function useCollection<T = any>(
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
-  useEffect(() => {
-    if (isDemo) {
-        setIsLoading(true);
-        if (memoizedTargetRefOrQuery && demoState) {
-             const path = (memoizedTargetRefOrQuery as CollectionReference).path;
-             const pathSegments = path.split('/');
-
-             if(pathSegments.includes('properties')) {
-                 setData(demoState.properties as WithId<T>[]);
-             } else if(pathSegments.includes('customSections')) {
-                 setData(demoState.customSections as WithId<T>[]);
-             } else if(pathSegments.includes('reviews')) {
-                 setData(demoState.reviews as WithId<T>[]);
-             }
-             else {
-                 setData([]);
-             }
-        } else {
-            setData(null);
-        }
-        setIsLoading(false);
-        return;
-    }
-  }, [isDemo, demoState, memoizedTargetRefOrQuery]);
-
   const fetchData = useCallback(async () => {
-    if (isDemo || !memoizedTargetRefOrQuery) return;
+    if (!memoizedTargetRefOrQuery) return;
     setIsLoading(true);
     try {
         const snapshot = await getDocs(memoizedTargetRefOrQuery);
@@ -94,14 +67,9 @@ export function useCollection<T = any>(
     } finally {
         setIsLoading(false);
     }
-  }, [memoizedTargetRefOrQuery, isDemo]);
+  }, [memoizedTargetRefOrQuery]);
 
   useEffect(() => {
-    if (isDemo) {
-        setIsLoading(false);
-        return;
-    }
-    
     if (!memoizedTargetRefOrQuery) {
       setData(null);
       setIsLoading(false);
@@ -141,7 +109,7 @@ export function useCollection<T = any>(
     );
 
     return () => unsubscribe();
-  }, [memoizedTargetRefOrQuery, isDemo]);
+  }, [memoizedTargetRefOrQuery]);
 
   return { data, isLoading, error, mutate: fetchData };
 }

@@ -7,30 +7,10 @@ import { notFound } from "next/navigation";
 import { getReviews as getStaticReviews, getProperties as getStaticProperties } from '@/lib/data';
 import { getSEO } from "@/firebase/server-actions/seo";
 
-
-// --------------------------------------------
-// generateMetadata — versão correta
-// --------------------------------------------
 export async function generateMetadata(
-  props: {
-    params: { agentId: string };
-    searchParams: { [key: string]: string | string[] | undefined };
-  }
+  { params }: { params: { agentId: string } }
 ): Promise<Metadata> {
-
-  const { params, searchParams } = props;
-
-  const isDemo = searchParams?.demo === "true";
-  const seoKey = isDemo ? `agent-DEMO_AGENT_ID_999` : `agent-${params.agentId}`;
-
-  if (isDemo) {
-    return {
-      title: "Página do Corretor (Demonstração)",
-      description: "Confira os imóveis deste corretor em modo de demonstração.",
-    };
-  }
-
-  const seoData = await getSEO(seoKey);
+  const seoData = await getSEO(`agent-${params.agentId}`);
 
   return {
     title: seoData?.title || "Página do Corretor",
@@ -44,10 +24,6 @@ export async function generateMetadata(
   };
 }
 
-
-// --------------------------------------------
-// Lógica existente
-// --------------------------------------------
 async function getAgentData(agentId: string) {
   const { firestore } = getFirebaseServer();
   
@@ -95,6 +71,7 @@ async function getAgentData(agentId: string) {
       reviews = getStaticReviews();
     }
 
+    // Sanitize data for client component
     return { 
         agent: JSON.parse(JSON.stringify(agent)),
         properties: JSON.parse(JSON.stringify(allProperties)), 
@@ -108,29 +85,14 @@ async function getAgentData(agentId: string) {
   }
 }
 
-
-// --------------------------------------------
-// Page — versão correta (sem Promises)
-// --------------------------------------------
-export default async function AgentPublicPage(
-  props: {
-    params: { agentId: string };
-    searchParams: { [key: string]: string | string[] | undefined };
-  }
-) {
-
-  const { params, searchParams } = props;
-
+export default async function AgentPublicPage({ params }: { params: { agentId: string } }) {
   const { agentId } = params;
-  const isDemo = searchParams.demo === "true";
-
-  if (isDemo) {
-    return <AgentPageClient serverData={null} />;
-  }
   
   const data = await getAgentData(agentId);
   
-  if (!data) return notFound();
+  if (!data) {
+    return notFound();
+  }
 
   return <AgentPageClient serverData={data} />;
 }

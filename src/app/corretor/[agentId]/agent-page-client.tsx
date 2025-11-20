@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useEffect, useState, Suspense } from 'react';
+import { useMemo, Suspense } from 'react';
 import type { Agent, Property, Review, CustomSection } from '@/lib/data';
 import { notFound, useSearchParams } from 'next/navigation';
 import { Header } from "@/components/layout/header";
@@ -13,25 +13,22 @@ import { ClientReviews } from '@/components/client-reviews';
 import { FloatingContactButton } from '@/components/floating-contact-button';
 import PropertyFilters from '@/components/property-filters';
 import { getPropertyTypes } from '@/lib/data';
-import { useDemo, type DemoState } from '@/context/DemoContext';
 
 
 type AgentPageClientProps = {
-    serverData: DemoState | null;
+    serverData: {
+        agent: Agent;
+        properties: Property[];
+        customSections: CustomSection[];
+        reviews: Review[];
+    } | null;
 }
 
 function AgentPageContent({ serverData }: AgentPageClientProps) {
-  const searchParams = useSearchParams();
-  const isDemo = searchParams.get('demo') === 'true';
-  const { demoState, isLoading: isDemoLoading } = useDemo();
-
-  // A lógica central: se for demo, usa o demoState, senão, usa os dados do servidor.
-  const data = isDemo ? demoState : serverData;
-
-  const agent = data?.agent;
-  const allProperties = data?.properties || [];
-  const customSections = data?.customSections || [];
-  const reviews = data?.reviews || [];
+  const agent = serverData?.agent;
+  const allProperties = serverData?.properties || [];
+  const customSections = serverData?.customSections || [];
+  const reviews = serverData?.reviews || [];
 
   const citiesForFilter = useMemo(() => {
     if (!agent) return [];
@@ -41,18 +38,8 @@ function AgentPageContent({ serverData }: AgentPageClientProps) {
   }, [agent, allProperties]);
   
   const onReviewSubmitted = () => {
-    // Em uma demo, poderíamos simular a atualização ou apenas mostrar uma notificação.
-    // Numa aplicação real, isso invalidaria um cache para buscar as novas avaliações.
+    // In a real app, this would invalidate a cache to refetch reviews.
   };
-
-  // Se for demo e os dados ainda não carregaram, mostra um estado de carregamento.
-  if (isDemo && (isDemoLoading || !demoState)) {
-      return (
-        <div className="flex items-center justify-center min-h-screen">
-          Carregando demonstração...
-        </div>
-      );
-  }
 
   if (!agent) {
     return notFound();

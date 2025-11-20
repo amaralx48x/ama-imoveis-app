@@ -13,7 +13,6 @@ import { useEffect, useState } from 'react';
 import { useFirestore } from '@/firebase';
 import { RelatedProperties } from '@/components/imovel/RelatedProperties';
 import { getProperties as getStaticProperties, getAgent as getStaticAgent } from '@/lib/data';
-import { useDemo } from '@/context/DemoContext';
 
 
 function BackButton() {
@@ -71,11 +70,9 @@ async function getPropertyAndAgent(firestore: any, agentId: string, imovelId: st
 export default function PropertyPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const { isDemo, demoState } = useDemo();
   
   const imovelId = params.imovelId as string;
-  const agentIdFromUrl = searchParams.get('agentId');
-  const agentId = isDemo ? demoState?.agent?.id : agentIdFromUrl;
+  const agentId = searchParams.get('agentId');
   
   const [propertyData, setPropertyData] = useState<Property | null>(null);
   const [agentData, setAgentData] = useState<Agent | null>(null);
@@ -88,19 +85,13 @@ export default function PropertyPage() {
     const fetchData = async () => {
         setIsLoading(true);
         
-        if (isDemo) {
-            if (demoState) {
-                const prop = demoState.properties.find(p => p.id === imovelId);
-                setPropertyData(prop || null);
-                setAgentData(demoState.agent);
-                setAllProperties(demoState.properties);
-            }
-        } else if (agentId && firestore) {
+        if (agentId && firestore) {
             const { property, agent, allProperties } = await getPropertyAndAgent(firestore, agentId, imovelId);
             setPropertyData(property);
             setAgentData(agent);
             setAllProperties(allProperties);
         } else {
+            // Fallback for cases without agentId or firestore (e.g., build time)
             const staticProp = getStaticProperties().find(p => p.id === imovelId);
             setPropertyData(staticProp || null);
             setAgentData(getStaticAgent());
@@ -112,7 +103,7 @@ export default function PropertyPage() {
     
     fetchData();
 
-  }, [firestore, agentId, imovelId, isDemo, demoState]);
+  }, [firestore, agentId, imovelId]);
 
   if (isLoading) {
     return (

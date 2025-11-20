@@ -1,13 +1,13 @@
 
 'use client';
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, AlertTriangle, Upload, Trash2, Search, Gem } from 'lucide-react';
 import { PropertyCard } from '@/components/property-card';
 import Link from 'next/link';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import type { Property } from '@/lib/data';
-import { collection, query, where, doc, getDocs, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, doc, deleteDoc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
@@ -21,7 +21,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { InfoCard } from '@/components/info-card';
-import { useDemo } from '@/context/DemoContext';
 
 
 function PropertyList({ 
@@ -103,17 +102,13 @@ export default function ImoveisPage() {
     const { user } = useUser();
     const { toast } = useToast();
     const { limits, canAddNewProperty, currentPropertiesCount } = usePlan();
-    const { isDemo, demoState, updateDemoData } = useDemo();
     const [activeTab, setActiveTab] = useState<'ativo' | 'vendido' | 'alugado'>('ativo');
     const [searchTerm, setSearchTerm] = useState('');
-    const [needsRefetch, setNeedsRefetch] = useState(false);
-
-    const agentId = isDemo ? demoState?.agent.id : user?.uid;
 
     const propertiesQuery = useMemoFirebase(() => {
-        if (!agentId || !firestore) return null;
+        if (!user || !firestore) return null;
         
-        let q = query(collection(firestore, `agents/${agentId}/properties`));
+        let q = query(collection(firestore, `agents/${user.uid}/properties`));
 
         if (activeTab === 'ativo') {
             q = query(q, where('status', 'in', ['ativo', null]));
@@ -121,40 +116,24 @@ export default function ImoveisPage() {
             q = query(q, where('status', '==', activeTab));
         }
         return q;
-    }, [firestore, agentId, activeTab, needsRefetch]);
+    }, [firestore, user, activeTab]);
 
     const { data: properties, isLoading, error, mutate } = useCollection<Property>(propertiesQuery);
     
     const filteredProperties = useMemo(() => {
-        let sourceProperties = properties;
-        if (isDemo && demoState) {
-            if (activeTab === 'ativo') {
-                sourceProperties = demoState.properties.filter(p => p.status === 'ativo' || !p.status);
-            } else {
-                sourceProperties = demoState.properties.filter(p => p.status === activeTab);
-            }
-        }
-        
-        if (!sourceProperties) return [];
-        if (!searchTerm) return sourceProperties;
+        if (!properties) return [];
+        if (!searchTerm) return properties;
 
         const lowercasedTerm = searchTerm.toLowerCase();
-        return sourceProperties.filter(property => 
+        return properties.filter(property => 
             (property.title?.toLowerCase() ?? '').includes(lowercasedTerm) ||
             (property.city?.toLowerCase() ?? '').includes(lowercasedTerm) ||
             (property.neighborhood?.toLowerCase() ?? '').includes(lowercasedTerm)
         );
-    }, [properties, searchTerm, isDemo, demoState, activeTab]);
+    }, [properties, searchTerm]);
 
     
     const handleDeleteProperty = async (id: string) => {
-        if (isDemo) {
-            const newProperties = demoState!.properties.filter(p => p.id !== id);
-            updateDemoData('properties', newProperties);
-            toast({ title: 'Imóvel removido (Demo)!' });
-            return;
-        }
-
         if (!firestore || !user) return toast({ title: 'Erro de Autenticação', variant: 'destructive'});
         
         if (!window.confirm("Tem certeza que deseja excluir este imóvel? Esta ação não pode ser desfeita.")) return;
@@ -172,17 +151,10 @@ export default function ImoveisPage() {
     };
     
     const handleStatusChange = () => {
-        if (isDemo) {
-            // This is just to trigger a re-render in demo mode, as state is managed in context
-            setNeedsRefetch(prev => !prev);
-        } else {
-            mutate();
-            setNeedsRefetch(prev => !prev);
-        }
+        mutate();
     }
     
     const canAdd = canAddNewProperty();
-    const currentCount = isDemo ? demoState?.properties.length || 0 : currentPropertiesCount;
 
     return (
         <div className="space-y-8">
@@ -197,7 +169,7 @@ export default function ImoveisPage() {
 
             <div className="flex justify-between items-center animate-fade-in-up">
                 <div>
-                    <h1 className="text-3xl font-bold font-headline">Meus Imóveis ({currentCount} / {limits.maxProperties === Infinity ? 'Ilimitado' : limits.maxProperties})</h1>
+                    <h1 className="text-3xl font-bold font-headline">Meus Imóveis ({currentPropertiesCount} / {limits.maxProperties === Infinity ? 'Ilimitado' : limits.maxProperties})</h1>
                     <p className="text-muted-foreground">Gerencie seu portfólio de imóveis.</p>
                 </div>
                  <div className="flex gap-2">

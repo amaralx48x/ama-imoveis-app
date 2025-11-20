@@ -6,18 +6,10 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
-import { useDemo, type DemoState } from '@/context/DemoContext';
-
-interface FirebaseProviderProps {
-  children: ReactNode;
-  firebaseApp: FirebaseApp;
-  firestore: Firestore;
-  auth: Auth;
-}
 
 // Internal state for user authentication
 interface UserAuthState {
-  user: User | (DemoState['agent']) | null;
+  user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
 }
@@ -28,7 +20,7 @@ export interface FirebaseContextState {
   firebaseApp: FirebaseApp | null;
   firestore: Firestore | null;
   auth: Auth | null; // The Auth service instance
-  user: User | (DemoState['agent']) | null;
+  user: User | null;
   isUserLoading: boolean; // True during initial auth check
   userError: Error | null; // Error from auth listener
 }
@@ -38,14 +30,14 @@ export interface FirebaseServicesAndUser {
   firebaseApp: FirebaseApp;
   firestore: Firestore;
   auth: Auth;
-  user: User | (DemoState['agent']) | null;
+  user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
 }
 
 // Return type for useUser() - specific to user auth state
 export interface UserHookResult { 
-  user: User | (DemoState['agent']) | null;
+  user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
 }
@@ -62,24 +54,13 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   firestore,
   auth,
 }) => {
-  const { isDemo, demoState, isLoading: isDemoLoading } = useDemo();
-  
   const [userAuthState, setUserAuthState] = useState<UserAuthState>({
     user: auth.currentUser,
-    isUserLoading: !isDemo, // Don't show loading on initial render if demo might be active
+    isUserLoading: true, 
     userError: null,
   });
 
   useEffect(() => {
-    if (isDemo) {
-        setUserAuthState({ 
-            user: demoState?.agent || null, 
-            isUserLoading: isDemoLoading, 
-            userError: null 
-        });
-        return;
-    }
-
     if (!auth) { 
       setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not provided.") });
       return;
@@ -96,23 +77,11 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       }
     );
     return () => unsubscribe();
-  }, [auth, isDemo, demoState, isDemoLoading]);
+  }, [auth]);
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
     const servicesAvailable = !!(firebaseApp && firestore && auth);
-
-    if (isDemo) {
-        return {
-            areServicesAvailable: false,
-            firebaseApp: null,
-            firestore: null,
-            auth: null,
-            user: userAuthState.user,
-            isUserLoading: userAuthState.isUserLoading,
-            userError: userAuthState.userError,
-        }
-    }
 
     return {
       areServicesAvailable: servicesAvailable,
@@ -123,11 +92,11 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       isUserLoading: userAuthState.isUserLoading,
       userError: userAuthState.userError,
     };
-  }, [firebaseApp, firestore, auth, userAuthState, isDemo]);
+  }, [firebaseApp, firestore, auth, userAuthState]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
-      {!isDemo && <FirebaseErrorListener />}
+      <FirebaseErrorListener />
       {children}
     </FirebaseContext.Provider>
   );
@@ -144,14 +113,14 @@ export const useFirebase = (): FirebaseServicesAndUser => {
     throw new Error('useFirebase must be used within a FirebaseProvider.');
   }
   
-  if (!context.isDemo && (!context.areServicesAvailable || !context.firebaseApp || !context.firestore || !context.auth)) {
+  if (!context.areServicesAvailable || !context.firebaseApp || !context.firestore || !context.auth) {
     throw new Error('Firebase core services not available. Check FirebaseProvider props.');
   }
 
   return {
-    firebaseApp: context.firebaseApp!,
-    firestore: context.firestore!,
-    auth: context.auth!,
+    firebaseApp: context.firebaseApp,
+    firestore: context.firestore,
+    auth: context.auth,
     user: context.user,
     isUserLoading: context.isUserLoading,
     userError: context.userError,
@@ -162,21 +131,21 @@ export const useFirebase = (): FirebaseServicesAndUser => {
 export const useAuth = (): Auth | null => {
   const context = useContext(FirebaseContext);
   if (!context) throw new Error('useAuth must be used within a FirebaseProvider.');
-  return context.isDemo ? null : context.auth;
+  return context.auth;
 };
 
 /** Hook to access Firestore instance. */
 export const useFirestore = (): Firestore | null => {
   const context = useContext(FirebaseContext);
   if (!context) throw new Error('useFirestore must be used within a FirebaseProvider.');
-  return context.isDemo ? null : context.firestore;
+  return context.firestore;
 };
 
 /** Hook to access Firebase App instance. */
 export const useFirebaseApp = (): FirebaseApp | null => {
     const context = useContext(FirebaseContext);
     if (!context) throw new Error('useFirebaseApp must be used within a FirebaseProvider.');
-    return context.isDemo ? null : context.firebaseApp;
+    return context.firebaseApp;
 };
 
 type MemoFirebase <T> = T & {__memo?: boolean};

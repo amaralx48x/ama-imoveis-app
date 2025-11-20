@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { useDemo } from '@/context/DemoContext';
 
 export default function CorretorLayout({
   children,
@@ -23,34 +22,32 @@ export default function CorretorLayout({
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
-  const { isDemo, demoState, endDemo } = useDemo();
 
-  const agentId = isDemo ? demoState?.agent?.id : user?.uid;
-  const agentData = isDemo ? demoState?.agent : useDoc<Agent>(useMemoFirebase(() => (firestore && user ? doc(firestore, 'agents', user.uid) : null), [firestore, user])).data;
+  const { data: agentData } = useDoc<Agent>(useMemoFirebase(() => (firestore && user ? doc(firestore, 'agents', user.uid) : null), [firestore, user]));
 
   // Real-time data for badges
   const unreadLeadsQuery = useMemoFirebase(
-    () => (user && firestore && !isDemo ? query(collection(firestore, `agents/${user.uid}/leads`), where('status', '==', 'unread')) : null),
-    [user, firestore, isDemo]
+    () => (user && firestore ? query(collection(firestore, `agents/${user.uid}/leads`), where('status', '==', 'unread')) : null),
+    [user, firestore]
   );
   const { data: unreadLeads } = useCollection<Lead>(unreadLeadsQuery);
-  const unreadCount = isDemo ? 0 : unreadLeads?.length || 0;
+  const unreadCount = unreadLeads?.length || 0;
 
   const pendingReviewsQuery = useMemoFirebase(
-    () => user && firestore && !isDemo
+    () => user && firestore
       ? query(collection(firestore, `agents/${user.uid}/reviews`), where('approved', '==', false)) 
       : null,
-    [user, firestore, isDemo]
+    [user, firestore]
   );
   const { data: pendingReviews } = useCollection<Review>(pendingReviewsQuery);
-  const pendingReviewsCount = isDemo ? 0 : pendingReviews?.length || 0;
+  const pendingReviewsCount = pendingReviews?.length || 0;
 
 
   useEffect(() => {
-    if (!isDemo && !isUserLoading && !user) {
+    if (!isUserLoading && !user) {
       router.push('/login');
     }
-  }, [user, isUserLoading, router, isDemo]);
+  }, [user, isUserLoading, router]);
 
   useEffect(() => {
     const theme = agentData?.siteSettings?.theme || 'dark';
@@ -71,16 +68,13 @@ export default function CorretorLayout({
   }, [agentData]);
 
   const handleLogout = () => {
-    if (isDemo) {
-        endDemo();
-        router.push('/');
-    } else if (auth) {
+    if (auth) {
         auth.signOut();
         router.push('/login');
     }
   };
 
-  const agentSiteUrl = isDemo ? `/corretor/${agentId}?demo=true` : `/corretor/${agentId}`;
+  const agentSiteUrl = `/corretor/${user?.uid}`;
 
 
   const menuItems = [
@@ -92,7 +86,7 @@ export default function CorretorLayout({
     { href: '/avaliacoes', label: 'Avaliações', icon: Star, badgeCount: pendingReviewsCount, badgeClass: 'bg-yellow-500 text-black' },
     { href: '/suporte', label: 'Suporte', icon: LifeBuoy },
     { href: '/meu-plano', label: 'Meu Plano', icon: Gem },
-    { href: agentSiteUrl, label: isDemo ? 'Site Público (Demo)' : 'Meu Site Público', icon: Share2, target: '_blank' },
+    { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' },
   ];
   
   const adminMenuItems = [
@@ -181,7 +175,7 @@ export default function CorretorLayout({
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
-            {isAdmin && !isDemo && (
+            {isAdmin && (
                 <>
                     <Separator className="my-2" />
                     {adminMenuItems.map((item) => (
@@ -207,7 +201,7 @@ export default function CorretorLayout({
          <Sidebar.Footer className="p-2">
             <Button variant="ghost" className="w-full justify-start gap-2" onClick={handleLogout}>
                 <LogOut />
-                <span className="group-data-[collapsible=icon]:hidden">{isDemo ? 'Sair da Demo' : 'Sair'}</span>
+                <span className="group-data-[collapsible=icon]:hidden">Sair</span>
             </Button>
         </Sidebar.Footer>
       </Sidebar>
