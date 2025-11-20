@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getProperties, getReviews, defaultPrivacyPolicy, defaultTermsOfUse } from '@/lib/data';
 import type { Agent, Property, Review, CustomSection, Lead, Contact } from '@/lib/data';
@@ -21,6 +21,7 @@ interface DemoContextProps {
   demoData: DemoDataContext;
   updateDemoData: (key: keyof DemoDataContext, data: any) => void;
   isLoading: boolean;
+  startDemo: () => void;
 }
 
 // --- Dados Iniciais para o Modo Demo ---
@@ -107,26 +108,32 @@ const DemoContext = createContext<DemoContextProps | undefined>(undefined);
 
 export const DemoProvider = ({ children }: { children: ReactNode }) => {
   const searchParams = useSearchParams();
-  const isDemo = searchParams.get('demo') === 'true';
+  const [isDemo, setIsDemo] = useState(searchParams.get('demo') === 'true');
   const [isLoading, setIsLoading] = useState(true);
 
   const [demoData, setDemoDataState] = useState<DemoDataContext>(() =>
     getSessionStorage('demo_data', createInitialDemoData())
   );
 
+  const startDemo = useCallback(() => {
+    setIsDemo(true);
+    const initialData = getSessionStorage('demo_data', null);
+    if (!initialData) {
+      const data = createInitialDemoData();
+      setDemoDataState(data);
+      setSessionStorage('demo_data', data);
+    } else {
+      setDemoDataState(initialData);
+    }
+  }, []);
+
   useEffect(() => {
-    if (isDemo) {
-        const initialData = getSessionStorage('demo_data', null);
-        if (!initialData) {
-            const data = createInitialDemoData();
-            setDemoDataState(data);
-            setSessionStorage('demo_data', data);
-        } else {
-            setDemoDataState(initialData);
-        }
+    const demoParam = searchParams.get('demo');
+    if(demoParam === 'true') {
+        startDemo();
     }
     setIsLoading(false);
-  }, [isDemo]);
+  }, [searchParams, startDemo]);
   
   const updateDemoData = (key: keyof DemoDataContext, data: any) => {
     setDemoDataState(prevData => {
@@ -140,8 +147,9 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
     isDemo,
     demoData,
     updateDemoData,
-    isLoading
-  }), [isDemo, demoData, isLoading]);
+    isLoading,
+    startDemo
+  }), [isDemo, demoData, isLoading, startDemo]);
 
   return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>;
 };
