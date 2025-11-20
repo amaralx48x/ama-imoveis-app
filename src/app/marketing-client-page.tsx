@@ -1,4 +1,3 @@
-
 'use client'
 
 import React from "react";
@@ -11,6 +10,7 @@ import { Building2, Search, Share2, Loader2 } from "lucide-react";
 import { MarketingHero } from "@/components/marketing-hero";
 import { useRouter } from "next/navigation";
 import { useDemo } from "@/context/DemoContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const neon = "bg-gradient-to-r from-primary via-accent to-[#B794F4]";
 
@@ -27,6 +27,23 @@ const fadeUp = {
   show: { opacity: 1, y: 0 },
 };
 
+function MarketingPageSkeleton() {
+  return (
+    <div className="container mx-auto px-6 py-20 space-y-20">
+      <section className="py-10">
+        <Skeleton className="h-10 w-3/4 mx-auto" />
+        <Skeleton className="h-6 w-1/2 mx-auto mt-4" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <Skeleton className="h-24 rounded-lg" />
+          <Skeleton className="h-24 rounded-lg" />
+          <Skeleton className="h-24 rounded-lg" />
+        </div>
+      </section>
+      <Skeleton className="h-[60vh] w-full rounded-2xl" />
+    </div>
+  );
+}
+
 export default function MarketingClientPage() {
   const firestore = useFirestore();
   const router = useRouter();
@@ -39,7 +56,8 @@ export default function MarketingClientPage() {
   const { data: marketingData, isLoading } = useDoc<MarketingContent>(marketingRef);
 
   const getImage = (field: keyof MarketingContent, defaultUrl: string) => {
-    if (isLoading) return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"; // transparent pixel
+    // Agora não precisamos mais de um estado de carregamento aqui, 
+    // porque o componente pai já faz isso.
     return marketingData?.[field] || defaultUrl;
   };
 
@@ -47,7 +65,6 @@ export default function MarketingClientPage() {
     await startDemo();
     router.push('/dashboard');
   }
-
 
   return (
     <div className="min-h-screen text-white bg-black">
@@ -103,6 +120,9 @@ export default function MarketingClientPage() {
       </section>
 
       {/* MAIN CONTENT */}
+      {isLoading ? (
+        <MarketingPageSkeleton />
+      ) : (
       <main className="container mx-auto px-6 py-20">
         
         {/* Features */}
@@ -133,14 +153,10 @@ export default function MarketingClientPage() {
         <section className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center py-10">
            <div className="relative h-80 lg:h-96">
               <motion.div initial={{ opacity: 0, x: -20, rotate: -5 }} whileInView={{ opacity: 1, x: 0, rotate: -8 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }} className="absolute top-0 left-0 w-3/4 rounded-lg overflow-hidden shadow-lg border border-white/10">
-                  <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
-                    <img src={getImage('section2_image', "https://picsum.photos/seed/page1/1200/800")} alt="Visão do painel" width={1200} height={800} className="object-cover" />
-                  </React.Suspense>
+                <img src={getImage('section2_image', "https://picsum.photos/seed/page1/1200/800")} alt="Visão do painel" width={1200} height={800} className="object-cover" />
               </motion.div>
               <motion.div initial={{ opacity: 0, x: 20, rotate: 5 }} whileInView={{ opacity: 1, x: 0, rotate: 2 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }} className="absolute bottom-0 right-0 w-3/4 rounded-lg overflow-hidden shadow-2xl border border-white/10">
-                   <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
-                    <img src={getImage('section4_image1', "https://picsum.photos/seed/page2/600/400")} alt="Detalhe do painel" width={600} height={400} className="object-cover" />
-                  </React.Suspense>
+                <img src={getImage('section4_image1', "https://picsum.photos/seed/page2/600/400")} alt="Detalhe do painel" width={600} height={400} className="object-cover" />
               </motion.div>
           </div>
           <div className="p-6 rounded-xl bg-white/5 border border-white/10 h-full flex flex-col justify-center">
@@ -160,14 +176,12 @@ export default function MarketingClientPage() {
             </p>
           </div>
           <div className="rounded-xl overflow-hidden shadow-lg h-full lg:order-first aspect-[4/3]">
-            <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
-                <img 
-                    src={getImage('section3_image', "https://picsum.photos/seed/agent-site/1200/800")} 
-                    alt="Site público do corretor" 
-                    width={1200} height={900} 
-                    className="object-cover w-full h-full" 
-                    data-ai-hint="real estate website" />
-             </React.Suspense>
+            <img 
+                src={getImage('section3_image', "https://picsum.photos/seed/agent-site/1200/800")} 
+                alt="Site público do corretor" 
+                width={1200} height={900} 
+                className="object-cover w-full h-full" 
+                data-ai-hint="real estate website" />
           </div>
         </section>
 
@@ -204,14 +218,12 @@ export default function MarketingClientPage() {
                 </div>
             </div>
              <div className="rounded-xl overflow-hidden shadow-lg h-full aspect-video">
-                <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
-                    <img 
-                        src={getImage('section6_image', "https://picsum.photos/seed/seo-example/1200/630")} 
-                        alt="Exemplo de SEO" 
-                        width={1200} height={630} 
-                        className="object-cover w-full h-full" 
-                        data-ai-hint="search engine optimization" />
-                </React.Suspense>
+                <img 
+                    src={getImage('section6_image', "https://picsum.photos/seed/seo-example/1200/630")} 
+                    alt="Exemplo de SEO" 
+                    width={1200} height={630} 
+                    className="object-cover w-full h-full" 
+                    data-ai-hint="search engine optimization" />
             </div>
         </section>
 
@@ -278,6 +290,7 @@ export default function MarketingClientPage() {
           </div>
         </section>
       </main>
+      )}
 
       {/* FOOTER */}
       <footer className="border-t border-white/10 py-8">
