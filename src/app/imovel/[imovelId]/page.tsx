@@ -10,7 +10,7 @@ import { PropertyView } from '@/components/imovel/PropertyView';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useFirestore, useDemo } from '@/firebase';
+import { useFirestore } from '@/firebase';
 import { RelatedProperties } from '@/components/imovel/RelatedProperties';
 import { getProperties as getStaticProperties, getAgent as getStaticAgent } from '@/lib/data';
 
@@ -70,10 +70,9 @@ async function getPropertyAndAgent(firestore: any, agentId: string, imovelId: st
 export default function PropertyPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const { isDemo, demoData } = useDemo();
   
   const imovelId = params.imovelId as string;
-  const agentId = isDemo ? demoData.agent.id : searchParams.get('agentId');
+  const agentId = searchParams.get('agentId');
   
   const [propertyData, setPropertyData] = useState<Property | null>(null);
   const [agentData, setAgentData] = useState<Agent | null>(null);
@@ -85,44 +84,36 @@ export default function PropertyPage() {
   useEffect(() => {
     const fetchData = async () => {
         setIsLoading(true);
-
-        if (isDemo && demoData) {
-            const demoProp = demoData.properties.find(p => p.id === imovelId);
-            setPropertyData(demoProp || null);
-            setAgentData(demoData.agent);
-            setAllProperties(demoData.properties);
+        if (!agentId || !firestore) {
+          const staticProp = getStaticProperties().find(p => p.id === imovelId);
+          if (staticProp) {
+            setPropertyData(staticProp);
+            setAgentData(getStaticAgent());
+            setAllProperties(getStaticProperties());
+          }
         } else {
-            if (!agentId || !firestore) {
-              const staticProp = getStaticProperties().find(p => p.id === imovelId);
-              if (staticProp) {
-                setPropertyData(staticProp);
-                setAgentData(getStaticAgent());
-                setAllProperties(getStaticProperties());
-              }
-            } else {
-                const { property, agent, allProperties } = await getPropertyAndAgent(firestore, agentId, imovelId);
-                setPropertyData(property);
-                setAgentData(agent);
-                setAllProperties(allProperties);
-            }
+            const { property, agent, allProperties } = await getPropertyAndAgent(firestore, agentId, imovelId);
+            setPropertyData(property);
+            setAgentData(agent);
+            setAllProperties(allProperties);
         }
         setIsLoading(false);
     };
     
     fetchData();
 
-  }, [firestore, agentId, imovelId, isDemo, demoData]);
+  }, [firestore, agentId, imovelId]);
 
   if (isLoading) {
     return (
       <>
-        <Header agentId={isDemo ? 'demo-user-arthur' : agentId || undefined} />
+        <Header agentId={agentId || undefined} />
         <main className="min-h-[calc(100vh-theme(spacing.14)-theme(spacing.32))] container mx-auto px-4 py-8">
              <div className="flex items-center justify-center h-64">
                 <div className="w-12 h-12 border-4 border-dashed rounded-full animate-spin border-primary"></div>
             </div>
         </main>
-        <Footer agentId={isDemo ? 'demo-user-arthur' : agentId || undefined} />
+        <Footer agentId={agentId || undefined} />
       </>
     );
   }
@@ -133,13 +124,13 @@ export default function PropertyPage() {
 
   return (
     <>
-      <Header agent={agentData} agentId={isDemo ? 'demo-user-arthur' : agentId || undefined} />
+      <Header agent={agentData} agentId={agentId || undefined} />
       <main className="min-h-[calc(100vh-theme(spacing.14)-theme(spacing.32))] container mx-auto px-4 py-8">
         <BackButton />
         <PropertyView property={propertyData} agent={agentData} />
       </main>
       <RelatedProperties currentProperty={propertyData} allProperties={allProperties} />
-      <Footer agentId={isDemo ? 'demo-user-arthur' : agentId || undefined} />
+      <Footer agentId={agentId || undefined} />
     </>
   );
 }

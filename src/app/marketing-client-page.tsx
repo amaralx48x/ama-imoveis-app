@@ -9,7 +9,6 @@ import { doc } from "firebase/firestore";
 import type { MarketingContent } from "@/lib/data";
 import { Building2, Search, Share2 } from "lucide-react";
 import { MarketingHero } from "@/components/marketing-hero";
-import { useDemo } from "@/context/DemoContext";
 import { useRouter } from "next/navigation";
 
 const neon = "bg-gradient-to-r from-primary via-accent to-[#B794F4]";
@@ -30,7 +29,6 @@ const fadeUp = {
 export default function MarketingClientPage() {
   const firestore = useFirestore();
   const router = useRouter();
-  const { startDemo } = useDemo();
 
   const marketingRef = useMemoFirebase(
     () => (firestore ? doc(firestore, "marketing", "content") : null),
@@ -44,8 +42,7 @@ export default function MarketingClientPage() {
   };
 
   const handleStartDemo = () => {
-    startDemo();
-    router.push('/dashboard');
+    router.push('/login?demo=true');
   }
 
 

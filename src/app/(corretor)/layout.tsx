@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { useDemo } from '@/context/DemoContext';
 
 export default function CorretorLayout({
   children,
@@ -23,7 +22,6 @@ export default function CorretorLayout({
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
-  const { isDemo, exitDemo } = useDemo();
 
   const agentRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, 'agents', user.uid) : null),
@@ -49,10 +47,10 @@ export default function CorretorLayout({
 
 
   useEffect(() => {
-    if (!isDemo && !isUserLoading && !user) {
+    if (!isUserLoading && !user) {
       router.push('/login');
     }
-  }, [user, isUserLoading, router, isDemo]);
+  }, [user, isUserLoading, router]);
 
   useEffect(() => {
     const theme = agentData?.siteSettings?.theme || 'dark';
@@ -73,17 +71,13 @@ export default function CorretorLayout({
   }, [agentData]);
 
   const handleLogout = () => {
-    if (isDemo) {
-        exitDemo();
-        return;
-    }
     if(auth) {
       auth.signOut();
       router.push('/login');
     }
   };
 
-  const agentSiteUrl = user ? (isDemo ? `/corretor/demo-user-arthur` : `/corretor/${user.uid}`) : '/';
+  const agentSiteUrl = user ? `/corretor/${user.uid}` : '/';
 
 
   const menuItems = [
@@ -113,7 +107,7 @@ export default function CorretorLayout({
       { href: '/configuracoes/politicas', label: 'Políticas e Termos', icon: FileText },
   ]
   
-  if (isUserLoading && !isDemo) {
+  if (isUserLoading) {
     return (
         <div className="flex items-center justify-center h-screen bg-background">
             <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
@@ -133,12 +127,6 @@ export default function CorretorLayout({
                 </span>
                 <span className="font-bold font-headline text-lg group-data-[collapsible=icon]:hidden">AMA Imóveis</span>
             </div>
-             {isDemo && (
-                <div className="px-2 pb-2">
-                    <Badge variant="destructive" className="w-full justify-center group-data-[collapsible=icon]:hidden">Modo Demonstração</Badge>
-                    <Badge variant="destructive" className="hidden group-data-[collapsible=icon]:block w-full justify-center text-xs">DEMO</Badge>
-                </div>
-            )}
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
@@ -190,7 +178,7 @@ export default function CorretorLayout({
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
-            {isAdmin && !isDemo && (
+            {isAdmin && (
                 <>
                     <Separator className="my-2" />
                     {adminMenuItems.map((item) => (
@@ -216,7 +204,7 @@ export default function CorretorLayout({
          <Sidebar.Footer className="p-2">
             <Button variant="ghost" className="w-full justify-start gap-2" onClick={handleLogout}>
                 <LogOut />
-                <span className="group-data-[collapsible=icon]:hidden">{isDemo ? 'Sair da Demo' : 'Sair'}</span>
+                <span className="group-data-[collapsible=icon]:hidden">Sair</span>
             </Button>
         </Sidebar.Footer>
       </Sidebar>

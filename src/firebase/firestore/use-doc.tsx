@@ -11,8 +11,6 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { useDemo } from '@/context/DemoContext';
-import type { DemoDataContext } from '@/context/DemoContext';
 
 
 /** Utility type to add an 'id' field to a given type T. */
@@ -29,45 +27,16 @@ export interface UseDocResult<T> {
   mutate: () => void; // Function to manually re-fetch data.
 }
 
-function getDemoDocData(demoData: DemoDataContext, docRef: DocumentReference<DocumentData>): any {
-    if (!demoData) return null;
-    const pathSegments = docRef.path.split('/');
-    const collectionKey = pathSegments[pathSegments.length - 2] as keyof DemoDataContext;
-    const docId = pathSegments[pathSegments.length - 1];
-
-    if (collectionKey === 'agents') {
-        return demoData.agent;
-    }
-    
-    // Fallback for other potential collections in demo
-    // @ts-ignore
-    const collection = demoData[collectionKey];
-    if (Array.isArray(collection)) {
-        return collection.find(item => item.id === docId) || null;
-    }
-
-    // Handle single-doc collections like 'marketing/content'
-    // @ts-ignore
-    if (typeof demoData[collectionKey] === 'object' && !Array.isArray(demoData[collectionKey])) {
-        // @ts-ignore
-        return demoData[collectionKey];
-    }
-    
-    return null;
-}
-
 export function useDoc<T = any>(
   memoizedDocRef: DocumentReference<DocumentData> | null | undefined,
 ): UseDocResult<T> {
   type StateDataType = WithId<T> | null;
-  const { isDemo, demoData, isLoading: isDemoLoading } = useDemo();
 
   const [data, setData] = useState<StateDataType>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (isDemo) return;
     if (!memoizedDocRef) {
         setIsLoading(false);
         return;
@@ -91,18 +60,9 @@ export function useDoc<T = any>(
     } finally {
         setIsLoading(false);
     }
-  }, [memoizedDocRef, isDemo]);
+  }, [memoizedDocRef]);
   
   useEffect(() => {
-    if (isDemo) {
-        if (!isDemoLoading && memoizedDocRef && demoData) {
-            const docData = getDemoDocData(demoData, memoizedDocRef);
-            setData(docData as StateDataType);
-        }
-        setIsLoading(isDemoLoading);
-        return;
-    }
-    
     if (!memoizedDocRef) {
       setData(null);
       setIsLoading(false);
@@ -136,7 +96,7 @@ export function useDoc<T = any>(
     );
 
     return () => unsubscribe();
-  }, [memoizedDocRef, isDemo, isDemoLoading, demoData]);
+  }, [memoizedDocRef]);
 
   return { data, isLoading, error, mutate: fetchData };
 }

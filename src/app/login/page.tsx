@@ -23,7 +23,6 @@ import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
-import { useDemo } from '@/context/DemoContext';
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um email válido." }),
@@ -59,14 +58,13 @@ function LoginPageContent() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-    const { isDemo } = useDemo();
 
     useEffect(() => {
-        // Redireciona se o usuário já estiver logado (e não estiver em modo demo)
-        if (!isUserLoading && user && !isDemo) {
+        // Redireciona se o usuário já estiver logado
+        if (!isUserLoading && user) {
             router.replace('/dashboard');
         }
-    }, [user, isUserLoading, router, isDemo]);
+    }, [user, isUserLoading, router]);
 
     const loginForm = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
@@ -178,7 +176,7 @@ function LoginPageContent() {
     }
 
 
-    if (isUserLoading || (user && !isDemo)) {
+    if (isUserLoading || user) {
         return (
              <div className="relative min-h-screen flex items-center justify-center p-4">
                  <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>

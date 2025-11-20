@@ -1,13 +1,11 @@
 
 'use client';
 
-import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
-import { useDemo } from '@/context/DemoContext';
-import type { DemoDataContext } from '@/context/DemoContext';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -46,7 +44,7 @@ export interface FirebaseServicesAndUser {
 }
 
 // Return type for useUser() - specific to user auth state
-export interface UserHookResult { // Renamed from UserAuthHookResult for consistency if desired, or keep as UserAuthHookResult
+export interface UserHookResult { 
   user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
@@ -64,48 +62,18 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   firestore,
   auth,
 }) => {
-  const { isDemo, demoData, isLoading: isDemoLoading } = useDemo();
-
-  const mockUser: User | null = useMemo(() => {
-    if (!demoData || !demoData.agent) return null;
-    return {
-        uid: demoData.agent.id,
-        email: demoData.agent.email,
-        displayName: demoData.agent.displayName,
-        photoURL: demoData.agent.photoUrl,
-        emailVerified: true,
-        isAnonymous: false,
-        metadata: {},
-        providerData: [],
-        providerId: 'demo',
-        tenantId: null,
-        delete: async () => console.warn("Demo mode: delete blocked."),
-        getIdToken: async () => 'demo-token',
-        getIdTokenResult: async () => ({ token: 'demo-token', claims: {}, authTime: '', expirationTime: '', issuedAtTime: '', signInProvider: null, signInSecondFactor: null }),
-        reload: async () => {},
-        toJSON: () => ({uid: demoData.agent.id, email: demoData.agent.email}),
-    } as User
-  }, [demoData]);
-  
   const [userAuthState, setUserAuthState] = useState<UserAuthState>({
     user: auth.currentUser,
-    isUserLoading: !isDemo, // Em modo demo, o usuário já está "carregado"
+    isUserLoading: true,
     userError: null,
   });
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
-    if (isDemo) {
-        setUserAuthState({ user: mockUser, isUserLoading: false, userError: null });
-        return;
-    }
-
     if (!auth) { 
       setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not provided.") });
       return;
     }
-
-    setUserAuthState({ user: auth.currentUser, isUserLoading: true, userError: null });
 
     const unsubscribe = onAuthStateChanged(
       auth,
@@ -118,24 +86,22 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       }
     );
     return () => unsubscribe();
-  }, [auth, isDemo, mockUser]);
+  }, [auth]);
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
     const servicesAvailable = !!(firebaseApp && firestore && auth);
-    const currentUser = isDemo ? mockUser : userAuthState.user;
-    const currentIsLoading = isDemo ? isDemoLoading : userAuthState.isUserLoading;
 
     return {
       areServicesAvailable: servicesAvailable,
       firebaseApp: servicesAvailable ? firebaseApp : null,
       firestore: servicesAvailable ? firestore : null,
       auth: servicesAvailable ? auth : null,
-      user: currentUser,
-      isUserLoading: currentIsLoading,
+      user: userAuthState.user,
+      isUserLoading: userAuthState.isUserLoading,
       userError: userAuthState.userError,
     };
-  }, [firebaseApp, firestore, auth, userAuthState, isDemo, mockUser, isDemoLoading]);
+  }, [firebaseApp, firestore, auth, userAuthState]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
@@ -165,7 +131,7 @@ export const useFirebase = (): FirebaseServicesAndUser => {
     firestore: context.firestore,
     auth: context.auth,
     user: context.user,
-isUserLoading: context.isUserLoading,
+    isUserLoading: context.isUserLoading,
     userError: context.userError,
   };
 };
@@ -193,7 +159,7 @@ export const useFirebaseApp = (): FirebaseApp | null => {
 
 type MemoFirebase <T> = T & {__memo?: boolean};
 
-export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | (MemoFirebase<T>) {
+export function useMemoFirebase<T>(factory: () => T, deps: React.DependencyList): T | (MemoFirebase<T>) {
   const memoized = useMemo(factory, deps);
   
   if(typeof memoized !== 'object' || memoized === null) return memoized;
