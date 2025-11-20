@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Query,
   onSnapshot,
@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useDemo } from '@/context/DemoContext';
+import type { DemoDataContext } from '@/context/DemoContext';
 
 
 /** Utility type to add an 'id' field to a given type T. */
@@ -38,11 +39,13 @@ export interface InternalQuery extends Query<DocumentData> {
   }
 }
 
-function getDemoCollectionData(demoData: any, targetRefOrQuery: any): any[] {
+function getDemoCollectionData(demoData: DemoDataContext, targetRefOrQuery: any): any[] {
     if (!demoData) return [];
-    // Simplistic path parsing for demo purposes
-    // Assumes path like `agents/{id}/properties` -> extracts `properties`
-    const pathSegments = targetRefOrQuery.path.split('/');
+    
+    const path = targetRefOrQuery.path || (targetRefOrQuery._query && targetRefOrQuery._query.path.canonicalString());
+    if (!path) return [];
+    
+    const pathSegments = path.split('/');
     const collectionKey = pathSegments[pathSegments.length - 1];
 
     // @ts-ignore
@@ -54,7 +57,7 @@ export function useCollection<T = any>(
 ): UseCollectionResult<T> {
   type ResultItemType = WithId<T>;
   type StateDataType = ResultItemType[] | null;
-  const { isDemo, demoData, isLoading: isDemoLoading, updateDemoData } = useDemo();
+  const { isDemo, demoData, isLoading: isDemoLoading } = useDemo();
 
   const [data, setData] = useState<StateDataType>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);

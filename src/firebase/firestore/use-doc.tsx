@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useDemo } from '@/context/DemoContext';
+import type { DemoDataContext } from '@/context/DemoContext';
 
 
 /** Utility type to add an 'id' field to a given type T. */
@@ -28,27 +29,21 @@ export interface UseDocResult<T> {
   mutate: () => void; // Function to manually re-fetch data.
 }
 
-function getDemoDocData(demoData: any, docRef: DocumentReference<DocumentData>): any {
+function getDemoDocData(demoData: DemoDataContext, docRef: DocumentReference<DocumentData>): any {
     if (!demoData) return null;
     const pathSegments = docRef.path.split('/');
     const collectionKey = pathSegments[pathSegments.length - 2];
     const docId = pathSegments[pathSegments.length - 1];
 
     if (collectionKey === 'agents') {
-        // Special case for agent, as it's a single object
         return demoData.agent;
     }
-    if (collectionKey === 'marketing') {
-        return demoData.marketing; // Assuming you add marketing to demo data
-    }
-     if (collectionKey === 'seo') {
-        return demoData.seo;
-    }
-
+    
+    // Fallback for other potential collections in demo
     // @ts-ignore
     const collection = demoData[collectionKey];
     if (Array.isArray(collection)) {
-        return collection.find(item => item.id === docId);
+        return collection.find(item => item.id === docId) || null;
     }
     return null;
 }

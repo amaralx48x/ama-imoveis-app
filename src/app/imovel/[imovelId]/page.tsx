@@ -1,3 +1,4 @@
+
 'use client';
 
 import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
@@ -72,7 +73,7 @@ export default function PropertyPage() {
   const { isDemo, demoData } = useDemo();
   
   const imovelId = params.imovelId as string;
-  const agentId = searchParams.get('agentId');
+  const agentId = isDemo ? demoData.agent.id : searchParams.get('agentId');
   
   const [propertyData, setPropertyData] = useState<Property | null>(null);
   const [agentData, setAgentData] = useState<Agent | null>(null);
@@ -85,7 +86,7 @@ export default function PropertyPage() {
     const fetchData = async () => {
         setIsLoading(true);
 
-        if (isDemo) {
+        if (isDemo && demoData) {
             const demoProp = demoData.properties.find(p => p.id === imovelId);
             setPropertyData(demoProp || null);
             setAgentData(demoData.agent);

@@ -7,6 +7,7 @@ import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { useDemo } from '@/context/DemoContext';
+import type { DemoDataContext } from '@/context/DemoContext';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -65,26 +66,29 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 }) => {
   const { isDemo, demoData } = useDemo();
 
-  const mockUser: User = useMemo(() => ({
-    uid: 'demo-user-arthur', // Use a real UID for read rules if needed
-    email: demoData.agent?.email || 'demo@cliente.com',
-    displayName: demoData.agent?.displayName || 'Arthur (Demo)',
-    photoURL: demoData.agent?.photoUrl,
-    emailVerified: true,
-    isAnonymous: false,
-    metadata: {},
-    providerData: [],
-    providerId: 'demo',
-    tenantId: null,
-    delete: async () => console.warn("Demo mode: delete blocked."),
-    getIdToken: async () => 'demo-token',
-    getIdTokenResult: async () => ({ token: 'demo-token', claims: {}, authTime: '', expirationTime: '', issuedAtTime: '', signInProvider: null, signInSecondFactor: null }),
-    reload: async () => {},
-    toJSON: () => ({uid: 'demo-user-arthur', email: 'demo@cliente.com'}),
-  } as User), [demoData.agent]);
+  const mockUser: User | null = useMemo(() => {
+    if (!demoData || !demoData.agent) return null;
+    return {
+        uid: demoData.agent.id,
+        email: demoData.agent.email,
+        displayName: demoData.agent.displayName,
+        photoURL: demoData.agent.photoUrl,
+        emailVerified: true,
+        isAnonymous: false,
+        metadata: {},
+        providerData: [],
+        providerId: 'demo',
+        tenantId: null,
+        delete: async () => console.warn("Demo mode: delete blocked."),
+        getIdToken: async () => 'demo-token',
+        getIdTokenResult: async () => ({ token: 'demo-token', claims: {}, authTime: '', expirationTime: '', issuedAtTime: '', signInProvider: null, signInSecondFactor: null }),
+        reload: async () => {},
+        toJSON: () => ({uid: demoData.agent.id, email: demoData.agent.email}),
+    } as User
+  }, [demoData]);
   
   const [userAuthState, setUserAuthState] = useState<UserAuthState>({
-    user: isDemo ? mockUser : auth.currentUser,
+    user: auth.currentUser,
     isUserLoading: !isDemo, // Em modo demo, o usuário já está "carregado"
     userError: null,
   });
@@ -119,16 +123,19 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
     const servicesAvailable = !!(firebaseApp && firestore && auth);
+    const currentUser = isDemo ? mockUser : userAuthState.user;
+    const currentIsLoading = isDemo ? false : userAuthState.isUserLoading;
+
     return {
       areServicesAvailable: servicesAvailable,
       firebaseApp: servicesAvailable ? firebaseApp : null,
       firestore: servicesAvailable ? firestore : null,
       auth: servicesAvailable ? auth : null,
-      user: userAuthState.user,
-      isUserLoading: userAuthState.isUserLoading,
+      user: currentUser,
+      isUserLoading: currentIsLoading,
       userError: userAuthState.userError,
     };
-  }, [firebaseApp, firestore, auth, userAuthState]);
+  }, [firebaseApp, firestore, auth, userAuthState, isDemo, mockUser]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>

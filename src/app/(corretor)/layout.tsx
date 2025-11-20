@@ -23,7 +23,7 @@ export default function CorretorLayout({
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
-  const { isDemo, startDemo } = useDemo();
+  const { isDemo, exitDemo } = useDemo();
 
   const agentRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, 'agents', user.uid) : null),
@@ -74,9 +74,7 @@ export default function CorretorLayout({
 
   const handleLogout = () => {
     if (isDemo) {
-        sessionStorage.removeItem('demo_data');
-        sessionStorage.removeItem('isDemo');
-        router.push('/');
+        exitDemo();
         return;
     }
     if(auth) {

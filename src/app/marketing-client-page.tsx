@@ -43,8 +43,8 @@ export default function MarketingClientPage() {
     return marketingData?.[field] || defaultUrl;
   };
 
-  const handleStartDemo = async () => {
-    await startDemo();
+  const handleStartDemo = () => {
+    startDemo();
     router.push('/dashboard');
   }
 

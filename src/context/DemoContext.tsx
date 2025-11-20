@@ -3,8 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import type { Agent, Property, Review, CustomSection, Lead, Contact } from '@/lib/data';
 import demoSnapshot from '@/lib/demo-data.json';
-import { getFirebaseServer } from '@/firebase/server-init';
-import { getDoc, doc } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
 
 // --- Tipos e Interfaces ---
 export interface DemoDataContext {
@@ -18,10 +17,10 @@ export interface DemoDataContext {
 
 interface DemoContextProps {
   isDemo: boolean;
-  demoData: DemoDataContext | null;
+  demoData: DemoDataContext;
   updateDemoData: (path: string, value: any) => void;
   isLoading: boolean;
-  startDemo: () => Promise<void>;
+  startDemo: () => void;
   exitDemo: () => void;
 }
 
@@ -52,15 +51,15 @@ const setSessionStorage = (key: string, value: any) => {
 const DemoContext = createContext<DemoContextProps | undefined>(undefined);
 
 export const DemoProvider = ({ children }: { children: ReactNode }) => {
+  const router = useRouter();
   const [isDemo, setIsDemo] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [demoData, setDemoDataState] = useState<DemoDataContext | null>(() =>
-    getSessionStorage('demo_data', null)
-  );
+  // Initialize state with the static JSON dump
+  const [demoData, setDemoDataState] = useState<DemoDataContext>(() => getSessionStorage('demo_data', demoSnapshot as DemoDataContext));
 
-  const startDemo = useCallback(async () => {
-    // Carrega o dump estático como ponto de partida
+  const startDemo = useCallback(() => {
+    // Load static data into state and session storage
     const initialData = JSON.parse(JSON.stringify(demoSnapshot)) as DemoDataContext;
     setSessionStorage('demo_data', initialData);
     setDemoDataState(initialData);
@@ -68,76 +67,72 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
     setSessionStorage('isDemo', true);
   }, []);
 
-  const exitDemo = () => {
+  const exitDemo = useCallback(() => {
     sessionStorage.removeItem('demo_data');
     sessionStorage.removeItem('isDemo');
     setIsDemo(false);
-    setDemoDataState(null);
-    // O redirecionamento será tratado no componente que chama exitDemo
-  };
-
+    setDemoDataState(demoSnapshot as DemoDataContext); // Reset to default
+    router.push('/');
+  }, [router]);
+  
   useEffect(() => {
     const demoStatus = getSessionStorage('isDemo', false);
     setIsDemo(demoStatus);
     if (demoStatus) {
       const storedData = getSessionStorage('demo_data', null);
-      if (storedData) {
-        setDemoDataState(storedData);
-      } else {
-        // Se o status for demo mas não houver dados, inicia a demo para carregar o snapshot.
-        startDemo();
-      }
+      setDemoDataState(storedData || demoSnapshot as DemoDataContext);
     }
     setIsLoading(false);
-  }, [startDemo]);
-  
-  const updateDemoData = (path: string, value: any) => {
+  }, []);
+
+  const updateDemoData = useCallback((path: string, value: any) => {
     setDemoDataState(prevData => {
-        if (!prevData) return null;
+        if (!prevData) return prevData;
         
-        // structuredClone para uma cópia profunda e segura
         const newData = structuredClone(prevData);
-        const keys = path.split('/'); // ex: "agent/siteSettings"
-        let current = newData as any;
+        const keys = path.split('/');
+        let current: any = newData;
 
         for (let i = 0; i < keys.length - 1; i++) {
-            const key = keys[i];
-            if(Array.isArray(current) && !isNaN(Number(keys[i+1]))) {
-              // Se o próximo segmento for um índice numérico, e o atual for um array
-              const arrayKey = keys.slice(i, i+2).join('/'); // ex: properties/0
-              const subPath = keys.slice(i+2).join('/');
-              
-              const itemIndex = current.findIndex((item: any) => item.id === keys[i+1] || i === Number(keys[i+1]));
-              if(itemIndex > -1) {
-                  let itemToUpdate = current[itemIndex];
-                  const subKeys = subPath.split('/');
-                  for (let j = 0; j < subKeys.length - 1; j++) {
-                     itemToUpdate = itemToUpdate[subKeys[j]];
-                  }
-                  itemToUpdate[subKeys[subKeys.length - 1]] = value;
-              }
-              setSessionStorage('demo_data', newData);
-              return newData;
-
-            } else {
-               current = current[key] = current[key] || {};
+            current = current[keys[i]];
+            if (current === undefined) {
+                console.error(`Invalid path for demo update: ${path}`);
+                return prevData; // Don't update if path is invalid
             }
         }
-        current[keys[keys.length - 1]] = value;
         
+        const lastKey = keys[keys.length - 1];
+
+        // Handle array updates (add/delete/update)
+        if (Array.isArray(current)) {
+            const itemIndex = current.findIndex((item: any) => item.id === lastKey);
+            if (itemIndex > -1) {
+                if (value === null) { // Deletion
+                    current.splice(itemIndex, 1);
+                } else { // Update
+                    current[itemIndex] = { ...current[itemIndex], ...value };
+                }
+            } else if (value !== null) { // Addition
+                current.push(value);
+            }
+        } else {
+             // Handle object updates
+            current[lastKey] = value;
+        }
+
         setSessionStorage('demo_data', newData);
         return newData;
     });
-  };
+  }, []);
 
   const value = useMemo(() => ({
     isDemo,
-    demoData,
+    demoData: demoData as DemoDataContext,
     updateDemoData,
     isLoading,
     startDemo,
     exitDemo,
-  }), [isDemo, demoData, isLoading, startDemo]);
+  }), [isDemo, demoData, isLoading, startDemo, exitDemo, updateDemoData]);
 
   return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>;
 };

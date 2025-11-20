@@ -33,11 +33,23 @@ export async function generateMetadata({ params }: { params: { agentId: string }
 async function getAgentData(agentId: string) {
   // DEMO MODE: Serve data from local snapshot
   if (agentId === 'demo-user-arthur') {
+    const data = JSON.parse(JSON.stringify(demoSnapshot));
+    // Simulate server timestamp conversion to string for client component
+    data.reviews.forEach((r: Review) => {
+        if (r.createdAt && typeof r.createdAt !== 'string') {
+            r.createdAt = new Date(r.createdAt).toISOString();
+        }
+    });
+     data.properties.forEach((p: Property) => {
+        if (p.createdAt && typeof p.createdAt !== 'string') {
+            p.createdAt = new Date(p.createdAt).toISOString();
+        }
+    });
     return {
-        agent: JSON.parse(JSON.stringify(demoSnapshot.agent)),
-        allProperties: JSON.parse(JSON.stringify(demoSnapshot.properties)),
-        customSections: JSON.parse(JSON.stringify(demoSnapshot.customSections)),
-        reviews: JSON.parse(JSON.stringify(demoSnapshot.reviews)),
+        agent: data.agent,
+        allProperties: data.properties,
+        customSections: data.customSections,
+        reviews: data.reviews,
     };
   }
 
