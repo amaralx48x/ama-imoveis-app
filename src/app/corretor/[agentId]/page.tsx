@@ -8,16 +8,17 @@ import { getReviews as getStaticReviews, getProperties as getStaticProperties } 
 import { getSEO } from "@/firebase/server-actions/seo";
 
 
-// -------------------------------------------------------------
-// FIX 1 → params e searchParams precisam ser awaited em generateMetadata
-// -------------------------------------------------------------
-export async function generateMetadata(props: {
-  params: Promise<{ agentId: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}): Promise<Metadata> {
+// --------------------------------------------
+// generateMetadata — versão correta
+// --------------------------------------------
+export async function generateMetadata(
+  props: {
+    params: { agentId: string };
+    searchParams: { [key: string]: string | string[] | undefined };
+  }
+): Promise<Metadata> {
 
-  const params = await props.params;
-  const searchParams = await props.searchParams;
+  const { params, searchParams } = props;
 
   const isDemo = searchParams?.demo === "true";
   const seoKey = isDemo ? `agent-DEMO_AGENT_ID_999` : `agent-${params.agentId}`;
@@ -44,9 +45,9 @@ export async function generateMetadata(props: {
 }
 
 
-// -------------------------------------------------------------
-// Lógica existente (sem alterações)
-// -------------------------------------------------------------
+// --------------------------------------------
+// Lógica existente
+// --------------------------------------------
 async function getAgentData(agentId: string) {
   const { firestore } = getFirebaseServer();
   
@@ -108,18 +109,17 @@ async function getAgentData(agentId: string) {
 }
 
 
-// -------------------------------------------------------------
-// FIX 2 → mesma correção para params e searchParams na página server
-// -------------------------------------------------------------
-export default async function AgentPublicPage(props: {
-  params: Promise<{ agentId: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+// --------------------------------------------
+// Page — versão correta (sem Promises)
+// --------------------------------------------
+export default async function AgentPublicPage(
+  props: {
+    params: { agentId: string };
+    searchParams: { [key: string]: string | string[] | undefined };
+  }
+) {
 
-  const params = await props.params;
-  const searchParams = await props.searchParams;
-
-  if (!params || !searchParams) return notFound();
+  const { params, searchParams } = props;
 
   const { agentId } = params;
   const isDemo = searchParams.demo === "true";
