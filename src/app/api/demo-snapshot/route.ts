@@ -1,3 +1,4 @@
+
 // src/app/api/demo-snapshot/route.ts
 import { NextResponse } from 'next/server';
 import { getFirebaseServer } from '@/firebase/server-init';
