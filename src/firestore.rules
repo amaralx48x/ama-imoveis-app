@@ -20,6 +20,14 @@ service cloud.firestore {
     }
 
     // =========================
+    // Regra da Conta de Demonstração
+    // =========================
+    match /agents/4vEISo4pEORjFhv6RzD7eC42cgm2/{allPaths=**} {
+      allow read: if true;
+      allow write: if false; // Ninguém pode escrever nos dados de demonstração
+    }
+
+    // =========================
     // Coleção de Agentes/Imobiliárias
     // =========================
     match /agents/{agentId} {
@@ -70,14 +78,6 @@ service cloud.firestore {
         // Apenas o dono ou admin podem ler/gerenciar os leads.
         allow read, update, delete: if isOwner(agentId) || isAdmin();
       }
-    }
-    
-    // =========================
-    // Coleção de Demonstração
-    // =========================
-    match /demo/{allPaths=**} {
-      allow read: if true; // Permite leitura pública de toda a coleção de demo
-      allow write: if false; // Ninguém pode escrever na coleção de demo
     }
 
     // =========================
