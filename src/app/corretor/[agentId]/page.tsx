@@ -1,22 +1,24 @@
+
 import type { Metadata } from "next";
 import AgentPageClient from "@/app/corretor/[agentId]/agent-page-client";
 import { getFirebaseServer } from "@/firebase/server-init";
 import { doc, getDoc, collection, getDocs, query, where, orderBy, limit } from "firebase/firestore";
 import type { Agent, Property, Review, CustomSection } from "@/lib/data";
 import { notFound } from "next/navigation";
-import { getReviews as getStaticReviews, getProperties as getStaticProperties, getAgent as getStaticAgent } from '@/lib/data';
+import { getReviews as getStaticReviews, getProperties as getStaticProperties } from '@/lib/data';
 import { getSEO } from "@/firebase/server-actions/seo";
 
-/* --------------------------- METADATA --------------------------- */
 
-export async function generateMetadata(
-  props: { 
-    params: Promise<{ agentId: string }>, 
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }> 
-  }
-): Promise<Metadata> {
+// -------------------------------------------------------------
+// FIX 1 → params e searchParams precisam ser awaited em generateMetadata
+// -------------------------------------------------------------
+export async function generateMetadata(props: {
+  params: Promise<{ agentId: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}): Promise<Metadata> {
 
-  const { params, searchParams } = await props;
+  const params = await props.params;
+  const searchParams = await props.searchParams;
 
   const isDemo = searchParams?.demo === "true";
   const seoKey = isDemo ? `agent-DEMO_AGENT_ID_999` : `agent-${params.agentId}`;
@@ -24,31 +26,28 @@ export async function generateMetadata(
   if (isDemo) {
     return {
       title: "Página do Corretor (Demonstração)",
-      description: "Confira os imóveis deste corretor em modo de demonstração."
+      description: "Confira os imóveis deste corretor em modo de demonstração.",
     };
   }
 
   const seoData = await getSEO(seoKey);
 
-  const title = seoData?.title || "Página do Corretor";
-  const description = seoData?.description || "Confira os imóveis deste corretor.";
-  const keywords = seoData?.keywords || ["imóveis", "corretor"];
-  const imageUrl = seoData?.image || "";
-
   return {
-    title,
-    description,
-    keywords,
+    title: seoData?.title || "Página do Corretor",
+    description: seoData?.description || "Confira os imóveis deste corretor.",
+    keywords: seoData?.keywords || ["imóveis", "corretor"],
     openGraph: {
-      title,
-      description,
-      images: imageUrl ? [imageUrl] : []
-    }
+      title: seoData?.title || "Página do Corretor",
+      description: seoData?.description || "Confira os imóveis deste corretor.",
+      images: seoData?.image ? [seoData.image] : [],
+    },
   };
 }
 
-/* --------------------------- FIREBASE DATA --------------------------- */
 
+// -------------------------------------------------------------
+// Lógica existente (sem alterações)
+// -------------------------------------------------------------
 async function getAgentData(agentId: string) {
   const { firestore } = getFirebaseServer();
 
@@ -115,32 +114,26 @@ async function getAgentData(agentId: string) {
   }
 }
 
-/* --------------------------- PAGE COMPONENT --------------------------- */
+// -------------------------------------------------------------
+// FIX 2 → A própria página agora é uma função async que recebe `props`
+// -------------------------------------------------------------
+export default async function AgentPublicPage(props: {
+  params: Promise<{ agentId: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const params = await props.params;
+  const searchParams = await props.searchParams;
 
-export default async function AgentPublicPage(
-  props: { 
-    params: Promise<{ agentId: string }>, 
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }> 
-  }
-) {
-  const { params, searchParams } = await props;
-
-  if (!params || !searchParams) {
-    return notFound();
-  }
-  
   const { agentId } = params;
-  const isDemo = searchParams.demo === "true";
+  const isDemo = searchParams?.demo === "true";
 
   if (isDemo) {
-      return <AgentPageClient serverData={null} />;
+    return <AgentPageClient serverData={null} />;
   }
-  
+
   const data = await getAgentData(agentId);
-  
-  if (!data) {
-    return notFound();
-  }
+
+  if (!data) return notFound();
 
   return <AgentPageClient serverData={data} />;
 }
