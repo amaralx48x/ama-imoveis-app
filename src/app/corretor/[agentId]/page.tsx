@@ -11,7 +11,7 @@ import { getSEO } from "@/firebase/server-actions/seo";
 
 export async function generateMetadata({ params, searchParams }: { params: { agentId: string }, searchParams: { [key: string]: string | string[] | undefined } }): Promise<Metadata> {
   
-  const isDemo = searchParams.demo === 'true';
+  const isDemo = searchParams?.demo === 'true';
   const seoKey = isDemo ? `agent-DEMO_AGENT_ID_999` : `agent-${params.agentId}`;
 
   // For demo, we might want to return static metadata or fetch from a demo-specific SEO doc
@@ -105,6 +105,11 @@ async function getAgentData(agentId: string) {
 }
 
 export default async function AgentPublicPage({ params, searchParams }: { params: { agentId: string }, searchParams: { [key: string]: string | string[] | undefined } }) {
+  
+  if (!params || !searchParams) {
+    return notFound();
+  }
+
   const { agentId } = params;
   const isDemo = searchParams.demo === 'true';
 
