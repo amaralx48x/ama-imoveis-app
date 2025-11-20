@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, googleProvider, signInWithPopup, saveUserToFirestore } from '@/firebase';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
@@ -60,10 +60,9 @@ function LoginPageContent() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+    const { startDemo } = useDemo();
 
     useEffect(() => {
-        // Now, this effect only redirects if a real user logs in.
-        // The demo redirection is handled by the RootLayout.
         if (!isUserLoading && user) {
             router.replace('/dashboard');
         }
@@ -170,7 +169,7 @@ function LoginPageContent() {
                 accountType: 'corretor',
             });
             toast({ title: "Login bem-sucedido!" });
-            // O useEffect cuidará do redirecionamento
+            router.push('/dashboard');
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -320,13 +319,6 @@ function LoginPageContent() {
 
 export default function LoginPage() {
     return (
-        // A Suspense boundary is needed to use useSearchParams in DemoRedirect
-        <Suspense fallback={
-            <div className="relative min-h-screen flex items-center justify-center p-4">
-                <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
-            </div>
-        }>
-            <LoginPageContent />
-        </Suspense>
+        <LoginPageContent />
     )
 }
