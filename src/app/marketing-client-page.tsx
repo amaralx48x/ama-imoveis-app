@@ -78,7 +78,7 @@ export default function MarketingClientPage() {
               A plataforma completa para <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C4B5FD] to-[#A78BFA]">corretores e imobiliárias</span>
             </motion.h2>
 
-            <motion.p variants={fadeUp} className="mt-6 text-lg text-white/70">
+            <motion.p variants={fadeUp} className="mt-6 text-lg text-white [text-shadow:0_0_10px_rgba(255,255,255,0.5)]">
               Gerencie anúncios, leads, visitas e comissões — tudo num só lugar. Painéis inteligentes, agenda integrada e site público para cada corretor.
             </motion.p>
 
