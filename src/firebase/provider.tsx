@@ -66,23 +66,22 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   const { isDemo, demoData } = useDemo();
 
   const mockUser: User = useMemo(() => ({
-    uid: 'demo-user',
+    uid: 'demo-user-arthur', // Use a real UID for read rules if needed
     email: 'demo@cliente.com',
-    displayName: 'Usuário de Teste',
-    photoURL: 'https://images.unsplash.com/photo-1581065178047-8ee15951ede6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjE5NTYzOTR8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    // Mock outros campos necessários
+    displayName: 'Arthur (Demo)',
+    photoURL: demoData.agent?.photoUrl,
     emailVerified: true,
     isAnonymous: false,
     metadata: {},
     providerData: [],
     providerId: 'demo',
     tenantId: null,
-    delete: async () => {},
+    delete: async () => console.warn("Demo mode: delete blocked."),
     getIdToken: async () => 'demo-token',
     getIdTokenResult: async () => ({ token: 'demo-token', claims: {}, authTime: '', expirationTime: '', issuedAtTime: '', signInProvider: null, signInSecondFactor: null }),
     reload: async () => {},
-    toJSON: () => ({}),
-  } as User), []);
+    toJSON: () => ({uid: 'demo-user-arthur', email: 'demo@cliente.com'}),
+  } as User), [demoData.agent]);
   
   const [userAuthState, setUserAuthState] = useState<UserAuthState>({
     user: isDemo ? mockUser : auth.currentUser,
@@ -166,10 +165,8 @@ isUserLoading: context.isUserLoading,
 
 /** Hook to access Firebase Auth instance. */
 export const useAuth = (): Auth | null => {
-  const { isDemo } = useDemo();
   const context = useContext(FirebaseContext);
-  if (isDemo) return null;
-  if (!context || !context.auth) throw new Error('useAuth must be used within a FirebaseProvider.');
+  if (!context) throw new Error('useAuth must be used within a FirebaseProvider.');
   return context.auth;
 };
 
@@ -177,16 +174,14 @@ export const useAuth = (): Auth | null => {
 export const useFirestore = (): Firestore | null => {
   const { isDemo } = useDemo();
   const context = useContext(FirebaseContext);
-  if (isDemo) return null;
+  // In demo mode, we still need a firestore instance for certain functions, but they will be intercepted.
   if (!context || !context.firestore) throw new Error('useFirestore must be used within a FirebaseProvider.');
   return context.firestore;
 };
 
 /** Hook to access Firebase App instance. */
 export const useFirebaseApp = (): FirebaseApp | null => {
-    const { isDemo } = useDemo();
     const context = useContext(FirebaseContext);
-    if (isDemo) return null;
     if (!context || !context.firebaseApp) throw new Error('useFirebaseApp must be used within a FirebaseProvider.');
     return context.firebaseApp;
 };
@@ -208,33 +203,9 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | 
  * @returns {UserHookResult} Object with user, isUserLoading, userError.
  */
 export const useUser = (): UserHookResult => {
-  const { isDemo } = useDemo();
   const context = useContext(FirebaseContext);
   if (context === undefined) {
     throw new Error('useUser must be used within a FirebaseProvider.');
-  }
-  
-  const mockUser: User = useMemo(() => ({
-    uid: 'demo-user',
-    email: 'demo@cliente.com',
-    displayName: 'Usuário de Teste',
-    photoURL: 'https://images.unsplash.com/photo-1581065178047-8ee15951ede6',
-    emailVerified: true,
-    isAnonymous: false,
-    metadata: {},
-    providerData: [],
-    providerId: 'demo',
-    tenantId: null,
-    delete: async () => {},
-    getIdToken: async () => 'demo-token',
-    getIdTokenResult: async () => ({ token: 'demo-token', claims: {}, authTime: '', expirationTime: '', issuedAtTime: '', signInProvider: null, signInSecondFactor: null }),
-    reload: async () => {},
-    toJSON: () => ({}),
-  } as User), []);
-
-
-  if (isDemo) {
-    return { user: mockUser, isUserLoading: false, userError: null };
   }
 
   return { user: context.user, isUserLoading: context.isUserLoading, userError: context.userError };

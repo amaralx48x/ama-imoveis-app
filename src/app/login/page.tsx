@@ -60,13 +60,14 @@ function LoginPageContent() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-    const { startDemo } = useDemo();
+    const { isDemo, startDemo } = useDemo();
 
     useEffect(() => {
-        if (!isUserLoading && user) {
+        // Redireciona se o usuário já estiver logado (e não estiver em modo demo)
+        if (!isUserLoading && user && !isDemo) {
             router.replace('/dashboard');
         }
-    }, [user, isUserLoading, router]);
+    }, [user, isUserLoading, router, isDemo]);
 
     const loginForm = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
@@ -178,7 +179,7 @@ function LoginPageContent() {
     }
 
 
-    if (isUserLoading || user) {
+    if (isUserLoading || (user && !isDemo)) {
         return (
              <div className="relative min-h-screen flex items-center justify-center p-4">
                  <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>

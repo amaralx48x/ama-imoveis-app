@@ -2,13 +2,12 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { getProperties, getReviews, defaultPrivacyPolicy, defaultTermsOfUse } from '@/lib/data';
 import type { Agent, Property, Review, CustomSection, Lead, Contact } from '@/lib/data';
 
 // --- Tipos e Interfaces ---
 interface DemoDataContext {
-  agent: Agent | null;
+  agent: Agent;
   properties: Property[];
   reviews: Review[];
   leads: Lead[];
@@ -66,12 +65,17 @@ const createInitialDemoData = (): DemoDataContext => {
 
   const demoProperties = getProperties().map(p => ({ ...p, agentId: 'demo-user-arthur' }));
   const demoReviews = getReviews();
+  const demoLeads: Lead[] = [
+      { id: 'lead1', name: 'Mariana Silva', email: 'mariana.silva@example.com', message: 'Gostaria de agendar uma visita para o Apartamento Luxuoso no Centro. Tenho urgência!', createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), status: 'unread', leadType: 'buyer' },
+      { id: 'lead2', name: 'Pedro Albuquerque', email: 'pedro.a@example.com', message: 'Tenho interesse em anunciar meu imóvel com vocês. É uma casa em Campinas.', createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), status: 'unread', leadType: 'seller' },
+      { id: 'lead3', name: 'Beatriz Santos', email: 'beatriz.santos@example.com', message: 'Olá, qual o valor do condomínio da Casa de Praia com Vista para o Mar?', createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), status: 'read', leadType: 'buyer' },
+  ];
 
   return {
     agent: demoAgent,
     properties: demoProperties,
     reviews: demoReviews,
-    leads: [],
+    leads: demoLeads,
     contacts: [],
     customSections: [
       { id: 'lancamentos', title: 'Lançamentos', order: 1, createdAt: new Date().toISOString() },
@@ -107,8 +111,7 @@ const setSessionStorage = (key: string, value: any) => {
 const DemoContext = createContext<DemoContextProps | undefined>(undefined);
 
 export const DemoProvider = ({ children }: { children: ReactNode }) => {
-  const searchParams = useSearchParams();
-  const [isDemo, setIsDemo] = useState(searchParams.get('demo') === 'true');
+  const [isDemo, setIsDemo] = useState(getSessionStorage('isDemo', false));
   const [isLoading, setIsLoading] = useState(true);
 
   const [demoData, setDemoDataState] = useState<DemoDataContext>(() =>
@@ -125,15 +128,14 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
     } else {
       setDemoDataState(initialData);
     }
+    setSessionStorage('isDemo', true);
   }, []);
 
   useEffect(() => {
-    const demoParam = searchParams.get('demo');
-    if(demoParam === 'true') {
-        startDemo();
-    }
+    // Only check sessionStorage on initial client load
+    setIsDemo(getSessionStorage('isDemo', false));
     setIsLoading(false);
-  }, [searchParams, startDemo]);
+  }, []);
   
   const updateDemoData = (key: keyof DemoDataContext, data: any) => {
     setDemoDataState(prevData => {

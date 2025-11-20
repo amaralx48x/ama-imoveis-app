@@ -9,6 +9,8 @@ import { doc } from "firebase/firestore";
 import type { MarketingContent } from "@/lib/data";
 import { Building2, Search, Share2 } from "lucide-react";
 import { MarketingHero } from "@/components/marketing-hero";
+import { useDemo } from "@/context/DemoContext";
+import { useRouter } from "next/navigation";
 
 const neon = "bg-gradient-to-r from-primary via-accent to-[#B794F4]";
 
@@ -27,6 +29,9 @@ const fadeUp = {
 
 export default function MarketingClientPage() {
   const firestore = useFirestore();
+  const router = useRouter();
+  const { startDemo } = useDemo();
+
   const marketingRef = useMemoFirebase(
     () => (firestore ? doc(firestore, "marketing", "content") : null),
     [firestore]
@@ -37,6 +42,11 @@ export default function MarketingClientPage() {
     if (isLoading) return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"; // transparent pixel
     return marketingData?.[field] || defaultUrl;
   };
+
+  const handleStartDemo = () => {
+    startDemo();
+    router.push('/dashboard');
+  }
 
 
   return (
@@ -85,9 +95,9 @@ export default function MarketingClientPage() {
               <Link href="/login" className={`inline-flex items-center gap-3 px-6 py-3 rounded-lg font-semibold ${neon} text-white shadow-lg hover:scale-[1.02] transition`}>
                 Criar Conta
               </Link>
-              <Link href="/login?demo=true" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10 text-sm hover:bg-white/5 transition">
+              <button onClick={handleStartDemo} className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10 text-sm hover:bg-white/5 transition">
                 Testar o AMA IMOBI
-              </Link>
+              </button>
             </motion.div>
         </motion.div>
       </section>
@@ -262,7 +272,7 @@ export default function MarketingClientPage() {
             <h3 className="text-2xl font-bold">Teste AMA Imobi por 7 dias</h3>
             <p className="mt-2 text-white/70">Sem cartão no teste — experimente e veja o impacto nas suas vendas.</p>
             <div className="mt-6 flex justify-center gap-4">
-              <Link href="/login" className={`inline-flex ${neon} text-white px-6 py-3 rounded-lg font-semibold`}>Começar Teste</Link>
+              <Link href="/login" className={`inline-flex ${neon} text-white px-6 py-3 rounded-lg font-semibold`}>Criar Conta</Link>
               <Link href="#plans" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10">Ver planos</Link>
             </div>
           </div>

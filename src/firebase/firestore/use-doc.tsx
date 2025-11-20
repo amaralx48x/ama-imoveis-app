@@ -35,11 +35,15 @@ export function useDoc<T = any>(
   const { isDemo, demoData, isLoading: isDemoLoading } = useDemo();
 
   const [data, setData] = useState<StateDataType>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(!isDemo);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (isDemo || !memoizedDocRef) return;
+    if (isDemo) return;
+    if (!memoizedDocRef) {
+        setIsLoading(false);
+        return;
+    }
     setIsLoading(true);
     try {
         const docSnap = await getDoc(memoizedDocRef);
@@ -64,11 +68,21 @@ export function useDoc<T = any>(
   useEffect(() => {
     if (isDemo) {
         if (!isDemoLoading && memoizedDocRef) {
-             const collection = memoizedDocRef.parent.id;
-             // @ts-ignore
-             const docData = demoData[collection as keyof typeof demoData];
-             if(docData){
-                 setData(docData as StateDataType);
+             const collectionId = memoizedDocRef.parent.id;
+             // Special case for 'agents' collection to get the single agent document
+             if (collectionId === 'agents') {
+                 setData(demoData.agent as StateDataType);
+             } else {
+                // For other collections, you might need a different logic
+                // This is a simplified example
+                // @ts-ignore
+                const collectionData = demoData[collectionId as keyof typeof demoData];
+                if(Array.isArray(collectionData)) {
+                    const docData = collectionData.find(d => d.id === memoizedDocRef.id);
+                    setData(docData || null);
+                } else if (collectionData) { // If it's a single object (like 'content')
+                    setData(collectionData)
+                }
              }
         }
         setIsLoading(false);

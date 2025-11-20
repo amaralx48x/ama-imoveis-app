@@ -43,14 +43,24 @@ export function useCollection<T = any>(
 ): UseCollectionResult<T> {
   type ResultItemType = WithId<T>;
   type StateDataType = ResultItemType[] | null;
-  const { isDemo, demoData, isLoading: isDemoLoading } = useDemo();
+  const { isDemo, demoData, isLoading: isDemoLoading, updateDemoData } = useDemo();
 
   const [data, setData] = useState<StateDataType>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(!isDemo);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
+  const [collectionId, setCollectionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (memoizedTargetRefOrQuery) {
+        const path = memoizedTargetRefOrQuery.type === 'collection' 
+            ? (memoizedTargetRefOrQuery as CollectionReference).id 
+            : (memoizedTargetRefOrQuery as any)._query.path.segments.slice(-1)[0];
+        setCollectionId(path);
+    }
+  }, [memoizedTargetRefOrQuery]);
 
   const fetchData = async () => {
-    if (isDemo || !memoizedTargetRefOrQuery) return;
+    if (!memoizedTargetRefOrQuery) return;
     setIsLoading(true);
     try {
         const snapshot = await getDocs(memoizedTargetRefOrQuery);
@@ -72,8 +82,7 @@ export function useCollection<T = any>(
 
   useEffect(() => {
     if (isDemo) {
-        if (!isDemoLoading && memoizedTargetRefOrQuery) {
-            const collectionId = (memoizedTargetRefOrQuery as CollectionReference).id;
+        if (!isDemoLoading && collectionId) {
             // @ts-ignore
             const collectionData = demoData[collectionId as keyof typeof demoData] || [];
             setData(collectionData);
@@ -114,7 +123,7 @@ export function useCollection<T = any>(
     );
 
     return () => unsubscribe();
-  }, [memoizedTargetRefOrQuery, isDemo, isDemoLoading, demoData]);
+  }, [memoizedTargetRefOrQuery, isDemo, isDemoLoading, demoData, collectionId]);
 
   if (memoizedTargetRefOrQuery && !isDemo && !memoizedTargetRefOrQuery.__memo) {
     throw new Error(memoizedTargetRefOrQuery + ' was not properly memoized using useMemoFirebase');
