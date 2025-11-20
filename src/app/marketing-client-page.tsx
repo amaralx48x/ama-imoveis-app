@@ -7,7 +7,6 @@ import Link from "next/link";
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import type { MarketingContent } from "@/lib/data";
-import { Card, CardContent } from "@/components/ui/card";
 import { Building2, Search, Share2 } from "lucide-react";
 import { MarketingHero } from "@/components/marketing-hero";
 
@@ -87,7 +86,7 @@ export default function MarketingClientPage() {
                 Criar Conta
               </Link>
               <Link href="/login?demo=true" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10 text-sm hover:bg-white/5 transition">
-                Testar o Painel
+                Testar o AMA IMOBI
               </Link>
             </motion.div>
         </motion.div>
@@ -283,3 +282,5 @@ export default function MarketingClientPage() {
     </div>
   );
 }
+
+    

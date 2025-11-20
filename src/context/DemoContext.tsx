@@ -1,8 +1,9 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { getProperties, getReviews, getPropertyCities, getPropertyTypes, defaultPrivacyPolicy, defaultTermsOfUse } from '@/lib/data';
+import { getProperties, getReviews, defaultPrivacyPolicy, defaultTermsOfUse } from '@/lib/data';
 import type { Agent, Property, Review, CustomSection, Lead, Contact } from '@/lib/data';
 
 // --- Tipos e Interfaces ---
@@ -25,22 +26,22 @@ interface DemoContextProps {
 // --- Dados Iniciais para o Modo Demo ---
 const createInitialDemoData = (): DemoDataContext => {
   const demoAgent: Agent = {
-    id: 'demo-user',
-    displayName: 'Usuário de Teste',
-    name: 'Imóveis Demo',
+    id: 'demo-user-arthur',
+    displayName: 'Arthur',
+    name: 'Arthur Imóveis',
     accountType: 'imobiliaria',
-    email: 'demo@cliente.com',
-    creci: '123456-F',
-    description: 'Sou um corretor apaixonado por encontrar o lar perfeito para meus clientes. Com anos de experiência no mercado, ofereço um serviço personalizado e focado nas suas necessidades.',
-    photoUrl: 'https://images.unsplash.com/photo-1581065178047-8ee15951ede6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjE5NTYzOTR8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    phone: '(11) 98765-4321',
-    cities: ['São Paulo', 'Campinas'],
-    role: 'corretor',
+    email: 'arthur99.com@gmail.com',
+    creci: '12345-J',
+    description: 'Com mais de 10 anos de experiência no mercado imobiliário de luxo, nossa missão é conectar pessoas aos seus lares dos sonhos, oferecendo um serviço de excelência, transparência e dedicação total.',
+    photoUrl: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdCUyMG1hbGV8ZW58MHx8fHwxNzYyODU0MDUzfDA&ixlib=rb-4.1.0&q=80&w=1080',
+    phone: '(11) 91234-5678',
+    cities: ['São Paulo', 'Campinas', 'Ubatuba'],
+    role: 'admin', // Acesso de admin para a conta base, mas será bloqueado no modo demo
     plan: 'imobiliaria',
     availability: {
-      days: { Segunda: true, Terça: true, Quarta: true, Quinta: true, Sexta: true, Sábado: false, Domingo: false },
-      startTime: '09:00',
-      endTime: '18:00',
+      days: { Segunda: true, Terça: true, Quarta: true, Quinta: true, Sexta: true, Sábado: true, Domingo: false },
+      startTime: '08:00',
+      endTime: '19:00',
     },
     siteSettings: {
       theme: 'dark',
@@ -50,18 +51,19 @@ const createInitialDemoData = (): DemoDataContext => {
       showReviews: true,
       defaultSaleCommission: 6,
       defaultRentCommission: 100,
-      faviconUrl: 'https://fav.farm/✅',
-      heroImageUrl: 'https://images.unsplash.com/photo-1582407947304-fd86f028f716?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxyZWFsJTIwZXN0YXRlfGVufDB8fHx8MTc2MjI0NzU0OHww&ixlib=rb-4.1.0&q=80&w=1080',
+      faviconUrl: 'https://fav.farm/🚀',
+      heroImageUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyZWFsJTIwZXN0YXRlJTIwaG9tZXxlbnwwfHx8fDE3NjI4NTM2NDd8MA&ixlib=rb-4.1.0&q=80&w=1080',
       socialLinks: [
-        { id: '1', label: 'WhatsApp', url: '5511987654321', icon: 'whatsapp' },
-        { id: '2', label: 'Instagram', url: 'seu_usuario', icon: 'instagram' },
+        { id: '1', label: 'WhatsApp', url: '5511912345678', icon: 'whatsapp' },
+        { id: '2', label: 'Instagram', url: 'arthur_imoveis', icon: 'instagram' },
+        { id: '3', label: 'Facebook', url: 'https://facebook.com/arthurimoveis', icon: 'facebook' },
       ],
-      privacyPolicy: defaultPrivacyPolicy.replace('[Nome do Site/Corretor]', 'Imóveis Demo'),
-      termsOfUse: defaultTermsOfUse.replace('[Nome do Site/Corretor]', 'Imóveis Demo'),
+      privacyPolicy: defaultPrivacyPolicy.replace('[Nome do Site/Corretor]', 'Arthur Imóveis'),
+      termsOfUse: defaultTermsOfUse.replace('[Nome do Site/Corretor]', 'Arthur Imóveis'),
     },
   };
 
-  const demoProperties = getProperties().map(p => ({ ...p, agentId: 'demo-user' }));
+  const demoProperties = getProperties().map(p => ({ ...p, agentId: 'demo-user-arthur' }));
   const demoReviews = getReviews();
 
   return {
@@ -71,7 +73,8 @@ const createInitialDemoData = (): DemoDataContext => {
     leads: [],
     contacts: [],
     customSections: [
-      { id: 'lancamentos', title: 'Lançamentos', order: 1, createdAt: new Date().toISOString() }
+      { id: 'lancamentos', title: 'Lançamentos', order: 1, createdAt: new Date().toISOString() },
+      { id: 'alto-padrao', title: 'Alto Padrão', order: 2, createdAt: new Date().toISOString() }
     ],
   };
 };
@@ -150,3 +153,5 @@ export const useDemo = (): DemoContextProps => {
   }
   return context;
 };
+
+    
