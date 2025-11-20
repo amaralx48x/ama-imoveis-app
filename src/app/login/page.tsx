@@ -20,11 +20,12 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useFirestore, useUser, googleProvider, signInWithPopup, saveUserToFirestore } from '@/firebase';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { setDoc, doc } from 'firebase/firestore';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
+import { useDemo } from '@/context/DemoContext';
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um email válido." }),
@@ -53,20 +54,20 @@ const GoogleIcon = () => (
     </svg>
   );
 
-export default function LoginPage() {
+function LoginPageContent() {
     const { toast } = useToast();
     const auth = useAuth();
     const { user, isUserLoading } = useUser();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+    const { isDemo } = useDemo();
 
-    // Redirect if user is already logged in
     useEffect(() => {
-        if (!isUserLoading && user) {
+        if (isDemo || (!isUserLoading && user)) {
             router.replace('/dashboard');
         }
-    }, [user, isUserLoading, router]);
+    }, [user, isUserLoading, router, isDemo]);
 
     const loginForm = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
@@ -85,7 +86,7 @@ export default function LoginPage() {
         switch (error.code) {
             case 'auth/cancelled-popup-request':
             case 'auth/popup-closed-by-user':
-                return; // User closed the popup, no need to show an error.
+                return; 
             case 'auth/user-not-found':
             case 'auth/wrong-password':
             case 'auth/invalid-credential':
@@ -126,7 +127,6 @@ export default function LoginPage() {
                 title: "Login bem-sucedido!",
                 description: "Redirecionando para o seu painel...",
             });
-            // Let the useEffect handle the redirect
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -150,7 +150,6 @@ export default function LoginPage() {
                 title: "Conta criada com sucesso!",
                 description: "Redirecionando para o seu painel...",
             });
-             // Let the useEffect handle the redirect
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -177,7 +176,7 @@ export default function LoginPage() {
     }
 
 
-    if (isUserLoading || user) {
+    if (isUserLoading || user || isDemo) {
         return (
              <div className="relative min-h-screen flex items-center justify-center p-4">
                  <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
@@ -313,4 +312,11 @@ export default function LoginPage() {
             </Tabs>
         </div>
     );
+}
+
+
+export default function LoginPage() {
+    return (
+        <LoginPageContent />
+    )
 }

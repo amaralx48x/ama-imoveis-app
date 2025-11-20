@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { useDemo } from '@/context/DemoContext';
 
 export default function CorretorLayout({
   children,
@@ -22,37 +23,41 @@ export default function CorretorLayout({
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const { isDemo, demoData, isLoading: isDemoLoading } = useDemo();
 
+  const agentDataSource = isDemo ? demoData.agent : null;
   const agentRef = useMemoFirebase(
-    () => (user && firestore ? doc(firestore, 'agents', user.uid) : null),
-    [user, firestore]
+    () => (firestore && user && !isDemo ? doc(firestore, 'agents', user.uid) : null),
+    [firestore, user, isDemo]
   );
-  const { data: agentData } = useDoc<Agent>(agentRef);
+  const { data: agentDataFromDB } = useDoc<Agent>(agentRef);
+  const agentData = isDemo ? agentDataSource : agentDataFromDB;
 
+  const unreadLeads = isDemo ? demoData.leads.filter(l => l.status === 'unread') : [];
   const unreadLeadsQuery = useMemoFirebase(
-    () => user && firestore 
+    () => user && firestore && !isDemo
       ? query(collection(firestore, `agents/${user.uid}/leads`), where('status', '==', 'unread')) 
       : null,
-    [user, firestore]
+    [user, firestore, isDemo]
   );
-  const { data: unreadLeads } = useCollection<Lead>(unreadLeadsQuery);
-  const unreadCount = unreadLeads?.length || 0;
+  const { data: unreadLeadsFromDB } = useCollection<Lead>(unreadLeadsQuery);
+  const unreadCount = isDemo ? unreadLeads.length : (unreadLeadsFromDB?.length || 0);
 
+  const pendingReviews = isDemo ? demoData.reviews.filter(r => !r.approved) : [];
   const pendingReviewsQuery = useMemoFirebase(
-    () => user && firestore 
+    () => user && firestore && !isDemo
       ? query(collection(firestore, `agents/${user.uid}/reviews`), where('approved', '==', false)) 
       : null,
-    [user, firestore]
+    [user, firestore, isDemo]
   );
-  const { data: pendingReviews } = useCollection<Review>(pendingReviewsQuery);
-  const pendingReviewsCount = pendingReviews?.length || 0;
-
+  const { data: pendingReviewsFromDB } = useCollection<Review>(pendingReviewsQuery);
+  const pendingReviewsCount = isDemo ? pendingReviews.length : (pendingReviewsFromDB?.length || 0);
 
   useEffect(() => {
-    if (!isUserLoading && !user) {
+    if (!isDemo && !isUserLoading && !user) {
       router.push('/login');
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading, router, isDemo]);
 
   useEffect(() => {
     const theme = agentData?.siteSettings?.theme || 'dark';
@@ -73,6 +78,11 @@ export default function CorretorLayout({
   }, [agentData]);
 
   const handleLogout = () => {
+    if (isDemo) {
+        sessionStorage.removeItem('demo_data');
+        router.push('/');
+        return;
+    }
     if(auth) {
       auth.signOut();
       router.push('/login');
@@ -90,7 +100,7 @@ export default function CorretorLayout({
     { href: '/avaliacoes', label: 'Avaliações', icon: Star, badgeCount: pendingReviewsCount, badgeClass: 'bg-yellow-500 text-black' },
     { href: '/suporte', label: 'Suporte', icon: LifeBuoy },
     { href: '/meu-plano', label: 'Meu Plano', icon: Gem },
-    { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' },
+    ...(!isDemo ? [{ href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' }] : []),
   ];
   
   const adminMenuItems = [
@@ -108,7 +118,7 @@ export default function CorretorLayout({
       { href: '/configuracoes/politicas', label: 'Políticas e Termos', icon: FileText },
   ]
   
-  if (isUserLoading || !user) {
+  if (isUserLoading || isDemoLoading || (!isDemo && !user)) {
     return (
         <div className="flex items-center justify-center h-screen bg-background">
             <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
@@ -128,6 +138,12 @@ export default function CorretorLayout({
                 </span>
                 <span className="font-bold font-headline text-lg group-data-[collapsible=icon]:hidden">AMA Imóveis</span>
             </div>
+             {isDemo && (
+                <div className="px-2 pb-2">
+                    <Badge variant="destructive" className="w-full justify-center group-data-[collapsible=icon]:hidden">Modo Demonstração</Badge>
+                    <Badge variant="destructive" className="hidden group-data-[collapsible=icon]:block w-full justify-center text-xs">DEMO</Badge>
+                </div>
+            )}
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
@@ -179,7 +195,7 @@ export default function CorretorLayout({
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
-            {isAdmin && (
+            {isAdmin && !isDemo && (
                 <>
                     <Separator className="my-2" />
                     {adminMenuItems.map((item) => (
@@ -205,7 +221,7 @@ export default function CorretorLayout({
          <Sidebar.Footer className="p-2">
             <Button variant="ghost" className="w-full justify-start gap-2" onClick={handleLogout}>
                 <LogOut />
-                <span className="group-data-[collapsible=icon]:hidden">Sair</span>
+                <span className="group-data-[collapsible=icon]:hidden">{isDemo ? 'Sair da Demo' : 'Sair'}</span>
             </Button>
         </Sidebar.Footer>
       </Sidebar>

@@ -84,11 +84,11 @@ export default function MarketingClientPage() {
 
             <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-3 justify-center">
               <Link href="/login" className={`inline-flex items-center gap-3 px-6 py-3 rounded-lg font-semibold ${neon} text-white shadow-lg hover:scale-[1.02] transition`}>
-                Iniciar 7 dias grátis
+                Criar Conta Grátis
               </Link>
-              <a href="#features" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10 text-sm hover:bg-white/5 transition">
-                Conhecer recursos
-              </a>
+              <Link href="/login?demo=true" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10 text-sm hover:bg-white/5 transition">
+                Teste o Painel Grátis
+              </Link>
             </motion.div>
         </motion.div>
       </section>

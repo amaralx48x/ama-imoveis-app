@@ -4,6 +4,8 @@ import "./globals.css";
 import { Inter, Poppins } from 'next/font/google'
 import { FirebaseClientProvider } from "@/firebase";
 import { PlanProvider } from "@/context/PlanContext";
+import { DemoProvider } from "@/context/DemoContext";
+import { Suspense } from "react";
 
 const inter = Inter({
   subsets: ['latin'],
@@ -21,6 +23,10 @@ export const metadata: Metadata = {
   description: "Encontre o imóvel dos seus sonhos.",
 };
 
+function DemoProviderWrapper({ children }: { children: React.ReactNode }) {
+    return <DemoProvider>{children}</DemoProvider>
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -29,11 +35,15 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`${inter.variable} ${poppins.variable} dark`}>
       <body className={`font-body antialiased`}>
-        <FirebaseClientProvider>
-          <PlanProvider>
-            {children}
-          </PlanProvider>
-        </FirebaseClientProvider>
+        <Suspense fallback={<div>Carregando...</div>}>
+          <DemoProviderWrapper>
+            <FirebaseClientProvider>
+              <PlanProvider>
+                {children}
+              </PlanProvider>
+            </FirebaseClientProvider>
+          </DemoProviderWrapper>
+        </Suspense>
         <Toaster />
       </body>
     </html>

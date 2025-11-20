@@ -11,6 +11,8 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { useDemo } from '@/context/DemoContext';
+
 
 /** Utility type to add an 'id' field to a given type T. */
 type WithId<T> = T & { id: string };
@@ -26,37 +28,18 @@ export interface UseDocResult<T> {
   mutate: () => void; // Function to manually re-fetch data.
 }
 
-/**
- * React hook to subscribe to a single Firestore document in real-time.
- * Handles nullable references.
- *
- * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedTargetRefOrQuery or BAD THINGS WILL HAPPEN
- * use useMemo to memoize it per React guidence.  Also make sure that it's dependencies are stable
- * references
- *
- *
- * @template T Optional type for document data. Defaults to any.
- * @param {DocumentReference<DocumentData> | null | undefined} docRef -
- * The Firestore DocumentReference. Waits if null/undefined.
- * @returns {UseDocResult<T>} Object with data, isLoading, error.
- */
 export function useDoc<T = any>(
   memoizedDocRef: DocumentReference<DocumentData> | null | undefined,
 ): UseDocResult<T> {
   type StateDataType = WithId<T> | null;
+  const { isDemo, demoData, isLoading: isDemoLoading } = useDemo();
 
   const [data, setData] = useState<StateDataType>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(!isDemo);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (!memoizedDocRef) {
-      setData(null);
-      setIsLoading(false);
-      setError(null);
-      return;
-    }
-
+    if (isDemo || !memoizedDocRef) return;
     setIsLoading(true);
     try {
         const docSnap = await getDoc(memoizedDocRef);
@@ -72,52 +55,60 @@ export function useDoc<T = any>(
           path: memoizedDocRef.path,
         });
         setError(contextualError);
-        throw contextualError; // Throw error to be caught by Next.js Error Boundary
+        throw contextualError;
     } finally {
         setIsLoading(false);
     }
-  }, [memoizedDocRef]);
-
+  }, [memoizedDocRef, isDemo]);
+  
   useEffect(() => {
+    if (isDemo) {
+        if (!isDemoLoading && memoizedDocRef) {
+             const collection = memoizedDocRef.parent.id;
+             // @ts-ignore
+             const docData = demoData[collection as keyof typeof demoData];
+             if(docData){
+                 setData(docData as StateDataType);
+             }
+        }
+        setIsLoading(false);
+        return;
+    }
+    
     if (!memoizedDocRef) {
       setData(null);
       setIsLoading(false);
       setError(null);
       return;
     }
-
     setIsLoading(true);
     setError(null);
-
+    
     const unsubscribe = onSnapshot(
       memoizedDocRef,
       (snapshot: DocumentSnapshot<DocumentData>) => {
         if (snapshot.exists()) {
           setData({ ...(snapshot.data() as T), id: snapshot.id });
         } else {
-          // Document does not exist
           setData(null);
         }
-        setError(null); // Clear any previous error on successful snapshot (even if doc doesn't exist)
+        setError(null);
         setIsLoading(false);
       },
       (err: FirestoreError) => {
         const contextualError = new FirestorePermissionError({
           operation: 'get',
           path: memoizedDocRef.path,
-        })
-
+        });
         setError(contextualError);
         setData(null);
         setIsLoading(false);
-        
-        // Throwing the error here will allow parent components and error boundaries to catch it.
         throw contextualError;
       }
     );
 
     return () => unsubscribe();
-  }, [memoizedDocRef]); // Re-run if the memoizedDocRef changes.
+  }, [memoizedDocRef, isDemo, isDemoLoading, demoData]);
 
   return { data, isLoading, error, mutate: fetchData };
 }
