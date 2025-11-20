@@ -28,6 +28,31 @@ export interface UseDocResult<T> {
   mutate: () => void; // Function to manually re-fetch data.
 }
 
+function getDemoDocData(demoData: any, docRef: DocumentReference<DocumentData>): any {
+    if (!demoData) return null;
+    const pathSegments = docRef.path.split('/');
+    const collectionKey = pathSegments[pathSegments.length - 2];
+    const docId = pathSegments[pathSegments.length - 1];
+
+    if (collectionKey === 'agents') {
+        // Special case for agent, as it's a single object
+        return demoData.agent;
+    }
+    if (collectionKey === 'marketing') {
+        return demoData.marketing; // Assuming you add marketing to demo data
+    }
+     if (collectionKey === 'seo') {
+        return demoData.seo;
+    }
+
+    // @ts-ignore
+    const collection = demoData[collectionKey];
+    if (Array.isArray(collection)) {
+        return collection.find(item => item.id === docId);
+    }
+    return null;
+}
+
 export function useDoc<T = any>(
   memoizedDocRef: DocumentReference<DocumentData> | null | undefined,
 ): UseDocResult<T> {
@@ -67,25 +92,11 @@ export function useDoc<T = any>(
   
   useEffect(() => {
     if (isDemo) {
-        if (!isDemoLoading && memoizedDocRef) {
-             const collectionId = memoizedDocRef.parent.id;
-             // Special case for 'agents' collection to get the single agent document
-             if (collectionId === 'agents') {
-                 setData(demoData.agent as StateDataType);
-             } else {
-                // For other collections, you might need a different logic
-                // This is a simplified example
-                // @ts-ignore
-                const collectionData = demoData[collectionId as keyof typeof demoData];
-                if(Array.isArray(collectionData)) {
-                    const docData = collectionData.find(d => d.id === memoizedDocRef.id);
-                    setData(docData || null);
-                } else if (collectionData) { // If it's a single object (like 'content')
-                    setData(collectionData)
-                }
-             }
+        if (!isDemoLoading && memoizedDocRef && demoData) {
+            const docData = getDemoDocData(demoData, memoizedDocRef);
+            setData(docData as StateDataType);
         }
-        setIsLoading(false);
+        setIsLoading(isDemoLoading);
         return;
     }
     

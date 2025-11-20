@@ -38,6 +38,17 @@ export interface InternalQuery extends Query<DocumentData> {
   }
 }
 
+function getDemoCollectionData(demoData: any, targetRefOrQuery: any): any[] {
+    if (!demoData) return [];
+    // Simplistic path parsing for demo purposes
+    // Assumes path like `agents/{id}/properties` -> extracts `properties`
+    const pathSegments = targetRefOrQuery.path.split('/');
+    const collectionKey = pathSegments[pathSegments.length - 1];
+
+    // @ts-ignore
+    return demoData[collectionKey] || [];
+}
+
 export function useCollection<T = any>(
     memoizedTargetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>) & {__memo?: boolean})  | null | undefined,
 ): UseCollectionResult<T> {
@@ -48,46 +59,44 @@ export function useCollection<T = any>(
   const [data, setData] = useState<StateDataType>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
-  const [collectionId, setCollectionId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (memoizedTargetRefOrQuery) {
-        const path = memoizedTargetRefOrQuery.type === 'collection' 
-            ? (memoizedTargetRefOrQuery as CollectionReference).id 
-            : (memoizedTargetRefOrQuery as any)._query.path.segments.slice(-1)[0];
-        setCollectionId(path);
-    }
-  }, [memoizedTargetRefOrQuery]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!memoizedTargetRefOrQuery) return;
     setIsLoading(true);
     try {
-        const snapshot = await getDocs(memoizedTargetRefOrQuery);
-        const results: ResultItemType[] = [];
-        for (const doc of snapshot.docs) {
-          results.push({ ...(doc.data() as T), id: doc.id });
+        if (isDemo && demoData) {
+            const collectionData = getDemoCollectionData(demoData, memoizedTargetRefOrQuery);
+            setData(collectionData);
+        } else if (!isDemo) {
+            const snapshot = await getDocs(memoizedTargetRefOrQuery);
+            const results: ResultItemType[] = [];
+            for (const doc of snapshot.docs) {
+              results.push({ ...(doc.data() as T), id: doc.id });
+            }
+            setData(results);
         }
-        setData(results);
         setError(null);
     } catch (e: any) {
-        const path: string = memoizedTargetRefOrQuery.type === 'collection' ? (memoizedTargetRefOrQuery as CollectionReference).path : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
-        const contextualError = new FirestorePermissionError({ operation: 'list', path });
-        setError(contextualError);
-        throw contextualError;
+        if (!isDemo) {
+            const path: string = memoizedTargetRefOrQuery.type === 'collection' ? (memoizedTargetRefOrQuery as CollectionReference).path : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
+            const contextualError = new FirestorePermissionError({ operation: 'list', path });
+            setError(contextualError);
+            throw contextualError;
+        } else {
+            setError(new Error("Error fetching demo data."));
+        }
     } finally {
         setIsLoading(false);
     }
-  }
+  }, [memoizedTargetRefOrQuery, isDemo, demoData]);
 
   useEffect(() => {
     if (isDemo) {
-        if (!isDemoLoading && collectionId) {
-            // @ts-ignore
-            const collectionData = demoData[collectionId as keyof typeof demoData] || [];
-            setData(collectionData);
+        if (!isDemoLoading && demoData && memoizedTargetRefOrQuery) {
+            const collectionData = getDemoCollectionData(demoData, memoizedTargetRefOrQuery);
+            setData(collectionData as StateDataType);
         }
-        setIsLoading(false);
+        setIsLoading(isDemoLoading);
         return;
     }
 
@@ -123,7 +132,7 @@ export function useCollection<T = any>(
     );
 
     return () => unsubscribe();
-  }, [memoizedTargetRefOrQuery, isDemo, isDemoLoading, demoData, collectionId]);
+  }, [memoizedTargetRefOrQuery, isDemo, isDemoLoading, demoData]);
 
   if (memoizedTargetRefOrQuery && !isDemo && !memoizedTargetRefOrQuery.__memo) {
     throw new Error(memoizedTargetRefOrQuery + ' was not properly memoized using useMemoFirebase');

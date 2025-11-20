@@ -4,8 +4,9 @@ import { getFirebaseServer } from "@/firebase/server-init";
 import { doc, getDoc, collection, getDocs, query, where, orderBy, limit } from "firebase/firestore";
 import type { Agent, Property, Review, CustomSection } from "@/lib/data";
 import { notFound } from "next/navigation";
-import { getReviews as getStaticReviews, getProperties as getStaticProperties } from '@/lib/data';
+import { getReviews as getStaticReviews, getProperties as getStaticProperties, getAgent as getStaticAgent } from '@/lib/data';
 import { getSEO } from "@/firebase/server-actions/seo";
+import demoSnapshot from '@/lib/demo-data.json';
 
 
 export async function generateMetadata({ params }: { params: { agentId: string } }): Promise<Metadata> {
@@ -30,6 +31,17 @@ export async function generateMetadata({ params }: { params: { agentId: string }
 
 
 async function getAgentData(agentId: string) {
+  // DEMO MODE: Serve data from local snapshot
+  if (agentId === 'demo-user-arthur') {
+    return {
+        agent: JSON.parse(JSON.stringify(demoSnapshot.agent)),
+        allProperties: JSON.parse(JSON.stringify(demoSnapshot.properties)),
+        customSections: JSON.parse(JSON.stringify(demoSnapshot.customSections)),
+        reviews: JSON.parse(JSON.stringify(demoSnapshot.reviews)),
+    };
+  }
+
+  // REAL MODE: Fetch from Firestore
   const { firestore } = getFirebaseServer();
   
   const agentRef = doc(firestore, 'agents', agentId);
@@ -55,6 +67,7 @@ async function getAgentData(agentId: string) {
     if (!propertiesSnap.empty) {
         allProperties = propertiesSnap.docs.map(d => ({ ...(d.data() as Omit<Property, 'id'>), id: d.id, agentId }) as Property);
     } else {
+        // Fallback static data if firestore is empty
         allProperties = getStaticProperties().map(p => ({...p, agentId}));
     }
     
@@ -70,7 +83,6 @@ async function getAgentData(agentId: string) {
           createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         };
       });
-      // Sort reviews by date descending
       fetchedReviews.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       reviews = fetchedReviews;
     } else {
@@ -87,7 +99,6 @@ async function getAgentData(agentId: string) {
 
   } catch (error) {
     console.error("Failed to fetch agent data on server:", error);
-    // Return null or throw an error to trigger notFound() or error.tsx
     return null;
   }
 }

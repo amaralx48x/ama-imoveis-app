@@ -1,0 +1,63 @@
+{
+    "agent": {
+        "id": "demo-user-arthur",
+        "displayName": "Corretor Amaral",
+        "name": "Amaral Imóveis",
+        "accountType": "imobiliaria",
+        "email": "arthur99.com@gmail.com",
+        "creci": "123456-F",
+        "description": "Com mais de 15 anos de experiência no mercado imobiliário de São Paulo e Campinas, nossa missão é encontrar o imóvel perfeito para cada cliente, combinando expertise, transparência e um atendimento personalizado. Acreditamos que a compra de um imóvel é a realização de um sonho, e estamos aqui para tornar essa jornada a mais tranquila e segura possível.",
+        "photoUrl": "https://images.unsplash.com/photo-1594672830234-ba4cfe1202dc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        "phone": "+5511987654321",
+        "cities": ["São Paulo", "Campinas", "Ubatuba", "Guarujá"],
+        "role": "admin",
+        "plan": "imobiliaria",
+        "availability": {
+            "days": { "Segunda": true, "Terça": true, "Quarta": true, "Quinta": true, "Sexta": true, "Sábado": true, "Domingo": false },
+            "startTime": "09:00",
+            "endTime": "18:00"
+        },
+        "siteSettings": {
+            "heroImageUrl": "https://images.unsplash.com/photo-1582407947304-fd86f028f716?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxyZWFsJTIwZXN0YXRlfGVufDB8fHx8MTc2MjI0NzU0OHww&ixlib=rb-4.1.0&q=80&w=1080",
+            "theme": "dark",
+            "siteStatus": true,
+            "showFinancing": true,
+            "financingLink": "https://wa.me/5511987654321",
+            "showReviews": true,
+            "defaultSaleCommission": 6,
+            "defaultRentCommission": 100,
+            "faviconUrl": "https://fav.farm/🏢",
+            "socialLinks": [
+                { "id": "whatsapp", "label": "WhatsApp", "url": "5511987654321", "icon": "whatsapp" },
+                { "id": "instagram", "label": "Instagram", "url": "amaral.imoveis", "icon": "instagram" },
+                { "id": "facebook", "label": "Facebook", "url": "https://facebook.com/amaral.imoveis", "icon": "facebook" },
+                { "id": "location", "label": "Nosso Escritório", "url": "Av. Paulista, 1000, São Paulo - SP", "icon": "map-pin", "imageUrl": "https://images.unsplash.com/photo-1594399203360-a2267f8e3295?crop=entropy&cs=srgb&fm=jpg&ixid=M3wzMTA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fDE2NzExNjg0NjV8&ixlib=rb-4.0.3&q=85&w=1200" }
+            ],
+            "privacyPolicy": "## POLÍTICA DE PRIVACIDADE (EXEMPLO)\n\nEsta é uma política de privacidade de exemplo para o modo de demonstração. Os dados coletados aqui são apenas para fins de teste e não são armazenados permanentemente.",
+            "termsOfUse": "## TERMOS DE USO (EXEMPLO)\n\nBem-vindo ao modo de demonstração. Ao usar esta versão, você concorda que todas as alterações são temporárias e serão descartadas ao final da sessão."
+        }
+    },
+    "properties": [
+        { "id": "demo1", "title": "Apartamento Moderno na Vila Madalena", "description": "Apartamento reformado com 2 suítes, varanda gourmet e design de interiores moderno. Próximo a bares, restaurantes e metrô.", "price": 1800000, "bedrooms": 2, "bathrooms": 3, "garage": 2, "rooms": 5, "builtArea": 120, "totalArea": 120, "imageUrls": ["https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&q=80&w=2070&ixlib=rb-4.0.3"], "city": "São Paulo", "neighborhood": "Vila Madalena", "type": "Apartamento", "operation": "Venda", "sectionIds": ["featured", "alto-padrao"], "status": "ativo" },
+        { "id": "demo2", "title": "Casa de Condomínio em Campinas", "description": "Casa espaçosa em condomínio fechado com segurança 24h. Lazer completo com piscina, quadra e salão de festas.", "price": 1500000, "bedrooms": 4, "bathrooms": 4, "garage": 4, "rooms": 9, "builtArea": 300, "totalArea": 500, "imageUrls": ["https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=2070&ixlib=rb-4.0.3"], "city": "Campinas", "neighborhood": "Swiss Park", "type": "Casa", "operation": "Venda", "sectionIds": ["featured"], "status": "ativo" },
+        { "id": "demo3", "title": "Cobertura Duplex com Vista Panorâmica", "description": "Cobertura incrível com piscina privativa, churrasqueira e vista de 360 graus para a cidade. Acabamento de alto padrão.", "price": 3500000, "bedrooms": 3, "bathrooms": 5, "garage": 4, "rooms": 8, "builtArea": 280, "totalArea": 280, "imageUrls": ["https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=2070&ixlib=rb-4.0.3"], "city": "São Paulo", "neighborhood": "Itaim Bibi", "type": "Apartamento", "operation": "Venda", "sectionIds": ["alto-padrao"], "status": "ativo" },
+        { "id": "demo4", "title": "Loft para Alugar no Centro", "description": "Loft industrial com pé direito duplo, ideal para quem busca um estilo de vida moderno e urbano. Perto de todas as comodidades.", "price": 4500, "bedrooms": 1, "bathrooms": 1, "garage": 1, "rooms": 2, "builtArea": 80, "totalArea": 80, "imageUrls": ["https://images.unsplash.com/photo-1631751142647-7977a4173f44?auto=format&fit=crop&q=80&w=1932&ixlib=rb-4.0.3"], "city": "Campinas", "neighborhood": "Centro", "type": "Apartamento", "operation": "Aluguel", "sectionIds": [], "status": "ativo" }
+    ],
+    "reviews": [
+        { "id": "rev1", "name": "Carlos Andrade", "rating": 5, "comment": "O Corretor Amaral foi incrível! Encontrou o apartamento perfeito para minha família em tempo recorde. Muito profissional e atencioso.", "approved": true, "createdAt": "2024-07-20T10:00:00Z" },
+        { "id": "rev2", "name": "Beatriz Martins", "rating": 5, "comment": "Vendi meu imóvel com a ajuda da Amaral Imóveis e a experiência foi excelente. Todo o processo foi transparente e sem estresse.", "approved": true, "createdAt": "2024-07-15T14:30:00Z" },
+        { "id": "rev3", "name": "João Ferreira", "rating": 4, "comment": "Bom atendimento e boas opções de imóveis. Recomendo.", "approved": false, "createdAt": "2024-07-22T09:00:00Z" }
+    ],
+    "leads": [
+        { "id": "lead1", "name": "Juliana Paes", "email": "juliana.p@email.com", "message": "Olá, tenho interesse na cobertura duplex no Itaim. É possível agendar uma visita para este sábado?", "createdAt": "2024-07-23T11:00:00Z", "status": "unread", "leadType": "buyer" },
+        { "id": "lead2", "name": "Marcos Rocha", "email": "marcos.rocha@email.com", "message": "Gostaria de anunciar minha casa em Campinas com vocês. Como podemos proceder?", "createdAt": "2024-07-22T18:00:00Z", "status": "read", "leadType": "seller" }
+    ],
+    "contacts": [
+        { "id": "contact1", "type": "owner", "name": "Fernando Souza", "phone": "11988887777", "email": "fernando.s@email.com", "linkedPropertyIds": ["demo1", "demo3"] },
+        { "id": "contact2", "type": "client", "name": "Mariana Lima", "phone": "19977776666", "email": "mari.lima@email.com" }
+    ],
+    "customSections": [
+      { "id": "lancamentos", "title": "Lançamentos", "order": 1, "createdAt": "2024-01-01T12:00:00Z" },
+      { "id": "alto-padrao", "title": "Alto Padrão", "order": 2, "createdAt": "2024-01-01T12:00:00Z" }
+    ]
+}

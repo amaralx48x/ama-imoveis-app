@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -60,7 +59,7 @@ function LoginPageContent() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-    const { isDemo, startDemo } = useDemo();
+    const { isDemo } = useDemo();
 
     useEffect(() => {
         // Redireciona se o usuário já estiver logado (e não estiver em modo demo)
@@ -127,7 +126,7 @@ function LoginPageContent() {
                 title: "Login bem-sucedido!",
                 description: "Redirecionando para o seu painel...",
             });
-            // O useEffect cuidará do redirecionamento
+            router.push('/dashboard');
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -151,7 +150,7 @@ function LoginPageContent() {
                 title: "Conta criada com sucesso!",
                 description: "Redirecionando para o seu painel...",
             });
-            // O useEffect cuidará do redirecionamento
+            router.push('/dashboard');
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {

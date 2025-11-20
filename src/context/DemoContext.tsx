@@ -1,11 +1,13 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
-import { getProperties, getReviews, defaultPrivacyPolicy, defaultTermsOfUse, getAgent } from '@/lib/data';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import type { Agent, Property, Review, CustomSection, Lead, Contact } from '@/lib/data';
+import demoSnapshot from '@/lib/demo-data.json';
+import { getFirebaseServer } from '@/firebase/server-init';
+import { getDoc, doc } from 'firebase/firestore';
 
 // --- Tipos e Interfaces ---
-interface DemoDataContext {
+export interface DemoDataContext {
   agent: Agent;
   properties: Property[];
   reviews: Review[];
@@ -16,36 +18,12 @@ interface DemoDataContext {
 
 interface DemoContextProps {
   isDemo: boolean;
-  demoData: DemoDataContext;
-  updateDemoData: (key: keyof DemoDataContext, data: any) => void;
+  demoData: DemoDataContext | null;
+  updateDemoData: (path: string, value: any) => void;
   isLoading: boolean;
-  startDemo: () => void;
+  startDemo: () => Promise<void>;
+  exitDemo: () => void;
 }
-
-
-// --- Dados Iniciais para o Modo Demo ---
-const createInitialDemoData = (): DemoDataContext => {
-  const demoAgent: Agent = getAgent();
-  const demoProperties = getProperties();
-  const demoReviews = getReviews();
-  const demoLeads: Lead[] = [
-      { id: 'lead1', name: 'Mariana Silva', email: 'mariana.silva@example.com', message: 'Gostaria de agendar uma visita para o Apartamento Luxuoso no Centro. Tenho urgência!', createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), status: 'unread', leadType: 'buyer' },
-      { id: 'lead2', name: 'Pedro Albuquerque', email: 'pedro.a@example.com', message: 'Tenho interesse em anunciar meu imóvel com vocês. É uma casa em Campinas.', createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), status: 'unread', leadType: 'seller' },
-      { id: 'lead3', name: 'Beatriz Santos', email: 'beatriz.santos@example.com', message: 'Olá, qual o valor do condomínio da Casa de Praia com Vista para o Mar?', createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), status: 'read', leadType: 'buyer' },
-  ];
-
-  return {
-    agent: demoAgent,
-    properties: demoProperties,
-    reviews: demoReviews,
-    leads: demoLeads,
-    contacts: [],
-    customSections: [
-      { id: 'lancamentos', title: 'Lançamentos', order: 1, createdAt: new Date().toISOString() },
-      { id: 'alto-padrao', title: 'Alto Padrão', order: 2, createdAt: new Date().toISOString() }
-    ],
-  };
-};
 
 const getSessionStorage = (key: string, initialValue: any) => {
   if (typeof window === 'undefined') {
@@ -70,7 +48,6 @@ const setSessionStorage = (key: string, value: any) => {
   }
 };
 
-
 // --- Contexto ---
 const DemoContext = createContext<DemoContextProps | undefined>(undefined);
 
@@ -78,34 +55,76 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
   const [isDemo, setIsDemo] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [demoData, setDemoDataState] = useState<DemoDataContext>(() =>
-    getSessionStorage('demo_data', createInitialDemoData())
+  const [demoData, setDemoDataState] = useState<DemoDataContext | null>(() =>
+    getSessionStorage('demo_data', null)
   );
 
-  const startDemo = () => {
-    const initialData = createInitialDemoData();
+  const startDemo = useCallback(async () => {
+    // Carrega o dump estático como ponto de partida
+    const initialData = JSON.parse(JSON.stringify(demoSnapshot)) as DemoDataContext;
     setSessionStorage('demo_data', initialData);
     setDemoDataState(initialData);
     setIsDemo(true);
     setSessionStorage('isDemo', true);
+  }, []);
+
+  const exitDemo = () => {
+    sessionStorage.removeItem('demo_data');
+    sessionStorage.removeItem('isDemo');
+    setIsDemo(false);
+    setDemoDataState(null);
+    // O redirecionamento será tratado no componente que chama exitDemo
   };
 
   useEffect(() => {
-    // Check session storage on initial client load
     const demoStatus = getSessionStorage('isDemo', false);
     setIsDemo(demoStatus);
     if (demoStatus) {
       const storedData = getSessionStorage('demo_data', null);
       if (storedData) {
         setDemoDataState(storedData);
+      } else {
+        // Se o status for demo mas não houver dados, inicia a demo para carregar o snapshot.
+        startDemo();
       }
     }
     setIsLoading(false);
-  }, []);
+  }, [startDemo]);
   
-  const updateDemoData = (key: keyof DemoDataContext, data: any) => {
+  const updateDemoData = (path: string, value: any) => {
     setDemoDataState(prevData => {
-        const newData = { ...prevData, [key]: data };
+        if (!prevData) return null;
+        
+        // structuredClone para uma cópia profunda e segura
+        const newData = structuredClone(prevData);
+        const keys = path.split('/'); // ex: "agent/siteSettings"
+        let current = newData as any;
+
+        for (let i = 0; i < keys.length - 1; i++) {
+            const key = keys[i];
+            if(Array.isArray(current) && !isNaN(Number(keys[i+1]))) {
+              // Se o próximo segmento for um índice numérico, e o atual for um array
+              const arrayKey = keys.slice(i, i+2).join('/'); // ex: properties/0
+              const subPath = keys.slice(i+2).join('/');
+              
+              const itemIndex = current.findIndex((item: any) => item.id === keys[i+1] || i === Number(keys[i+1]));
+              if(itemIndex > -1) {
+                  let itemToUpdate = current[itemIndex];
+                  const subKeys = subPath.split('/');
+                  for (let j = 0; j < subKeys.length - 1; j++) {
+                     itemToUpdate = itemToUpdate[subKeys[j]];
+                  }
+                  itemToUpdate[subKeys[subKeys.length - 1]] = value;
+              }
+              setSessionStorage('demo_data', newData);
+              return newData;
+
+            } else {
+               current = current[key] = current[key] || {};
+            }
+        }
+        current[keys[keys.length - 1]] = value;
+        
         setSessionStorage('demo_data', newData);
         return newData;
     });
@@ -116,7 +135,8 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
     demoData,
     updateDemoData,
     isLoading,
-    startDemo
+    startDemo,
+    exitDemo,
   }), [isDemo, demoData, isLoading, startDemo]);
 
   return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>;
