@@ -56,8 +56,6 @@ export default function MarketingClientPage() {
   const { data: marketingData, isLoading } = useDoc<MarketingContent>(marketingRef);
 
   const getImage = (field: keyof MarketingContent, defaultUrl: string) => {
-    // Agora não precisamos mais de um estado de carregamento aqui, 
-    // porque o componente pai já faz isso.
     return marketingData?.[field] || defaultUrl;
   };
 
@@ -113,7 +111,7 @@ export default function MarketingClientPage() {
                 Criar Conta
               </Link>
               <button onClick={handleStartDemo} className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10 text-sm hover:bg-white/5 transition" disabled={isDemoLoading}>
-                {isDemoLoading ? <><Loader2 className="animate-spin mr-2"/> Carregando...</> : 'Testar o AMA IMOBI'}
+                {isDemoLoading ? <><Loader2 className="animate-spin mr-2"/> Carregando Demo...</> : 'Testar o AMA IMOBI'}
               </button>
             </motion.div>
         </motion.div>

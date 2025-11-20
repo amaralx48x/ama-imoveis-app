@@ -1,9 +1,7 @@
-
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
 import { Agent, Property, CustomSection, Review } from '@/lib/data';
-import initialDemoData from '@/lib/demo-data.json';
 
 // Estrutura completa dos dados da conta demo
 export interface DemoState {
@@ -16,7 +14,7 @@ export interface DemoState {
 interface DemoContextProps {
   isDemo: boolean;
   demoState: DemoState | null;
-  startDemo: () => void;
+  startDemo: () => Promise<void>;
   endDemo: () => void;
   updateDemoData: <K extends keyof DemoState>(key: K, data: DemoState[K] | ((prev: DemoState[K]) => DemoState[K])) => void;
   isLoading: boolean;
@@ -29,15 +27,26 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const [demoState, setDemoState] = useState<DemoState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const startDemo = useCallback(() => {
+  const startDemo = useCallback(async () => {
     setIsLoading(true);
-    // Deep clone to prevent mutations on the imported object
-    const initialState = JSON.parse(JSON.stringify(initialDemoData));
-    sessionStorage.setItem('isDemo', 'true');
-    sessionStorage.setItem('demoState', JSON.stringify(initialState));
-    setDemoState(initialState);
-    setIsDemo(true);
-    setIsLoading(false);
+    try {
+      const response = await fetch('/api/demo-snapshot');
+      if (!response.ok) {
+        throw new Error('Failed to fetch demo data');
+      }
+      const initialState: DemoState = await response.json();
+      
+      sessionStorage.setItem('isDemo', 'true');
+      sessionStorage.setItem('demoState', JSON.stringify(initialState));
+      setDemoState(initialState);
+      setIsDemo(true);
+    } catch (error) {
+      console.error("Could not start demo:", error);
+      // Fallback to ending demo state if fetch fails
+      endDemo();
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const endDemo = useCallback(() => {
@@ -47,16 +56,19 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     setDemoState(null);
   }, []);
   
-  React.useEffect(() => {
+  useEffect(() => {
     const sessionIsDemo = sessionStorage.getItem('isDemo') === 'true';
     if (sessionIsDemo) {
       const sessionState = sessionStorage.getItem('demoState');
       if (sessionState) {
         setDemoState(JSON.parse(sessionState));
         setIsDemo(true);
+      } else {
+        // If demo state is missing, try to fetch it
+        startDemo();
       }
     }
-  }, []);
+  }, [startDemo]);
 
   const updateDemoData = useCallback(<K extends keyof DemoState>(key: K, data: DemoState[K] | ((prev: DemoState[K]) => DemoState[K])) => {
     setDemoState(prevState => {
