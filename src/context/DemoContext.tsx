@@ -1,13 +1,8 @@
-
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { getProperties, getReviews, defaultPrivacyPolicy, defaultTermsOfUse, getAgent } from '@/lib/data';
 import type { Agent, Property, Review, CustomSection, Lead, Contact } from '@/lib/data';
-import { getFirebaseServer } from '@/firebase/server-init';
-import { doc, getDoc, collection, getDocs, query, where, orderBy, limit } from "firebase/firestore";
-import { initializeFirebase } from '@/firebase';
-
 
 // --- Tipos e Interfaces ---
 interface DemoDataContext {
@@ -24,17 +19,14 @@ interface DemoContextProps {
   demoData: DemoDataContext;
   updateDemoData: (key: keyof DemoDataContext, data: any) => void;
   isLoading: boolean;
-  startDemo: () => Promise<void>;
+  startDemo: () => void;
 }
 
-const DEMO_AGENT_ID = '4vEISo4pEORjFhv6RzD7eC42cgm2';
 
 // --- Dados Iniciais para o Modo Demo ---
 const createInitialDemoData = (): DemoDataContext => {
-    const demoAgent: Agent = getAgent();
-    demoAgent.id = 'demo-user-arthur';
-
-  const demoProperties = getProperties().map(p => ({ ...p, agentId: 'demo-user-arthur' }));
+  const demoAgent: Agent = getAgent();
+  const demoProperties = getProperties();
   const demoReviews = getReviews();
   const demoLeads: Lead[] = [
       { id: 'lead1', name: 'Mariana Silva', email: 'mariana.silva@example.com', message: 'Gostaria de agendar uma visita para o Apartamento Luxuoso no Centro. Tenho urgência!', createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), status: 'unread', leadType: 'buyer' },
@@ -78,73 +70,36 @@ const setSessionStorage = (key: string, value: any) => {
   }
 };
 
-const fetchDemoAccountSnapshot = async (): Promise<DemoDataContext> => {
-    const { firestore } = initializeFirebase();
-    const agentId = DEMO_AGENT_ID;
-
-    const agentRef = doc(firestore, 'agents', agentId);
-    const propertiesRef = collection(firestore, `agents/${agentId}/properties`);
-    const sectionsRef = collection(firestore, `agents/${agentId}/customSections`);
-    const reviewsRef = collection(firestore, `agents/${agentId}/reviews`);
-    const leadsRef = collection(firestore, `agents/${agentId}/leads`);
-    const contactsRef = collection(firestore, `agents/${agentId}/contacts`);
-
-    try {
-        const [agentSnap, propertiesSnap, sectionsSnap, reviewsSnap, leadsSnap, contactsSnap] = await Promise.all([
-            getDoc(agentRef),
-            getDocs(propertiesRef),
-            getDocs(query(sectionsRef, orderBy('order', 'asc'))),
-            getDocs(query(reviewsRef, orderBy('createdAt', 'desc'))),
-            getDocs(query(leadsRef, orderBy('createdAt', 'desc'), limit(10))),
-            getDocs(query(contactsRef, orderBy('createdAt', 'desc'))),
-        ]);
-        
-        if (!agentSnap.exists()) {
-            console.warn("Demo account not found, using fallback data.");
-            return createInitialDemoData();
-        }
-        
-        const agent = { id: 'demo-user-arthur', ...agentSnap.data() } as Agent;
-        agent.role = 'corretor'; // Demote admin to prevent showing admin panel in demo
-
-        const properties = propertiesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Property));
-        const customSections = sectionsSnap.docs.map(d => ({ id: d.id, ...d.data() } as CustomSection));
-        const reviews = reviewsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Review));
-        const leads = leadsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Lead));
-        const contacts = contactsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Contact));
-
-        return { agent, properties, customSections, reviews, leads, contacts };
-
-    } catch (error) {
-        console.error("Failed to fetch demo account snapshot:", error);
-        // Fallback to static data in case of Firestore error
-        return createInitialDemoData();
-    }
-};
 
 // --- Contexto ---
 const DemoContext = createContext<DemoContextProps | undefined>(undefined);
 
 export const DemoProvider = ({ children }: { children: ReactNode }) => {
-  const [isDemo, setIsDemo] = useState(getSessionStorage('isDemo', false));
+  const [isDemo, setIsDemo] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const [demoData, setDemoDataState] = useState<DemoDataContext>(() =>
     getSessionStorage('demo_data', createInitialDemoData())
   );
 
-  const startDemo = useCallback(async () => {
-    setIsLoading(true);
-    const snapshot = await fetchDemoAccountSnapshot();
-    setDemoDataState(snapshot);
-    setSessionStorage('demo_data', snapshot);
+  const startDemo = () => {
+    const initialData = createInitialDemoData();
+    setSessionStorage('demo_data', initialData);
+    setDemoDataState(initialData);
     setIsDemo(true);
     setSessionStorage('isDemo', true);
-    setIsLoading(false);
-  }, []);
+  };
 
   useEffect(() => {
-    setIsDemo(getSessionStorage('isDemo', false));
+    // Check session storage on initial client load
+    const demoStatus = getSessionStorage('isDemo', false);
+    setIsDemo(demoStatus);
+    if (demoStatus) {
+      const storedData = getSessionStorage('demo_data', null);
+      if (storedData) {
+        setDemoDataState(storedData);
+      }
+    }
     setIsLoading(false);
   }, []);
   

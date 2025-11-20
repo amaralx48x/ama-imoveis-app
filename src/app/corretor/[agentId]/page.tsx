@@ -1,18 +1,35 @@
-
-'use client';
-import { useEffect, useState } from 'react';
 import type { Metadata } from "next";
 import AgentPageClient from "@/app/corretor/[agentId]/agent-page-client";
 import { getFirebaseServer } from "@/firebase/server-init";
 import { doc, getDoc, collection, getDocs, query, where, orderBy, limit } from "firebase/firestore";
 import type { Agent, Property, Review, CustomSection } from "@/lib/data";
-import { notFound, useParams } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getReviews as getStaticReviews, getProperties as getStaticProperties } from '@/lib/data';
 import { getSEO } from "@/firebase/server-actions/seo";
-import { useDemo } from '@/context/DemoContext';
-import { useFirestore } from '@/firebase';
 
-async function getAgentDataServer(agentId: string) {
+
+export async function generateMetadata({ params }: { params: { agentId: string } }): Promise<Metadata> {
+  const seoData = await getSEO(`agent-${params.agentId}`);
+  
+  const title = seoData?.title || "Página do Corretor";
+  const description = seoData?.description || "Confira os imóveis deste corretor.";
+  const keywords = seoData?.keywords || ["imóveis", "corretor"];
+  const imageUrl = seoData?.image || "";
+
+  return {
+    title,
+    description,
+    keywords,
+    openGraph: {
+      title,
+      description,
+      images: imageUrl ? [imageUrl] : [],
+    },
+  };
+}
+
+
+async function getAgentData(agentId: string) {
   const { firestore } = getFirebaseServer();
   
   const agentRef = doc(firestore, 'agents', agentId);
@@ -53,12 +70,14 @@ async function getAgentDataServer(agentId: string) {
           createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         };
       });
+      // Sort reviews by date descending
       fetchedReviews.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       reviews = fetchedReviews;
     } else {
       reviews = getStaticReviews();
     }
 
+    // Use JSON stringify/parse to ensure data is serializable for client components
     return { 
         agent: JSON.parse(JSON.stringify(agent)),
         allProperties: JSON.parse(JSON.stringify(allProperties)), 
@@ -68,53 +87,14 @@ async function getAgentDataServer(agentId: string) {
 
   } catch (error) {
     console.error("Failed to fetch agent data on server:", error);
+    // Return null or throw an error to trigger notFound() or error.tsx
     return null;
   }
 }
 
-export default function AgentPublicPage() {
-  const params = useParams();
-  const agentId = params.agentId as string;
-  const { isDemo, demoData, isLoading: isDemoLoading } = useDemo();
-  
-  const [data, setData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      let fetchedData;
-      if (isDemo && agentId === 'demo-user-arthur') {
-        // In demo mode, use the data from context
-        fetchedData = {
-          agent: demoData.agent,
-          allProperties: demoData.properties.filter(p => p.status === 'ativo'),
-          customSections: demoData.customSections,
-          reviews: demoData.reviews.filter(r => r.approved),
-        };
-      } else if (!isDemo) {
-        // In live mode, fetch from server (this part is tricky on client)
-        // For simplicity, we'll keep the client-side fetch for live mode too.
-        // This deviates from SSR but makes demo/live switching easier in one component.
-        const serverData = await getAgentDataServer(agentId);
-        fetchedData = serverData;
-      }
-      setData(fetchedData);
-      setIsLoading(false);
-    };
-
-    if (!isDemoLoading) {
-       fetchData();
-    }
-  }, [agentId, isDemo, isDemoLoading, demoData]);
-
-  if (isLoading || isDemoLoading) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
-      </div>
-    );
-  }
+export default async function AgentPublicPage({ params }: { params: { agentId: string } }) {
+  const { agentId } = params;
+  const data = await getAgentData(agentId);
   
   if (!data) {
     return notFound();

@@ -1,8 +1,7 @@
-
 'use client';
 
 import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
-import type { Property, Agent } from '@/lib/data';
+import type { Property, Agent } from "@/lib/data";
 import { notFound, useRouter, useParams, useSearchParams } from 'next/navigation';
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -13,7 +12,6 @@ import { useEffect, useState } from 'react';
 import { useFirestore } from '@/firebase';
 import { RelatedProperties } from '@/components/imovel/RelatedProperties';
 import { getProperties as getStaticProperties, getAgent as getStaticAgent } from '@/lib/data';
-import { useDemo } from '@/context/DemoContext';
 
 
 function BackButton() {
@@ -26,11 +24,51 @@ function BackButton() {
     );
 }
 
+async function getPropertyAndAgent(firestore: any, agentId: string, imovelId: string): Promise<{ property: Property | null; agent: Agent | null; allProperties: Property[] }> {
+    if (!firestore || !agentId || !imovelId) {
+        return { property: null, agent: null, allProperties: [] };
+    }
+
+    try {
+        const agentRef = doc(firestore, 'agents', agentId);
+        const propertyRef = doc(firestore, `agents/${agentId}/properties`, imovelId);
+        
+        // Fetch related properties in parallel
+        const allPropertiesQuery = query(collection(firestore, `agents/${agentId}/properties`), where('status', '==', 'ativo'));
+        
+        const [agentSnap, propertySnap, allPropertiesSnap] = await Promise.all([
+          getDoc(agentRef),
+          getDoc(propertyRef),
+          getDocs(allPropertiesQuery)
+        ]);
+
+        let property: Property | null = null;
+        if (propertySnap.exists()) {
+            property = { id: propertySnap.id, ...(propertySnap.data() as Omit<Property, 'id'>), agentId: agentId };
+        }
+
+        let agent: Agent | null = null;
+        if (agentSnap.exists()) {
+            agent = { id: agentSnap.id, ...(agentSnap.data() as Omit<Agent, 'id'>) };
+        }
+
+        let allProperties: Property[] = [];
+        if (!allPropertiesSnap.empty) {
+            allProperties = allPropertiesSnap.docs.map(d => ({ ...(d.data() as Omit<Property, 'id'>), id: d.id, agentId }));
+        }
+
+        return { property, agent, allProperties };
+
+    } catch (error) {
+        console.error("Error fetching property and agent:", error);
+        return { property: null, agent: null, allProperties: [] };
+    }
+}
+
 
 export default function PropertyPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const { isDemo, demoData, isLoading: isDemoLoading } = useDemo();
   
   const imovelId = params.imovelId as string;
   const agentId = searchParams.get('agentId');
@@ -43,72 +81,32 @@ export default function PropertyPage() {
 
 
   useEffect(() => {
-    if (isDemoLoading) return;
+    if (!agentId || !firestore) {
+      // Fallback for cases where agentId is missing or firestore is not ready
+      const staticProp = getStaticProperties().find(p => p.id === imovelId);
+      if (staticProp) {
+        setPropertyData(staticProp);
+        setAgentData(getStaticAgent());
+        setAllProperties(getStaticProperties());
+      }
+      setIsLoading(false);
+      return;
+    }
 
-    const fetchPropertyAndAgent = async () => {
+    const fetchData = async () => {
         setIsLoading(true);
-        let property: Property | null = null;
-        let agent: Agent | null = null;
-        let relatedProps: Property[] = [];
-
-        try {
-            if (isDemo && agentId === 'demo-user-arthur') {
-                property = demoData.properties.find(p => p.id === imovelId) || null;
-                agent = demoData.agent;
-                relatedProps = demoData.properties;
-            } else if (!isDemo && firestore && agentId) {
-                const agentRef = doc(firestore, 'agents', agentId);
-                const propertyRef = doc(firestore, `agents/${agentId}/properties`, imovelId);
-                const allPropertiesQuery = query(collection(firestore, `agents/${agentId}/properties`), where('status', '==', 'ativo'));
-                
-                const [agentSnap, propertySnap, allPropertiesSnap] = await Promise.all([
-                  getDoc(agentRef),
-                  getDoc(propertyRef),
-                  getDocs(allPropertiesQuery)
-                ]);
-
-                if (propertySnap.exists()) {
-                    property = { id: propertySnap.id, ...(propertySnap.data() as Omit<Property, 'id'>), agentId: agentId };
-                }
-
-                if (agentSnap.exists()) {
-                    agent = { id: agentSnap.id, ...(agentSnap.data() as Omit<Agent, 'id'>) };
-                }
-
-                if (!allPropertiesSnap.empty) {
-                    relatedProps = allPropertiesSnap.docs.map(d => ({ ...(d.data() as Omit<Property, 'id'>), id: d.id, agentId }));
-                }
-            }
-
-            // Fallback for static/example properties if not found in any other way
-            if (!property) {
-                const staticProperties = getStaticProperties();
-                const staticProp = staticProperties.find(p => p.id === imovelId);
-                if (staticProp) {
-                    property = { ...staticProp, agentId: agentId || 'demo-user-arthur' };
-                     if (!agent) {
-                         agent = getStaticAgent()
-                     }
-                    relatedProps = staticProperties;
-                }
-            }
-
-            setPropertyData(property);
-            setAgentData(agent);
-            setAllProperties(relatedProps);
-
-        } catch (error) {
-            console.error("Erro ao buscar imóvel e corretor:", error);
-        } finally {
-            setIsLoading(false);
-        }
+        const { property, agent, allProperties } = await getPropertyAndAgent(firestore, agentId, imovelId);
+        setPropertyData(property);
+        setAgentData(agent);
+        setAllProperties(allProperties);
+        setIsLoading(false);
     };
     
-    fetchPropertyAndAgent();
+    fetchData();
 
-  }, [firestore, agentId, imovelId, isDemo, isDemoLoading, demoData]);
+  }, [firestore, agentId, imovelId]);
 
-  if (isLoading || isDemoLoading) {
+  if (isLoading) {
     return (
       <>
         <Header agentId={agentId || undefined} />

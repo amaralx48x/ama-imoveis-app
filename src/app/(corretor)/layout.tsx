@@ -1,4 +1,3 @@
-
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
 import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search, PictureInPicture } from 'lucide-react';
@@ -24,35 +23,30 @@ export default function CorretorLayout({
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
-  const { isDemo, demoData, isLoading: isDemoLoading } = useDemo();
+  const { isDemo, startDemo } = useDemo();
 
-  const agentDataSource = isDemo ? demoData.agent : null;
   const agentRef = useMemoFirebase(
-    () => (firestore && user && !isDemo ? doc(firestore, 'agents', user.uid) : null),
-    [firestore, user, isDemo]
+    () => (firestore && user ? doc(firestore, 'agents', user.uid) : null),
+    [firestore, user]
   );
-  const { data: agentDataFromDB } = useDoc<Agent>(agentRef);
-  const agentData = isDemo ? agentDataSource : agentDataFromDB;
+  const { data: agentData } = useDoc<Agent>(agentRef);
 
-  const unreadLeads = isDemo ? demoData.leads.filter(l => l.status === 'unread') : [];
   const unreadLeadsQuery = useMemoFirebase(
-    () => user && firestore && !isDemo
-      ? query(collection(firestore, `agents/${user.uid}/leads`), where('status', '==', 'unread')) 
-      : null,
-    [user, firestore, isDemo]
+    () => (user && firestore ? query(collection(firestore, `agents/${user.uid}/leads`), where('status', '==', 'unread')) : null),
+    [user, firestore]
   );
-  const { data: unreadLeadsFromDB } = useCollection<Lead>(unreadLeadsQuery);
-  const unreadCount = isDemo ? unreadLeads.length : (unreadLeadsFromDB?.length || 0);
+  const { data: unreadLeads } = useCollection<Lead>(unreadLeadsQuery);
+  const unreadCount = unreadLeads?.length || 0;
 
-  const pendingReviews = isDemo ? demoData.reviews.filter(r => !r.approved) : [];
   const pendingReviewsQuery = useMemoFirebase(
-    () => user && firestore && !isDemo
+    () => user && firestore
       ? query(collection(firestore, `agents/${user.uid}/reviews`), where('approved', '==', false)) 
       : null,
-    [user, firestore, isDemo]
+    [user, firestore]
   );
-  const { data: pendingReviewsFromDB } = useCollection<Review>(pendingReviewsQuery);
-  const pendingReviewsCount = isDemo ? pendingReviews.length : (pendingReviewsFromDB?.length || 0);
+  const { data: pendingReviews } = useCollection<Review>(pendingReviewsQuery);
+  const pendingReviewsCount = pendingReviews?.length || 0;
+
 
   useEffect(() => {
     if (!isDemo && !isUserLoading && !user) {
@@ -91,7 +85,7 @@ export default function CorretorLayout({
     }
   };
 
-  const agentSiteUrl = user ? (isDemo ? `/corretor/demo-user-arthur` : `/corretor/${user.uid}`) : '/';
+  const agentSiteUrl = user ? `/corretor/${user.uid}` : '/';
 
 
   const menuItems = [
@@ -121,7 +115,7 @@ export default function CorretorLayout({
       { href: '/configuracoes/politicas', label: 'Políticas e Termos', icon: FileText },
   ]
   
-  if (isUserLoading || isDemoLoading || (!isDemo && !user)) {
+  if (isUserLoading && !isDemo) {
     return (
         <div className="flex items-center justify-center h-screen bg-background">
             <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
@@ -240,5 +234,3 @@ export default function CorretorLayout({
     </SidebarProvider>
   );
 }
-
-    
