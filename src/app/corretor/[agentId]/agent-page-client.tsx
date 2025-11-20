@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useEffect, useState, Suspense } from 'react';
@@ -26,6 +25,7 @@ function AgentPageContent({ serverData }: AgentPageClientProps) {
   const isDemo = searchParams.get('demo') === 'true';
   const { demoState, updateDemoData } = useDemo();
 
+  // A lógica central: se for demo, usa o demoState, senão, usa os dados do servidor.
   const data = isDemo ? demoState : serverData;
 
   const agent = data?.agent;
@@ -41,12 +41,20 @@ function AgentPageContent({ serverData }: AgentPageClientProps) {
   }, [agent, allProperties]);
   
   const onReviewSubmitted = () => {
-    // In a real scenario, this would trigger a refetch of reviews.
-    // In demo mode, we could potentially update the demoState.
+    // Em uma demo, poderíamos simular a atualização ou apenas mostrar uma notificação.
+    // Numa aplicação real, isso invalidaria um cache para buscar as novas avaliações.
   };
 
+  // Se for demo e os dados ainda não carregaram, mostra um estado de carregamento.
+  if (isDemo && !demoState) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          Carregando demonstração...
+        </div>
+      );
+  }
+
   if (!agent) {
-    if (isDemo && !demoState) return <div>Carregando demonstração...</div>;
     return notFound();
   }
   

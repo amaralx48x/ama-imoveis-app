@@ -1,4 +1,3 @@
-
 import type { Metadata } from "next";
 import AgentPageClient from "@/app/corretor/[agentId]/agent-page-client";
 import { getFirebaseServer } from "@/firebase/server-init";
@@ -50,8 +49,8 @@ export async function generateMetadata(props: {
 // -------------------------------------------------------------
 async function getAgentData(agentId: string) {
   const { firestore } = getFirebaseServer();
-
-  const agentRef = doc(firestore, "agents", agentId);
+  
+  const agentRef = doc(firestore, 'agents', agentId);
   const propertiesRef = collection(firestore, `agents/${agentId}/properties`);
   const sectionsRef = collection(firestore, `agents/${agentId}/customSections`);
   const reviewsRef = collection(firestore, `agents/${agentId}/reviews`);
@@ -59,9 +58,9 @@ async function getAgentData(agentId: string) {
   try {
     const [agentSnap, propertiesSnap, sectionsSnap, reviewsSnap] = await Promise.all([
       getDoc(agentRef),
-      getDocs(query(propertiesRef, where("status", "in", ["ativo", null]))),
-      getDocs(query(sectionsRef, orderBy("order", "asc"))),
-      getDocs(query(reviewsRef, where("approved", "==", true), limit(10))),
+      getDocs(query(propertiesRef, where('status', 'in', ['ativo', null]))),
+      getDocs(query(sectionsRef, orderBy('order', 'asc'))),
+      getDocs(query(reviewsRef, where('approved', '==', true), limit(10))),
     ]);
 
     if (!agentSnap.exists() || (agentSnap.data() as Agent).siteSettings?.siteStatus === false) {
@@ -69,29 +68,22 @@ async function getAgentData(agentId: string) {
     }
 
     const agent = { id: agentSnap.id, ...agentSnap.data() } as Agent;
-
+    
     let allProperties: Property[];
     if (!propertiesSnap.empty) {
-      allProperties = propertiesSnap.docs.map((d) => ({
-        ...(d.data() as Omit<Property, "id">),
-        id: d.id,
-        agentId,
-      }));
+        allProperties = propertiesSnap.docs.map(d => ({ ...(d.data() as Omit<Property, 'id'>), id: d.id, agentId }) as Property);
     } else {
-      allProperties = getStaticProperties().map((p) => ({ ...p, agentId }));
+        allProperties = getStaticProperties().map(p => ({...p, agentId}));
     }
-
-    const customSections = sectionsSnap.docs.map((d) => ({
-      ...(d.data() as Omit<CustomSection, "id">),
-      id: d.id,
-    }));
+    
+    const customSections = sectionsSnap.docs.map(d => ({ ...(d.data() as Omit<CustomSection, 'id'>), id: d.id }) as CustomSection);
 
     let reviews: Review[];
     if (!reviewsSnap.empty) {
-      const fetchedReviews = reviewsSnap.docs.map((doc) => {
+      const fetchedReviews = reviewsSnap.docs.map(doc => {
         const data = doc.data();
         return {
-          ...(data as Omit<Review, "id" | "createdAt">),
+          ...(data as Omit<Review, 'id' | 'createdAt'>),
           id: doc.id,
           createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
         };
@@ -102,37 +94,42 @@ async function getAgentData(agentId: string) {
       reviews = getStaticReviews();
     }
 
-    return {
-      agent: JSON.parse(JSON.stringify(agent)),
-      properties: JSON.parse(JSON.stringify(allProperties)),
-      customSections: JSON.parse(JSON.stringify(customSections)),
-      reviews: JSON.parse(JSON.stringify(reviews)),
+    return { 
+        agent: JSON.parse(JSON.stringify(agent)),
+        properties: JSON.parse(JSON.stringify(allProperties)), 
+        customSections: JSON.parse(JSON.stringify(customSections)),
+        reviews: JSON.parse(JSON.stringify(reviews)),
     };
+
   } catch (error) {
     console.error("Failed to fetch agent data on server:", error);
     return null;
   }
 }
 
+
 // -------------------------------------------------------------
-// FIX 2 → A própria página agora é uma função async que recebe `props`
+// FIX 2 → mesma correção para params e searchParams na página server
 // -------------------------------------------------------------
 export default async function AgentPublicPage(props: {
   params: Promise<{ agentId: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+
   const params = await props.params;
   const searchParams = await props.searchParams;
 
+  if (!params || !searchParams) return notFound();
+
   const { agentId } = params;
-  const isDemo = searchParams?.demo === "true";
+  const isDemo = searchParams.demo === "true";
 
   if (isDemo) {
     return <AgentPageClient serverData={null} />;
   }
-
+  
   const data = await getAgentData(agentId);
-
+  
   if (!data) return notFound();
 
   return <AgentPageClient serverData={data} />;
