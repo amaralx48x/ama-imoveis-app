@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import AgentPageClient from "@/app/corretor/[agentId]/agent-page-client";
 import { getFirebaseServer } from "@/firebase/server-init";
@@ -42,7 +43,6 @@ export async function generateMetadata({ params, searchParams }: { params: { age
 
 
 async function getAgentData(agentId: string) {
-  // REAL MODE: Fetch from Firestore
   const { firestore } = getFirebaseServer();
   
   const agentRef = doc(firestore, 'agents', agentId);
@@ -53,7 +53,7 @@ async function getAgentData(agentId: string) {
   try {
     const [agentSnap, propertiesSnap, sectionsSnap, reviewsSnap] = await Promise.all([
       getDoc(agentRef),
-      getDocs(query(propertiesRef, where('status', '==', 'ativo'))),
+      getDocs(query(propertiesRef, where('status', 'in', ['ativo', null]))),
       getDocs(query(sectionsRef, orderBy('order', 'asc'))),
       getDocs(query(reviewsRef, where('approved', '==', true), limit(10))),
     ]);
@@ -93,7 +93,7 @@ async function getAgentData(agentId: string) {
     // Use JSON stringify/parse to ensure data is serializable for client components
     return { 
         agent: JSON.parse(JSON.stringify(agent)),
-        allProperties: JSON.parse(JSON.stringify(allProperties)), 
+        properties: JSON.parse(JSON.stringify(allProperties)), 
         customSections: JSON.parse(JSON.stringify(customSections)),
         reviews: JSON.parse(JSON.stringify(reviews)),
     };
@@ -110,7 +110,7 @@ export default async function AgentPublicPage({ params, searchParams }: { params
 
   if (isDemo) {
       // In demo mode, the client component will handle fetching from context
-      return <AgentPageClient isDemo={true} serverData={null} />;
+      return <AgentPageClient serverData={null} />;
   }
   
   const data = await getAgentData(agentId);
@@ -119,5 +119,5 @@ export default async function AgentPublicPage({ params, searchParams }: { params
     return notFound();
   }
 
-  return <AgentPageClient isDemo={false} serverData={data} />;
+  return <AgentPageClient serverData={data} />;
 }

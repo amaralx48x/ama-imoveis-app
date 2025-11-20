@@ -35,19 +35,23 @@ export function useDoc<T = any>(
   type StateDataType = WithId<T> | null;
 
   const [data, setData] = useState<StateDataType>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   useEffect(() => {
     if (isDemo) {
         setIsLoading(true);
         if (memoizedDocRef && demoState) {
-            const path = memoizedDocRef.path; // e.g., "agents/DEMO_AGENT_ID"
-            const [collection, id] = path.split('/');
-
-            if (collection === 'agents' && id === demoState.agent.id) {
-                setData(demoState.agent as WithId<T>);
-            } else {
+            const path = memoizedDocRef.path;
+            const pathSegments = path.split('/');
+            
+            if (pathSegments.includes('agents')) {
+                 setData(demoState.agent as WithId<T>);
+            } else if (pathSegments.includes('properties')) {
+                 const prop = demoState.properties.find(p => p.id === pathSegments[pathSegments.length - 1]);
+                 setData(prop ? prop as WithId<T> : null);
+            }
+             else {
                  setData(null);
             }
         } else {
@@ -86,7 +90,6 @@ export function useDoc<T = any>(
   
   useEffect(() => {
      if (isDemo) {
-        // Data is already set by the other useEffect, so just stop loading.
         setIsLoading(false);
         return;
     }

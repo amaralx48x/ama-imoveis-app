@@ -1,7 +1,9 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
-import { Agent, Property, CustomSection, Review, SiteSettings } from '@/lib/data';
+import { Agent, Property, CustomSection, Review } from '@/lib/data';
+import initialDemoData from '@/lib/demo-data.json';
 
 // Estrutura completa dos dados da conta demo
 export interface DemoState {
@@ -14,9 +16,9 @@ export interface DemoState {
 interface DemoContextProps {
   isDemo: boolean;
   demoState: DemoState | null;
-  startDemo: () => Promise<void>;
+  startDemo: () => void;
   endDemo: () => void;
-  updateDemoData: <K extends keyof DemoState>(key: K, data: DemoState[K]) => void;
+  updateDemoData: <K extends keyof DemoState>(key: K, data: DemoState[K] | ((prev: DemoState[K]) => DemoState[K])) => void;
   isLoading: boolean;
 }
 
@@ -27,28 +29,15 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const [demoState, setDemoState] = useState<DemoState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const startDemo = useCallback(async () => {
+  const startDemo = useCallback(() => {
     setIsLoading(true);
-    try {
-      const response = await fetch('/api/demo-snapshot');
-      if (!response.ok) {
-        throw new Error('Falha ao carregar os dados de demonstração.');
-      }
-      const initialState: DemoState = await response.json();
-      
-      // Armazena no sessionStorage para persistir entre reloads
-      sessionStorage.setItem('isDemo', 'true');
-      sessionStorage.setItem('demoState', JSON.stringify(initialState));
-
-      setDemoState(initialState);
-      setIsDemo(true);
-    } catch (error) {
-      console.error("Erro ao iniciar a demo:", error);
-      setIsDemo(false);
-      setDemoState(null);
-    } finally {
-      setIsLoading(false);
-    }
+    // Deep clone to prevent mutations on the imported object
+    const initialState = JSON.parse(JSON.stringify(initialDemoData));
+    sessionStorage.setItem('isDemo', 'true');
+    sessionStorage.setItem('demoState', JSON.stringify(initialState));
+    setDemoState(initialState);
+    setIsDemo(true);
+    setIsLoading(false);
   }, []);
 
   const endDemo = useCallback(() => {
@@ -58,7 +47,6 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     setDemoState(null);
   }, []);
   
-  // Tenta carregar do sessionStorage na inicialização
   React.useEffect(() => {
     const sessionIsDemo = sessionStorage.getItem('isDemo') === 'true';
     if (sessionIsDemo) {
@@ -70,12 +58,12 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-
-  const updateDemoData = useCallback(<K extends keyof DemoState>(key: K, data: DemoState[K]) => {
+  const updateDemoData = useCallback(<K extends keyof DemoState>(key: K, data: DemoState[K] | ((prev: DemoState[K]) => DemoState[K])) => {
     setDemoState(prevState => {
       if (!prevState) return null;
-      const newState = { ...prevState, [key]: data };
-      sessionStorage.setItem('demoState', JSON.stringify(newState)); // Atualiza sessionStorage
+      const newValue = typeof data === 'function' ? (data as (prev: DemoState[K]) => DemoState[K])(prevState[key]) : data;
+      const newState = { ...prevState, [key]: newValue };
+      sessionStorage.setItem('demoState', JSON.stringify(newState));
       return newState;
     });
   }, []);

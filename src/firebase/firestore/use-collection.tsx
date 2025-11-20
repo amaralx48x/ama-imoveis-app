@@ -47,7 +47,7 @@ export function useCollection<T = any>(
   type StateDataType = ResultItemType[] | null;
 
   const [data, setData] = useState<StateDataType>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   useEffect(() => {
@@ -55,7 +55,6 @@ export function useCollection<T = any>(
         setIsLoading(true);
         if (memoizedTargetRefOrQuery && demoState) {
              const path = (memoizedTargetRefOrQuery as CollectionReference).path;
-             // e.g. agents/DEMO_AGENT_ID_999/properties
              const pathSegments = path.split('/');
 
              if(pathSegments.includes('properties')) {
@@ -99,7 +98,6 @@ export function useCollection<T = any>(
 
   useEffect(() => {
     if (isDemo) {
-        // Data is already handled by the demo-specific useEffect
         setIsLoading(false);
         return;
     }
@@ -144,10 +142,6 @@ export function useCollection<T = any>(
 
     return () => unsubscribe();
   }, [memoizedTargetRefOrQuery, isDemo]);
-
-  if (!isDemo && memoizedTargetRefOrQuery && !memoizedTargetRefOrQuery.__memo) {
-    throw new Error(memoizedTargetRefOrQuery + ' was not properly memoized using useMemoFirebase');
-  }
 
   return { data, isLoading, error, mutate: fetchData };
 }

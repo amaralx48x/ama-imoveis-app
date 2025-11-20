@@ -21,6 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { InfoCard } from '@/components/info-card';
+import { useDemo } from '@/context/DemoContext';
 
 
 function PropertyList({ 
@@ -102,81 +103,86 @@ export default function ImoveisPage() {
     const { user } = useUser();
     const { toast } = useToast();
     const { limits, canAddNewProperty, currentPropertiesCount } = usePlan();
+    const { isDemo, demoState, updateDemoData } = useDemo();
     const [activeTab, setActiveTab] = useState<'ativo' | 'vendido' | 'alugado'>('ativo');
     const [searchTerm, setSearchTerm] = useState('');
     const [needsRefetch, setNeedsRefetch] = useState(false);
 
-    // This is the core optimization. Instead of fetching all documents,
-    // we create a specific query based on the active tab.
+    const agentId = isDemo ? demoState?.agent.id : user?.uid;
+
     const propertiesQuery = useMemoFirebase(() => {
-        if (!firestore || !user) return null;
+        if (!agentId || !firestore) return null;
         
-        let q = query(collection(firestore, `agents/${user.uid}/properties`));
+        let q = query(collection(firestore, `agents/${agentId}/properties`));
 
         if (activeTab === 'ativo') {
-            // Firestore queries for "not equal" are tricky. It's often easier to query for the statuses you DON'T want.
-            // But since a new property's status might be null or 'ativo', we query for what we want.
             q = query(q, where('status', 'in', ['ativo', null]));
         } else {
             q = query(q, where('status', '==', activeTab));
         }
         return q;
-    }, [firestore, user, activeTab, needsRefetch]);
+    }, [firestore, agentId, activeTab, needsRefetch]);
 
     const { data: properties, isLoading, error, mutate } = useCollection<Property>(propertiesQuery);
     
-    // Client-side search on the already-filtered data from Firestore
     const filteredProperties = useMemo(() => {
-        if (!properties) return [];
-        if (!searchTerm) return properties;
+        let sourceProperties = properties;
+        if (isDemo && demoState) {
+            if (activeTab === 'ativo') {
+                sourceProperties = demoState.properties.filter(p => p.status === 'ativo' || !p.status);
+            } else {
+                sourceProperties = demoState.properties.filter(p => p.status === activeTab);
+            }
+        }
+        
+        if (!sourceProperties) return [];
+        if (!searchTerm) return sourceProperties;
 
         const lowercasedTerm = searchTerm.toLowerCase();
-        return properties.filter(property => 
+        return sourceProperties.filter(property => 
             (property.title?.toLowerCase() ?? '').includes(lowercasedTerm) ||
             (property.city?.toLowerCase() ?? '').includes(lowercasedTerm) ||
             (property.neighborhood?.toLowerCase() ?? '').includes(lowercasedTerm)
         );
-    }, [properties, searchTerm]);
+    }, [properties, searchTerm, isDemo, demoState, activeTab]);
 
     
     const handleDeleteProperty = async (id: string) => {
-        if (!firestore || !user) {
-            toast({ 
-                title: 'Erro de Autenticação',
-                description: 'Você precisa estar logado para excluir um imóvel.',
-                variant: 'destructive'
-            });
-            return;
-        };
-        
-        if (!window.confirm("Tem certeza que deseja excluir este imóvel? Esta ação não pode ser desfeita.")) {
+        if (isDemo) {
+            const newProperties = demoState!.properties.filter(p => p.id !== id);
+            updateDemoData('properties', newProperties);
+            toast({ title: 'Imóvel removido (Demo)!' });
             return;
         }
+
+        if (!firestore || !user) return toast({ title: 'Erro de Autenticação', variant: 'destructive'});
+        
+        if (!window.confirm("Tem certeza que deseja excluir este imóvel? Esta ação não pode ser desfeita.")) return;
 
         const docRef = doc(firestore, `agents/${user.uid}/properties`, id);
         
         try {
             await deleteDoc(docRef);
-            mutate(); // Re-trigger the useCollection hook
+            mutate();
             toast({ title: 'Imóvel excluído com sucesso!' });
         } catch (error) {
             console.error("Erro ao excluir imóvel: ", error);
-            toast({ 
-                title: 'Erro ao excluir',
-                description: 'Não foi possível remover o imóvel. Tente novamente.',
-                variant: 'destructive'
-            });
+            toast({ title: 'Erro ao excluir', variant: 'destructive'});
         }
     };
     
     const handleStatusChange = () => {
-        // Trigger a refetch of the current query
-        mutate();
-        // A more robust way if properties move between tabs
-        setNeedsRefetch(prev => !prev);
+        if (isDemo) {
+            // This is just to trigger a re-render in demo mode, as state is managed in context
+            setNeedsRefetch(prev => !prev);
+        } else {
+            mutate();
+            setNeedsRefetch(prev => !prev);
+        }
     }
     
     const canAdd = canAddNewProperty();
+    const currentCount = isDemo ? demoState?.properties.length || 0 : currentPropertiesCount;
 
     return (
         <div className="space-y-8">
@@ -191,14 +197,14 @@ export default function ImoveisPage() {
 
             <div className="flex justify-between items-center animate-fade-in-up">
                 <div>
-                    <h1 className="text-3xl font-bold font-headline">Meus Imóveis ({currentPropertiesCount} / {limits.maxProperties === Infinity ? 'Ilimitado' : limits.maxProperties})</h1>
+                    <h1 className="text-3xl font-bold font-headline">Meus Imóveis ({currentCount} / {limits.maxProperties === Infinity ? 'Ilimitado' : limits.maxProperties})</h1>
                     <p className="text-muted-foreground">Gerencie seu portfólio de imóveis.</p>
                 </div>
                  <div className="flex gap-2">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <span tabIndex={0}> {/* Wrapper for Tooltip when button is disabled */}
+                          <span tabIndex={0}>
                             <Button asChild variant="outline" disabled={!limits.canImportCSV}>
                                <Link href="/imoveis/importar">
                                   <Upload className="mr-2 h-4 w-4" />
