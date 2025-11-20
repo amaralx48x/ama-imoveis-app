@@ -17,7 +17,7 @@ export interface DemoDataContext {
 
 interface DemoContextProps {
   isDemo: boolean;
-  demoData: DemoDataContext;
+  demoData: DemoDataContext | null;
   updateDemoData: (path: string, value: any) => void;
   isLoading: boolean;
   startDemo: () => void;
@@ -56,7 +56,7 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Initialize state with the static JSON dump
-  const [demoData, setDemoDataState] = useState<DemoDataContext>(() => getSessionStorage('demo_data', demoSnapshot as DemoDataContext));
+  const [demoData, setDemoDataState] = useState<DemoDataContext | null>(null);
 
   const startDemo = useCallback(() => {
     // Load static data into state and session storage
@@ -71,7 +71,7 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
     sessionStorage.removeItem('demo_data');
     sessionStorage.removeItem('isDemo');
     setIsDemo(false);
-    setDemoDataState(demoSnapshot as DemoDataContext); // Reset to default
+    setDemoDataState(null); // Reset to default
     router.push('/');
   }, [router]);
   
@@ -127,7 +127,7 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
 
   const value = useMemo(() => ({
     isDemo,
-    demoData: demoData as DemoDataContext,
+    demoData: demoData,
     updateDemoData,
     isLoading,
     startDemo,

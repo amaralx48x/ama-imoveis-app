@@ -32,7 +32,7 @@ export interface UseDocResult<T> {
 function getDemoDocData(demoData: DemoDataContext, docRef: DocumentReference<DocumentData>): any {
     if (!demoData) return null;
     const pathSegments = docRef.path.split('/');
-    const collectionKey = pathSegments[pathSegments.length - 2];
+    const collectionKey = pathSegments[pathSegments.length - 2] as keyof DemoDataContext;
     const docId = pathSegments[pathSegments.length - 1];
 
     if (collectionKey === 'agents') {
@@ -45,6 +45,14 @@ function getDemoDocData(demoData: DemoDataContext, docRef: DocumentReference<Doc
     if (Array.isArray(collection)) {
         return collection.find(item => item.id === docId) || null;
     }
+
+    // Handle single-doc collections like 'marketing/content'
+    // @ts-ignore
+    if (typeof demoData[collectionKey] === 'object' && !Array.isArray(demoData[collectionKey])) {
+        // @ts-ignore
+        return demoData[collectionKey];
+    }
+    
     return null;
 }
 

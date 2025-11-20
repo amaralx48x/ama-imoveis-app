@@ -83,7 +83,7 @@ export default function CorretorLayout({
     }
   };
 
-  const agentSiteUrl = user ? `/corretor/${user.uid}` : '/';
+  const agentSiteUrl = user ? (isDemo ? `/corretor/demo-user-arthur` : `/corretor/${user.uid}`) : '/';
 
 
   const menuItems = [

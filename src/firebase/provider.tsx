@@ -64,7 +64,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   firestore,
   auth,
 }) => {
-  const { isDemo, demoData } = useDemo();
+  const { isDemo, demoData, isLoading: isDemoLoading } = useDemo();
 
   const mockUser: User | null = useMemo(() => {
     if (!demoData || !demoData.agent) return null;
@@ -124,7 +124,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   const contextValue = useMemo((): FirebaseContextState => {
     const servicesAvailable = !!(firebaseApp && firestore && auth);
     const currentUser = isDemo ? mockUser : userAuthState.user;
-    const currentIsLoading = isDemo ? false : userAuthState.isUserLoading;
+    const currentIsLoading = isDemo ? isDemoLoading : userAuthState.isUserLoading;
 
     return {
       areServicesAvailable: servicesAvailable,
@@ -135,7 +135,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       isUserLoading: currentIsLoading,
       userError: userAuthState.userError,
     };
-  }, [firebaseApp, firestore, auth, userAuthState, isDemo, mockUser]);
+  }, [firebaseApp, firestore, auth, userAuthState, isDemo, mockUser, isDemoLoading]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>

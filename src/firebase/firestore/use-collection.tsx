@@ -42,11 +42,23 @@ export interface InternalQuery extends Query<DocumentData> {
 function getDemoCollectionData(demoData: DemoDataContext, targetRefOrQuery: any): any[] {
     if (!demoData) return [];
     
-    const path = targetRefOrQuery.path || (targetRefOrQuery._query && targetRefOrQuery._query.path.canonicalString());
+    let path;
+    // Check if it's a collection group query (no simple path)
+    if (targetRefOrQuery._query && targetRefOrQuery._query.collectionGroup) {
+        const collectionKey = targetRefOrQuery._query.collectionGroup;
+         if (collectionKey === 'properties') {
+            return demoData.properties || [];
+        }
+        // Handle other collection groups if necessary
+        return [];
+    }
+    
+    path = targetRefOrQuery.path || (targetRefOrQuery._query && targetRefOrQuery._query.path.canonicalString());
     if (!path) return [];
     
     const pathSegments = path.split('/');
-    const collectionKey = pathSegments[pathSegments.length - 1];
+    // For sub-collections like 'reviews', the key is the collection name itself.
+    const collectionKey = pathSegments[pathSegments.length - 1] as keyof DemoDataContext;
 
     // @ts-ignore
     return demoData[collectionKey] || [];
@@ -125,7 +137,14 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (err: FirestoreError) => {
-        const path: string = memoizedTargetRefOrQuery.type === 'collection' ? (memoizedTargetRefOrQuery as CollectionReference).path : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
+        let path: string;
+        if ((memoizedTargetRefOrQuery as any)._query?.collectionGroup) {
+            path = `collectionGroup:${(memoizedTargetRefOrQuery as any)._query.collectionGroup}`;
+        } else {
+            path = memoizedTargetRefOrQuery.type === 'collection' 
+                ? (memoizedTargetRefOrQuery as CollectionReference).path 
+                : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString();
+        }
         const contextualError = new FirestorePermissionError({ operation: 'list', path });
         setError(contextualError);
         setData(null);

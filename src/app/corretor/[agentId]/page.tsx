@@ -10,6 +10,13 @@ import demoSnapshot from '@/lib/demo-data.json';
 
 
 export async function generateMetadata({ params }: { params: { agentId: string } }): Promise<Metadata> {
+  if (params.agentId === 'demo-user-arthur') {
+    return {
+      title: "Demonstração | Amaral Imóveis",
+      description: "Explore o painel de demonstração da plataforma AMA Imóveis.",
+    }
+  }
+
   const seoData = await getSEO(`agent-${params.agentId}`);
   
   const title = seoData?.title || "Página do Corretor";
@@ -33,18 +40,18 @@ export async function generateMetadata({ params }: { params: { agentId: string }
 async function getAgentData(agentId: string) {
   // DEMO MODE: Serve data from local snapshot
   if (agentId === 'demo-user-arthur') {
+    // We use JSON parse/stringify to create a deep copy and ensure data is serializable
     const data = JSON.parse(JSON.stringify(demoSnapshot));
-    // Simulate server timestamp conversion to string for client component
-    data.reviews.forEach((r: Review) => {
-        if (r.createdAt && typeof r.createdAt !== 'string') {
-            r.createdAt = new Date(r.createdAt).toISOString();
+    
+    const convertTimestamp = (item: any, key: string) => {
+        if (item[key] && typeof item[key] !== 'string') {
+            item[key] = new Date(item[key].seconds ? item[key].seconds * 1000 : item[key]).toISOString();
         }
-    });
-     data.properties.forEach((p: Property) => {
-        if (p.createdAt && typeof p.createdAt !== 'string') {
-            p.createdAt = new Date(p.createdAt).toISOString();
-        }
-    });
+    };
+
+    data.reviews.forEach((r: Review) => convertTimestamp(r, 'createdAt'));
+    data.properties.forEach((p: Property) => convertTimestamp(p, 'createdAt'));
+    
     return {
         agent: data.agent,
         allProperties: data.properties,
