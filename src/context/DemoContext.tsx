@@ -36,7 +36,7 @@ const createInitialDemoData = (): DemoDataContext => {
     photoUrl: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdCUyMG1hbGV8ZW58MHx8fHwxNzYyODU0MDUzfDA&ixlib=rb-4.1.0&q=80&w=1080',
     phone: '(11) 91234-5678',
     cities: ['São Paulo', 'Campinas', 'Ubatuba'],
-    role: 'admin', // Acesso de admin para a conta base, mas será bloqueado no modo demo
+    role: 'corretor', // No modo demo, mesmo que o user base seja admin, o painel de admin será ocultado
     plan: 'imobiliaria',
     availability: {
       days: { Segunda: true, Terça: true, Quarta: true, Quinta: true, Sexta: true, Sábado: true, Domingo: false },
@@ -153,5 +153,3 @@ export const useDemo = (): DemoContextProps => {
   }
   return context;
 };
-
-    

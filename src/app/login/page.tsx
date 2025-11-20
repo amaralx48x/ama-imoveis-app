@@ -60,13 +60,14 @@ function LoginPageContent() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-    const { isDemo } = useDemo();
 
     useEffect(() => {
-        if (isDemo || (!isUserLoading && user)) {
+        // Now, this effect only redirects if a real user logs in.
+        // The demo redirection is handled by the RootLayout.
+        if (!isUserLoading && user) {
             router.replace('/dashboard');
         }
-    }, [user, isUserLoading, router, isDemo]);
+    }, [user, isUserLoading, router]);
 
     const loginForm = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
@@ -126,6 +127,7 @@ function LoginPageContent() {
                 title: "Login bem-sucedido!",
                 description: "Redirecionando para o seu painel...",
             });
+            // O useEffect cuidará do redirecionamento
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -149,6 +151,7 @@ function LoginPageContent() {
                 title: "Conta criada com sucesso!",
                 description: "Redirecionando para o seu painel...",
             });
+            // O useEffect cuidará do redirecionamento
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -167,6 +170,7 @@ function LoginPageContent() {
                 accountType: 'corretor',
             });
             toast({ title: "Login bem-sucedido!" });
+            // O useEffect cuidará do redirecionamento
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -175,7 +179,7 @@ function LoginPageContent() {
     }
 
 
-    if (isUserLoading || user || isDemo) {
+    if (isUserLoading || user) {
         return (
              <div className="relative min-h-screen flex items-center justify-center p-4">
                  <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
@@ -316,8 +320,13 @@ function LoginPageContent() {
 
 export default function LoginPage() {
     return (
-        <LoginPageContent />
+        // A Suspense boundary is needed to use useSearchParams in DemoRedirect
+        <Suspense fallback={
+            <div className="relative min-h-screen flex items-center justify-center p-4">
+                <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
+            </div>
+        }>
+            <LoginPageContent />
+        </Suspense>
     )
 }
-
-    
