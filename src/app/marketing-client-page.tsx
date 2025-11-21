@@ -62,7 +62,6 @@ function FullPageSkeleton() {
 export default function MarketingClientPage() {
   const firestore = useFirestore();
   const { startDemo, isLoadingDemo } = useDemo();
-  const auth = useAuth();
 
   const marketingRef = useMemoFirebase(
     () => (firestore ? doc(firestore, "marketing", "content") : null),
@@ -75,11 +74,7 @@ export default function MarketingClientPage() {
   };
 
   const handleStartDemo = () => {
-    if (auth) {
-      startDemo(auth);
-    } else {
-      console.error("Auth service is not available to start demo.");
-    }
+    startDemo();
   }
 
   if (isLoading) {

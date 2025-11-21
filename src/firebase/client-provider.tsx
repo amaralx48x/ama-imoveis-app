@@ -3,6 +3,7 @@
 import React, { useMemo, type ReactNode } from 'react';
 import { initializeFirebase } from '@/firebase';
 import { FirebaseProvider } from '@/firebase/provider';
+import { DemoProvider } from '@/context/DemoContext';
 
 interface FirebaseClientProviderProps {
   children: ReactNode;
@@ -19,15 +20,5 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
     return initializeFirebase();
   }, []);
 
-  const { firebaseApp, auth, firestore } = firebaseServices;
-
-  return (
-    <FirebaseProvider
-        firebaseApp={firebaseApp}
-        auth={auth}
-        firestore={firestore}
-      >
-        {children}
-    </FirebaseProvider>
-  );
+  return React.cloneElement(children as React.ReactElement, firebaseServices);
 }
