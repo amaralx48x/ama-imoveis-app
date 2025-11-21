@@ -26,22 +26,37 @@ const fadeUp = {
   show: { opacity: 1, y: 0 },
 };
 
-function MarketingPageSkeleton() {
+function FullPageSkeleton() {
   return (
-    <div className="container mx-auto px-6 py-20 space-y-20">
-      <section className="py-10">
-        <Skeleton className="h-10 w-3/4 mx-auto" />
-        <Skeleton className="h-6 w-1/2 mx-auto mt-4" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <Skeleton className="h-24 rounded-lg" />
-          <Skeleton className="h-24 rounded-lg" />
-          <Skeleton className="h-24 rounded-lg" />
+    <div className="bg-black text-white min-h-screen">
+      <header className="sticky top-0 z-50 border-b border-white/10 backdrop-blur-sm">
+        <div className="container mx-auto flex items-center justify-between px-6 py-4">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-10 w-48" />
         </div>
-      </section>
-      <Skeleton className="h-[60vh] w-full rounded-2xl" />
+      </header>
+      <main className="container mx-auto px-6 py-20 space-y-16">
+        <Skeleton className="h-[60vh] w-full rounded-2xl" />
+        <section className="py-10">
+          <Skeleton className="h-10 w-3/4 mx-auto" />
+          <Skeleton className="h-6 w-1/2 mx-auto mt-4" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            <Skeleton className="h-24 rounded-lg" />
+            <Skeleton className="h-24 rounded-lg" />
+            <Skeleton className="h-24 rounded-lg" />
+          </div>
+        </section>
+        <Skeleton className="h-80 w-full rounded-2xl" />
+      </main>
+      <footer className="border-t border-white/10 py-8">
+        <div className="container mx-auto px-6 flex items-center justify-center">
+          <Skeleton className="h-6 w-64" />
+        </div>
+      </footer>
     </div>
   );
 }
+
 
 export default function MarketingClientPage() {
   const firestore = useFirestore();
@@ -55,6 +70,10 @@ export default function MarketingClientPage() {
   const getImage = (field: keyof MarketingContent, defaultUrl: string) => {
     return marketingData?.[field] || defaultUrl;
   };
+  
+  if (isLoading) {
+    return <FullPageSkeleton />;
+  }
 
   return (
     <div className="min-h-screen text-white bg-black">
@@ -107,9 +126,6 @@ export default function MarketingClientPage() {
       </section>
 
       {/* MAIN CONTENT */}
-      {isLoading ? (
-        <MarketingPageSkeleton />
-      ) : (
       <main className="container mx-auto px-6 py-20">
         
         {/* Features */}
