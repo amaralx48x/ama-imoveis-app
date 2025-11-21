@@ -3,7 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
+import { useDoc, useFirestore, useMemoFirebase, useAuth } from "@/firebase";
 import { doc } from "firebase/firestore";
 import type { MarketingContent } from "@/lib/data";
 import { Building2, Search, Share2, Loader2, FlaskConical } from "lucide-react";
@@ -61,6 +61,7 @@ function FullPageSkeleton() {
 
 export default function MarketingClientPage() {
   const firestore = useFirestore();
+  const auth = useAuth(); // Get auth instance here
   const { startDemo, isLoadingDemo } = useDemo();
 
   const marketingRef = useMemoFirebase(
@@ -74,7 +75,11 @@ export default function MarketingClientPage() {
   };
   
   const handleStartDemo = async () => {
-    await startDemo();
+    if (auth) {
+      await startDemo(auth); // Pass auth instance to startDemo
+    } else {
+      console.error("Auth instance not available.");
+    }
   };
 
   if (isLoading) {
@@ -294,13 +299,13 @@ export default function MarketingClientPage() {
             <h3 className="text-2xl font-bold">Teste AMA Imobi por 7 dias</h3>
             <p className="mt-2 text-white/70">Sem cartão no teste — experimente e veja o impacto nas suas vendas.</p>
             <div className="mt-6 flex justify-center gap-4">
-              <Link href="/login" className={`inline-flex ${neon} text-white px-6 py-3 rounded-lg font-semibold`}>Criar Conta</Link>
+              <button onClick={handleStartDemo} disabled={isLoadingDemo} className={`inline-flex ${neon} text-white px-6 py-3 rounded-lg font-semibold`}>Criar Conta</button>
               <Link href="#plans" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10">Ver planos</Link>
             </div>
           </div>
         </section>
       </main>
-      )}
+      
 
       {/* FOOTER */}
       <footer className="border-t border-white/10 py-8">

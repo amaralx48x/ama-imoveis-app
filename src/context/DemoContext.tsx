@@ -9,10 +9,10 @@ import {
   useCallback,
   useEffect,
 } from 'react';
+import { signInAnonymously, Auth } from 'firebase/auth'; // Import Auth type
 
 // Define a interface para o estado da demo
 export interface DemoState {
-  // Adicione aqui os tipos de dados que serão mockados
   agent: any;
   properties: any[];
   reviews: any[];
@@ -26,7 +26,7 @@ interface DemoContextProps {
   demoState: DemoState | null;
   sessionId: string | null;
   ownerUid: string | null;
-  startDemo: () => Promise<void>;
+  startDemo: (auth: Auth) => Promise<void>; // Modified to accept auth instance
   endDemo: () => void;
   resetDemo: () => void;
   updateDemoState: (path: string, data: any) => void;
@@ -52,6 +52,16 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
   const [demoState, setDemoState] = useState<DemoState | null>(null);
   const router = useRouter();
 
+  const clearSession = useCallback(() => {
+    sessionStorage.removeItem('demoSessionId');
+    sessionStorage.removeItem('demoOwnerUid');
+    sessionStorage.removeItem('demoState');
+    setSessionId(null);
+    setOwnerUid(null);
+    setDemoState(null);
+    setIsDemo(false);
+  }, []);
+
   // On initial load, check sessionStorage for an active demo session
   useEffect(() => {
     try {
@@ -71,68 +81,64 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsLoadingDemo(false);
     }
-  }, []);
+  }, [clearSession]);
 
-  const startDemo = useCallback(async () => {
+  const startDemo = useCallback(async (auth: Auth) => { // Accept auth instance as a parameter
+    if (!auth) {
+        console.error("Auth service is not available to start demo.");
+        return;
+    }
     setIsLoadingDemo(true);
     try {
-      // NOTE: Cloud Function 'createDemoSession' needs to be implemented separately.
-      // This function would handle anonymous sign-in and create the session doc.
-      // For now, we simulate the API call to get the initial data structure.
+      // 1. Sign in anonymously
+      const userCredential = await signInAnonymously(auth);
+      const newOwnerUid = userCredential.user.uid;
+
+      // 2. Fetch the initial data snapshot
       const response = await fetch('/api/demo-snapshot');
       if (!response.ok) {
         throw new Error('Failed to fetch demo data');
       }
       const initialState: DemoState = await response.json();
       
-      // These would normally come from the Cloud Function response
+      // 3. Create a unique session ID
       const newSessionId = `demo_${Date.now()}`;
-      const newOwnerUid = `anonymous_user_${Date.now()}`; // Simulated anonymous UID
 
-      // Store in session storage
+      // 4. Store everything in session storage
       sessionStorage.setItem('demoSessionId', newSessionId);
       sessionStorage.setItem('demoOwnerUid', newOwnerUid);
       sessionStorage.setItem('demoState', JSON.stringify(initialState));
 
-      // Update React state
+      // 5. Update React state
       setSessionId(newSessionId);
       setOwnerUid(newOwnerUid);
       setDemoState(initialState);
       setIsDemo(true);
       
+      // 6. Redirect to the dashboard
       router.push('/dashboard');
     } catch (error) {
       console.error('Error starting demo session:', error);
+      clearSession();
     } finally {
       setIsLoadingDemo(false);
     }
-  }, [router]);
-
-  const clearSession = () => {
-    sessionStorage.removeItem('demoSessionId');
-    sessionStorage.removeItem('demoOwnerUid');
-    sessionStorage.removeItem('demoState');
-    setSessionId(null);
-    setOwnerUid(null);
-    setDemoState(null);
-    setIsDemo(false);
-  };
+  }, [router, clearSession]);
   
-  const endDemo = () => {
+  const endDemo = useCallback(() => {
     clearSession();
-    // Here you might call a Cloud Function to clean up Firestore/Storage resources
     router.push('/');
-  };
+  }, [clearSession, router]);
 
-  const resetDemo = () => {
-    // Re-calls startDemo to fetch a fresh state
+  const resetDemo = useCallback(() => {
+    // This part is tricky without auth. For now, it will just clear and wait for a manual restart.
     clearSession();
-    startDemo();
-  };
+    // A full reset would need access to auth again, which complicates things.
+    // A simpler UX might be to just end the demo and let the user restart from the landing page.
+    router.push('/'); 
+  }, [clearSession, router]);
 
   const updateDemoState = (path: string, data: any) => {
-    // A simple implementation to update nested state.
-    // e.g., updateDemoState('agent.siteSettings.theme', 'light')
     setDemoState(prevState => {
       if (!prevState) return null;
       const newState = JSON.parse(JSON.stringify(prevState)); // Deep copy
@@ -144,7 +150,6 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
       }
       current[keys[keys.length - 1]] = data;
 
-      // Persist updated state to sessionStorage
       sessionStorage.setItem('demoState', JSON.stringify(newState));
       return newState;
     });
