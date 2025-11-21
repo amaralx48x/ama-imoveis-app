@@ -217,7 +217,7 @@ function LoginPageContent() {
                             </Button>
                              <Button variant="secondary" className="w-full" onClick={startDemo} disabled={isDemoLoading}>
                                 {isDemoLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                                Testar demonstração
+                                Testar plataforma
                             </Button>
                              <div className="flex items-center my-4">
                                 <Separator className="flex-1" />
