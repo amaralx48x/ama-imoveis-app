@@ -2,7 +2,6 @@
 'use server';
 
 import { getFirebaseServer } from "@/firebase/server-init";
-import { doc, getDoc } from "firebase/firestore";
 
 /**
  * Fetches the demo account credentials from a protected Firestore document.
@@ -11,15 +10,15 @@ import { doc, getDoc } from "firebase/firestore";
 export async function getDemoCredentials() {
   try {
     const { firestore } = getFirebaseServer();
-    const settingsRef = doc(firestore, 'systemSettings', 'demoAccount');
-    const settingsSnap = await getDoc(settingsRef);
+    const settingsRef = firestore.collection('systemSettings').doc('demoAccount');
+    const settingsSnap = await settingsRef.get();
 
-    if (!settingsSnap.exists()) {
+    if (!settingsSnap.exists) {
       console.error("As configurações da conta de demonstração não foram encontradas no Firestore.");
       return { error: "Configuração da demo não encontrada." };
     }
 
-    const { email, password } = settingsSnap.data();
+    const { email, password } = settingsSnap.data()!;
 
     if (!email || !password) {
         console.error("As credenciais da conta de demonstração estão incompletas no Firestore.");

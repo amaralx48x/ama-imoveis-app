@@ -1,21 +1,33 @@
+
 // IMPORTANT: This file should NOT have the 'use client' directive.
 // It's intended for server-side use only.
-
+import * as admin from 'firebase-admin';
 import { firebaseConfig } from '@/firebase/config';
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+
+// Ensure the process.env variables are read (this might be necessary in some environments)
+import 'dotenv/config';
+
+const serviceAccount: admin.ServiceAccount = {
+  projectId: process.env.PROJECT_ID || firebaseConfig.projectId,
+  clientEmail: process.env.CLIENT_EMAIL || '',
+  privateKey: (process.env.PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+};
 
 /**
- * Initializes and returns Firebase services for server-side usage.
+ * Initializes and returns Firebase Admin services for server-side usage.
  * Ensures that the app is initialized only once.
  */
 export function getFirebaseServer() {
-  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  if (admin.apps.length === 0) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      databaseURL: firebaseConfig.databaseURL,
+    });
+  }
   
   return {
-    firebaseApp: app,
-    auth: getAuth(app),
-    firestore: getFirestore(app)
+    firebaseApp: admin.apps[0]!,
+    auth: admin.auth(),
+    firestore: admin.firestore()
   };
 }
