@@ -6,10 +6,11 @@ import Link from "next/link";
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import type { MarketingContent } from "@/lib/data";
-import { Building2, Search, Share2, Loader2 } from "lucide-react";
+import { Building2, Search, Share2, Loader2, FlaskConical } from "lucide-react";
 import { MarketingHero } from "@/components/marketing-hero";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useDemo } from "@/context/DemoContext";
 
 const neon = "bg-gradient-to-r from-primary via-accent to-[#B794F4]";
 
@@ -60,6 +61,7 @@ function FullPageSkeleton() {
 
 export default function MarketingClientPage() {
   const firestore = useFirestore();
+  const { startDemo, isLoadingDemo } = useDemo();
 
   const marketingRef = useMemoFirebase(
     () => (firestore ? doc(firestore, "marketing", "content") : null),
@@ -71,6 +73,10 @@ export default function MarketingClientPage() {
     return marketingData?.[field] || defaultUrl;
   };
   
+  const handleStartDemo = async () => {
+    await startDemo();
+  };
+
   if (isLoading) {
     return <FullPageSkeleton />;
   }
@@ -78,7 +84,7 @@ export default function MarketingClientPage() {
   return (
     <div className="min-h-screen text-white bg-black">
       {/* NAV */}
-      <header className="sticky top-0 z-50 border-b border-white/6 backdrop-blur-sm">
+      <header className="sticky top-0 z-50 border-b border-white/10 backdrop-blur-sm">
         <div className="container mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm bg-primary">
@@ -118,9 +124,10 @@ export default function MarketingClientPage() {
             </motion.p>
 
             <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-3 justify-center">
-              <Link href="/login" className={`inline-flex items-center gap-3 px-6 py-3 rounded-lg font-semibold ${neon} text-white shadow-lg hover:scale-[1.02] transition`}>
-                Criar Conta
-              </Link>
+              <button onClick={handleStartDemo} disabled={isLoadingDemo} className={`inline-flex items-center gap-3 px-6 py-3 rounded-lg font-semibold ${neon} text-white shadow-lg hover:scale-[1.02] transition disabled:opacity-70`}>
+                 {isLoadingDemo ? <Loader2 className="animate-spin" /> : <FlaskConical />}
+                 Testar demonstração
+              </button>
             </motion.div>
         </motion.div>
       </section>

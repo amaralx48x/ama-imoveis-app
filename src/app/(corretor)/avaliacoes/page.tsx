@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -15,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { InfoCard } from '@/components/info-card';
+import { useDemo } from '@/context/DemoContext';
 
 function ReviewCard({ review, onApprove, onRemove }: { review: Review, onApprove: (id: string) => void, onRemove: (id: string) => void }) {
     const createdAt = review.createdAt ? format(new Date(review.createdAt), "d 'de' MMMM, yyyy 'às' HH:mm", { locale: ptBR }) : 'Data indisponível';
@@ -60,18 +60,25 @@ export default function AvaliacoesPage() {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const { isDemo, demoState } = useDemo();
     
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const reviewsCollection = useMemoFirebase(
-        () => (user && firestore ? collection(firestore, `agents/${user.uid}/reviews`) : null),
-        [user, firestore]
+        () => (user && firestore && !isDemo ? collection(firestore, `agents/${user.uid}/reviews`) : null),
+        [user, firestore, isDemo]
     );
 
     const loadReviews = useCallback(async () => {
+        if (isDemo) {
+            setReviews(demoState?.reviews || []);
+            setLoading(false);
+            return;
+        }
         if (!reviewsCollection) return;
+
         setLoading(true);
         setError(null);
         try {
@@ -91,13 +98,18 @@ export default function AvaliacoesPage() {
         } finally {
             setLoading(false);
         }
-    }, [reviewsCollection]);
+    }, [reviewsCollection, isDemo, demoState]);
 
     useEffect(() => {
         loadReviews();
     }, [loadReviews]);
 
     const handleApprove = async (id: string) => {
+        if (isDemo) {
+            // Handle demo state update
+            toast({ title: "Ação não disponível em modo Demo" });
+            return;
+        }
         if (!user || !firestore) return;
         try {
             const ref = doc(firestore, `agents/${user.uid}/reviews`, id);
@@ -111,6 +123,11 @@ export default function AvaliacoesPage() {
     };
 
     const handleRemove = async (id: string) => {
+        if (isDemo) {
+            // Handle demo state update
+            toast({ title: "Ação não disponível em modo Demo" });
+            return;
+        }
         if (!user || !firestore) return;
         try {
             const ref = doc(firestore, `agents/${user.uid}/reviews`, id);

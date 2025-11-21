@@ -1,4 +1,3 @@
-
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -24,6 +23,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { InfoCard } from '@/components/info-card';
+import { useDemo } from '@/context/DemoContext';
 
 const MotionCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <div className={`transition-all duration-500 ease-out hover:scale-105 hover:shadow-primary/20 ${className}`}>
@@ -45,18 +45,21 @@ export default function DashboardPage() {
     
     const { user } = useUser();
     const firestore = useFirestore();
+    const { isDemo, demoState } = useDemo();
 
     const agentRef = useMemoFirebase(
-        () => (firestore && user ? doc(firestore, 'agents', user.uid) : null),
-        [firestore, user]
+        () => (firestore && user && !isDemo ? doc(firestore, 'agents', user.uid) : null),
+        [firestore, user, isDemo]
     );
-    const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
+    const { data: realAgentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
+    const agentData = isDemo ? demoState?.agent : realAgentData;
 
     const propertiesCollection = useMemoFirebase(
-        () => (firestore && user ? collection(firestore, `agents/${user.uid}/properties`) : null),
-        [firestore, user]
+        () => (firestore && user && !isDemo ? collection(firestore, `agents/${user.uid}/properties`) : null),
+        [firestore, user, isDemo]
     );
-    const { data: properties, isLoading: arePropertiesLoading } = useCollection<Property>(propertiesCollection);
+    const { data: realProperties, isLoading: arePropertiesLoading } = useCollection<Property>(propertiesCollection);
+    const properties = isDemo ? demoState?.properties : realProperties;
 
     useEffect(() => {
         const getGreeting = () => {
@@ -76,7 +79,7 @@ export default function DashboardPage() {
         ?.filter(p => {
             if (!['vendido', 'alugado'].includes(p.status || '') || !p.soldAt) return false;
             
-            const soldDate = p.soldAt.toDate();
+            const soldDate = p.soldAt.toDate ? p.soldAt.toDate() : new Date(p.soldAt);
             return isSameMonth(soldDate, new Date());
         })
         .reduce((sum, p) => sum + (p.commissionValue || 0), 0) || 0;
@@ -84,11 +87,11 @@ export default function DashboardPage() {
     const dealsThisMonthCount = properties
         ?.filter(p => {
             if (!['vendido', 'alugado'].includes(p.status || '') || !p.soldAt) return false;
-            const soldDate = p.soldAt.toDate();
+            const soldDate = p.soldAt.toDate ? p.soldAt.toDate() : new Date(p.soldAt);
             return isSameMonth(soldDate, new Date());
         }).length || 0;
 
-    const isLoading = isAgentLoading || arePropertiesLoading;
+    const isLoading = isDemo ? !demoState : (isAgentLoading || arePropertiesLoading);
 
     return (
         <>

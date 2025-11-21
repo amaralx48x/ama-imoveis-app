@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, writeBatch } from "firebase/firestore";
@@ -16,14 +15,17 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "./ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
+import { useDemo } from "@/context/DemoContext";
 
 
 type Props = {
   agentId: string;
+  initialLeads?: any[];
 };
 
-export default function LeadsPage({ agentId }: Props) {
-  const [leads, setLeads] = useState<any[]>([]);
+export default function LeadsPage({ agentId, initialLeads }: Props) {
+  const { isDemo } = useDemo();
+  const [leads, setLeads] = useState<any[]>(initialLeads || []);
   const [filter, setFilter] = useState<"all" | "unread" | "seller" | "buyer" | "archived" | "visit">("unread");
   const [selectedIds, setSelectedIds] = useState<Record<string, boolean>>({});
   const [selectAll, setSelectAll] = useState(false);
@@ -35,7 +37,12 @@ export default function LeadsPage({ agentId }: Props) {
   const { toast } = useToast();
 
   useEffect(() => {
+    if (isDemo) {
+        setLeads(initialLeads || []);
+        return;
+    }
     if (!firestore) return;
+
     const q = query(collection(firestore, leadsRefPath), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(q, (snap) => {
       const docs = snap.docs.map(d => {
@@ -50,7 +57,7 @@ export default function LeadsPage({ agentId }: Props) {
     });
 
     return () => unsub();
-  }, [agentId, firestore, toast, leadsRefPath]);
+  }, [agentId, firestore, toast, leadsRefPath, isDemo, initialLeads]);
 
   // filtered list
   const filtered = useMemo(() => {
@@ -100,6 +107,7 @@ export default function LeadsPage({ agentId }: Props) {
   }
 
   async function bulkUpdate(newStatus: "read" | "archived" | "unread") {
+     if (isDemo) return toast({ title: "Ação não disponível no modo Demo." });
     const ids = Object.keys(selectedIds);
     if (!ids.length) return toast({title: "Selecione pelo menos 1 lead.", variant: "destructive"});
     if (!firestore) return;
@@ -120,6 +128,7 @@ export default function LeadsPage({ agentId }: Props) {
   }
 
   async function bulkDelete() {
+     if (isDemo) return toast({ title: "Ação não disponível no modo Demo." });
     const ids = Object.keys(selectedIds);
     if (!ids.length) return toast({title: "Selecione pelo menos 1 lead.", variant: "destructive"});
     if (!window.confirm(`Excluir ${ids.length} lead(s)? Esta ação é irreversível.`)) return;
@@ -145,6 +154,7 @@ export default function LeadsPage({ agentId }: Props) {
   }
 
   async function handleUpdateStatus(id: string, newStatus: "read" | "archived" | "unread") {
+     if (isDemo) return toast({ title: "Ação não disponível no modo Demo." });
      if (!firestore) return;
     try {
       setLoadingActionId(id);
@@ -159,6 +169,7 @@ export default function LeadsPage({ agentId }: Props) {
   }
 
   async function handleDelete(id: string) {
+    if (isDemo) return toast({ title: "Ação não disponível no modo Demo." });
     if (!window.confirm("Deseja realmente excluir este lead?")) return;
     if (!firestore) return;
     try {

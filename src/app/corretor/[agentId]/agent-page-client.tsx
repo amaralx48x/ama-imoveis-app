@@ -13,25 +13,42 @@ import { ClientReviews } from '@/components/client-reviews';
 import { FloatingContactButton } from '@/components/floating-contact-button';
 import PropertyFilters from '@/components/property-filters';
 import { getPropertyTypes } from '@/lib/data';
-
+import { useDemo } from '@/context/DemoContext';
+import { Loader2 } from 'lucide-react';
 
 type AgentPageClientProps = {
-    serverData: {
+    serverData?: {
         agent: Agent;
         properties: Property[];
         customSections: CustomSection[];
         reviews: Review[];
     } | null;
+    isDemo: boolean;
+    demoSessionId?: string;
 }
 
-function AgentPageContent({ serverData }: AgentPageClientProps) {
-  const agent = serverData?.agent;
-  const allProperties = serverData?.properties || [];
-  const customSections = serverData?.customSections || [];
-  const reviews = serverData?.reviews || [];
+function AgentPageContent({ serverData, isDemo, demoSessionId }: AgentPageClientProps) {
+  const { demoState, isLoadingDemo } = useDemo();
+
+  const data = isDemo ? demoState : serverData;
+
+  if (isDemo && isLoadingDemo) {
+      return (
+          <div className="w-full h-screen flex flex-col items-center justify-center bg-background text-foreground gap-4">
+              <Loader2 className="w-12 h-12 animate-spin text-primary" />
+              <p className="text-lg">Carregando sua demonstração...</p>
+          </div>
+      )
+  }
+
+  if (!data || !data.agent) {
+    return notFound();
+  }
+
+  const { agent, properties: allProperties, customSections, reviews } = data;
+  const agentId = isDemo ? demoSessionId : agent.id;
 
   const citiesForFilter = useMemo(() => {
-    if (!agent) return [];
     const agentCities = agent.cities || [];
     const propertyCities = allProperties.map(p => p.city).filter(Boolean);
     return [...new Set([...agentCities, ...propertyCities])].sort();
@@ -41,10 +58,6 @@ function AgentPageContent({ serverData }: AgentPageClientProps) {
     // In a real app, this would invalidate a cache to refetch reviews.
   };
 
-  if (!agent) {
-    return notFound();
-  }
-  
   const customHeroImage = agent.siteSettings?.heroImageUrl;
   const defaultHeroImage = { id: 'default-hero', imageUrl: 'https://picsum.photos/seed/hero-bg/1920/1080', description: 'Imagem de capa', imageHint: 'real estate' };
   const heroImage = customHeroImage ? { id: 'custom-hero', imageUrl: customHeroImage, description: 'Imagem de capa', imageHint: 'real estate' } : defaultHeroImage;
@@ -57,7 +70,7 @@ function AgentPageContent({ serverData }: AgentPageClientProps) {
 
   return (
     <>
-      <Header agent={agent} agentId={agent.id} />
+      <Header agent={agent} agentId={agentId} />
       <main className="min-h-screen">
         <div className="relative mb-24 md:mb-36">
           <Hero heroImage={heroImage}>
@@ -66,7 +79,7 @@ function AgentPageContent({ serverData }: AgentPageClientProps) {
         </div>
 
         {featuredProperties.length > 0 && (
-          <FeaturedProperties properties={featuredProperties} agentId={agent.id} />
+          <FeaturedProperties properties={featuredProperties} agentId={agentId || ''} />
         )}
 
         {customSections.map(section => {
@@ -77,7 +90,7 @@ function AgentPageContent({ serverData }: AgentPageClientProps) {
               key={section.id}
               title={section.title}
               properties={sectionProperties}
-              agentId={agent.id}
+              agentId={agentId || ''}
               sectionId={section.id}
             />
           );
@@ -87,13 +100,13 @@ function AgentPageContent({ serverData }: AgentPageClientProps) {
 
         {showReviews && (
           <div className="container mx-auto px-4 py-16 sm:py-24">
-            <ClientReviews reviews={reviews} agentId={agent.id} onReviewSubmitted={onReviewSubmitted} />
+            <ClientReviews reviews={reviews} agentId={agentId || ''} onReviewSubmitted={onReviewSubmitted} />
           </div>
         )}
 
         {whatsAppLink && <FloatingContactButton whatsAppLink={whatsAppLink} agent={agent} />}
       </main>
-      <Footer agentId={agent.id} />
+      <Footer agentId={agentId} />
     </>
   );
 }
@@ -101,7 +114,12 @@ function AgentPageContent({ serverData }: AgentPageClientProps) {
 
 export default function AgentPageClient(props: AgentPageClientProps) {
   return (
-    <Suspense fallback={<div>Carregando...</div>}>
+    <Suspense fallback={
+         <div className="w-full h-screen flex flex-col items-center justify-center bg-background text-foreground gap-4">
+              <Loader2 className="w-12 h-12 animate-spin text-primary" />
+              <p className="text-lg">Carregando página...</p>
+          </div>
+    }>
       <AgentPageContent {...props} />
     </Suspense>
   )

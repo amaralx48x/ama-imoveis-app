@@ -44,6 +44,12 @@ service cloud.firestore {
       allow get: if true;
       allow list, write: if false;
     }
+    
+    // Permite a leitura pública da conta base da demo para a API de snapshot.
+    match /agents/4vEISo4pEORjFhv6RzD7eC42cgm2/{allPaths=**} {
+      allow read: if true;
+      allow write: if false; // Garante que a conta de template seja somente leitura
+    }
 
     // =========================
     // Regras da Aplicação Real
