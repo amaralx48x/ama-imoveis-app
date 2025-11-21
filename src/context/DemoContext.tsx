@@ -9,9 +9,8 @@ import {
   useCallback,
   useEffect,
 } from 'react';
-import { signInAnonymously, Auth, FirebaseApp } from 'firebase/auth';
-import { Firestore } from 'firebase/firestore';
-import { FirebaseProvider } from '@/firebase/provider';
+import { signInAnonymously } from 'firebase/auth';
+import { useFirebase } from '@/firebase/provider';
 
 // Define a interface para o estado da demo
 export interface DemoState {
@@ -36,6 +35,7 @@ interface DemoContextProps {
 
 const DemoContext = createContext<DemoContextProps | undefined>(undefined);
 
+// Hook para acessar o contexto
 export const useDemo = () => {
   const context = useContext(DemoContext);
   if (!context) {
@@ -44,20 +44,17 @@ export const useDemo = () => {
   return context;
 };
 
-interface DemoProviderProps {
-    children: ReactNode;
-    firebaseApp: FirebaseApp;
-    auth: Auth;
-    firestore: Firestore;
-}
-
-export const DemoProvider = ({ children, firebaseApp, auth, firestore }: DemoProviderProps) => {
+export const DemoProvider = ({ children }: { children: ReactNode }) => {
   const [isDemo, setIsDemo] = useState(false);
   const [isLoadingDemo, setIsLoadingDemo] = useState(true);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [ownerUid, setOwnerUid] = useState<string | null>(null);
   const [demoState, setDemoState] = useState<DemoState | null>(null);
   const router = useRouter();
+  
+  // AQUI É O PONTO CRUCIAL
+  // Este hook só funciona porque o DemoProvider está DENTRO do FirebaseClientProvider (que renderiza o FirebaseProvider)
+  const { auth } = useFirebase(); 
 
   const clearSession = useCallback(() => {
     sessionStorage.removeItem('demoSessionId');
@@ -69,11 +66,13 @@ export const DemoProvider = ({ children, firebaseApp, auth, firestore }: DemoPro
     setIsDemo(false);
   }, []);
 
+  // Recupera estado persistido da demo (sessionStorage)
   useEffect(() => {
     try {
       const storedSessionId = sessionStorage.getItem('demoSessionId');
       const storedOwnerUid = sessionStorage.getItem('demoOwnerUid');
       const storedState = sessionStorage.getItem('demoState');
+
       if (storedSessionId && storedOwnerUid && storedState) {
         setSessionId(storedSessionId);
         setOwnerUid(storedOwnerUid);
@@ -88,26 +87,42 @@ export const DemoProvider = ({ children, firebaseApp, auth, firestore }: DemoPro
     }
   }, [clearSession]);
 
+  /**
+   * INICIAR DEMO — versão corrigida
+   * Agora auth vem do useFirebase(), garantindo que NUNCA será null.
+   */
   const startDemo = useCallback(async () => {
     if (!auth) {
       console.error('Auth was not ready when startDemo was called.');
       throw new Error('Auth is not initialized yet.');
     }
+
     setIsLoadingDemo(true);
     try {
+      // 1. Login anônimo isolado
       const userCredential = await signInAnonymously(auth);
       const newOwnerUid = userCredential.user.uid;
+
+      // 2. Buscar dados iniciais da demo
       const response = await fetch('/api/demo-snapshot');
       if (!response.ok) throw new Error('Failed to fetch demo data');
       const initialState: DemoState = await response.json();
+
+      // 3. Criar sessão isolada
       const newSessionId = `demo_${Date.now()}`;
+
+      // 4. Persistir sessão apenas no sessionStorage
       sessionStorage.setItem('demoSessionId', newSessionId);
       sessionStorage.setItem('demoOwnerUid', newOwnerUid);
       sessionStorage.setItem('demoState', JSON.stringify(initialState));
+
+      // 5. Atualizar estados React
       setSessionId(newSessionId);
       setOwnerUid(newOwnerUid);
       setDemoState(initialState);
       setIsDemo(true);
+
+      // 6. Redirecionar para o painel demo
       router.push('/dashboard');
     } catch (error) {
       console.error('Error starting demo:', error);
@@ -143,23 +158,21 @@ export const DemoProvider = ({ children, firebaseApp, auth, firestore }: DemoPro
     });
   };
 
-  const contextValue = {
-    isDemo,
-    isLoadingDemo,
-    demoState,
-    sessionId,
-    ownerUid,
-    startDemo,
-    endDemo,
-    resetDemo,
-    updateDemoState,
-  };
-
   return (
-    <DemoContext.Provider value={contextValue}>
-      <FirebaseProvider firebaseApp={firebaseApp} auth={auth} firestore={firestore}>
-        {children}
-      </FirebaseProvider>
+    <DemoContext.Provider
+      value={{
+        isDemo,
+        isLoadingDemo,
+        demoState,
+        sessionId,
+        ownerUid,
+        startDemo,
+        endDemo,
+        resetDemo,
+        updateDemoState,
+      }}
+    >
+      {children}
     </DemoContext.Provider>
   );
 };
