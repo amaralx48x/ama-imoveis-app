@@ -3,31 +3,45 @@ import { doc, getDoc, collection, getDocs, query, orderBy, limit, where } from "
 import { NextResponse } from 'next/server';
 import type { Agent, Property, Review, CustomSection, Lead } from "@/lib/data";
 
-const SOURCE_AGENT_ID = '4vEISo4pEORjFhv6RzD7eC42cgm2';
+const TEMPLATE_ID = 'default';
+
+async function getSourceAgentId(firestore: any): Promise<string | null> {
+    const templateRef = doc(firestore, 'production_templates', TEMPLATE_ID);
+    const templateSnap = await getDoc(templateRef);
+    if (!templateSnap.exists()) {
+        console.error(`Production template '${TEMPLATE_ID}' not found.`);
+        return null;
+    }
+    return templateSnap.data()?.sourceAgentId || null;
+}
 
 export async function GET() {
     const { firestore } = getFirebaseServer();
 
     try {
-        const agentRef = doc(firestore, 'agents', SOURCE_AGENT_ID);
-        const propertiesRef = collection(firestore, `agents/${SOURCE_AGENT_ID}/properties`);
-        const sectionsRef = collection(firestore, `agents/${SOURCE_AGENT_ID}/customSections`);
-        const reviewsRef = collection(firestore, `agents/${SOURCE_AGENT_ID}/reviews`);
-        const leadsRef = collection(firestore, `agents/${SOURCE_AGENT_ID}/leads`);
+        const sourceAgentId = await getSourceAgentId(firestore);
+        if (!sourceAgentId) {
+            return NextResponse.json({ error: "Source agent configuration not found" }, { status: 500 });
+        }
+
+        const agentRef = doc(firestore, 'agents', sourceAgentId);
+        const propertiesRef = collection(firestore, `agents/${sourceAgentId}/properties`);
+        const sectionsRef = collection(firestore, `agents/${sourceAgentId}/customSections`);
+        const reviewsRef = collection(firestore, `agents/${sourceAgentId}/reviews`);
+        const leadsRef = collection(firestore, `agents/${sourceAgentId}/leads`);
 
         const [agentSnap, propertiesSnap, sectionsSnap, reviewsSnap, leadsSnap] = await Promise.all([
             getDoc(agentRef),
-            getDocs(query(propertiesRef, where('status', 'not-in', ['vendido', 'alugado']))),
+            getDocs(query(propertiesRef)), // Fetch all properties, filter on client if needed
             getDocs(query(sectionsRef, orderBy('order', 'asc'))),
             getDocs(query(reviewsRef, where('approved', '==', true), limit(10))),
             getDocs(query(leadsRef, orderBy('createdAt', 'desc'), limit(20)))
         ]);
 
         if (!agentSnap.exists()) {
-            return NextResponse.json({ error: "Source agent not found" }, { status: 404 });
+            return NextResponse.json({ error: "Source agent data not found" }, { status: 404 });
         }
 
-        // --- Data Serialization ---
         const serializeDoc = (docSnap: any) => {
             if (!docSnap.exists()) return null;
             const data = docSnap.data();
