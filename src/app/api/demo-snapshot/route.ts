@@ -17,7 +17,7 @@ export async function GET() {
 
         const [agentSnap, propertiesSnap, sectionsSnap, reviewsSnap, leadsSnap] = await Promise.all([
             getDoc(agentRef),
-            getDocs(query(propertiesRef, where('status', 'in', ['ativo', null]))),
+            getDocs(query(propertiesRef, where('status', 'not-in', ['vendido', 'alugado']))),
             getDocs(query(sectionsRef, orderBy('order', 'asc'))),
             getDocs(query(reviewsRef, where('approved', '==', true), limit(10))),
             getDocs(query(leadsRef, orderBy('createdAt', 'desc'), limit(20)))
