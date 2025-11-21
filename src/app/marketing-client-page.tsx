@@ -61,7 +61,6 @@ function FullPageSkeleton() {
 
 export default function MarketingClientPage() {
   const firestore = useFirestore();
-  const auth = useAuth(); // Get auth instance here
   const { startDemo, isLoadingDemo } = useDemo();
 
   const marketingRef = useMemoFirebase(
@@ -72,14 +71,6 @@ export default function MarketingClientPage() {
 
   const getImage = (field: keyof MarketingContent, defaultUrl: string) => {
     return marketingData?.[field] || defaultUrl;
-  };
-  
-  const handleStartDemo = async () => {
-    if (auth) {
-      await startDemo(auth); // Pass auth instance to startDemo
-    } else {
-      console.error("Auth instance not available.");
-    }
   };
 
   if (isLoading) {
@@ -129,7 +120,7 @@ export default function MarketingClientPage() {
             </motion.p>
 
             <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-3 justify-center">
-              <button onClick={handleStartDemo} disabled={isLoadingDemo} className={`inline-flex items-center gap-3 px-6 py-3 rounded-lg font-semibold ${neon} text-white shadow-lg hover:scale-[1.02] transition disabled:opacity-70`}>
+              <button onClick={() => startDemo()} disabled={isLoadingDemo} className={`inline-flex items-center gap-3 px-6 py-3 rounded-lg font-semibold ${neon} text-white shadow-lg hover:scale-[1.02] transition disabled:opacity-70`}>
                  {isLoadingDemo ? <Loader2 className="animate-spin" /> : <FlaskConical />}
                  Testar demonstração
               </button>
@@ -299,7 +290,7 @@ export default function MarketingClientPage() {
             <h3 className="text-2xl font-bold">Teste AMA Imobi por 7 dias</h3>
             <p className="mt-2 text-white/70">Sem cartão no teste — experimente e veja o impacto nas suas vendas.</p>
             <div className="mt-6 flex justify-center gap-4">
-              <button onClick={handleStartDemo} disabled={isLoadingDemo} className={`inline-flex ${neon} text-white px-6 py-3 rounded-lg font-semibold`}>Criar Conta</button>
+              <button onClick={() => startDemo()} disabled={isLoadingDemo} className={`inline-flex ${neon} text-white px-6 py-3 rounded-lg font-semibold`}>Criar Conta</button>
               <Link href="#plans" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10">Ver planos</Link>
             </div>
           </div>
