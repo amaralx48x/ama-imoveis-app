@@ -1,5 +1,6 @@
 
 
+
 export type SocialLink = {
   id: string;
   label: string;
@@ -336,13 +337,14 @@ export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galp�
 
 export const getAgent = (): Agent => ({
   id: 'exemplo',
-  displayName: 'Corretor Exemplo',
-  name: 'Imóveis Exemplo',
+  displayName: 'Seu Nome Aqui',
+  name: 'Sua Imobiliária',
   accountType: 'corretor',
   email: 'contato@exemplo.com',
   creci: '123456-F',
-  description: 'Corretor dedicado a encontrar o imóvel ideal para você.',
-  photoUrl: '',
+  description: 'Descreva sua experiência, sua especialidade, as regiões que você atende e o que o diferencia. Conte sua história e como você pode ajudar seus clientes a encontrar o imóvel ideal.',
+  photoUrl: 'https://images.unsplash.com/photo-1594672830234-ba4cfe1202dc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
+  phone: '(11) 94002-745',
   cities: getPropertyCities(),
   siteSettings: {
     theme: 'dark',
