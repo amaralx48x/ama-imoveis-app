@@ -2,36 +2,32 @@
 
 import React, { useMemo, type ReactNode } from 'react';
 import { initializeFirebase } from '@/firebase';
-import type { FirebaseApp } from 'firebase/app';
-import type { Auth } from 'firebase/auth';
-import type { Firestore } from 'firebase/firestore';
-
-export interface FirebaseServices {
-  firebaseApp: FirebaseApp;
-  auth: Auth;
-  firestore: Firestore;
-}
-
-// O contexto agora simplesmente armazena os serviços
-export const FirebaseServicesContext = React.createContext<FirebaseServices | null>(null);
+import { FirebaseProvider } from '@/firebase/provider';
 
 interface FirebaseClientProviderProps {
   children: ReactNode;
 }
 
 /**
- * Este provedor é responsável APENAS por inicializar os serviços do Firebase
- * no lado do cliente e disponibilizá-los via um contexto simples.
- * Ele NÃO renderiza mais o FirebaseProvider diretamente.
+ * Este provedor é responsável por inicializar os serviços do Firebase
+ * e então renderizar o FirebaseProvider, passando os serviços como props.
+ * Isso garante que o Firebase seja inicializado uma vez e que o contexto
+ * esteja corretamente disponível para os componentes filhos.
  */
 export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
   const firebaseServices = useMemo(() => {
     return initializeFirebase();
   }, []);
 
+  const { firebaseApp, auth, firestore } = firebaseServices;
+
   return (
-    <FirebaseServicesContext.Provider value={firebaseServices}>
-      {children}
-    </FirebaseServicesContext.Provider>
+    <FirebaseProvider
+        firebaseApp={firebaseApp}
+        auth={auth}
+        firestore={firestore}
+      >
+        {children}
+    </FirebaseProvider>
   );
 }
