@@ -24,6 +24,8 @@ import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
+import { useDemoSession } from '@/context/DemoSessionContext';
+import { Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um email válido." }),
@@ -57,6 +59,7 @@ function LoginPageContent() {
     const auth = useAuth();
     const { user, isUserLoading } = useUser();
     const router = useRouter();
+    const { startDemo, isDemoLoading } = useDemoSession();
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
@@ -176,7 +179,6 @@ function LoginPageContent() {
         }
     }
 
-
     if (isUserLoading || user) {
         return (
              <div className="relative min-h-screen flex items-center justify-center p-4">
@@ -184,7 +186,6 @@ function LoginPageContent() {
              </div>
         )
     }
-
 
     return (
         <div className="relative min-h-screen flex items-center justify-center p-4">
@@ -213,6 +214,10 @@ function LoginPageContent() {
                             </CardHeader>
                              <Button variant="outline" className="w-full mb-4" onClick={handleGoogleLogin} disabled={isGoogleLoading}>
                                 {isGoogleLoading ? "Aguardando..." : <><GoogleIcon /> <span className="ml-2">Entrar com Google</span></>}
+                            </Button>
+                             <Button variant="secondary" className="w-full" onClick={startDemo} disabled={isDemoLoading}>
+                                {isDemoLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                                Testar demonstração
                             </Button>
                              <div className="flex items-center my-4">
                                 <Separator className="flex-1" />
@@ -315,11 +320,8 @@ function LoginPageContent() {
     );
 }
 
-
 export default function LoginPage() {
     return (
         <LoginPageContent />
     )
 }
-
-    

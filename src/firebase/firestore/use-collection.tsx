@@ -12,6 +12,7 @@ import {
   getDocs,
 } from 'firebase/firestore';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { useDemoSession } from '@/context/DemoSessionContext';
 
 
 /** Utility type to add an 'id' field to a given type T. */
@@ -44,12 +45,25 @@ export function useCollection<T = any>(
   type ResultItemType = WithId<T>;
   type StateDataType = ResultItemType[] | null;
 
-  const [data, setData] = useState<StateDataType>(null);
+  const { isDemo, getData, setData } = useDemoSession();
+  const [data, setLocalData] = useState<StateDataType>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
+  const storageKey = memoizedTargetRefOrQuery ? `firestore_cache_${(memoizedTargetRefOrQuery as any).path}` : '';
+
   const fetchData = useCallback(async () => {
     if (!memoizedTargetRefOrQuery) return;
+
+    if (isDemo && storageKey) {
+        const cachedData = getData<ResultItemType[]>(storageKey);
+        if (cachedData) {
+            setLocalData(cachedData);
+            setIsLoading(false);
+            return;
+        }
+    }
+
     setIsLoading(true);
     try {
         const snapshot = await getDocs(memoizedTargetRefOrQuery);
@@ -57,7 +71,10 @@ export function useCollection<T = any>(
         for (const doc of snapshot.docs) {
           results.push({ ...(doc.data() as T), id: doc.id });
         }
-        setData(results);
+        setLocalData(results);
+        if (isDemo && storageKey) {
+            setData(storageKey, results);
+        }
         setError(null);
     } catch (e: any) {
         const path: string = memoizedTargetRefOrQuery.type === 'collection' ? (memoizedTargetRefOrQuery as CollectionReference).path : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
@@ -67,14 +84,19 @@ export function useCollection<T = any>(
     } finally {
         setIsLoading(false);
     }
-  }, [memoizedTargetRefOrQuery]);
+  }, [memoizedTargetRefOrQuery, isDemo, storageKey, getData, setData]);
 
   useEffect(() => {
     if (!memoizedTargetRefOrQuery) {
-      setData(null);
+      setLocalData(null);
       setIsLoading(false);
       setError(null);
       return;
+    }
+    
+    if (isDemo) {
+        fetchData(); // For demo, we do a one-time fetch and rely on session storage
+        return;
     }
 
     setIsLoading(true);
@@ -87,7 +109,7 @@ export function useCollection<T = any>(
         for (const doc of snapshot.docs) {
           results.push({ ...(doc.data() as T), id: doc.id });
         }
-        setData(results);
+        setLocalData(results);
         setError(null);
         setIsLoading(false);
       },
@@ -102,14 +124,14 @@ export function useCollection<T = any>(
         }
         const contextualError = new FirestorePermissionError({ operation: 'list', path });
         setError(contextualError);
-        setData(null);
+        setLocalData(null);
         setIsLoading(false);
         throw contextualError;
       }
     );
 
     return () => unsubscribe();
-  }, [memoizedTargetRefOrQuery]);
+  }, [memoizedTargetRefOrQuery, isDemo, fetchData]);
 
   return { data, isLoading, error, mutate: fetchData };
 }
