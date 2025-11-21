@@ -39,7 +39,7 @@ export const DemoSessionProvider = ({ children }: { children: ReactNode }) => {
     setIsDemoLoading(true);
     try {
       // Hardcoded credentials for the demo account
-      await signInWithEmailAndPassword(auth, 'arthur99.com@gmail.com', '91664957');
+      await signInWithEmailAndPassword(auth, 'arthur99.com@gmail.com', '916649');
       sessionStorage.setItem(DEMO_SESSION_KEY, 'true');
       setIsDemo(true);
       router.push('/dashboard');
