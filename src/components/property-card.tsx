@@ -57,7 +57,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
   };
 
   const isDashboard = !!onDelete;
-  const isForSale = property.operation === 'Comprar';
+  const isForSale = property.operation === 'Venda';
   
   const CardContentTrigger = isDashboard ? 'div' : Link;
 
@@ -126,7 +126,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
               <span>{property.neighborhood}, {property.city}</span>
             </div>
             <p className="text-2xl font-bold text-primary my-4">
-              {property.operation === 'Comprar' ? formattedPrice : `${formattedPrice} /mês`}
+              {property.operation === 'Venda' ? formattedPrice : `${formattedPrice} /mês`}
             </p>
             <div className="flex justify-around text-muted-foreground border-t border-b border-border py-3 text-sm">
               <div className="flex items-center gap-2">

@@ -12,8 +12,6 @@ import {
   getDocs,
 } from 'firebase/firestore';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { useDemoSession } from '@/context/DemoSessionContext';
-
 
 /** Utility type to add an 'id' field to a given type T. */
 export type WithId<T> = T & { id: string };
@@ -45,24 +43,12 @@ export function useCollection<T = any>(
   type ResultItemType = WithId<T>;
   type StateDataType = ResultItemType[] | null;
 
-  const { isDemo, getData, setData } = useDemoSession();
   const [data, setLocalData] = useState<StateDataType>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
-  const storageKey = memoizedTargetRefOrQuery ? `firestore_cache_${(memoizedTargetRefOrQuery as any).path}` : '';
-
   const fetchData = useCallback(async () => {
     if (!memoizedTargetRefOrQuery) return;
-
-    if (isDemo && storageKey) {
-        const cachedData = getData<ResultItemType[]>(storageKey);
-        if (cachedData) {
-            setLocalData(cachedData);
-            setIsLoading(false);
-            return;
-        }
-    }
 
     setIsLoading(true);
     try {
@@ -72,9 +58,6 @@ export function useCollection<T = any>(
           results.push({ ...(doc.data() as T), id: doc.id });
         }
         setLocalData(results);
-        if (isDemo && storageKey) {
-            setData(storageKey, results);
-        }
         setError(null);
     } catch (e: any) {
         const path: string = memoizedTargetRefOrQuery.type === 'collection' ? (memoizedTargetRefOrQuery as CollectionReference).path : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
@@ -84,7 +67,7 @@ export function useCollection<T = any>(
     } finally {
         setIsLoading(false);
     }
-  }, [memoizedTargetRefOrQuery, isDemo, storageKey, getData, setData]);
+  }, [memoizedTargetRefOrQuery]);
 
   useEffect(() => {
     if (!memoizedTargetRefOrQuery) {
@@ -92,11 +75,6 @@ export function useCollection<T = any>(
       setIsLoading(false);
       setError(null);
       return;
-    }
-    
-    if (isDemo) {
-        fetchData(); // For demo, we do a one-time fetch and rely on session storage
-        return;
     }
 
     setIsLoading(true);
@@ -131,7 +109,7 @@ export function useCollection<T = any>(
     );
 
     return () => unsubscribe();
-  }, [memoizedTargetRefOrQuery, isDemo, fetchData]);
+  }, [memoizedTargetRefOrQuery]);
 
   return { data, isLoading, error, mutate: fetchData };
 }

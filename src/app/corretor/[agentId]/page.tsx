@@ -67,10 +67,11 @@ async function getAgentData(agentId: string) {
     if (!reviewsSnap.empty) {
       const fetchedReviews = reviewsSnap.docs.map(doc => {
         const data = doc.data();
+        const createdAt = data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString();
         return {
           ...(data as Omit<Review, 'id' | 'createdAt'>),
           id: doc.id,
-          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+          createdAt,
         };
       });
       fetchedReviews.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());

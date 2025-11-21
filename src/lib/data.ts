@@ -1,12 +1,10 @@
 
-
-
 export type SocialLink = {
   id: string;
   label: string;
   url: string;
   icon: string;
-  imageUrl?: string; // Adicionado para a foto do endereço
+  imageUrl?: string;
 }
 
 export type Property = {
@@ -30,7 +28,7 @@ export type Property = {
   agentId?: string; 
   createdAt?: any;
   status: 'ativo' | 'vendido' | 'alugado';
-  soldAt?: any; // ou rentedAt
+  soldAt?: any;
   commissionValue?: number;
   ownerContactId?: string | null;
 };
@@ -87,7 +85,7 @@ export type Agent = {
     email: string;
     creci: string;
     photoUrl: string;
-    phone?: string; // Telefone principal do corretor
+    phone?: string;
     cities?: string[];
     availability?: Availability;
     siteSettings?: SiteSettings;
@@ -108,7 +106,6 @@ export type Lead = {
   leadType: LeadType;
   context?: string;
   createdAt?: any;
-  // Campos de agendamento
   cpf?: string;
   visitDate?: any;
   visitTime?: string;
@@ -157,9 +154,6 @@ export type MarketingContent = {
     section6_image?: string;
 }
 
-
-// This data is now considered legacy mock data.
-// The app will primarily use Firestore.
 const properties: Property[] = [
   {
     id: '1',
@@ -337,7 +331,7 @@ export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galp�
 
 export const getAgent = (): Agent => ({
   id: 'exemplo',
-  displayName: 'Seu Nome Aqui',
+  displayName: 'Seu nome aqui',
   name: 'Sua Imobiliária',
   accountType: 'corretor',
   email: 'contato@exemplo.com',

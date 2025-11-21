@@ -7,11 +7,10 @@ import Link from "next/link";
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import type { MarketingContent } from "@/lib/data";
-import { Building2, Search, Share2, Loader2, FlaskConical } from "lucide-react";
+import { Building2, Search, Share2, FlaskConical } from "lucide-react";
 import { MarketingHero } from "@/components/marketing-hero";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useDemoSession } from "@/context/DemoSessionContext";
 import { Button } from "@/components/ui/button";
 
 const neon = "bg-gradient-to-r from-primary via-accent to-[#B794F4]";
@@ -64,7 +63,6 @@ function FullPageSkeleton() {
 export default function MarketingClientPage() {
   const firestore = useFirestore();
   const router = useRouter();
-  const { startDemo, isDemoLoading } = useDemoSession();
 
   const marketingRef = useMemoFirebase(
     () => (firestore ? doc(firestore, "marketing", "content") : null),
@@ -293,10 +291,6 @@ export default function MarketingClientPage() {
             <p className="mt-2 text-white/70">Sem cartão no teste — experimente e veja o impacto nas suas vendas.</p>
             <div className="mt-6 flex justify-center gap-4">
               <Link href="/login" className={`inline-flex ${neon} text-white px-6 py-3 rounded-lg font-semibold`}>Criar Conta</Link>
-              <Button variant="outline" onClick={startDemo} disabled={isDemoLoading}>
-                {isDemoLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                Testar plataforma
-              </Button>
             </div>
           </div>
         </section>

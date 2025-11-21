@@ -3,21 +3,10 @@
 
 import { addDoc, updateDoc, deleteDoc, collection, doc, serverTimestamp, arrayUnion, arrayRemove } from "firebase/firestore";
 import { useFirestore, errorEmitter, FirestorePermissionError } from "./index";
-import { useDemoSession } from "@/context/DemoSessionContext";
 
-
-// This is a helper, not a hook, so it can't call useDemoSession.
-// We'll handle the demo logic in the calling components/hooks.
-
-export async function createContact(agentId: string, payload: any, isDemo: boolean = false) {
+export async function createContact(agentId: string, payload: any) {
   const firestore = useFirestore();
   if (!firestore) throw new Error("Firestore not initialized");
-
-  if(isDemo) {
-    console.log("DEMO: Creating contact visually.", payload);
-    // In a real demo, you'd update session storage here.
-    return { id: `demo_${Date.now()}`, ...payload };
-  }
 
   const collRef = collection(firestore, "agents", agentId, "contacts");
   
@@ -40,15 +29,9 @@ export async function createContact(agentId: string, payload: any, isDemo: boole
   }
 }
 
-export async function updateContact(agentId: string, contactId: string, data: any, isDemo: boolean = false) {
+export async function updateContact(agentId: string, contactId: string, data: any) {
     const firestore = useFirestore();
     if (!firestore) throw new Error("Firestore not initialized");
-    
-    if (isDemo) {
-        console.log(`DEMO: Updating contact ${contactId}`, data);
-        // Update session storage here
-        return;
-    }
 
     const ref = doc(firestore, "agents", agentId, "contacts", contactId);
 
@@ -58,15 +41,9 @@ export async function updateContact(agentId: string, contactId: string, data: an
     });
 }
 
-export async function deleteContact(agentId: string, contactId: string, isDemo: boolean = false) {
+export async function deleteContact(agentId: string, contactId: string) {
     const firestore = useFirestore();
     if (!firestore) throw new Error("Firestore not initialized");
-
-    if(isDemo) {
-        console.log(`DEMO: Deleting contact ${contactId}`);
-        // Remove from session storage here
-        return;
-    }
 
     const ref = doc(firestore, "agents", agentId, "contacts", contactId);
 

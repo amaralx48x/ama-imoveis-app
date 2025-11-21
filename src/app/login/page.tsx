@@ -19,12 +19,11 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, googleProvider, signInWithPopup, saveUserToFirestore, GoogleAuthProvider } from '@/firebase';
+import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, googleProvider, signInWithPopup, saveUserToFirestore } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
-import { useDemoSession } from '@/context/DemoSessionContext';
 import { Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
@@ -59,7 +58,6 @@ function LoginPageContent() {
     const auth = useAuth();
     const { user, isUserLoading } = useUser();
     const router = useRouter();
-    const { startDemo, isDemoLoading } = useDemoSession();
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
@@ -234,7 +232,7 @@ function LoginPageContent() {
                                             <FormControl><Input type="password" placeholder="********" {...field} /></FormControl><FormMessage /></FormItem>
                                     )} />
                                     <Button type="submit" size="lg" className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity" disabled={isLoading}>
-                                        {isLoading ? 'Entrando...' : 'Entrar'}
+                                        {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Entrando...</> : 'Entrar'}
                                     </Button>
                                 </form>
                             </Form>
@@ -304,7 +302,7 @@ function LoginPageContent() {
                                         <FormItem><FormLabel>Confirmar Senha</FormLabel><FormControl><Input type="password" placeholder="Repita a senha" {...field} /></FormControl><FormMessage /></FormItem>
                                     )} />
                                     <Button type="submit" size="lg" className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity" disabled={isLoading}>
-                                         {isLoading ? 'Criando conta...' : 'Criar Conta com E-mail'}
+                                         {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando conta...</> : 'Criar Conta com E-mail'}
                                     </Button>
                                 </form>
                             </Form>

@@ -11,8 +11,6 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { useDemoSession } from '@/context/DemoSessionContext';
-
 
 /** Utility type to add an 'id' field to a given type T. */
 type WithId<T> = T & { id: string };
@@ -33,26 +31,14 @@ export function useDoc<T = any>(
 ): UseDocResult<T> {
   type StateDataType = WithId<T> | null;
 
-  const { isDemo, getData, setData } = useDemoSession();
   const [data, setLocalData] = useState<StateDataType>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
-
-  const storageKey = memoizedDocRef ? `firestore_cache_${memoizedDocRef.path}` : '';
 
   const fetchData = useCallback(async () => {
     if (!memoizedDocRef) {
         setIsLoading(false);
         return;
-    }
-
-    if (isDemo && storageKey) {
-        const cachedData = getData<WithId<T>>(storageKey);
-        if (cachedData) {
-            setLocalData(cachedData);
-            setIsLoading(false);
-            return;
-        }
     }
 
     setIsLoading(true);
@@ -61,9 +47,6 @@ export function useDoc<T = any>(
         if (docSnap.exists()) {
             const docData = { ...(docSnap.data() as T), id: docSnap.id };
             setLocalData(docData);
-            if (isDemo && storageKey) {
-                setData(storageKey, docData);
-            }
         } else {
             setLocalData(null);
         }
@@ -78,7 +61,7 @@ export function useDoc<T = any>(
     } finally {
         setIsLoading(false);
     }
-  }, [memoizedDocRef, isDemo, storageKey, getData, setData]);
+  }, [memoizedDocRef]);
   
   useEffect(() => {
     if (!memoizedDocRef) {
@@ -86,11 +69,6 @@ export function useDoc<T = any>(
       setIsLoading(false);
       setError(null);
       return;
-    }
-    
-    if (isDemo) {
-        fetchData();
-        return;
     }
 
     setIsLoading(true);
@@ -120,7 +98,7 @@ export function useDoc<T = any>(
     );
 
     return () => unsubscribe();
-  }, [memoizedDocRef, isDemo, fetchData]);
+  }, [memoizedDocRef]);
 
   return { data, isLoading, error, mutate: fetchData };
 }

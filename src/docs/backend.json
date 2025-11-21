@@ -229,16 +229,6 @@
         "section5_image2": { "type": "string", "format": "uri" },
         "section6_image": { "type": "string", "format": "uri" }
       }
-    },
-    "DemoAccountSettings": {
-      "title": "Demo Account Settings",
-      "type": "object",
-      "description": "Stores the credentials for the public demo account.",
-      "properties": {
-        "email": { "type": "string", "format": "email" },
-        "password": { "type": "string" }
-      },
-      "required": ["email", "password"]
     }
   },
   "auth": {
@@ -285,11 +275,6 @@
         "path": "/marketing/content",
         "schema": { "$ref": "#/entities/MarketingContent" },
         "description": "Stores content for the public marketing page. This is a single-document collection."
-      },
-      {
-        "path": "/systemSettings/demoAccount",
-        "schema": { "$ref": "#/entities/DemoAccountSettings" },
-        "description": "Stores the credentials for the demo account."
       }
     ]
   }
