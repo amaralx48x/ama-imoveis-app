@@ -9,7 +9,7 @@ import {
   useCallback,
   useEffect,
 } from 'react';
-import { signInAnonymously, Auth } from 'firebase/auth'; // Import Auth type
+import { signInAnonymously, Auth } from 'firebase/auth';
 
 // Define a interface para o estado da demo
 export interface DemoState {
@@ -26,7 +26,7 @@ interface DemoContextProps {
   demoState: DemoState | null;
   sessionId: string | null;
   ownerUid: string | null;
-  startDemo: (auth: Auth) => Promise<void>; // Modified to accept auth instance
+  startDemo: (auth: Auth) => Promise<void>;
   endDemo: () => void;
   resetDemo: () => void;
   updateDemoState: (path: string, data: any) => void;
@@ -83,7 +83,7 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [clearSession]);
 
-  const startDemo = useCallback(async (auth: Auth) => { // Accept auth instance as a parameter
+  const startDemo = useCallback(async (auth: Auth) => {
     if (!auth) {
         console.error("Auth service is not available to start demo.");
         return;
@@ -131,10 +131,7 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
   }, [clearSession, router]);
 
   const resetDemo = useCallback(() => {
-    // This part is tricky without auth. For now, it will just clear and wait for a manual restart.
     clearSession();
-    // A full reset would need access to auth again, which complicates things.
-    // A simpler UX might be to just end the demo and let the user restart from the landing page.
     router.push('/'); 
   }, [clearSession, router]);
 

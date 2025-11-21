@@ -68,10 +68,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     userError: null,
   });
   
-  const { isDemo, ownerUid, isLoadingDemo } = useDemo();
+  const demoContext = useDemo();
 
   useEffect(() => {
-    if (isDemo || !auth) { 
+    if (demoContext.isDemo || !auth) { 
       setUserAuthState({ user: null, isUserLoading: false, userError: null });
       return;
     }
@@ -87,31 +87,31 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       }
     );
     return () => unsubscribe();
-  }, [auth, isDemo]);
+  }, [auth, demoContext.isDemo]);
   
   const demoUser = useMemo(() => {
-    if (!isDemo || !ownerUid) return null;
+    if (!demoContext.isDemo || !demoContext.ownerUid) return null;
     // Create a mock User object for the demo session
     return {
-        uid: ownerUid,
+        uid: demoContext.ownerUid,
         isAnonymous: true,
         displayName: "Visitante da Demo",
         email: "demo@example.com",
     } as User;
-  }, [isDemo, ownerUid]);
+  }, [demoContext.isDemo, demoContext.ownerUid]);
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
     const servicesAvailable = !!(firebaseApp && firestore && auth);
     
-    if (isDemo) {
+    if (demoContext.isDemo) {
         return {
             areServicesAvailable: true,
             firebaseApp: firebaseApp,
             firestore: firestore,
             auth: auth,
             user: demoUser,
-            isUserLoading: isLoadingDemo,
+            isUserLoading: demoContext.isLoadingDemo,
             userError: null,
         }
     }
@@ -125,11 +125,11 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       isUserLoading: userAuthState.isUserLoading,
       userError: userAuthState.userError,
     };
-  }, [firebaseApp, firestore, auth, userAuthState, isDemo, demoUser, isLoadingDemo]);
+  }, [firebaseApp, firestore, auth, userAuthState, demoContext.isDemo, demoContext.isLoadingDemo, demoUser]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
-      {!isDemo && <FirebaseErrorListener />}
+      {!demoContext.isDemo && <FirebaseErrorListener />}
       {children}
     </FirebaseContext.Provider>
   );
