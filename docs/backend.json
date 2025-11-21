@@ -229,33 +229,6 @@
         "section5_image2": { "type": "string", "format": "uri" },
         "section6_image": { "type": "string", "format": "uri" }
       }
-    },
-    "ProductionTemplate": {
-      "title": "Production Template",
-      "type": "object",
-      "description": "Defines a template for demo sessions, pointing to a real agent's data.",
-      "properties": {
-        "id": { "type": "string", "description": "Unique ID for the template (e.g., 'default')." },
-        "sourceAgentId": { "type": "string", "description": "The UID of the agent account to use as the data source." },
-        "name": { "type": "string", "description": "A descriptive name for the template." },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "sourceAgentId", "name"]
-    },
-    "DemoSession": {
-      "title": "Demo Session",
-      "type": "object",
-      "description": "Represents a temporary, isolated demo session for a visitor.",
-      "properties": {
-        "id": { "type": "string", "description": "Unique ID for the session." },
-        "ownerUid": { "type": "string", "description": "The anonymous Firebase Auth UID of the visitor." },
-        "templateId": { "type": "string", "description": "The ID of the production template being used." },
-        "status": { "type": "string", "enum": ["active", "resetting", "ended"], "description": "The current status of the session." },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "expiresAt": { "type": "string", "format": "date-time", "description": "Timestamp when the session will be automatically cleaned up." },
-        "previewToken": { "type": "string", "description": "A JWT or secure token for public preview access." }
-      },
-      "required": ["id", "ownerUid", "templateId", "status", "createdAt", "expiresAt"]
     }
   },
   "auth": {
@@ -302,19 +275,7 @@
         "path": "/marketing/content",
         "schema": { "$ref": "#/entities/MarketingContent" },
         "description": "Stores content for the public marketing page. This is a single-document collection."
-      },
-      {
-        "path": "/production_templates/{templateId}",
-        "schema": { "$ref": "#/entities/ProductionTemplate" },
-        "description": "Defines the source data for demo environments. Read-only for all except admins."
-      },
-      {
-        "path": "/demo_sessions/{sessionId}",
-        "schema": { "$ref": "#/entities/DemoSession" },
-        "description": "Metadata for active demo sessions. Writable by Cloud Functions, readable by owner."
       }
     ]
   }
 }
-
-    

@@ -1,62 +1,63 @@
-import { getFirebaseServer } from "@/firebase/server-init";
-import { doc, getDoc, collection, getDocs, query, orderBy, limit, where } from "firebase/firestore";
 import { NextResponse } from 'next/server';
+import { getAgent, getProperties, getReviews } from '@/lib/data';
 import type { Agent, Property, Review, CustomSection, Lead } from "@/lib/data";
 
-const TEMPLATE_ID = 'default';
 
-async function getSourceAgentId(firestore: any): Promise<string | null> {
-    const templateRef = doc(firestore, 'production_templates', TEMPLATE_ID);
-    const templateSnap = await getDoc(templateRef);
-    if (!templateSnap.exists()) {
-        console.error(`Production template '${TEMPLATE_ID}' not found.`);
-        return null;
-    }
-    return templateSnap.data()?.sourceAgentId || null;
+// Mock de dados para a demo
+const getDemoLeads = (): Lead[] => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    return [
+         {
+            id: 'lead1',
+            name: 'Ana Carolina',
+            email: 'ana.carolina@example.com',
+            phone: '(11) 98765-4321',
+            message: 'Olá, gostaria de agendar uma visita para o imóvel "Apartamento Luxuoso no Centro". Estou disponível amanhã à tarde.',
+            propertyId: '1',
+            status: 'unread',
+            leadType: 'buyer',
+            context: 'buyer:schedule-visit',
+            createdAt: today.toISOString(),
+            visitDate: new Date(today.setDate(today.getDate() + 1)).toISOString(),
+            visitTime: "14:30",
+            cpf: "123.456.789-00",
+        },
+        {
+            id: 'lead2',
+            name: 'Marcos Andrade',
+            email: 'marcos.andrade@example.com',
+            phone: '(19) 91234-5678',
+            message: 'Tenho um imóvel na região do Taquaral e gostaria de anunciá-lo com vocês. Como podemos proceder?',
+            propertyId: null,
+            status: 'read',
+            leadType: 'seller',
+            context: 'form:captacao',
+            createdAt: yesterday.toISOString(),
+        },
+    ]
 }
 
+
 export async function GET() {
-    const { firestore } = getFirebaseServer();
-
     try {
-        const sourceAgentId = await getSourceAgentId(firestore);
-        if (!sourceAgentId) {
-            return NextResponse.json({ error: "Source agent configuration not found" }, { status: 500 });
-        }
+        const agent = getAgent();
+        const properties = getProperties();
+        const reviews = getReviews();
+        const leads = getDemoLeads();
 
-        const agentRef = doc(firestore, 'agents', sourceAgentId);
-        const propertiesRef = collection(firestore, `agents/${sourceAgentId}/properties`);
-        const sectionsRef = collection(firestore, `agents/${sourceAgentId}/customSections`);
-        const reviewsRef = collection(firestore, `agents/${sourceAgentId}/reviews`);
-        const leadsRef = collection(firestore, `agents/${sourceAgentId}/leads`);
+        // Simula a estrutura de seções
+        const customSections: CustomSection[] = [
+            { id: 'section-1', title: 'Oportunidades Únicas', order: 1, createdAt: new Date().toISOString() },
+        ];
 
-        const [agentSnap, propertiesSnap, sectionsSnap, reviewsSnap, leadsSnap] = await Promise.all([
-            getDoc(agentRef),
-            getDocs(query(propertiesRef)), // Fetch all properties, filter on client if needed
-            getDocs(query(sectionsRef, orderBy('order', 'asc'))),
-            getDocs(query(reviewsRef, where('approved', '==', true), limit(10))),
-            getDocs(query(leadsRef, orderBy('createdAt', 'desc'), limit(20)))
-        ]);
+        // Associa algumas propriedades à seção de destaque e à seção customizada
+        properties[0].sectionIds = ['featured', 'section-1'];
+        properties[1].sectionIds = ['featured'];
+        properties[2].sectionIds = ['featured', 'section-1'];
 
-        if (!agentSnap.exists()) {
-            return NextResponse.json({ error: "Source agent data not found" }, { status: 404 });
-        }
-
-        const serializeDoc = (docSnap: any) => {
-            if (!docSnap.exists()) return null;
-            const data = docSnap.data();
-            return JSON.parse(JSON.stringify({ ...data, id: docSnap.id }));
-        };
-
-        const serializeCollection = (collSnap: any) => {
-            return collSnap.docs.map(serializeDoc).filter(Boolean);
-        };
-
-        const agent = serializeDoc(agentSnap) as Agent;
-        const properties = serializeCollection(propertiesSnap) as Property[];
-        const customSections = serializeCollection(sectionsSnap) as CustomSection[];
-        const reviews = serializeCollection(reviewsSnap) as Review[];
-        const leads = serializeCollection(leadsSnap) as Lead[];
 
         const snapshot = {
             agent,

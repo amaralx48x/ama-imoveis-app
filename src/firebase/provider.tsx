@@ -1,20 +1,13 @@
 
 'use client';
 
-import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
-import { Auth, User, onAuthStateChanged, signInAnonymously } from 'firebase/auth';
+import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
-import { useRouter } from 'next/navigation';
+import { useDemo, type DemoState } from '@/context/DemoContext';
 
-export interface DemoState {
-  agent: any;
-  properties: any[];
-  reviews: any[];
-  customSections: any[];
-  leads: any[];
-}
 
 interface UserAuthState {
   user: User | null;
@@ -30,13 +23,9 @@ export interface FirebaseContextState {
   user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
-  
-  // Demo properties
   isDemo: boolean;
   isLoadingDemo: boolean;
   demoState: DemoState | null;
-  startDemo: () => Promise<void>;
-  endDemo: () => void;
 }
 
 export interface UserHookResult { 
@@ -65,34 +54,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     isUserLoading: true, 
     userError: null,
   });
-
-  const [isDemo, setIsDemo] = useState(false);
-  const [isLoadingDemo, setIsLoadingDemo] = useState(true);
-  const [demoState, setDemoState] = useState<DemoState | null>(null);
-  const router = useRouter();
-
-  const clearDemoSession = useCallback(() => {
-    sessionStorage.removeItem('isDemo');
-    sessionStorage.removeItem('demoState');
-    setIsDemo(false);
-    setDemoState(null);
-  }, []);
-
-  useEffect(() => {
-    try {
-      const storedIsDemo = sessionStorage.getItem('isDemo');
-      const storedState = sessionStorage.getItem('demoState');
-      if (storedIsDemo === 'true' && storedState) {
-        setDemoState(JSON.parse(storedState));
-        setIsDemo(true);
-      }
-    } catch (error) {
-      console.error('Failed to parse demo state from sessionStorage:', error);
-      clearDemoSession();
-    } finally {
-      setIsLoadingDemo(false);
-    }
-  }, [clearDemoSession]);
+  
+  const { isDemo, isLoadingDemo, demoState } = useDemo();
 
   useEffect(() => {
     if (isDemo || !auth) { 
@@ -112,46 +75,14 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     );
     return () => unsubscribe();
   }, [auth, isDemo]);
-  
-  const startDemo = useCallback(async () => {
-    if (!auth) {
-      console.error('Auth was not ready when startDemo was called.');
-      throw new Error('Auth is not initialized yet.');
-    }
-    setIsLoadingDemo(true);
-    try {
-      await signInAnonymously(auth);
-      const response = await fetch('/api/demo-snapshot');
-      if (!response.ok) throw new Error('Failed to fetch demo data');
-      const initialState: DemoState = await response.json();
-      
-      sessionStorage.setItem('isDemo', 'true');
-      sessionStorage.setItem('demoState', JSON.stringify(initialState));
-
-      setDemoState(initialState);
-      setIsDemo(true);
-      router.push('/dashboard');
-    } catch (error) {
-      console.error('Error starting demo:', error);
-      clearDemoSession();
-    } finally {
-      setIsLoadingDemo(false);
-    }
-  }, [auth, router, clearDemoSession]);
-
-  const endDemo = useCallback(() => {
-    clearDemoSession();
-    auth.signOut();
-    router.push('/');
-  }, [clearDemoSession, auth, router]);
 
   const demoUser = useMemo(() => {
     if (!isDemo || !demoState) return null;
     return {
-        uid: 'demo-user',
+        uid: demoState.agent.id || 'demo-user',
         isAnonymous: true,
-        displayName: "Visitante da Demo",
-        email: "demo@example.com",
+        displayName: demoState.agent.displayName || "Visitante",
+        email: demoState.agent.email || "demo@example.com",
     } as User;
   }, [isDemo, demoState]);
 
@@ -166,14 +97,11 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       user: isDemo ? demoUser : userAuthState.user,
       isUserLoading: isDemo ? isLoadingDemo : userAuthState.isUserLoading,
       userError: userAuthState.userError,
-      // Demo state and functions
       isDemo,
       isLoadingDemo,
       demoState,
-      startDemo,
-      endDemo,
     };
-  }, [firebaseApp, firestore, auth, userAuthState, isDemo, isLoadingDemo, demoState, startDemo, endDemo, demoUser]);
+  }, [firebaseApp, firestore, auth, userAuthState, isDemo, isLoadingDemo, demoState, demoUser]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
@@ -188,6 +116,12 @@ export const useFirebase = (): FirebaseContextState => {
   if (context === undefined) {
     throw new Error('useFirebase must be used within a FirebaseProvider.');
   }
+  
+  if (!context.areServicesAvailable || !context.firebaseApp || !context.firestore || !context.auth) {
+      // This can happen during the initial render before services are available.
+      // We can return a loading state or default values.
+  }
+  
   return context;
 };
 

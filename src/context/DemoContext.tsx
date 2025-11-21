@@ -10,8 +10,6 @@ import {
   useCallback,
   useEffect,
 } from 'react';
-
-import { signInAnonymously } from 'firebase/auth';
 import { useFirebase } from '@/firebase/provider';
 
 // Define a interface para o estado da demo
@@ -27,13 +25,8 @@ interface DemoContextProps {
   isDemo: boolean;
   isLoadingDemo: boolean;
   demoState: DemoState | null;
-  sessionId: string | null;
-  ownerUid: string | null;
-
   startDemo: () => Promise<void>;
   endDemo: () => void;
-  resetDemo: () => void;
-  updateDemoState: (path: string, data: any) => void;
 }
 
 const DemoContext = createContext<DemoContextProps | undefined>(undefined);
@@ -50,122 +43,69 @@ export const useDemo = () => {
 export const DemoProvider = ({ children }: { children: ReactNode }) => {
   const [isDemo, setIsDemo] = useState(false);
   const [isLoadingDemo, setIsLoadingDemo] = useState(true);
-
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [ownerUid, setOwnerUid] = useState<string | null>(null);
   const [demoState, setDemoState] = useState<DemoState | null>(null);
 
   const router = useRouter();
-
   const { auth } = useFirebase();
 
-  const clearSession = useCallback(() => {
-    sessionStorage.removeItem('demoSessionId');
-    sessionStorage.removeItem('demoOwnerUid');
+  const clearDemoSession = useCallback(() => {
+    sessionStorage.removeItem('isDemo');
     sessionStorage.removeItem('demoState');
-
-    setSessionId(null);
-    setOwnerUid(null);
-    setDemoState(null);
     setIsDemo(false);
+    setDemoState(null);
   }, []);
 
   // Recupera estado persistido da demo (sessionStorage)
   useEffect(() => {
     try {
-      const storedSessionId = sessionStorage.getItem('demoSessionId');
-      const storedOwnerUid = sessionStorage.getItem('demoOwnerUid');
+      const storedIsDemo = sessionStorage.getItem('isDemo');
       const storedState = sessionStorage.getItem('demoState');
-
-      if (storedSessionId && storedOwnerUid && storedState) {
-        setSessionId(storedSessionId);
-        setOwnerUid(storedOwnerUid);
+      if (storedIsDemo === 'true' && storedState) {
         setDemoState(JSON.parse(storedState));
         setIsDemo(true);
       }
     } catch (error) {
-      console.error('Failed to parse demo state:', error);
-      clearSession();
+      console.error('Failed to parse demo state from sessionStorage:', error);
+      clearDemoSession();
     } finally {
       setIsLoadingDemo(false);
     }
-  }, [clearSession]);
+  }, [clearDemoSession]);
 
   const startDemo = useCallback(async () => {
-    if (!auth) {
-      console.error('Auth was not ready when startDemo was called.');
-      throw new Error('Auth is not initialized yet.');
-    }
-
     setIsLoadingDemo(true);
-
     try {
-      // 1. Login anônimo isolado
-      const userCredential = await signInAnonymously(auth);
-      const newOwnerUid = userCredential.user.uid;
-
-      // 2. Buscar dados iniciais da demo
       const response = await fetch('/api/demo-snapshot');
-      if (!response.ok) throw new Error('Failed to fetch demo data');
+      if (!response.ok) {
+        throw new Error('Failed to fetch demo data');
+      }
 
       const initialState: DemoState = await response.json();
 
-      // 3. Criar sessão isolada
-      const newSessionId = `demo_${Date.now()}`;
-
-      // 4. Persistir sessão apenas no sessionStorage
-      sessionStorage.setItem('demoSessionId', newSessionId);
-      sessionStorage.setItem('demoOwnerUid', newOwnerUid);
+      sessionStorage.setItem('isDemo', 'true');
       sessionStorage.setItem('demoState', JSON.stringify(initialState));
 
-      // 5. Atualizar estados React
-      setSessionId(newSessionId);
-      setOwnerUid(newOwnerUid);
       setDemoState(initialState);
       setIsDemo(true);
 
-      // 6. Redirecionar para o painel demo
       router.push('/dashboard');
-
     } catch (error) {
       console.error('Error starting demo:', error);
-      clearSession();
+      clearDemoSession();
     } finally {
       setIsLoadingDemo(false);
     }
-  }, [auth, router, clearSession]);
+  }, [router, clearDemoSession]);
+
 
   const endDemo = useCallback(() => {
-    clearSession();
+    clearDemoSession();
+    if(auth) {
+        auth.signOut();
+    }
     router.push('/');
-  }, [clearSession, router]);
+  }, [clearDemoSession, auth, router]);
 
-  const resetDemo = useCallback(() => {
-    clearSession();
-    router.push('/');
-  }, [clearSession, router]);
-
-  const updateDemoState = (path: string, data: any) => {
-    setDemoState(prevState => {
-      if (!prevState) return null;
-
-      const newState = structuredClone(prevState);
-      const keys = path.split('.');
-
-      let current: any = newState;
-
-      for (let i = 0; i < keys.length - 1; i++) {
-        current = current[keys[i]];
-        if (current === undefined) return prevState;
-      }
-
-      current[keys[keys.length - 1]] = data;
-
-      sessionStorage.setItem('demoState', JSON.stringify(newState));
-
-      return newState;
-    });
-  };
 
   return (
     <DemoContext.Provider
@@ -173,12 +113,8 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
         isDemo,
         isLoadingDemo,
         demoState,
-        sessionId,
-        ownerUid,
         startDemo,
         endDemo,
-        resetDemo,
-        updateDemoState,
       }}
     >
       {children}

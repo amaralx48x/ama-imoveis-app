@@ -20,38 +20,6 @@ service cloud.firestore {
     }
     
     // =========================
-    // Regras de Demonstração
-    // =========================
-    
-    // Permite que o "dono" da sessão (usuário anônimo) leia/escreva nos dados da sua própria sessão.
-    match /demo_sessions/{sessionId} {
-      // O dono da sessão pode ler os metadados da sua sessão.
-      allow get: if isOwner(get(/databases/$(database)/documents/demo_sessions/$(sessionId)).data.ownerUid);
-      // Ninguém pode listar todas as sessões.
-      allow list: if false;
-      // O dono pode atualizar sua sessão (ex: status), mas não criar ou deletar. A criação é via Cloud Function.
-      allow update: if isOwner(get(/databases/$(database)/documents/demo_sessions/$(sessionId)).data.ownerUid);
-      allow create, delete: if false; // Controlado por Cloud Functions
-    }
-    
-    // O dono da sessão pode ler e escrever livremente dentro dos seus próprios dados de demonstração.
-    match /demo_data/{sessionId}/{allPaths=**} {
-       allow read, write: if isOwner(get(/databases/$(database)/documents/demo_sessions/$(sessionId)).data.ownerUid);
-    }
-    
-    // Qualquer um pode ler os templates de produção, mas ninguém pode escrevê-los.
-    match /production_templates/{templateId} {
-      allow get: if true;
-      allow list, write: if false;
-    }
-    
-    // Permite a leitura pública da conta base da demo para a API de snapshot.
-    match /agents/4vEISo4pEORjFhv6RzD7eC42cgm2/{allPaths=**} {
-      allow read: if true;
-      allow write: if false; // Garante que a conta de template seja somente leitura
-    }
-
-    // =========================
     // Regras da Aplicação Real
     // =========================
 
