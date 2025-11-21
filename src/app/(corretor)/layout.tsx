@@ -1,4 +1,3 @@
-
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
 import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search, PictureInPicture, FlaskConical, X } from 'lucide-react';
@@ -79,6 +78,10 @@ export default function CorretorLayout({
     }
   };
 
+  const handleEndDemo = () => {
+      endDemo(auth);
+  }
+
   const agentSiteUrl = isDemo ? `/preview/demo-session` : `/corretor/${user?.uid}`;
   const isAdmin = agentData?.role === 'admin' && !isDemo;
 
@@ -137,7 +140,7 @@ export default function CorretorLayout({
                     <div className="flex items-center justify-center gap-2 text-sm p-2 rounded-lg bg-primary/10 border border-primary/20 text-primary-foreground">
                         <FlaskConical className="h-4 w-4 text-primary shrink-0" />
                         <span className="font-bold text-primary">Modo Demo</span>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto" onClick={endDemo}>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto" onClick={handleEndDemo}>
                             <X className="h-4 w-4"/>
                         </Button>
                     </div>

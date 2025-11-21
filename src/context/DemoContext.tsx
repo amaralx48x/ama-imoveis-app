@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -10,7 +9,7 @@ import {
   useCallback,
   useEffect,
 } from 'react';
-import { useFirebase } from '@/firebase/provider';
+import type { Auth } from 'firebase/auth';
 
 // Define a interface para o estado da demo
 export interface DemoState {
@@ -26,7 +25,7 @@ interface DemoContextProps {
   isLoadingDemo: boolean;
   demoState: DemoState | null;
   startDemo: () => Promise<void>;
-  endDemo: () => void;
+  endDemo: (auth: Auth | null) => void;
 }
 
 const DemoContext = createContext<DemoContextProps | undefined>(undefined);
@@ -46,7 +45,6 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
   const [demoState, setDemoState] = useState<DemoState | null>(null);
 
   const router = useRouter();
-  const { auth } = useFirebase();
 
   const clearDemoSession = useCallback(() => {
     sessionStorage.removeItem('isDemo');
@@ -98,13 +96,13 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
   }, [router, clearDemoSession]);
 
 
-  const endDemo = useCallback(() => {
+  const endDemo = useCallback((auth: Auth | null) => {
     clearDemoSession();
     if(auth) {
         auth.signOut();
     }
     router.push('/');
-  }, [clearDemoSession, auth, router]);
+  }, [clearDemoSession, router]);
 
 
   return (
