@@ -26,6 +26,8 @@ export interface FirebaseContextState {
   isDemo: boolean;
   isLoadingDemo: boolean;
   demoState: DemoState | null;
+  startDemo: () => Promise<void>;
+  endDemo: () => void;
 }
 
 export interface UserHookResult { 
@@ -55,7 +57,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     userError: null,
   });
   
-  const { isDemo, isLoadingDemo, demoState } = useDemo();
+  const { isDemo, isLoadingDemo, demoState, startDemo, endDemo } = useDemo();
 
   useEffect(() => {
     if (isDemo || !auth) { 
@@ -100,8 +102,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       isDemo,
       isLoadingDemo,
       demoState,
+      startDemo,
+      endDemo,
     };
-  }, [firebaseApp, firestore, auth, userAuthState, isDemo, isLoadingDemo, demoState, demoUser]);
+  }, [firebaseApp, firestore, auth, userAuthState, isDemo, isLoadingDemo, demoState, demoUser, startDemo, endDemo]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>

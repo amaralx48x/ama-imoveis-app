@@ -32,13 +32,13 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`${inter.variable} ${poppins.variable} dark`}>
       <body className={`font-body antialiased`}>
-        <FirebaseClientProvider>
-          <DemoProvider>
+        <DemoProvider>
+          <FirebaseClientProvider>
             <PlanProvider>
               {children}
             </PlanProvider>
-          </DemoProvider>
-        </FirebaseClientProvider>
+          </FirebaseClientProvider>
+        </DemoProvider>
         <Toaster />
       </body>
     </html>
