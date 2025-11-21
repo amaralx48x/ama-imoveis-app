@@ -1,6 +1,6 @@
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search, PictureInPicture } from 'lucide-react';
+import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search, PictureInPicture, FlaskConical, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { useDemo } from '@/context/DemoContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CorretorLayout({
   children,
@@ -22,40 +24,42 @@ export default function CorretorLayout({
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const { isDemo, endDemo, sessionId } = useDemo();
 
-  const { data: agentData } = useDoc<Agent>(useMemoFirebase(() => (firestore && user ? doc(firestore, 'agents', user.uid) : null), [firestore, user]));
+  const { data: agentData } = useDoc<Agent>(useMemoFirebase(() => (firestore && user && !isDemo ? doc(firestore, 'agents', user.uid) : null), [firestore, user, isDemo]));
 
-  // Real-time data for badges
   const unreadLeadsQuery = useMemoFirebase(
-    () => (user && firestore ? query(collection(firestore, `agents/${user.uid}/leads`), where('status', '==', 'unread')) : null),
-    [user, firestore]
+    () => (user && firestore && !isDemo ? query(collection(firestore, `agents/${user.uid}/leads`), where('status', '==', 'unread')) : null),
+    [user, firestore, isDemo]
   );
   const { data: unreadLeads } = useCollection<Lead>(unreadLeadsQuery);
-  const unreadCount = unreadLeads?.length || 0;
+  const unreadCount = isDemo ? 1 : unreadLeads?.length || 0;
 
   const pendingReviewsQuery = useMemoFirebase(
-    () => user && firestore
+    () => user && firestore && !isDemo
       ? query(collection(firestore, `agents/${user.uid}/reviews`), where('approved', '==', false)) 
       : null,
-    [user, firestore]
+    [user, firestore, isDemo]
   );
   const { data: pendingReviews } = useCollection<Review>(pendingReviewsQuery);
-  const pendingReviewsCount = pendingReviews?.length || 0;
+  const pendingReviewsCount = isDemo ? 1 : pendingReviews?.length || 0;
 
 
   useEffect(() => {
-    if (!isUserLoading && !user) {
+    if (!isUserLoading && !user && !isDemo) {
       router.push('/login');
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading, router, isDemo]);
 
   useEffect(() => {
+    if (isDemo) return; // Não aplicar tema ou favicon do agente real no modo demo
     const theme = agentData?.siteSettings?.theme || 'dark';
     document.documentElement.classList.toggle('dark', theme === 'dark');
     document.documentElement.classList.toggle('light', theme === 'light');
-  }, [agentData]);
+  }, [agentData, isDemo]);
 
   useEffect(() => {
+    if (isDemo) return;
     if (agentData?.siteSettings?.faviconUrl) {
       let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
       if (!link) {
@@ -65,7 +69,7 @@ export default function CorretorLayout({
       }
       link.href = agentData.siteSettings.faviconUrl;
     }
-  }, [agentData]);
+  }, [agentData, isDemo]);
 
   const handleLogout = () => {
     if (auth) {
@@ -74,8 +78,8 @@ export default function CorretorLayout({
     }
   };
 
-  const agentSiteUrl = `/corretor/${user?.uid}`;
-
+  const agentSiteUrl = isDemo ? `/preview/${sessionId}` : `/corretor/${user?.uid}`;
+  const isAdmin = agentData?.role === 'admin' && !isDemo;
 
   const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
@@ -107,12 +111,15 @@ export default function CorretorLayout({
   if (isUserLoading) {
     return (
         <div className="flex items-center justify-center h-screen bg-background">
-            <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
+            <Skeleton className="h-full w-20 mr-4" />
+            <div className="flex-1 space-y-4">
+                <Skeleton className="h-12 w-1/3" />
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-64 w-full" />
+            </div>
         </div>
     );
   }
-
-  const isAdmin = agentData?.role === 'admin';
 
   return (
     <SidebarProvider>
@@ -124,6 +131,17 @@ export default function CorretorLayout({
                 </span>
                 <span className="font-bold font-headline text-lg group-data-[collapsible=icon]:hidden">AMA Imóveis</span>
             </div>
+             {isDemo && (
+                <div className="px-2 pb-2 group-data-[collapsible=icon]:hidden">
+                    <div className="flex items-center justify-center gap-2 text-sm p-2 rounded-lg bg-primary/10 border border-primary/20 text-primary-foreground">
+                        <FlaskConical className="h-4 w-4 text-primary shrink-0" />
+                        <span className="font-bold text-primary">Modo Demo</span>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto" onClick={endDemo}>
+                            <X className="h-4 w-4"/>
+                        </Button>
+                    </div>
+                </div>
+            )}
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
@@ -199,10 +217,12 @@ export default function CorretorLayout({
           </SidebarMenu>
         </SidebarContent>
          <Sidebar.Footer className="p-2">
-            <Button variant="ghost" className="w-full justify-start gap-2" onClick={handleLogout}>
-                <LogOut />
-                <span className="group-data-[collapsible=icon]:hidden">Sair</span>
-            </Button>
+            {!isDemo && (
+              <Button variant="ghost" className="w-full justify-start gap-2" onClick={handleLogout}>
+                  <LogOut />
+                  <span className="group-data-[collapsible=icon]:hidden">Sair</span>
+              </Button>
+            )}
         </Sidebar.Footer>
       </Sidebar>
       <SidebarInset>

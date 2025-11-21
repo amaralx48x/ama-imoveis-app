@@ -18,10 +18,38 @@ service cloud.firestore {
       // Checa se o usuário autenticado tem o campo 'role' como 'admin' em seu próprio documento de agente.
       return isSignedIn() && get(/databases/$(database)/documents/agents/$(request.auth.uid)).data.role == 'admin';
     }
+    
+    // =========================
+    // Regras de Demonstração
+    // =========================
+    
+    // Permite que o "dono" da sessão (usuário anônimo) leia/escreva nos dados da sua própria sessão.
+    match /demo_sessions/{sessionId} {
+      // O dono da sessão pode ler os metadados da sua sessão.
+      allow get: if isOwner(get(/databases/$(database)/documents/demo_sessions/$(sessionId)).data.ownerUid);
+      // Ninguém pode listar todas as sessões.
+      allow list: if false;
+      // O dono pode atualizar sua sessão (ex: status), mas não criar ou deletar. A criação é via Cloud Function.
+      allow update: if isOwner(get(/databases/$(database)/documents/demo_sessions/$(sessionId)).data.ownerUid);
+      allow create, delete: if false; // Controlado por Cloud Functions
+    }
+    
+    // O dono da sessão pode ler e escrever livremente dentro dos seus próprios dados de demonstração.
+    match /demo_data/{sessionId}/{allPaths=**} {
+       allow read, write: if isOwner(get(/databases/$(database)/documents/demo_sessions/$(sessionId)).data.ownerUid);
+    }
+    
+    // Qualquer um pode ler os templates de produção, mas ninguém pode escrevê-los.
+    match /production_templates/{templateId} {
+      allow get: if true;
+      allow list, write: if false;
+    }
 
     // =========================
-    // Coleção de Agentes/Imobiliárias
+    // Regras da Aplicação Real
     // =========================
+
+    // Coleção de Agentes/Imobiliárias
     match /agents/{agentId} {
       // Qualquer um pode ler os dados públicos de um agente (para a página pública).
       allow get: if true;
@@ -72,9 +100,7 @@ service cloud.firestore {
       }
     }
 
-    // =========================
     // Mensagens de suporte
-    // =========================
     match /supportMessages/{messageId} {
       // Apenas admins podem ler/escrever em todos os tickets.
       allow read, write: if isAdmin();
@@ -84,9 +110,7 @@ service cloud.firestore {
       allow get: if isOwner(resource.data.senderId);
     }
 
-    // =========================
     // Conteúdo da página de marketing
-    // =========================
     match /marketing/{doc=**} {
       // Leitura pública.
       allow get: if true;
@@ -94,9 +118,7 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
-    // =========================
     // SEO
-    // =========================
     match /seo/{page} {
       // Leitura pública para que o Next.js possa renderizar os metadados no servidor.
       allow get: if true;
