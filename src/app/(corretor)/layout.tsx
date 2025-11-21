@@ -19,37 +19,35 @@ export default function CorretorLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const auth = useAuth();
   const router = useRouter();
-  const { user, isUserLoading } = useUser();
+
+  // --- Hooks Incondicionais ---
+  const auth = useAuth();
   const firestore = useFirestore();
-  const { isDemo, endDemo } = useFirebase();
+  const { user, isUserLoading } = useUser();
+  const { isDemo, demoState, endDemo } = useFirebase();
 
-  const agentRef = useDoc<Agent>(useMemoFirebase(() => (firestore && user && !isDemo ? doc(firestore, 'agents', user.uid) : null), [firestore, user, isDemo]));
-  const agentData = isDemo ? useFirebase().demoState?.agent : agentRef.data;
+  // Chame os hooks de dados incondicionalmente, passando null se estiver em modo demo.
+  const agentRef = useMemoFirebase(() => (firestore && user && !isDemo ? doc(firestore, 'agents', user.uid) : null), [firestore, user, isDemo]);
+  const agentDoc = useDoc<Agent>(agentRef);
+
+  const unreadLeadsQuery = useMemoFirebase(() => (user && firestore && !isDemo ? query(collection(firestore, `agents/${user.uid}/leads`), where('status', '==', 'unread')) : null), [user, firestore, isDemo]);
+  const unreadLeadsCollection = useCollection<Lead>(unreadLeadsQuery);
+
+  const pendingReviewsQuery = useMemoFirebase(() => (user && firestore && !isDemo ? query(collection(firestore, `agents/${user.uid}/reviews`), where('approved', '==', false)) : null), [user, firestore, isDemo]);
+  const pendingReviewsCollection = useCollection<Review>(pendingReviewsQuery);
   
-  const unreadLeadsQuery = useMemoFirebase(
-    () => (user && firestore && !isDemo ? query(collection(firestore, `agents/${user.uid}/leads`), where('status', '==', 'unread')) : null),
-    [user, firestore, isDemo]
-  );
-  const { data: unreadLeads } = useCollection<Lead>(unreadLeadsQuery);
-  const unreadCount = isDemo ? 1 : unreadLeads?.length || 0;
-
-  const pendingReviewsQuery = useMemoFirebase(
-    () => user && firestore && !isDemo
-      ? query(collection(firestore, `agents/${user.uid}/reviews`), where('approved', '==', false)) 
-      : null,
-    [user, firestore, isDemo]
-  );
-  const { data: pendingReviews } = useCollection<Review>(pendingReviewsQuery);
-  const pendingReviewsCount = isDemo ? 1 : pendingReviews?.length || 0;
-
+  // --- Lógica Condicional (após os hooks) ---
+  const agentData = isDemo ? demoState?.agent : agentDoc.data;
+  const unreadCount = isDemo ? (demoState?.leads.filter(l => l.status === 'unread').length || 0) : (unreadLeadsCollection.data?.length || 0);
+  const pendingReviewsCount = isDemo ? (demoState?.reviews.filter(r => !r.approved).length || 0) : (pendingReviewsCollection.data?.length || 0);
+  const isLoading = isUserLoading || (agentDoc.isLoading && !isDemo);
 
   useEffect(() => {
-    if (!isUserLoading && !user && !isDemo) {
+    if (!isLoading && !user && !isDemo) {
       router.push('/login');
     }
-  }, [user, isUserLoading, router, isDemo]);
+  }, [user, isLoading, router, isDemo]);
 
   useEffect(() => {
     if (isDemo) return; // Não aplicar tema ou favicon do agente real no modo demo
@@ -79,7 +77,9 @@ export default function CorretorLayout({
   };
 
   const handleEndDemo = () => {
-      endDemo(auth);
+      if (auth) {
+        endDemo(auth);
+      }
   }
 
   const agentSiteUrl = isDemo ? `/preview/demo-session` : `/corretor/${user?.uid}`;
@@ -112,11 +112,11 @@ export default function CorretorLayout({
       { href: '/configuracoes/politicas', label: 'Políticas e Termos', icon: FileText },
   ]
   
-  if (isUserLoading && !isDemo) {
+  if (isLoading) {
     return (
         <div className="flex items-center justify-center h-screen bg-background">
             <Skeleton className="h-full w-20 mr-4" />
-            <div className="flex-1 space-y-4">
+            <div className="flex-1 space-y-4 p-4">
                 <Skeleton className="h-12 w-1/3" />
                 <Skeleton className="h-32 w-full" />
                 <Skeleton className="h-64 w-full" />
