@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { useFirestore, useUser, useMemoFirebase, useFirebase } from '@/firebase';
 import { collection, query, orderBy, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import type { Review } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +15,6 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { InfoCard } from '@/components/info-card';
-import { useDemo } from '@/context/DemoContext';
 
 function ReviewCard({ review, onApprove, onRemove }: { review: Review, onApprove: (id: string) => void, onRemove: (id: string) => void }) {
     const createdAt = review.createdAt ? format(new Date(review.createdAt), "d 'de' MMMM, yyyy 'às' HH:mm", { locale: ptBR }) : 'Data indisponível';
@@ -60,7 +60,7 @@ export default function AvaliacoesPage() {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
-    const { isDemo, demoState } = useDemo();
+    const { isDemo, demoState } = useFirebase();
     
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);

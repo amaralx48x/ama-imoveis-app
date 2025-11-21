@@ -1,16 +1,16 @@
+
 'use client'
 
 import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useDoc, useFirestore, useMemoFirebase, useAuth } from "@/firebase";
+import { useDoc, useFirestore, useMemoFirebase, useFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import type { MarketingContent } from "@/lib/data";
 import { Building2, Search, Share2, Loader2, FlaskConical } from "lucide-react";
 import { MarketingHero } from "@/components/marketing-hero";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useDemo } from "@/context/DemoContext";
 
 const neon = "bg-gradient-to-r from-primary via-accent to-[#B794F4]";
 
@@ -61,7 +61,7 @@ function FullPageSkeleton() {
 
 export default function MarketingClientPage() {
   const firestore = useFirestore();
-  const { startDemo, isLoadingDemo } = useDemo();
+  const { startDemo, isLoadingDemo } = useFirebase();
 
   const marketingRef = useMemoFirebase(
     () => (firestore ? doc(firestore, "marketing", "content") : null),

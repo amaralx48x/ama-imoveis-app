@@ -1,13 +1,13 @@
+
 'use client';
 import React from 'react';
-import { useUser } from '@/firebase';
+import { useUser, useFirebase } from '@/firebase';
 import LeadsPage from '@/components/leads-page';
 import { InfoCard } from '@/components/info-card';
-import { useDemo } from '@/context/DemoContext';
 
 export default function InboxPage() {
     const { user } = useUser();
-    const { isDemo, demoState } = useDemo();
+    const { isDemo, demoState } = useFirebase();
 
     const agentId = isDemo ? demoState?.agent.id : user?.uid;
     const leads = isDemo ? demoState?.leads : undefined;

@@ -1,9 +1,10 @@
+
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Home, FileText, MoreVertical } from 'lucide-react';
-import { useDoc, useFirestore, useUser, useMemoFirebase, useCollection } from '@/firebase';
+import { useDoc, useFirestore, useUser, useMemoFirebase, useCollection, useFirebase } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import type { Agent, Property } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -23,7 +24,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { InfoCard } from '@/components/info-card';
-import { useDemo } from '@/context/DemoContext';
 
 const MotionCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <div className={`transition-all duration-500 ease-out hover:scale-105 hover:shadow-primary/20 ${className}`}>
@@ -45,7 +45,7 @@ export default function DashboardPage() {
     
     const { user } = useUser();
     const firestore = useFirestore();
-    const { isDemo, demoState } = useDemo();
+    const { isDemo, demoState } = useFirebase();
 
     const agentRef = useMemoFirebase(
         () => (firestore && user && !isDemo ? doc(firestore, 'agents', user.uid) : null),

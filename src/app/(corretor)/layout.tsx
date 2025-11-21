@@ -1,9 +1,10 @@
+
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
 import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search, PictureInPicture, FlaskConical, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
+import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc, useFirebase } from '@/firebase';
 import { useEffect } from 'react';
 import { collection, query, where, doc } from 'firebase/firestore';
 import type { Lead, Agent, Review } from '@/lib/data';
@@ -11,7 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { useDemo } from '@/context/DemoContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CorretorLayout({
@@ -24,10 +24,11 @@ export default function CorretorLayout({
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
-  const { isDemo, endDemo, sessionId } = useDemo();
+  const { isDemo, endDemo } = useFirebase();
 
-  const { data: agentData } = useDoc<Agent>(useMemoFirebase(() => (firestore && user && !isDemo ? doc(firestore, 'agents', user.uid) : null), [firestore, user, isDemo]));
-
+  const agentRef = useDoc<Agent>(useMemoFirebase(() => (firestore && user && !isDemo ? doc(firestore, 'agents', user.uid) : null), [firestore, user, isDemo]));
+  const agentData = isDemo ? useFirebase().demoState?.agent : agentRef.data;
+  
   const unreadLeadsQuery = useMemoFirebase(
     () => (user && firestore && !isDemo ? query(collection(firestore, `agents/${user.uid}/leads`), where('status', '==', 'unread')) : null),
     [user, firestore, isDemo]
@@ -78,7 +79,7 @@ export default function CorretorLayout({
     }
   };
 
-  const agentSiteUrl = isDemo ? `/preview/${sessionId}` : `/corretor/${user?.uid}`;
+  const agentSiteUrl = isDemo ? `/preview/demo-session` : `/corretor/${user?.uid}`;
   const isAdmin = agentData?.role === 'admin' && !isDemo;
 
   const menuItems = [
@@ -108,7 +109,7 @@ export default function CorretorLayout({
       { href: '/configuracoes/politicas', label: 'Políticas e Termos', icon: FileText },
   ]
   
-  if (isUserLoading) {
+  if (isUserLoading && !isDemo) {
     return (
         <div className="flex items-center justify-center h-screen bg-background">
             <Skeleton className="h-full w-20 mr-4" />

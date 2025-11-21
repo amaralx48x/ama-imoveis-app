@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, Suspense } from 'react';
@@ -13,7 +14,7 @@ import { ClientReviews } from '@/components/client-reviews';
 import { FloatingContactButton } from '@/components/floating-contact-button';
 import PropertyFilters from '@/components/property-filters';
 import { getPropertyTypes } from '@/lib/data';
-import { useDemo } from '@/context/DemoContext';
+import { useFirebase } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 
 type AgentPageClientProps = {
@@ -28,7 +29,7 @@ type AgentPageClientProps = {
 }
 
 function AgentPageContent({ serverData, isDemo, demoSessionId }: AgentPageClientProps) {
-  const { demoState, isLoadingDemo } = useDemo();
+  const { demoState, isLoadingDemo } = useFirebase();
 
   const data = isDemo ? demoState : serverData;
 
