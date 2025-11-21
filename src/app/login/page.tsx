@@ -215,10 +215,6 @@ function LoginPageContent() {
                              <Button variant="outline" className="w-full mb-4" onClick={handleGoogleLogin} disabled={isGoogleLoading}>
                                 {isGoogleLoading ? "Aguardando..." : <><GoogleIcon /> <span className="ml-2">Entrar com Google</span></>}
                             </Button>
-                             <Button variant="secondary" className="w-full" onClick={startDemo} disabled={isDemoLoading}>
-                                {isDemoLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                                Testar plataforma
-                            </Button>
                              <div className="flex items-center my-4">
                                 <Separator className="flex-1" />
                                 <span className="px-4 text-xs text-muted-foreground">OU</span>
