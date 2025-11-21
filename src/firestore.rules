@@ -102,5 +102,13 @@ service cloud.firestore {
       // Corretores podem escrever apenas na sua própria página de SEO (`agent-<uid>`).
       allow write: if (isOwner(page.split('-')[1]) && page.startsWith('agent-')) || isAdmin();
     }
+
+    // =========================
+    // System Settings
+    // =========================
+    match /systemSettings/{settingId} {
+      // Apenas admins podem ler/escrever as configurações do sistema
+      allow read, write: if isAdmin();
+    }
   }
 }
