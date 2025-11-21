@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -56,7 +57,7 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
 
   const router = useRouter();
 
-  const { auth } = useFirebase(); // SEMPRE pega auth aqui
+  const { auth } = useFirebase();
 
   const clearSession = useCallback(() => {
     sessionStorage.removeItem('demoSessionId');
