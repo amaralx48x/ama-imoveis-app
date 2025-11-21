@@ -2,17 +2,12 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { useAuth, useFirestore, useMemoFirebase } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { doc, getDoc } from 'firebase/firestore';
+import { getDemoCredentials } from '@/app/actions/demo';
 
 const DEMO_SESSION_KEY = 'demo_session_active';
-
-interface DemoAccountSettings {
-  email?: string;
-  password?: string;
-}
 
 interface DemoSessionContextProps {
   isDemo: boolean;
@@ -29,7 +24,6 @@ export const DemoSessionProvider = ({ children }: { children: ReactNode }) => {
   const [isDemo, setIsDemo] = useState(false);
   const [isDemoLoading, setIsDemoLoading] = useState(false);
   const auth = useAuth();
-  const firestore = useFirestore();
   const router = useRouter();
 
   useEffect(() => {
@@ -38,24 +32,21 @@ export const DemoSessionProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const startDemo = useCallback(async () => {
-    if (!auth || !firestore) {
-      console.error("Auth or Firestore service not available.");
+    if (!auth) {
+      console.error("Auth service not available.");
+      alert("Serviço de autenticação indisponível. Tente novamente mais tarde.");
       return;
     }
     setIsDemoLoading(true);
     try {
-      const settingsRef = doc(firestore, 'systemSettings', 'demoAccount');
-      const settingsSnap = await getDoc(settingsRef);
+      // Fetch credentials securely from the server action
+      const credentials = await getDemoCredentials();
+
+      if (credentials.error || !credentials.email || !credentials.password) {
+        throw new Error(credentials.error || "Credenciais de demonstração inválidas recebidas do servidor.");
+      }
       
-      if (!settingsSnap.exists()) {
-        throw new Error("As configurações da conta de demonstração não foram encontradas.");
-      }
-
-      const { email, password } = settingsSnap.data() as DemoAccountSettings;
-
-      if (!email || !password) {
-        throw new Error("As credenciais da conta de demonstração não estão configuradas no painel de administração.");
-      }
+      const { email, password } = credentials;
       
       await signInWithEmailAndPassword(auth, email, password);
       sessionStorage.setItem(DEMO_SESSION_KEY, 'true');
@@ -67,7 +58,7 @@ export const DemoSessionProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsDemoLoading(false);
     }
-  }, [auth, firestore, router]);
+  }, [auth, router]);
 
   const endDemo = useCallback(async () => {
     if (!auth) return;
