@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import AgentPageClient from "@/app/corretor/[agentId]/agent-page-client";
 import { getFirebaseServer } from "@/firebase/server-init";
-import { doc, getDoc, collection, getDocs, query, where, orderBy, limit } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs, query, where, orderBy, limit } from "firebase-admin/firestore";
 import type { Agent, Property, Review, CustomSection } from "@/lib/data";
 import { notFound } from "next/navigation";
 import { getReviews as getStaticReviews, getProperties as getStaticProperties } from '@/lib/data';
