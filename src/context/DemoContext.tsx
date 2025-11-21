@@ -9,6 +9,7 @@ import {
   useCallback,
   useEffect,
 } from 'react';
+
 import { signInAnonymously } from 'firebase/auth';
 import { useFirebase } from '@/firebase/provider';
 
@@ -27,6 +28,7 @@ interface DemoContextProps {
   demoState: DemoState | null;
   sessionId: string | null;
   ownerUid: string | null;
+
   startDemo: () => Promise<void>;
   endDemo: () => void;
   resetDemo: () => void;
@@ -47,19 +49,20 @@ export const useDemo = () => {
 export const DemoProvider = ({ children }: { children: ReactNode }) => {
   const [isDemo, setIsDemo] = useState(false);
   const [isLoadingDemo, setIsLoadingDemo] = useState(true);
+
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [ownerUid, setOwnerUid] = useState<string | null>(null);
   const [demoState, setDemoState] = useState<DemoState | null>(null);
+
   const router = useRouter();
-  
-  // AQUI É O PONTO CRUCIAL
-  // Este hook só funciona porque o DemoProvider está DENTRO do FirebaseClientProvider (que renderiza o FirebaseProvider)
-  const { auth } = useFirebase(); 
+
+  const { auth } = useFirebase(); // SEMPRE pega auth aqui
 
   const clearSession = useCallback(() => {
     sessionStorage.removeItem('demoSessionId');
     sessionStorage.removeItem('demoOwnerUid');
     sessionStorage.removeItem('demoState');
+
     setSessionId(null);
     setOwnerUid(null);
     setDemoState(null);
@@ -87,10 +90,6 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [clearSession]);
 
-  /**
-   * INICIAR DEMO — versão corrigida
-   * Agora auth vem do useFirebase(), garantindo que NUNCA será null.
-   */
   const startDemo = useCallback(async () => {
     if (!auth) {
       console.error('Auth was not ready when startDemo was called.');
@@ -98,6 +97,7 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
     }
 
     setIsLoadingDemo(true);
+
     try {
       // 1. Login anônimo isolado
       const userCredential = await signInAnonymously(auth);
@@ -106,6 +106,7 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
       // 2. Buscar dados iniciais da demo
       const response = await fetch('/api/demo-snapshot');
       if (!response.ok) throw new Error('Failed to fetch demo data');
+
       const initialState: DemoState = await response.json();
 
       // 3. Criar sessão isolada
@@ -124,6 +125,7 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
 
       // 6. Redirecionar para o painel demo
       router.push('/dashboard');
+
     } catch (error) {
       console.error('Error starting demo:', error);
       clearSession();
@@ -145,15 +147,21 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
   const updateDemoState = (path: string, data: any) => {
     setDemoState(prevState => {
       if (!prevState) return null;
+
       const newState = structuredClone(prevState);
       const keys = path.split('.');
+
       let current: any = newState;
+
       for (let i = 0; i < keys.length - 1; i++) {
         current = current[keys[i]];
         if (current === undefined) return prevState;
       }
+
       current[keys[keys.length - 1]] = data;
+
       sessionStorage.setItem('demoState', JSON.stringify(newState));
+
       return newState;
     });
   };
