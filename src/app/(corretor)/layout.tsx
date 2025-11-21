@@ -1,9 +1,10 @@
+
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
 import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search, PictureInPicture, FlaskConical, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc, useFirebase } from '@/firebase';
+import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
 import { useEffect } from 'react';
 import { collection, query, where, doc } from 'firebase/firestore';
 import type { Lead, Agent, Review } from '@/lib/data';
@@ -21,43 +22,36 @@ export default function CorretorLayout({
   const pathname = usePathname();
   const router = useRouter();
 
-  // --- Hooks Incondicionais ---
   const auth = useAuth();
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
-  const { isDemo, demoState, endDemo } = useFirebase();
 
-  // Chame os hooks de dados incondicionalmente, passando null se estiver em modo demo.
-  const agentRef = useMemoFirebase(() => (firestore && user && !isDemo ? doc(firestore, 'agents', user.uid) : null), [firestore, user, isDemo]);
-  const agentDoc = useDoc<Agent>(agentRef);
+  const agentRef = useMemoFirebase(() => (firestore && user ? doc(firestore, 'agents', user.uid) : null), [firestore, user]);
+  const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
 
-  const unreadLeadsQuery = useMemoFirebase(() => (user && firestore && !isDemo ? query(collection(firestore, `agents/${user.uid}/leads`), where('status', '==', 'unread')) : null), [user, firestore, isDemo]);
-  const unreadLeadsCollection = useCollection<Lead>(unreadLeadsQuery);
+  const unreadLeadsQuery = useMemoFirebase(() => (user && firestore ? query(collection(firestore, `agents/${user.uid}/leads`), where('status', '==', 'unread')) : null), [user, firestore]);
+  const { data: unreadLeads } = useCollection<Lead>(unreadLeadsQuery);
 
-  const pendingReviewsQuery = useMemoFirebase(() => (user && firestore && !isDemo ? query(collection(firestore, `agents/${user.uid}/reviews`), where('approved', '==', false)) : null), [user, firestore, isDemo]);
-  const pendingReviewsCollection = useCollection<Review>(pendingReviewsQuery);
+  const pendingReviewsQuery = useMemoFirebase(() => (user && firestore ? query(collection(firestore, `agents/${user.uid}/reviews`), where('approved', '==', false)) : null), [user, firestore]);
+  const { data: pendingReviews } = useCollection<Review>(pendingReviewsQuery);
   
-  // --- Lógica Condicional (após os hooks) ---
-  const agentData = isDemo ? demoState?.agent : agentDoc.data;
-  const unreadCount = isDemo ? (demoState?.leads.filter(l => l.status === 'unread').length || 0) : (unreadLeadsCollection.data?.length || 0);
-  const pendingReviewsCount = isDemo ? (demoState?.reviews.filter(r => !r.approved).length || 0) : (pendingReviewsCollection.data?.length || 0);
-  const isLoading = isUserLoading || (agentDoc.isLoading && !isDemo);
+  const unreadCount = unreadLeads?.length || 0;
+  const pendingReviewsCount = pendingReviews?.length || 0;
+  const isLoading = isUserLoading || isAgentLoading;
 
   useEffect(() => {
-    if (!isLoading && !user && !isDemo) {
+    if (!isLoading && !user) {
       router.push('/login');
     }
-  }, [user, isLoading, router, isDemo]);
+  }, [user, isLoading, router]);
 
   useEffect(() => {
-    if (isDemo) return; // Não aplicar tema ou favicon do agente real no modo demo
     const theme = agentData?.siteSettings?.theme || 'dark';
     document.documentElement.classList.toggle('dark', theme === 'dark');
     document.documentElement.classList.toggle('light', theme === 'light');
-  }, [agentData, isDemo]);
+  }, [agentData]);
 
   useEffect(() => {
-    if (isDemo) return;
     if (agentData?.siteSettings?.faviconUrl) {
       let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
       if (!link) {
@@ -67,7 +61,7 @@ export default function CorretorLayout({
       }
       link.href = agentData.siteSettings.faviconUrl;
     }
-  }, [agentData, isDemo]);
+  }, [agentData]);
 
   const handleLogout = () => {
     if (auth) {
@@ -76,14 +70,8 @@ export default function CorretorLayout({
     }
   };
 
-  const handleEndDemo = () => {
-      if (auth) {
-        endDemo(auth);
-      }
-  }
-
-  const agentSiteUrl = isDemo ? `/preview/demo-session` : `/corretor/${user?.uid}`;
-  const isAdmin = agentData?.role === 'admin' && !isDemo;
+  const agentSiteUrl = `/corretor/${user?.uid}`;
+  const isAdmin = agentData?.role === 'admin';
 
   const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
@@ -135,17 +123,6 @@ export default function CorretorLayout({
                 </span>
                 <span className="font-bold font-headline text-lg group-data-[collapsible=icon]:hidden">AMA Imóveis</span>
             </div>
-             {isDemo && (
-                <div className="px-2 pb-2 group-data-[collapsible=icon]:hidden">
-                    <div className="flex items-center justify-center gap-2 text-sm p-2 rounded-lg bg-primary/10 border border-primary/20 text-primary-foreground">
-                        <FlaskConical className="h-4 w-4 text-primary shrink-0" />
-                        <span className="font-bold text-primary">Modo Demo</span>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto" onClick={handleEndDemo}>
-                            <X className="h-4 w-4"/>
-                        </Button>
-                    </div>
-                </div>
-            )}
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
@@ -221,12 +198,10 @@ export default function CorretorLayout({
           </SidebarMenu>
         </SidebarContent>
          <Sidebar.Footer className="p-2">
-            {!isDemo && (
-              <Button variant="ghost" className="w-full justify-start gap-2" onClick={handleLogout}>
-                  <LogOut />
-                  <span className="group-data-[collapsible=icon]:hidden">Sair</span>
-              </Button>
-            )}
+            <Button variant="ghost" className="w-full justify-start gap-2" onClick={handleLogout}>
+                <LogOut />
+                <span className="group-data-[collapsible=icon]:hidden">Sair</span>
+            </Button>
         </Sidebar.Footer>
       </Sidebar>
       <SidebarInset>

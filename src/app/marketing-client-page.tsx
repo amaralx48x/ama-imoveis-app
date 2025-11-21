@@ -4,7 +4,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useDoc, useFirestore, useMemoFirebase, useFirebase } from "@/firebase";
+import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import type { MarketingContent } from "@/lib/data";
 import { Building2, Search, Share2, Loader2, FlaskConical } from "lucide-react";
@@ -61,7 +61,7 @@ function FullPageSkeleton() {
 
 export default function MarketingClientPage() {
   const firestore = useFirestore();
-  const { startDemo, isLoadingDemo } = useFirebase();
+  const router = useRouter();
 
   const marketingRef = useMemoFirebase(
     () => (firestore ? doc(firestore, "marketing", "content") : null),
@@ -72,10 +72,6 @@ export default function MarketingClientPage() {
   const getImage = (field: keyof MarketingContent, defaultUrl: string) => {
     return marketingData?.[field] || defaultUrl;
   };
-
-  const handleStartDemo = () => {
-    startDemo();
-  }
 
   if (isLoading) {
     return <FullPageSkeleton />;
@@ -124,10 +120,9 @@ export default function MarketingClientPage() {
             </motion.p>
 
             <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-3 justify-center">
-              <button onClick={handleStartDemo} disabled={isLoadingDemo} className={`inline-flex items-center gap-3 px-6 py-3 rounded-lg font-semibold ${neon} text-white shadow-lg hover:scale-[1.02] transition disabled:opacity-70`}>
-                 {isLoadingDemo ? <Loader2 className="animate-spin" /> : <FlaskConical />}
-                 Testar demonstração
-              </button>
+               <Link href="/login" className={`inline-flex items-center gap-3 px-6 py-3 rounded-lg font-semibold ${neon} text-white shadow-lg hover:scale-[1.02] transition`}>
+                 Comece agora
+              </Link>
             </motion.div>
         </motion.div>
       </section>
@@ -294,7 +289,7 @@ export default function MarketingClientPage() {
             <h3 className="text-2xl font-bold">Teste AMA Imobi por 7 dias</h3>
             <p className="mt-2 text-white/70">Sem cartão no teste — experimente e veja o impacto nas suas vendas.</p>
             <div className="mt-6 flex justify-center gap-4">
-              <button onClick={handleStartDemo} disabled={isLoadingDemo} className={`inline-flex ${neon} text-white px-6 py-3 rounded-lg font-semibold`}>Criar Conta</button>
+              <Link href="/login" className={`inline-flex ${neon} text-white px-6 py-3 rounded-lg font-semibold`}>Criar Conta</Link>
               <Link href="#plans" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10">Ver planos</Link>
             </div>
           </div>

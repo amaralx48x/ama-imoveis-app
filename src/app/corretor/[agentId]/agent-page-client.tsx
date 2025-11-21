@@ -14,8 +14,6 @@ import { ClientReviews } from '@/components/client-reviews';
 import { FloatingContactButton } from '@/components/floating-contact-button';
 import PropertyFilters from '@/components/property-filters';
 import { getPropertyTypes } from '@/lib/data';
-import { useFirebase } from '@/firebase';
-import { Loader2 } from 'lucide-react';
 
 type AgentPageClientProps = {
     serverData?: {
@@ -24,30 +22,16 @@ type AgentPageClientProps = {
         customSections: CustomSection[];
         reviews: Review[];
     } | null;
-    isDemo: boolean;
-    demoSessionId?: string;
 }
 
-function AgentPageContent({ serverData, isDemo, demoSessionId }: AgentPageClientProps) {
-  const { demoState, isLoadingDemo } = useFirebase();
+function AgentPageContent({ serverData }: AgentPageClientProps) {
 
-  const data = isDemo ? demoState : serverData;
-
-  if (isDemo && isLoadingDemo) {
-      return (
-          <div className="w-full h-screen flex flex-col items-center justify-center bg-background text-foreground gap-4">
-              <Loader2 className="w-12 h-12 animate-spin text-primary" />
-              <p className="text-lg">Carregando sua demonstração...</p>
-          </div>
-      )
-  }
-
-  if (!data || !data.agent) {
+  if (!serverData || !serverData.agent) {
     return notFound();
   }
 
-  const { agent, properties: allProperties, customSections, reviews } = data;
-  const agentId = isDemo ? demoSessionId : agent.id;
+  const { agent, properties: allProperties, customSections, reviews } = serverData;
+  const agentId = agent.id;
 
   const citiesForFilter = useMemo(() => {
     const agentCities = agent.cities || [];
@@ -115,12 +99,7 @@ function AgentPageContent({ serverData, isDemo, demoSessionId }: AgentPageClient
 
 export default function AgentPageClient(props: AgentPageClientProps) {
   return (
-    <Suspense fallback={
-         <div className="w-full h-screen flex flex-col items-center justify-center bg-background text-foreground gap-4">
-              <Loader2 className="w-12 h-12 animate-spin text-primary" />
-              <p className="text-lg">Carregando página...</p>
-          </div>
-    }>
+    <Suspense>
       <AgentPageContent {...props} />
     </Suspense>
   )

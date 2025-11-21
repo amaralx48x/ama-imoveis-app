@@ -6,8 +6,6 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
-import { useDemo, type DemoState } from '@/context/DemoContext';
-
 
 interface UserAuthState {
   user: User | null;
@@ -23,11 +21,6 @@ export interface FirebaseContextState {
   user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
-  isDemo: boolean;
-  isLoadingDemo: boolean;
-  demoState: DemoState | null;
-  startDemo: () => Promise<void>;
-  endDemo: () => void;
 }
 
 export interface UserHookResult { 
@@ -56,11 +49,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     isUserLoading: true, 
     userError: null,
   });
-  
-  const { isDemo, isLoadingDemo, demoState, startDemo, endDemo } = useDemo();
 
   useEffect(() => {
-    if (isDemo || !auth) { 
+    if (!auth) { 
       setUserAuthState({ user: null, isUserLoading: false, userError: null });
       return;
     }
@@ -76,17 +67,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       }
     );
     return () => unsubscribe();
-  }, [auth, isDemo]);
-
-  const demoUser = useMemo(() => {
-    if (!isDemo || !demoState) return null;
-    return {
-        uid: demoState.agent.id || 'demo-user',
-        isAnonymous: true,
-        displayName: demoState.agent.displayName || "Visitante",
-        email: demoState.agent.email || "demo@example.com",
-    } as User;
-  }, [isDemo, demoState]);
+  }, [auth]);
 
   const contextValue = useMemo((): FirebaseContextState => {
     const servicesAvailable = !!(firebaseApp && firestore && auth);
@@ -96,20 +77,15 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       firebaseApp: servicesAvailable ? firebaseApp : null,
       firestore: servicesAvailable ? firestore : null,
       auth: servicesAvailable ? auth : null,
-      user: isDemo ? demoUser : userAuthState.user,
-      isUserLoading: isDemo ? isLoadingDemo : userAuthState.isUserLoading,
+      user: userAuthState.user,
+      isUserLoading: userAuthState.isUserLoading,
       userError: userAuthState.userError,
-      isDemo,
-      isLoadingDemo,
-      demoState,
-      startDemo,
-      endDemo,
     };
-  }, [firebaseApp, firestore, auth, userAuthState, isDemo, isLoadingDemo, demoState, demoUser, startDemo, endDemo]);
+  }, [firebaseApp, firestore, auth, userAuthState]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
-      {!isDemo && <FirebaseErrorListener />}
+      <FirebaseErrorListener />
       {children}
     </FirebaseContext.Provider>
   );

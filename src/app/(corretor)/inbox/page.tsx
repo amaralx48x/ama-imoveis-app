@@ -1,18 +1,14 @@
 
 'use client';
 import React from 'react';
-import { useUser, useFirebase } from '@/firebase';
+import { useUser } from '@/firebase';
 import LeadsPage from '@/components/leads-page';
 import { InfoCard } from '@/components/info-card';
 
 export default function InboxPage() {
     const { user } = useUser();
-    const { isDemo, demoState } = useFirebase();
 
-    const agentId = isDemo ? demoState?.agent.id : user?.uid;
-    const leads = isDemo ? demoState?.leads : undefined;
-
-    if (!agentId) {
+    if (!user) {
         return (
              <div className="flex items-center justify-center h-64">
                 <p>Carregando...</p>
@@ -30,7 +26,7 @@ export default function InboxPage() {
                     Você pode filtrar por tipo de lead (Comprador ou Proprietário), arquivar mensagens e exportar sua lista de contatos para usar em outras ferramentas.
                 </p>
             </InfoCard>
-            <LeadsPage agentId={agentId} initialLeads={leads} />
+            <LeadsPage agentId={user.uid} />
         </div>
     );
 }

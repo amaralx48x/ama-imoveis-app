@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import AgentPageClient from "@/app/corretor/[agentId]/agent-page-client";
 import { getFirebaseServer } from "@/firebase/server-init";
@@ -8,28 +9,14 @@ import { getReviews as getStaticReviews, getProperties as getStaticProperties } 
 import { getSEO } from "@/firebase/server-actions/seo";
 
 
-// --------------------------------------------
-// generateMetadata — versão correta
-// --------------------------------------------
 export async function generateMetadata(
   props: {
     params: { agentId: string };
-    searchParams: { [key: string]: string | string[] | undefined };
   }
 ): Promise<Metadata> {
 
-  const { params, searchParams } = props;
-
-  const isDemo = searchParams?.demo === "true";
-  // O ID do agente no modo demo virá do sessionId na URL, não mais 'DEMO_AGENT_ID_999'
-  const seoKey = isDemo ? `agent-demo-session-${params.agentId}` : `agent-${params.agentId}`;
-
-  if (isDemo) {
-    return {
-      title: "Página do Corretor (Demonstração)",
-      description: "Confira os imóveis deste corretor em modo de demonstração.",
-    };
-  }
+  const { params } = props;
+  const seoKey = `agent-${params.agentId}`;
 
   const seoData = await getSEO(seoKey);
 
@@ -45,10 +32,6 @@ export async function generateMetadata(
   };
 }
 
-
-// --------------------------------------------
-// Lógica existente
-// --------------------------------------------
 async function getAgentData(agentId: string) {
   const { firestore } = getFirebaseServer();
   
@@ -109,32 +92,18 @@ async function getAgentData(agentId: string) {
   }
 }
 
-
-// --------------------------------------------
-// Page — versão correta (sem Promises)
-// --------------------------------------------
 export default async function AgentPublicPage(
   props: {
-    params: { agentId: string }; // agentId pode ser o ID do agente real ou o sessionId da demo
-    searchParams: { [key: string]: string | string[] | undefined };
+    params: { agentId: string };
   }
 ) {
 
   const { params } = props;
   const { agentId } = params;
 
-  // No modo demo, a página pública é renderizada pelo client component, que buscará os dados do context
-  // A rota real para a demo será /preview/[sessionId]
-  const isDemoRoute = false; // Este page.tsx não lida diretamente com a rota de preview
-
-  if (isDemoRoute) {
-    return <AgentPageClient isDemo={true} demoSessionId={agentId} />;
-  }
-  
-  // Para um agente real, busca os dados no servidor
   const data = await getAgentData(agentId);
   
   if (!data) return notFound();
 
-  return <AgentPageClient serverData={data} isDemo={false} />;
+  return <AgentPageClient serverData={data} />;
 }

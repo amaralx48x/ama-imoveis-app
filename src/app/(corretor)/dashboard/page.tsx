@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Home, FileText, MoreVertical } from 'lucide-react';
-import { useDoc, useFirestore, useUser, useMemoFirebase, useCollection, useFirebase } from '@/firebase';
+import { useDoc, useFirestore, useUser, useMemoFirebase, useCollection } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import type { Agent, Property } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -45,21 +45,18 @@ export default function DashboardPage() {
     
     const { user } = useUser();
     const firestore = useFirestore();
-    const { isDemo, demoState } = useFirebase();
 
     const agentRef = useMemoFirebase(
-        () => (firestore && user && !isDemo ? doc(firestore, 'agents', user.uid) : null),
-        [firestore, user, isDemo]
+        () => (firestore && user ? doc(firestore, 'agents', user.uid) : null),
+        [firestore, user]
     );
-    const { data: realAgentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
-    const agentData = isDemo ? demoState?.agent : realAgentData;
+    const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
 
     const propertiesCollection = useMemoFirebase(
-        () => (firestore && user && !isDemo ? collection(firestore, `agents/${user.uid}/properties`) : null),
-        [firestore, user, isDemo]
+        () => (firestore && user ? collection(firestore, `agents/${user.uid}/properties`) : null),
+        [firestore, user]
     );
-    const { data: realProperties, isLoading: arePropertiesLoading } = useCollection<Property>(propertiesCollection);
-    const properties = isDemo ? demoState?.properties : realProperties;
+    const { data: properties, isLoading: arePropertiesLoading } = useCollection<Property>(propertiesCollection);
 
     useEffect(() => {
         const getGreeting = () => {
@@ -91,7 +88,7 @@ export default function DashboardPage() {
             return isSameMonth(soldDate, new Date());
         }).length || 0;
 
-    const isLoading = isDemo ? !demoState : (isAgentLoading || arePropertiesLoading);
+    const isLoading = isAgentLoading || arePropertiesLoading;
 
     return (
         <>

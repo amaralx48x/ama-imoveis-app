@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useFirestore, useUser, useMemoFirebase, useFirebase } from '@/firebase';
+import { useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import type { Review } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -60,23 +60,17 @@ export default function AvaliacoesPage() {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
-    const { isDemo, demoState } = useFirebase();
     
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const reviewsCollection = useMemoFirebase(
-        () => (user && firestore && !isDemo ? collection(firestore, `agents/${user.uid}/reviews`) : null),
-        [user, firestore, isDemo]
+        () => (user && firestore ? collection(firestore, `agents/${user.uid}/reviews`) : null),
+        [user, firestore]
     );
 
     const loadReviews = useCallback(async () => {
-        if (isDemo) {
-            setReviews(demoState?.reviews || []);
-            setLoading(false);
-            return;
-        }
         if (!reviewsCollection) return;
 
         setLoading(true);
@@ -98,18 +92,13 @@ export default function AvaliacoesPage() {
         } finally {
             setLoading(false);
         }
-    }, [reviewsCollection, isDemo, demoState]);
+    }, [reviewsCollection]);
 
     useEffect(() => {
         loadReviews();
     }, [loadReviews]);
 
     const handleApprove = async (id: string) => {
-        if (isDemo) {
-            // Handle demo state update
-            toast({ title: "Ação não disponível em modo Demo" });
-            return;
-        }
         if (!user || !firestore) return;
         try {
             const ref = doc(firestore, `agents/${user.uid}/reviews`, id);
@@ -123,11 +112,6 @@ export default function AvaliacoesPage() {
     };
 
     const handleRemove = async (id: string) => {
-        if (isDemo) {
-            // Handle demo state update
-            toast({ title: "Ação não disponível em modo Demo" });
-            return;
-        }
         if (!user || !firestore) return;
         try {
             const ref = doc(firestore, `agents/${user.uid}/reviews`, id);
