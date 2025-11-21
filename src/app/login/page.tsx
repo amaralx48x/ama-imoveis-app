@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -18,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, googleProvider, signInWithPopup, saveUserToFirestore } from '@/firebase';
+import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, googleProvider, signInWithPopup, saveUserToFirestore, GoogleAuthProvider } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -320,3 +321,5 @@ export default function LoginPage() {
         <LoginPageContent />
     )
 }
+
+    
