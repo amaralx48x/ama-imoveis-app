@@ -10,8 +10,6 @@ import type { MarketingContent } from "@/lib/data";
 import { Search, Share2 } from "lucide-react";
 import Image from 'next/image';
 
-const neon = "bg-gradient-to-r from-primary via-accent to-[#B794F4]";
-
 // --- Início do Novo Componente Hero (Reconstruído) ---
 interface HeroProps {
   content?: MarketingContent | null;
@@ -83,7 +81,7 @@ function MarketingHero({ content }: HeroProps) {
         </motion.p>
 
         <motion.div variants={fadeUpItem} className="mt-8 flex flex-wrap gap-3 justify-center">
-          <Link href="/login" className={`inline-flex items-center gap-3 px-6 py-3 rounded-lg font-semibold ${neon} text-white shadow-lg hover:scale-[1.02] transition`}>
+          <Link href="/login" className={`inline-flex items-center gap-3 px-6 py-3 rounded-lg font-semibold bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white shadow-lg hover:scale-[1.02] transition`}>
             Iniciar 7 dias grátis
           </Link>
           <a href="#features" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10 text-sm hover:bg-white/5 transition">
@@ -171,7 +169,7 @@ export default function MarketingClientPage() {
                     Um click fala mais que mil palavras
                 </motion.h3>
                 <motion.div variants={fadeUpItem} className="mt-4">
-                    <a href="https://studio--ama-imveis-041125-945215-63275.us-central1.hosted.app/corretor/4vEISo4pEORjFhv6RzD7eC42cgm2" className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold ${neon} text-white text-lg shadow-lg hover:scale-105 transition-transform`}>
+                    <a href="https://studio--ama-imveis-041125-945215-63275.us-central1.hosted.app/corretor/4vEISo4pEORjFhv6RzD7eC42cgm2" className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white text-lg shadow-lg hover:scale-105 transition-transform`}>
                         Clique aqui
                     </a>
                 </motion.div>
@@ -312,7 +310,7 @@ export default function MarketingClientPage() {
                 <li>❌ Import CSV (restrito)</li>
               </ul>
               <div className="mt-6">
-                <Link href="/login" className={`inline-flex ${neon} text-white px-4 py-2 rounded-md font-medium`}>Iniciar 7 dias</Link>
+                <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-4 py-2 rounded-md font-medium`}>Iniciar 7 dias</Link>
               </div>
             </motion.div>
 
@@ -333,7 +331,7 @@ export default function MarketingClientPage() {
                 <li>✅ Controle multiusuário</li>
               </ul>
               <div className="mt-6">
-                <Link href="/login" className={`inline-flex ${neon} text-white px-4 py-2 rounded-md font-medium`}>Iniciar 7 dias</Link>
+                <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-4 py-2 rounded-md font-medium`}>Iniciar 7 dias</Link>
               </div>
             </motion.div>
           </div>
@@ -345,7 +343,7 @@ export default function MarketingClientPage() {
             <h3 className="text-2xl font-bold">Teste AMA Imobi por 7 dias — grátis</h3>
             <p className="mt-2 text-white/70">Sem cartão no teste — experimente e veja o impacto nas suas vendas.</p>
             <div className="mt-6 flex justify-center gap-4">
-              <Link href="/login" className={`inline-flex ${neon} text-white px-6 py-3 rounded-lg font-semibold`}>Começar 7 dias grátis</Link>
+              <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-6 py-3 rounded-lg font-semibold`}>Começar 7 dias grátis</Link>
               <Link href="#plans" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10">Ver planos</Link>
             </div>
           </div>
@@ -365,3 +363,5 @@ export default function MarketingClientPage() {
     </div>
   );
 }
+
+    
