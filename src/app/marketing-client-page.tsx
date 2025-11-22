@@ -11,6 +11,7 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
+import MarketingHero from '@/components/MarketingHero';
 
 const fadeUpContainer = {
   hidden: { opacity: 0 },
@@ -91,6 +92,8 @@ export default function MarketingClientPage() {
           </nav>
         </div>
       </header>
+      
+      <MarketingHero content={content} />
       
       {/* MAIN CONTENT */}
       <main className="container mx-auto px-6 py-20">
