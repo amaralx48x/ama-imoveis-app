@@ -32,6 +32,7 @@ async function getMarketingContent() {
   const marketingSnap = await getDoc(marketingRef);
 
   if (marketingSnap.exists()) {
+    // Usar JSON.parse(JSON.stringify(...)) para garantir que o objeto seja serializável
     return JSON.parse(JSON.stringify(marketingSnap.data())) as MarketingContent;
   }
   return null;
