@@ -35,7 +35,9 @@ export default function MarketingClientPage() {
   const { data: marketingData, isLoading } = useDoc<MarketingContent>(marketingRef);
 
   const getImage = (field: keyof MarketingContent, defaultUrl: string) => {
-    if (isLoading) return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"; // transparent pixel
+    // Retorna uma imagem transparente durante o carregamento para evitar erro de hidratação
+    if (isLoading) return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    // @ts-ignore
     return marketingData?.[field] || defaultUrl;
   };
 
@@ -78,9 +80,9 @@ export default function MarketingClientPage() {
                     Um click fala mais que mil palavras
                 </motion.h3>
                 <motion.div variants={fadeUp} className="mt-4">
-                    <Link href="https://studio--ama-imveis-041125-945215-63275.us-central1.hosted.app/corretor/4vEISo4pEORjFhv6RzD7eC42cgm2" className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold ${neon} text-white text-lg shadow-lg hover:scale-105 transition-transform`}>
+                    <a href="https://studio--ama-imveis-041125-945215-63275.us-central1.hosted.app/corretor/4vEISo4pEORjFhv6RzD7eC42cgm2" className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold ${neon} text-white text-lg shadow-lg hover:scale-105 transition-transform`}>
                         Clique aqui
-                    </Link>
+                    </a>
                 </motion.div>
                 <motion.p variants={fadeUp} className="mt-3 text-white/70">
                     veja um site simples e profissional
