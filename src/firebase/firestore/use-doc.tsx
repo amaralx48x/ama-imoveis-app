@@ -11,6 +11,7 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { errorEmitter } from '@/firebase/error-emitter';
 
 /** Utility type to add an 'id' field to a given type T. */
 type WithId<T> = T & { id: string };
@@ -72,6 +73,7 @@ export function useDoc<T = any>(
           path: memoizedDocRef.path,
         });
         setError(contextualError);
+        errorEmitter.emit('permission-error', contextualError);
         throw contextualError; // Throw error to be caught by Next.js Error Boundary
     } finally {
         setIsLoading(false);
@@ -111,6 +113,7 @@ export function useDoc<T = any>(
         setData(null);
         setIsLoading(false);
         
+        errorEmitter.emit('permission-error', contextualError);
         // Throwing the error here will allow parent components and error boundaries to catch it.
         throw contextualError;
       }
