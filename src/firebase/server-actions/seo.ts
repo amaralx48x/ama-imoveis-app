@@ -1,6 +1,6 @@
 // IMPORTANT: This file should NOT have the 'use client' directive.
 // It's intended for server-side use only.
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase-admin/firestore";
 import { getFirebaseServer } from "@/firebase/server-init";
 
 /**
