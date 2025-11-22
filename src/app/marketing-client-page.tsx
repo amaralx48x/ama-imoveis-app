@@ -1,11 +1,11 @@
 
 'use client'
 
-import React, { useEffect } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import type { MarketingContent } from "@/lib/data";
-import { Search, Share2 } from "lucide-react";
+import { Search } from "lucide-react";
 import Image from 'next/image';
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { MarketingHero } from "@/components/marketing-hero";
@@ -32,12 +32,16 @@ function LoadingSkeleton() {
       <header className="sticky top-0 z-50 border-b border-white/10 backdrop-blur-sm">
          <div className="container mx-auto flex items-center justify-between px-6 py-4">
             <Skeleton className="h-10 w-48" />
-            <Skeleton className="h-10 w-64" />
+            <Skeleton className="h-10 w-24" />
         </div>
       </header>
       <main>
         <section className="relative min-h-[70vh] flex items-center justify-center">
             <Skeleton className="w-full h-full absolute inset-0"/>
+            <div className="z-10 text-center flex flex-col items-center">
+                <Skeleton className="h-12 w-96 mb-4" />
+                <Skeleton className="h-6 w-80" />
+            </div>
         </section>
       </main>
     </div>
@@ -52,7 +56,7 @@ export default function MarketingClientPage() {
   );
   const { data: content, isLoading } = useDoc<MarketingContent>(marketingRef);
   
-  const getImage = (field: keyof MarketingContent, defaultSeed: string) => {
+  const getImage = (field: keyof Omit<MarketingContent, 'hero_media_type'>, defaultSeed: string) => {
     // @ts-ignore
     const url = content?.[field];
     if (url) return url;
@@ -196,10 +200,6 @@ export default function MarketingClientPage() {
                 <p className="mt-4 text-sm text-white/70">
                     Sua página pública é automaticamente otimizada para os motores de busca. Com nosso painel de SEO, você controla o título, descrição e imagem que aparecem no Google e ao compartilhar seu link. Garanta uma apresentação profissional e atraia mais clientes.
                 </p>
-                <div className="mt-4 space-y-2 text-xs">
-                    <p className="flex items-center gap-2 text-white/80"><Share2 className="w-4 h-4 text-primary"/> Tags Open Graph para compartilhamento</p>
-                    <p className="flex items-center gap-2 text-white/80"><Search className="w-4 h-4 text-primary"/> Metadados para o Google</p>
-                </div>
             </div>
              <div className="rounded-xl overflow-hidden shadow-lg h-full aspect-video">
                 <Image 
@@ -288,3 +288,5 @@ export default function MarketingClientPage() {
     </div>
   );
 }
+
+    

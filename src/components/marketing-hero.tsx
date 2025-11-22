@@ -1,3 +1,4 @@
+
 'use client';
 
 import { MarketingContent } from '@/lib/data';
@@ -27,12 +28,12 @@ export function MarketingHero({ content }: MarketingHeroProps) {
   // Determine a mídia a ser usada, com fallback para uma imagem padrão.
   const defaultHeroImage = PlaceHolderImages.find(img => img.id === 'hero-background');
   const mediaUrl = content?.hero_media_url || defaultHeroImage?.imageUrl;
-  const mediaType = content?.hero_media_url ? content.hero_media_type : 'image';
+  const mediaType = mediaUrl ? (content?.hero_media_type || 'image') : 'image';
 
   return (
     <section className="relative min-h-[70vh] flex items-center justify-center text-white text-center py-20 px-6 overflow-hidden">
       
-      {/* --- BACKGROUND (Renderiza no servidor, carrega instantaneamente) --- */}
+      {/* --- BACKGROUND (Renderizado no servidor, carrega instantaneamente) --- */}
       <div className="absolute inset-0 -z-20 bg-black">
         {mediaUrl && (
           <>
@@ -109,3 +110,5 @@ export function MarketingHero({ content }: MarketingHeroProps) {
     </section>
   );
 }
+
+    

@@ -1,6 +1,4 @@
 
-'use client';
-
 import MarketingClientPage from "./marketing-client-page";
 
 /**
@@ -11,3 +9,5 @@ import MarketingClientPage from "./marketing-client-page";
 export default function MarketingPage() {
   return <MarketingClientPage />;
 }
+
+    
