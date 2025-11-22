@@ -3,7 +3,7 @@
 import { MarketingContent } from '@/lib/data';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import Image from 'next/image'; // Importando componente otimizado
+import Image from 'next/image';
 
 interface MarketingHeroProps {
   content?: MarketingContent | null;
@@ -11,7 +11,7 @@ interface MarketingHeroProps {
 
 const neon = "bg-gradient-to-r from-primary via-accent to-[#B794F4]";
 
-// Animação apenas para o texto, não para o background
+// Animação apenas para o texto e botões
 const fadeUpContainer = {
   hidden: { opacity: 0 },
   show: {
@@ -32,7 +32,7 @@ export function MarketingHero({ content }: MarketingHeroProps) {
   return (
     <section className="relative min-h-[70vh] flex items-center justify-center text-white text-center py-20 px-6 overflow-hidden">
       
-      {/* BACKGROUND (Renderizado no Servidor - Carrega Rápido) */}
+      {/* --- BACKGROUND - Renderizado no Servidor para evitar piscar --- */}
       <div className="absolute inset-0 -z-20 bg-black">
         {mediaUrl && (
           <>
@@ -43,28 +43,25 @@ export function MarketingHero({ content }: MarketingHeroProps) {
                 loop
                 muted
                 playsInline
-                // Adicione um poster aqui se tiver uma imagem estática de fallback
-                // poster="/path-to-poster.jpg" 
                 className="absolute inset-0 w-full h-full object-cover brightness-50"
               />
             ) : (
-              /* Uso do Next/Image para otimização */
               <Image
                 src={mediaUrl}
                 alt="Plataforma para corretores e imobiliárias"
                 fill
-                priority // Importante para SEO e LCP (carrega com prioridade)
+                priority // Carrega a imagem com prioridade, importante para SEO e performance
                 className="object-cover brightness-50"
                 sizes="100vw"
               />
             )}
           </>
         )}
-        {/* Fallback caso não tenha mediaUrl, mantém o fundo escuro */}
+        {/* Fallback caso não tenha mídia, um fundo escuro sólido */}
         {!mediaUrl && <div className="absolute inset-0 bg-gray-900" />}
       </div>
 
-      {/* CONTEÚDO (Animado no Cliente) */}
+      {/* --- CONTEÚDO DE TEXTO - Animado no Cliente --- */}
       <motion.div 
         variants={fadeUpContainer}
         initial="hidden"
@@ -95,7 +92,7 @@ export function MarketingHero({ content }: MarketingHeroProps) {
             <div className="w-10 h-10 rounded-md flex items-center justify-center bg-white/5">
               ⭐
             </div>
-            <div className="text-left"> {/* Adicionei text-left para alinhar melhor */}
+            <div className="text-left">
               <div className="font-semibold">Avaliações reais</div>
               <div className="text-xs text-white/60">Mais de 4.8 de satisfação</div>
             </div>
