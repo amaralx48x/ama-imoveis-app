@@ -4,6 +4,7 @@ import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, User } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
 // This function ensures Firebase is initialized only once.
 function initializeFirebaseApp() {
@@ -18,16 +19,18 @@ export function initializeFirebase() {
   const firebaseApp = initializeFirebaseApp();
   const auth = getAuth(firebaseApp);
   const firestore = getFirestore(firebaseApp);
+  const storage = getStorage(firebaseApp, firebaseConfig.storageBucket);
   const googleProvider = new GoogleAuthProvider();
   return {
     firebaseApp,
     auth,
     firestore,
+    storage,
     googleProvider
   };
 }
 
-export const { auth, firestore, googleProvider } = initializeFirebase();
+export const { auth, firestore, storage, googleProvider } = initializeFirebase();
 
 interface AdditionalAgentData {
     displayName?: string | null;

@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { useFirebaseApp, useUser } from '@/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useFirebaseApp, useUser, storage } from '@/firebase';
 import { Loader2, Upload, X } from 'lucide-react';
 import Image from 'next/image';
 import { v4 as uuidv4 } from 'uuid';
@@ -25,7 +25,6 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
   const [files, setFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
-  const firebaseApp = useFirebaseApp();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -57,7 +56,6 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
     }
 
     setIsUploading(true);
-    const storage = getStorage(firebaseApp);
     
     try {
       const uploadPromises = files.map(async (file) => {
