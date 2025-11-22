@@ -7,24 +7,116 @@ import Link from "next/link";
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import type { MarketingContent } from "@/lib/data";
-import { Card, CardContent } from "@/components/ui/card";
-import { Building2, Search, Share2 } from "lucide-react";
-import { MarketingHero } from "@/components/marketing-hero";
+import { Search, Share2 } from "lucide-react";
+import Image from 'next/image';
 
 const neon = "bg-gradient-to-r from-primary via-accent to-[#B794F4]";
 
-const container = {
+// --- Início do Novo Componente Hero (Reconstruído) ---
+interface HeroProps {
+  content?: MarketingContent | null;
+}
+
+const fadeUpContainer = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.12, when: "beforeChildren" },
+    transition: { staggerChildren: 0.15, delayChildren: 0.2 },
   },
 };
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0 },
+const fadeUpItem = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
+
+function MarketingHero({ content }: HeroProps) {
+  const mediaUrl = content?.hero_media_url;
+  const mediaType = content?.hero_media_type;
+
+  return (
+    <section className="relative min-h-[70vh] flex items-center justify-center text-white text-center py-20 px-6 overflow-hidden">
+      
+      {/* --- BACKGROUND (Renderizado no Servidor para evitar piscar) --- */}
+      <div className="absolute inset-0 -z-20 bg-black">
+        {mediaUrl ? (
+          <>
+            {mediaType === 'video' ? (
+              <video
+                src={mediaUrl}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover brightness-50"
+              />
+            ) : (
+              <Image
+                src={mediaUrl}
+                alt="Plataforma para corretores e imobiliárias"
+                fill
+                priority // Essencial para LCP (Largest Contentful Paint) e SEO
+                className="object-cover brightness-50"
+                sizes="100vw"
+              />
+            )}
+          </>
+        ) : (
+           // Fallback se não houver mídia, um fundo escuro sólido
+          <div className="absolute inset-0 bg-gray-900" />
+        )}
+      </div>
+
+      {/* --- CONTEÚDO DE TEXTO (Animado no Cliente) --- */}
+      <motion.div 
+        variants={fadeUpContainer}
+        initial="hidden"
+        animate="show"
+        className="max-w-3xl z-10"
+      >
+        <motion.h2 variants={fadeUpItem} className="text-4xl md:text-5xl font-extrabold leading-tight">
+          A plataforma completa para <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C4B5FD] to-[#A78BFA]">corretores e imobiliárias</span>
+        </motion.h2>
+
+        <motion.p variants={fadeUpItem} className="mt-6 text-lg text-white/70">
+          Gerencie anúncios, leads, visitas e comissões — tudo num só lugar. Painéis inteligentes, agenda integrada e site público para cada corretor.
+        </motion.p>
+
+        <motion.div variants={fadeUpItem} className="mt-8 flex flex-wrap gap-3 justify-center">
+          <Link href="/login" className={`inline-flex items-center gap-3 px-6 py-3 rounded-lg font-semibold ${neon} text-white shadow-lg hover:scale-[1.02] transition`}>
+            Iniciar 7 dias grátis
+          </Link>
+          <a href="#features" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10 text-sm hover:bg-white/5 transition">
+            Conhecer recursos
+          </a>
+        </motion.div>
+
+        <motion.div variants={fadeUpItem} className="mt-8 flex gap-6 justify-center">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-md flex items-center justify-center bg-white/5">
+              ⭐
+            </div>
+            <div className="text-left">
+              <div className="font-semibold">Avaliações reais</div>
+              <div className="text-xs text-white/60">Mais de 4.8 de satisfação</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-md flex items-center justify-center bg-white/5">
+              🔒
+            </div>
+            <div className="text-left">
+              <div className="font-semibold">Segurança</div>
+              <div className="text-xs text-white/60">Dados criptografados</div>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </section>
+  );
+}
+// --- Fim do Novo Componente Hero ---
+
 
 export default function MarketingClientPage() {
   const firestore = useFirestore();
@@ -35,7 +127,6 @@ export default function MarketingClientPage() {
   const { data: marketingData, isLoading } = useDoc<MarketingContent>(marketingRef);
 
   const getImage = (field: keyof MarketingContent, defaultUrl: string) => {
-    // Retorna uma imagem transparente durante o carregamento para evitar erro de hidratação
     if (isLoading) return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
     // @ts-ignore
     return marketingData?.[field] || defaultUrl;
@@ -75,16 +166,16 @@ export default function MarketingClientPage() {
         
         {/* Call to Action Section */}
         <section className="py-10 text-center">
-            <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={container}>
-                <motion.h3 variants={fadeUp} className="text-2xl font-semibold text-white/90">
+            <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUpContainer}>
+                <motion.h3 variants={fadeUpItem} className="text-2xl font-semibold text-white/90">
                     Um click fala mais que mil palavras
                 </motion.h3>
-                <motion.div variants={fadeUp} className="mt-4">
+                <motion.div variants={fadeUpItem} className="mt-4">
                     <a href="https://studio--ama-imveis-041125-945215-63275.us-central1.hosted.app/corretor/4vEISo4pEORjFhv6RzD7eC42cgm2" className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold ${neon} text-white text-lg shadow-lg hover:scale-105 transition-transform`}>
                         Clique aqui
                     </a>
                 </motion.div>
-                <motion.p variants={fadeUp} className="mt-3 text-white/70">
+                <motion.p variants={fadeUpItem} className="mt-3 text-white/70">
                     veja um site simples e profissional
                 </motion.p>
             </motion.div>
@@ -92,9 +183,9 @@ export default function MarketingClientPage() {
 
         {/* Features */}
         <section id="features" className="py-10">
-          <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={container}>
-            <motion.h3 variants={fadeUp} className="text-3xl font-extrabold text-center">Recursos que fazem a diferença</motion.h3>
-            <motion.p variants={fadeUp} className="mt-3 text-white/70 max-w-2xl mx-auto text-center">Tudo que um corretor precisa para anunciar, vender e fidelizar clientes — com simplicidade.</motion.p>
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUpContainer}>
+            <motion.h3 variants={fadeUpItem} className="text-3xl font-extrabold text-center">Recursos que fazem a diferença</motion.h3>
+            <motion.p variants={fadeUpItem} className="mt-3 text-white/70 max-w-2xl mx-auto text-center">Tudo que um corretor precisa para anunciar, vender e fidelizar clientes — com simplicidade.</motion.p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
               {[
@@ -102,7 +193,7 @@ export default function MarketingClientPage() {
                 { t: "CRM integrado", d: "Leads, marcação de visitas, etiquetagem e exportação CSV." },
                 { t: "Painel de métricas", d: "Comissões, visitas, vendas — gráficos por mês." },
               ].map((f, i) => (
-                <motion.div variants={fadeUp} key={i} className="p-6 rounded-lg bg-white/5 border border-white/10">
+                <motion.div variants={fadeUpItem} key={i} className="p-6 rounded-lg bg-white/5 border border-white/10">
                   <div className="font-semibold text-lg">{f.t}</div>
                   <p className="mt-2 text-sm text-white/70">{f.d}</p>
                 </motion.div>
@@ -155,16 +246,16 @@ export default function MarketingClientPage() {
 
         {/* Additional Features Section */}
         <section className="mt-20 py-10">
-          <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={container}>
-            <motion.h3 variants={fadeUp} className="text-3xl font-extrabold text-center">Recursos Adicionais Poderosos</motion.h3>
-            <motion.p variants={fadeUp} className="mt-3 text-white/70 max-w-2xl mx-auto text-center">Ferramentas pensadas para agilizar seu trabalho e ampliar seu alcance.</motion.p>
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUpContainer}>
+            <motion.h3 variants={fadeUpItem} className="text-3xl font-extrabold text-center">Recursos Adicionais Poderosos</motion.h3>
+            <motion.p variants={fadeUpItem} className="mt-3 text-white/70 max-w-2xl mx-auto text-center">Ferramentas pensadas para agilizar seu trabalho e ampliar seu alcance.</motion.p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
               {[
                 { t: "Importação em Massa", d: "Suba dezenas de imóveis de uma vez com nossa importação de arquivos CSV." },
                 { t: "Controle de Seções", d: "Crie e organize seções personalizadas, como 'Oportunidades' ou 'Alto Padrão'." },
                 { t: "Agendamento de Visitas", d: "Receba solicitações de visita com data e horário direto no seu painel de leads." },
               ].map((f, i) => (
-                <motion.div variants={fadeUp} key={i} className="p-6 rounded-lg bg-white/5 border border-white/10">
+                <motion.div variants={fadeUpItem} key={i} className="p-6 rounded-lg bg-white/5 border border-white/10">
                   <div className="font-semibold text-lg">{f.t}</div>
                   <p className="mt-2 text-sm text-white/70">{f.d}</p>
                 </motion.div>
@@ -200,11 +291,11 @@ export default function MarketingClientPage() {
 
         {/* Plans & CTA */}
         <section id="plans" className="mt-20 py-10">
-          <motion.h3 variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-3xl font-extrabold text-center">Planos</motion.h3>
+          <motion.h3 variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-3xl font-extrabold text-center">Planos</motion.h3>
           <p className="mt-2 text-white/70 text-center">Teste 7 dias grátis. Depois, escolha seu plano.</p>
 
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="p-6 rounded-2xl border border-white/10 bg-white/5 shadow-lg">
+            <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="p-6 rounded-2xl border border-white/10 bg-white/5 shadow-lg">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-semibold text-lg">Corretor Plus</div>
@@ -225,7 +316,7 @@ export default function MarketingClientPage() {
               </div>
             </motion.div>
 
-            <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="p-6 rounded-2xl border border-primary bg-primary/10 shadow-lg">
+            <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="p-6 rounded-2xl border border-primary bg-primary/10 shadow-lg">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-semibold text-lg">Imobiliária Plus</div>
@@ -274,3 +365,5 @@ export default function MarketingClientPage() {
     </div>
   );
 }
+
+    
