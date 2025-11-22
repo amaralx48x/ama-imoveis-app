@@ -78,7 +78,7 @@ export default function MarketingClientPage() {
                     Um click fala mais que mil palavras
                 </motion.h3>
                 <motion.div variants={fadeUp} className="mt-4">
-                    <Link href="/corretor/exemplo" className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold ${neon} text-white text-lg shadow-lg hover:scale-105 transition-transform`}>
+                    <Link href="https://studio--ama-imveis-041125-945215-63275.us-central1.hosted.app/corretor/4vEISo4pEORjFhv6RzD7eC42cgm2" className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold ${neon} text-white text-lg shadow-lg hover:scale-105 transition-transform`}>
                         Clique aqui
                     </Link>
                 </motion.div>
