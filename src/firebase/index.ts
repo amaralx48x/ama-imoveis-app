@@ -1,33 +1,42 @@
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, User } from 'firebase/auth';
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
+import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword, 
+    signInAnonymously, 
+    GoogleAuthProvider, 
+    signInWithPopup, 
+    signInWithRedirect, 
+    getRedirectResult, 
+    type User 
+} from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 // This function ensures Firebase is initialized only once.
-function initializeFirebaseApp() {
+function initializeFirebaseApp(): FirebaseApp {
   if (getApps().length > 0) {
     return getApp();
   }
   return initializeApp(firebaseConfig);
 }
 
-// IMPORTANT: DO NOT MODIFY THIS FUNCTION
+// Correctly initialize and return Firebase services
 export function initializeFirebase() {
   const firebaseApp = initializeFirebaseApp();
   const auth = getAuth(firebaseApp);
   const firestore = getFirestore(firebaseApp);
   const googleProvider = new GoogleAuthProvider();
+
   return {
     firebaseApp,
     auth,
     firestore,
-    googleProvider
+    googleProvider,
   };
 }
-
-export const { auth, firestore, googleProvider } = initializeFirebase();
 
 interface AdditionalAgentData {
     displayName?: string | null;
@@ -36,6 +45,8 @@ interface AdditionalAgentData {
 }
 
 export const saveUserToFirestore = async (user: User, additionalData?: AdditionalAgentData) => {
+    // We need a valid firestore instance from the initialized app.
+    const { firestore } = initializeFirebase();
     if (!user?.uid || !firestore) return;
 
     const userRef = doc(firestore, "agents", user.uid);
