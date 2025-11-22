@@ -1,6 +1,5 @@
 // IMPORTANT: This file should NOT have the 'use client' directive.
 // It's intended for server-side use only.
-import { doc, getDoc } from "firebase-admin/firestore";
 import { getFirebaseServer } from "@/firebase/server-init";
 
 /**
@@ -11,7 +10,7 @@ import { getFirebaseServer } from "@/firebase/server-init";
  */
 export async function getSEO(page: string) {
   const { firestore } = getFirebaseServer();
-  const ref = doc(firestore, "seo", page);
-  const snap = await getDoc(ref);
-  return snap.exists() ? snap.data() : null;
+  const ref = firestore.doc(`seo/${page}`);
+  const snap = await ref.get();
+  return snap.exists ? snap.data() : null;
 }
