@@ -19,7 +19,7 @@ export function initializeFirebase() {
   const firebaseApp = initializeFirebaseApp();
   const auth = getAuth(firebaseApp);
   const firestore = getFirestore(firebaseApp);
-  const storage = getStorage(firebaseApp);
+  const storage = getStorage(firebaseApp, `gs://${firebaseConfig.storageBucket}`);
   const googleProvider = new GoogleAuthProvider();
   return {
     firebaseApp,
