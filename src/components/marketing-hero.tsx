@@ -1,9 +1,9 @@
-
 'use client';
 
 import { MarketingContent } from '@/lib/data';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 interface MarketingHeroProps {
   content?: MarketingContent | null;
@@ -25,6 +25,13 @@ const fadeUp = {
 };
 
 export function MarketingHero({ content }: MarketingHeroProps) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    // This effect runs only on the client, after the component has mounted.
+    setIsClient(true);
+  }, []);
+
   const mediaUrl = content?.hero_media_url;
   const mediaType = content?.hero_media_type;
 
@@ -36,7 +43,7 @@ export function MarketingHero({ content }: MarketingHeroProps) {
       variants={container}
       className="relative min-h-[70vh] flex items-center justify-center text-white text-center py-20 px-6"
     >
-      {mediaUrl && (
+      {isClient && mediaUrl && (
         <>
           <div className="absolute inset-0 bg-black -z-20"></div>
           {mediaType === 'video' ? (
