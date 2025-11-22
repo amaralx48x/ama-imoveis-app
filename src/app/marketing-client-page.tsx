@@ -71,6 +71,23 @@ export default function MarketingClientPage() {
       {/* MAIN CONTENT */}
       <main className="container mx-auto px-6 py-20">
         
+        {/* Call to Action Section */}
+        <section className="py-10 text-center">
+            <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={container}>
+                <motion.h3 variants={fadeUp} className="text-2xl font-semibold text-white/90">
+                    Um click fala mais que mil palavras
+                </motion.h3>
+                <motion.div variants={fadeUp} className="mt-4">
+                    <Link href="/corretor/exemplo" className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold ${neon} text-white text-lg shadow-lg hover:scale-105 transition-transform`}>
+                        Clique aqui
+                    </Link>
+                </motion.div>
+                <motion.p variants={fadeUp} className="mt-3 text-white/70">
+                    veja um site simples e profissional
+                </motion.p>
+            </motion.div>
+        </section>
+
         {/* Features */}
         <section id="features" className="py-10">
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={container}>
