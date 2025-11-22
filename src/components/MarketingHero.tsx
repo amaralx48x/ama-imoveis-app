@@ -35,9 +35,8 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
 
   return (
     <section className="relative min-h-[60vh] flex items-center justify-center text-white text-center py-20 px-6 overflow-hidden">
-      {/* Background layer (sempre renderizado no servidor também) */}
-      <div className="absolute inset-0 -z-10 bg-black">
-        {/* Se for vídeo, usamos <video> (nativo). Se for imagem, usamos next/image com fill */}
+      {/* Background layer com z-index corrigido e opacidade */}
+      <div className="absolute inset-0 z-[-1] bg-black">
         {mediaUrl && mediaType === 'video' ? (
           <video
             src={mediaUrl}
@@ -45,11 +44,10 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
             loop
             muted
             playsInline
-            className="absolute inset-0 w-full h-full object-cover brightness-50"
+            className="absolute inset-0 w-full h-full object-cover opacity-80"
             aria-hidden
           />
         ) : (
-          // NEXT IMAGE com fill: mantém layout estável e evita flicker/hydration mismatch
           <div className="absolute inset-0 w-full h-full">
             <Image
               src={mediaUrl || fallback}
@@ -57,9 +55,7 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
               fill
               priority
               sizes="100vw"
-              className="object-cover brightness-50"
-              // se a url externa não estiver em domains do next.config.js, next/image pode falhar;
-              // nesse caso, use <img src=...> simples. Para segurança deixamos Image por padrão.
+              className="object-cover opacity-80"
             />
           </div>
         )}
