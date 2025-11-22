@@ -1,9 +1,8 @@
-
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import { Inter, Poppins } from 'next/font/google'
-import { FirebaseClientProvider } from "@/firebase/client-provider";
+import { FirebaseClientProvider } from "@/firebase";
 import { PlanProvider } from "@/context/PlanContext";
 
 const inter = Inter({
@@ -21,7 +20,6 @@ export const metadata: Metadata = {
   title: "AMA Imóveis",
   description: "Encontre o imóvel dos seus sonhos.",
 };
-
 
 export default function RootLayout({
   children,

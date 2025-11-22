@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useUser, useAuth } from '@/firebase';
 import { useRouter, usePathname } from 'next/navigation';
-import { LogOut, ShieldCheck, User, LayoutDashboard, LifeBuoy, MonitorPlay, Search, KeyRound } from 'lucide-react';
+import { LogOut, ShieldCheck, User, LayoutDashboard, LifeBuoy, MonitorPlay, Search } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';

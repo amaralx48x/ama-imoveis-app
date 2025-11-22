@@ -1,10 +1,13 @@
 
+
+
+
 export type SocialLink = {
   id: string;
   label: string;
   url: string;
   icon: string;
-  imageUrl?: string;
+  imageUrl?: string; // Adicionado para a foto do endereço
 }
 
 export type Property = {
@@ -28,7 +31,7 @@ export type Property = {
   agentId?: string; 
   createdAt?: any;
   status: 'ativo' | 'vendido' | 'alugado';
-  soldAt?: any;
+  soldAt?: any; // ou rentedAt
   commissionValue?: number;
   ownerContactId?: string | null;
 };
@@ -63,7 +66,6 @@ export type Availability = {
 }
 
 export type SiteSettings = {
-    heroImageUrl?: string;
     showFinancing?: boolean;
     financingLink?: string;
     showReviews?: boolean;
@@ -85,7 +87,7 @@ export type Agent = {
     email: string;
     creci: string;
     photoUrl: string;
-    phone?: string;
+    phone?: string; // Telefone principal do corretor
     cities?: string[];
     availability?: Availability;
     siteSettings?: SiteSettings;
@@ -106,6 +108,7 @@ export type Lead = {
   leadType: LeadType;
   context?: string;
   createdAt?: any;
+  // Campos de agendamento
   cpf?: string;
   visitDate?: any;
   visitTime?: string;
@@ -143,8 +146,8 @@ export type SupportMessage = {
 }
 
 export type MarketingContent = {
-    hero_image_url?: string;
-    feature_video_url?: string;
+    hero_media_url?: string;
+    hero_media_type?: 'image' | 'video';
     section2_image?: string;
     section3_image?: string;
     section4_image1?: string;
@@ -154,6 +157,9 @@ export type MarketingContent = {
     section6_image?: string;
 }
 
+
+// This data is now considered legacy mock data.
+// The app will primarily use Firestore.
 const properties: Property[] = [
   {
     id: '1',
@@ -329,20 +335,7 @@ export const getReviews = () => staticReviews;
 export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Guarujá', 'Rio de Janeiro', 'Belo Horizonte', 'Curitiba', 'Porto Alegre'];
 export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
 
-export const getAgent = (): Agent => ({
-  id: 'exemplo',
-  displayName: 'Seu nome aqui',
-  name: 'Sua Imobiliária',
-  accountType: 'corretor',
-  email: 'contato@exemplo.com',
-  creci: '123456-F',
-  description: 'Descreva sua experiência, sua especialidade, as regiões que você atende e o que o diferencia. Conte sua história e como você pode ajudar seus clientes a encontrar o imóvel ideal.',
-  photoUrl: 'https://images.unsplash.com/photo-1594672830234-ba4cfe1202dc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-  phone: '(11) 94002-745',
-  cities: getPropertyCities(),
-  siteSettings: {
-    theme: 'dark',
-    showReviews: true,
-    showFinancing: true,
-  }
-});
+
+
+
+

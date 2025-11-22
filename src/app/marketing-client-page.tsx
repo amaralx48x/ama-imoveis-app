@@ -7,11 +7,9 @@ import Link from "next/link";
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import type { MarketingContent } from "@/lib/data";
-import { Building2, Search, Share2, FlaskConical } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Building2, Search, Share2 } from "lucide-react";
 import { MarketingHero } from "@/components/marketing-hero";
-import { useRouter } from "next/navigation";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 
 const neon = "bg-gradient-to-r from-primary via-accent to-[#B794F4]";
 
@@ -28,42 +26,8 @@ const fadeUp = {
   show: { opacity: 1, y: 0 },
 };
 
-function FullPageSkeleton() {
-  return (
-    <div className="bg-black text-white min-h-screen">
-      <header className="sticky top-0 z-50 border-b border-white/10 backdrop-blur-sm">
-        <div className="container mx-auto flex items-center justify-between px-6 py-4">
-          <Skeleton className="h-10 w-48" />
-          <Skeleton className="h-10 w-48" />
-        </div>
-      </header>
-      <main className="container mx-auto px-6 py-20 space-y-16">
-        <Skeleton className="h-[60vh] w-full rounded-2xl" />
-        <section className="py-10">
-          <Skeleton className="h-10 w-3/4 mx-auto" />
-          <Skeleton className="h-6 w-1/2 mx-auto mt-4" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            <Skeleton className="h-24 rounded-lg" />
-            <Skeleton className="h-24 rounded-lg" />
-            <Skeleton className="h-24 rounded-lg" />
-          </div>
-        </section>
-        <Skeleton className="h-80 w-full rounded-2xl" />
-      </main>
-      <footer className="border-t border-white/10 py-8">
-        <div className="container mx-auto px-6 flex items-center justify-center">
-          <Skeleton className="h-6 w-64" />
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-
 export default function MarketingClientPage() {
   const firestore = useFirestore();
-  const router = useRouter();
-
   const marketingRef = useMemoFirebase(
     () => (firestore ? doc(firestore, "marketing", "content") : null),
     [firestore]
@@ -71,17 +35,15 @@ export default function MarketingClientPage() {
   const { data: marketingData, isLoading } = useDoc<MarketingContent>(marketingRef);
 
   const getImage = (field: keyof MarketingContent, defaultUrl: string) => {
+    if (isLoading) return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"; // transparent pixel
     return marketingData?.[field] || defaultUrl;
   };
 
-  if (isLoading) {
-    return <FullPageSkeleton />;
-  }
 
   return (
     <div className="min-h-screen text-white bg-black">
       {/* NAV */}
-      <header className="sticky top-0 z-50 border-b border-white/10 backdrop-blur-sm">
+      <header className="sticky top-0 z-50 border-b border-white/6 backdrop-blur-sm">
         <div className="container mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm bg-primary">
@@ -104,29 +66,7 @@ export default function MarketingClientPage() {
       </header>
       
       {/* HERO */}
-       <section className="relative w-full h-[70vh] min-h-[500px] md:h-[80vh] overflow-hidden flex items-center justify-center text-center text-white">
-        <img
-          src={getImage('hero_image_url', "https://picsum.photos/seed/hero-bg/1920/1080")}
-          alt="Plataforma para corretores e imobiliárias"
-          className="absolute inset-0 w-full h-full object-cover z-0"
-        />
-        <div className="absolute inset-0 bg-black/60"></div>
-        <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={container} className="relative z-10 max-w-3xl px-4">
-            <motion.h2 variants={fadeUp} className="text-4xl md:text-5xl font-extrabold leading-tight">
-              A plataforma completa para <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C4B5FD] to-[#A78BFA]">corretores e imobiliárias</span>
-            </motion.h2>
-
-            <motion.p variants={fadeUp} className="mt-6 text-lg text-white [text-shadow:0_0_10px_rgba(255,255,255,0.5)]">
-              Gerencie anúncios, leads, visitas e comissões — tudo num só lugar. Painéis inteligentes, agenda integrada e site público para cada corretor.
-            </motion.p>
-
-            <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-3 justify-center">
-               <Link href="/login" className={`inline-flex items-center gap-3 px-6 py-3 rounded-lg font-semibold ${neon} text-white shadow-lg hover:scale-[1.02] transition`}>
-                 Comece agora
-              </Link>
-            </motion.div>
-        </motion.div>
-      </section>
+      <MarketingHero content={marketingData} />
 
       {/* MAIN CONTENT */}
       <main className="container mx-auto px-6 py-20">
@@ -152,17 +92,18 @@ export default function MarketingClientPage() {
           </motion.div>
         </section>
 
-        {/* Video Section */}
-        <MarketingHero content={marketingData} />
-
         {/* Image gallery + social proof */}
         <section className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center py-10">
            <div className="relative h-80 lg:h-96">
               <motion.div initial={{ opacity: 0, x: -20, rotate: -5 }} whileInView={{ opacity: 1, x: 0, rotate: -8 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }} className="absolute top-0 left-0 w-3/4 rounded-lg overflow-hidden shadow-lg border border-white/10">
-                <img src={getImage('section2_image', "https://picsum.photos/seed/page1/1200/800")} alt="Visão do painel" width={1200} height={800} className="object-cover" />
+                  <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
+                    <img src={getImage('section2_image', "https://picsum.photos/seed/page1/1200/800")} alt="Visão do painel" width={1200} height={800} className="object-cover" />
+                  </React.Suspense>
               </motion.div>
               <motion.div initial={{ opacity: 0, x: 20, rotate: 5 }} whileInView={{ opacity: 1, x: 0, rotate: 2 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }} className="absolute bottom-0 right-0 w-3/4 rounded-lg overflow-hidden shadow-2xl border border-white/10">
-                <img src={getImage('section4_image1', "https://picsum.photos/seed/page2/600/400")} alt="Detalhe do painel" width={600} height={400} className="object-cover" />
+                   <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
+                    <img src={getImage('section4_image1', "https://picsum.photos/seed/page2/600/400")} alt="Detalhe do painel" width={600} height={400} className="object-cover" />
+                  </React.Suspense>
               </motion.div>
           </div>
           <div className="p-6 rounded-xl bg-white/5 border border-white/10 h-full flex flex-col justify-center">
@@ -182,12 +123,14 @@ export default function MarketingClientPage() {
             </p>
           </div>
           <div className="rounded-xl overflow-hidden shadow-lg h-full lg:order-first aspect-[4/3]">
-            <img 
-                src={getImage('section3_image', "https://picsum.photos/seed/agent-site/1200/800")} 
-                alt="Site público do corretor" 
-                width={1200} height={900} 
-                className="object-cover w-full h-full" 
-                data-ai-hint="real estate website" />
+            <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
+                <img 
+                    src={getImage('section3_image', "https://picsum.photos/seed/agent-site/1200/800")} 
+                    alt="Site público do corretor" 
+                    width={1200} height={900} 
+                    className="object-cover w-full h-full" 
+                    data-ai-hint="real estate website" />
+             </React.Suspense>
           </div>
         </section>
 
@@ -224,12 +167,14 @@ export default function MarketingClientPage() {
                 </div>
             </div>
              <div className="rounded-xl overflow-hidden shadow-lg h-full aspect-video">
-                <img 
-                    src={getImage('section6_image', "https://picsum.photos/seed/seo-example/1200/630")} 
-                    alt="Exemplo de SEO" 
-                    width={1200} height={630} 
-                    className="object-cover w-full h-full" 
-                    data-ai-hint="search engine optimization" />
+                <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
+                    <img 
+                        src={getImage('section6_image', "https://picsum.photos/seed/seo-example/1200/630")} 
+                        alt="Exemplo de SEO" 
+                        width={1200} height={630} 
+                        className="object-cover w-full h-full" 
+                        data-ai-hint="search engine optimization" />
+                </React.Suspense>
             </div>
         </section>
 
@@ -287,15 +232,15 @@ export default function MarketingClientPage() {
         {/* Final CTA */}
         <section className="mt-20 mb-24 text-center">
           <div className="mx-auto max-w-2xl p-8 rounded-2xl border border-white/10 bg-gradient-to-b from-black/40 to-black/20">
-            <h3 className="text-2xl font-bold">Teste AMA Imobi por 7 dias</h3>
+            <h3 className="text-2xl font-bold">Teste AMA Imobi por 7 dias — grátis</h3>
             <p className="mt-2 text-white/70">Sem cartão no teste — experimente e veja o impacto nas suas vendas.</p>
             <div className="mt-6 flex justify-center gap-4">
-              <Link href="/login" className={`inline-flex ${neon} text-white px-6 py-3 rounded-lg font-semibold`}>Criar Conta</Link>
+              <Link href="/login" className={`inline-flex ${neon} text-white px-6 py-3 rounded-lg font-semibold`}>Começar 7 dias grátis</Link>
+              <Link href="#plans" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10">Ver planos</Link>
             </div>
           </div>
         </section>
       </main>
-      
 
       {/* FOOTER */}
       <footer className="border-t border-white/10 py-8">

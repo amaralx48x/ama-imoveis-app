@@ -1,21 +1,21 @@
 // IMPORTANT: This file should NOT have the 'use client' directive.
 // It's intended for server-side use only.
-import * as admin from 'firebase-admin';
+
+import { firebaseConfig } from '@/firebase/config';
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 /**
- * Initializes and returns Firebase Admin services for server-side usage.
+ * Initializes and returns Firebase services for server-side usage.
  * Ensures that the app is initialized only once.
- * In a Google Cloud environment (like Cloud Run, Cloud Functions, App Engine, or Studio),
- * the SDK can automatically detect the service account credentials.
  */
 export function getFirebaseServer() {
-  if (admin.apps.length === 0) {
-    admin.initializeApp();
-  }
+  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   
   return {
-    firebaseApp: admin.apps[0]!,
-    auth: admin.auth(),
-    firestore: admin.firestore()
+    firebaseApp: app,
+    auth: getAuth(app),
+    firestore: getFirestore(app)
   };
 }

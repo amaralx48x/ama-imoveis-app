@@ -1,7 +1,6 @@
-
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search, PictureInPicture, FlaskConical, X } from 'lucide-react';
+import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
@@ -12,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CorretorLayout({
   children,
@@ -20,30 +18,41 @@ export default function CorretorLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
-
   const auth = useAuth();
-  const firestore = useFirestore();
+  const router = useRouter();
   const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
 
-  const agentRef = useMemoFirebase(() => (firestore && user ? doc(firestore, 'agents', user.uid) : null), [firestore, user]);
-  const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
+  const agentRef = useMemoFirebase(
+    () => (user && firestore ? doc(firestore, 'agents', user.uid) : null),
+    [user, firestore]
+  );
+  const { data: agentData } = useDoc<Agent>(agentRef);
 
-  const unreadLeadsQuery = useMemoFirebase(() => (user && firestore ? query(collection(firestore, `agents/${user.uid}/leads`), where('status', '==', 'unread')) : null), [user, firestore]);
+  const unreadLeadsQuery = useMemoFirebase(
+    () => user && firestore 
+      ? query(collection(firestore, `agents/${user.uid}/leads`), where('status', '==', 'unread')) 
+      : null,
+    [user, firestore]
+  );
   const { data: unreadLeads } = useCollection<Lead>(unreadLeadsQuery);
-
-  const pendingReviewsQuery = useMemoFirebase(() => (user && firestore ? query(collection(firestore, `agents/${user.uid}/reviews`), where('approved', '==', false)) : null), [user, firestore]);
-  const { data: pendingReviews } = useCollection<Review>(pendingReviewsQuery);
-  
   const unreadCount = unreadLeads?.length || 0;
+
+  const pendingReviewsQuery = useMemoFirebase(
+    () => user && firestore 
+      ? query(collection(firestore, `agents/${user.uid}/reviews`), where('approved', '==', false)) 
+      : null,
+    [user, firestore]
+  );
+  const { data: pendingReviews } = useCollection<Review>(pendingReviewsQuery);
   const pendingReviewsCount = pendingReviews?.length || 0;
-  const isLoading = isUserLoading || isAgentLoading;
+
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!isUserLoading && !user) {
       router.push('/login');
     }
-  }, [user, isLoading, router]);
+  }, [user, isUserLoading, router]);
 
   useEffect(() => {
     const theme = agentData?.siteSettings?.theme || 'dark';
@@ -64,14 +73,13 @@ export default function CorretorLayout({
   }, [agentData]);
 
   const handleLogout = () => {
-    if (auth) {
-        auth.signOut();
-        router.push('/login');
+    if(auth) {
+      auth.signOut();
+      router.push('/login');
     }
   };
 
-  const agentSiteUrl = `/corretor/${user?.uid}`;
-  const isAdmin = agentData?.role === 'admin';
+  const agentSiteUrl = user ? `/corretor/${user.uid}` : '/';
 
   const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
@@ -91,7 +99,6 @@ export default function CorretorLayout({
 
   const settingsItems = [
       { href: '/configuracoes/aparencia', label: 'Aparência', icon: Palette },
-      { href: '/configuracoes/hero', label: 'Imagem de Capa', icon: PictureInPicture },
       { href: '/configuracoes/favicon', label: 'Favicon', icon: ImageIcon },
       { href: '/configuracoes/links', label: 'Links e Exibição', icon: LinkIcon },
       { href: '/configuracoes/secoes', label: 'Gerenciar Seções', icon: Folder },
@@ -100,18 +107,15 @@ export default function CorretorLayout({
       { href: '/configuracoes/politicas', label: 'Políticas e Termos', icon: FileText },
   ]
   
-  if (isLoading) {
+  if (isUserLoading || !user) {
     return (
         <div className="flex items-center justify-center h-screen bg-background">
-            <Skeleton className="h-full w-20 mr-4" />
-            <div className="flex-1 space-y-4 p-4">
-                <Skeleton className="h-12 w-1/3" />
-                <Skeleton className="h-32 w-full" />
-                <Skeleton className="h-64 w-full" />
-            </div>
+            <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
         </div>
     );
   }
+
+  const isAdmin = agentData?.role === 'admin';
 
   return (
     <SidebarProvider>

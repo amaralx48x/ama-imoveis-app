@@ -1,61 +1,55 @@
 
 'use client';
 
-import { useMemo, Suspense } from 'react';
+import { useMemo } from 'react';
 import type { Agent, Property, Review, CustomSection } from '@/lib/data';
-import { notFound, useSearchParams } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Hero } from "@/components/hero";
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FeaturedProperties } from '@/components/featured-properties';
 import { CustomPropertySection } from '@/components/custom-property-section';
 import { AgentProfile } from '@/components/agent-profile';
 import { ClientReviews } from '@/components/client-reviews';
 import { FloatingContactButton } from '@/components/floating-contact-button';
 import PropertyFilters from '@/components/property-filters';
-import { getPropertyTypes } from '@/lib/data';
+import { getPropertyTypes, getReviews as getStaticReviews } from '@/lib/data';
 
-type AgentPageClientProps = {
-    serverData?: {
-        agent: Agent;
-        properties: Property[];
-        customSections: CustomSection[];
-        reviews: Review[];
-    } | null;
-}
 
-function AgentPageContent({ serverData }: AgentPageClientProps) {
-
-  if (!serverData || !serverData.agent) {
-    return notFound();
-  }
-
-  const { agent, properties: allProperties, customSections, reviews } = serverData;
-  const agentId = agent.id;
+export default function AgentPageClient({
+  agent,
+  allProperties,
+  customSections,
+  reviews,
+}: {
+  agent: Agent | null;
+  allProperties: Property[];
+  customSections: CustomSection[];
+  reviews: Review[];
+}) {
 
   const citiesForFilter = useMemo(() => {
+    if (!agent) return [];
     const agentCities = agent.cities || [];
     const propertyCities = allProperties.map(p => p.city).filter(Boolean);
     return [...new Set([...agentCities, ...propertyCities])].sort();
   }, [agent, allProperties]);
-  
-  const onReviewSubmitted = () => {
-    // In a real app, this would invalidate a cache to refetch reviews.
-  };
 
-  const customHeroImage = agent.siteSettings?.heroImageUrl;
-  const defaultHeroImage = { id: 'default-hero', imageUrl: 'https://picsum.photos/seed/hero-bg/1920/1080', description: 'Imagem de capa', imageHint: 'real estate' };
-  const heroImage = customHeroImage ? { id: 'custom-hero', imageUrl: customHeroImage, description: 'Imagem de capa', imageHint: 'real estate' } : defaultHeroImage;
+  if (!agent) {
+    // Though we check in the server component, this is a safeguard.
+    return notFound();
+  }
 
-  const activeProperties = allProperties.filter(p => p.status === 'ativo' || !p.status);
-  const featuredProperties = activeProperties.filter(p => (p.sectionIds || []).includes('featured'));
+  const heroImage = PlaceHolderImages.find(img => img.id === 'hero-background');
+  const featuredProperties = allProperties.filter(p => (p.sectionIds || []).includes('featured') && p.status === 'ativo');
   const propertyTypes = getPropertyTypes();
   const showReviews = agent.siteSettings?.showReviews ?? true;
   const whatsAppLink = agent.siteSettings?.socialLinks?.find(link => link.icon === 'whatsapp');
 
   return (
     <>
-      <Header agent={agent} agentId={agentId} />
+      <Header agent={agent} agentId={agent.id} />
       <main className="min-h-screen">
         <div className="relative mb-24 md:mb-36">
           <Hero heroImage={heroImage}>
@@ -64,18 +58,18 @@ function AgentPageContent({ serverData }: AgentPageClientProps) {
         </div>
 
         {featuredProperties.length > 0 && (
-          <FeaturedProperties properties={featuredProperties} agentId={agentId || ''} />
+          <FeaturedProperties properties={featuredProperties} agentId={agent.id} />
         )}
 
         {customSections.map(section => {
-          const sectionProperties = activeProperties.filter(p => (p.sectionIds || []).includes(section.id));
+          const sectionProperties = allProperties.filter(p => (p.sectionIds || []).includes(section.id) && p.status === 'ativo');
           if (sectionProperties.length === 0) return null;
           return (
             <CustomPropertySection
               key={section.id}
               title={section.title}
               properties={sectionProperties}
-              agentId={agentId || ''}
+              agentId={agent.id}
               sectionId={section.id}
             />
           );
@@ -85,22 +79,13 @@ function AgentPageContent({ serverData }: AgentPageClientProps) {
 
         {showReviews && (
           <div className="container mx-auto px-4 py-16 sm:py-24">
-            <ClientReviews reviews={reviews} agentId={agentId || ''} onReviewSubmitted={onReviewSubmitted} />
+            <ClientReviews reviews={reviews} agentId={agent.id} onReviewSubmitted={()=>{}} />
           </div>
         )}
 
         {whatsAppLink && <FloatingContactButton whatsAppLink={whatsAppLink} agent={agent} />}
       </main>
-      <Footer agentId={agentId} />
+      <Footer agentId={agent.id} />
     </>
   );
-}
-
-
-export default function AgentPageClient(props: AgentPageClientProps) {
-  return (
-    <Suspense>
-      <AgentPageContent {...props} />
-    </Suspense>
-  )
 }

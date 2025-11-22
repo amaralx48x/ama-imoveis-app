@@ -1,8 +1,8 @@
-
 "use client";
 
 import { addDoc, updateDoc, deleteDoc, collection, doc, serverTimestamp, arrayUnion, arrayRemove } from "firebase/firestore";
 import { useFirestore, errorEmitter, FirestorePermissionError } from "./index";
+
 
 export async function createContact(agentId: string, payload: any) {
   const firestore = useFirestore();

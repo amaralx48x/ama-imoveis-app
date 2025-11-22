@@ -1,13 +1,13 @@
 
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, AlertTriangle, Upload, Trash2, Search, Gem } from 'lucide-react';
 import { PropertyCard } from '@/components/property-card';
 import Link from 'next/link';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import type { Property } from '@/lib/data';
-import { collection, query, where, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, doc, getDocs, deleteDoc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
@@ -104,22 +104,28 @@ export default function ImoveisPage() {
     const { limits, canAddNewProperty, currentPropertiesCount } = usePlan();
     const [activeTab, setActiveTab] = useState<'ativo' | 'vendido' | 'alugado'>('ativo');
     const [searchTerm, setSearchTerm] = useState('');
+    const [needsRefetch, setNeedsRefetch] = useState(false);
 
+    // This is the core optimization. Instead of fetching all documents,
+    // we create a specific query based on the active tab.
     const propertiesQuery = useMemoFirebase(() => {
-        if (!user || !firestore) return null;
+        if (!firestore || !user) return null;
         
         let q = query(collection(firestore, `agents/${user.uid}/properties`));
 
         if (activeTab === 'ativo') {
+            // Firestore queries for "not equal" are tricky. It's often easier to query for the statuses you DON'T want.
+            // But since a new property's status might be null or 'ativo', we query for what we want.
             q = query(q, where('status', 'in', ['ativo', null]));
         } else {
             q = query(q, where('status', '==', activeTab));
         }
         return q;
-    }, [firestore, user, activeTab]);
+    }, [firestore, user, activeTab, needsRefetch]);
 
     const { data: properties, isLoading, error, mutate } = useCollection<Property>(propertiesQuery);
     
+    // Client-side search on the already-filtered data from Firestore
     const filteredProperties = useMemo(() => {
         if (!properties) return [];
         if (!searchTerm) return properties;
@@ -134,24 +140,40 @@ export default function ImoveisPage() {
 
     
     const handleDeleteProperty = async (id: string) => {
-        if (!firestore || !user) return toast({ title: 'Erro de Autenticação', variant: 'destructive'});
+        if (!firestore || !user) {
+            toast({ 
+                title: 'Erro de Autenticação',
+                description: 'Você precisa estar logado para excluir um imóvel.',
+                variant: 'destructive'
+            });
+            return;
+        };
         
-        if (!window.confirm("Tem certeza que deseja excluir este imóvel? Esta ação não pode ser desfeita.")) return;
+        if (!window.confirm("Tem certeza que deseja excluir este imóvel? Esta ação não pode ser desfeita.")) {
+            return;
+        }
 
         const docRef = doc(firestore, `agents/${user.uid}/properties`, id);
         
         try {
             await deleteDoc(docRef);
-            mutate();
+            mutate(); // Re-trigger the useCollection hook
             toast({ title: 'Imóvel excluído com sucesso!' });
         } catch (error) {
             console.error("Erro ao excluir imóvel: ", error);
-            toast({ title: 'Erro ao excluir', variant: 'destructive'});
+            toast({ 
+                title: 'Erro ao excluir',
+                description: 'Não foi possível remover o imóvel. Tente novamente.',
+                variant: 'destructive'
+            });
         }
     };
     
     const handleStatusChange = () => {
+        // Trigger a refetch of the current query
         mutate();
+        // A more robust way if properties move between tabs
+        setNeedsRefetch(prev => !prev);
     }
     
     const canAdd = canAddNewProperty();
@@ -176,7 +198,7 @@ export default function ImoveisPage() {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <span tabIndex={0}>
+                          <span tabIndex={0}> {/* Wrapper for Tooltip when button is disabled */}
                             <Button asChild variant="outline" disabled={!limits.canImportCSV}>
                                <Link href="/imoveis/importar">
                                   <Upload className="mr-2 h-4 w-4" />

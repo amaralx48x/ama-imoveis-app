@@ -117,7 +117,6 @@
           "type": "object",
           "description": "Settings to control the visibility of sections on the public site.",
           "properties": {
-            "heroImageUrl": { "type": "string", "format": "uri", "description": "URL for the agent's custom hero image." },
             "theme": { "type": "string", "enum": ["light", "dark"], "description": "The color theme for the site and dashboard.", "default": "dark" },
             "siteStatus": { "type": "boolean", "description": "Controls the public visibility of the agent's site.", "default": true },
             "showFinancing": { "type": "boolean", "description": "Show or hide the financing simulation button." },
@@ -219,8 +218,8 @@
       "type": "object",
       "description": "Stores content for the public marketing page.",
       "properties": {
-        "hero_image_url": { "type": "string", "format": "uri", "description": "URL for the main hero image." },
-        "feature_video_url": { "type": "string", "format": "uri", "description": "URL for the feature video section." },
+        "hero_media_url": { "type": "string", "format": "uri", "description": "URL for the main hero media (video or image)." },
+        "hero_media_type": { "type": "string", "enum": ["image", "video"], "description": "Type of the hero media." },
         "section2_image": { "type": "string", "format": "uri" },
         "section3_image": { "type": "string", "format": "uri" },
         "section4_image1": { "type": "string", "format": "uri" },
@@ -229,10 +228,24 @@
         "section5_image2": { "type": "string", "format": "uri" },
         "section6_image": { "type": "string", "format": "uri" }
       }
+    },
+    "SeoSettings": {
+      "title": "SEO Settings",
+      "type": "object",
+      "description": "Represents the SEO settings for a specific page.",
+      "properties": {
+        "id": { "type": "string", "description": "The page identifier (e.g., 'homepage')." },
+        "title": { "type": "string", "description": "The meta title for the page." },
+        "description": { "type": "string", "description": "The meta description for the page." },
+        "keywords": { "type": "array", "items": { "type": "string" }, "description": "Keywords for the page." },
+        "image": { "type": "string", "format": "uri", "description": "URL for the Open Graph image." },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "description"]
     }
   },
   "auth": {
-    "providers": ["password", "anonymous", "google.com"]
+    "providers": ["password", "anonymous"]
   },
   "firestore": {
     "collections": [
@@ -266,7 +279,7 @@
         "schema": { "$ref": "#/entities/Lead" },
         "description": "Stores leads generated from contact forms for a specific agent."
       },
-      {
+       {
         "path": "/supportMessages/{messageId}",
         "schema": { "$ref": "#/entities/SupportMessage" },
         "description": "Stores all support tickets from all users for admin review."
@@ -275,6 +288,11 @@
         "path": "/marketing/content",
         "schema": { "$ref": "#/entities/MarketingContent" },
         "description": "Stores content for the public marketing page. This is a single-document collection."
+      },
+      {
+        "path": "/seo/{pageId}",
+        "schema": { "$ref": "#/entities/SeoSettings" },
+        "description": "Stores dynamic SEO settings for various pages of the marketing and agent sites."
       }
     ]
   }

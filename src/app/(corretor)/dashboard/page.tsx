@@ -76,7 +76,7 @@ export default function DashboardPage() {
         ?.filter(p => {
             if (!['vendido', 'alugado'].includes(p.status || '') || !p.soldAt) return false;
             
-            const soldDate = p.soldAt.toDate ? p.soldAt.toDate() : new Date(p.soldAt);
+            const soldDate = p.soldAt.toDate();
             return isSameMonth(soldDate, new Date());
         })
         .reduce((sum, p) => sum + (p.commissionValue || 0), 0) || 0;
@@ -84,7 +84,7 @@ export default function DashboardPage() {
     const dealsThisMonthCount = properties
         ?.filter(p => {
             if (!['vendido', 'alugado'].includes(p.status || '') || !p.soldAt) return false;
-            const soldDate = p.soldAt.toDate ? p.soldAt.toDate() : new Date(p.soldAt);
+            const soldDate = p.soldAt.toDate();
             return isSameMonth(soldDate, new Date());
         }).length || 0;
 

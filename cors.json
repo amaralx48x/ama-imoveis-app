@@ -1,8 +1,14 @@
 [
   {
-    "origin": ["*"],
-    "method": ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
-    "responseHeader": ["Content-Type", "Authorization", "x-goog-meta-*"],
+    "origin": [
+      "*://*.cloudworkstations.dev",
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "https://studio--studio-7095998453-3cbf3.us-central1.hosted.app",
+      "https://SEU-DOMINIO-OFICIAL.com"
+    ],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+    "responseHeader": ["Content-Type", "x-goog-meta-*", "Authorization"],
     "maxAgeSeconds": 3600
   }
 ]

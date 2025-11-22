@@ -36,7 +36,6 @@ export default function LeadsPage({ agentId }: Props) {
 
   useEffect(() => {
     if (!firestore) return;
-
     const q = query(collection(firestore, leadsRefPath), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(q, (snap) => {
       const docs = snap.docs.map(d => {
@@ -305,3 +304,5 @@ export default function LeadsPage({ agentId }: Props) {
     </div>
   );
 }
+
+    

@@ -72,7 +72,6 @@ export default function AvaliacoesPage() {
 
     const loadReviews = useCallback(async () => {
         if (!reviewsCollection) return;
-
         setLoading(true);
         setError(null);
         try {

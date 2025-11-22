@@ -19,12 +19,12 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, googleProvider, signInWithPopup, saveUserToFirestore } from '@/firebase';
+import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useFirestore, useUser, googleProvider, signInWithRedirect, getRedirectResult, saveUserToFirestore } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
+import { setDoc, doc } from 'firebase/firestore';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
-import { Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um email válido." }),
@@ -53,20 +53,43 @@ const GoogleIcon = () => (
     </svg>
   );
 
-function LoginPageContent() {
+export default function LoginPage() {
     const { toast } = useToast();
     const auth = useAuth();
     const { user, isUserLoading } = useUser();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
-    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+    const [isGoogleLoading, setIsGoogleLoading] = useState(true); // Start true to handle redirect
 
+    // Redirect if user is already logged in
     useEffect(() => {
-        // Redireciona se o usuário já estiver logado
         if (!isUserLoading && user) {
             router.replace('/dashboard');
         }
     }, [user, isUserLoading, router]);
+
+    // Handle Google Redirect Result
+    useEffect(() => {
+        if (!auth) return;
+        getRedirectResult(auth)
+            .then(async (result) => {
+                if (result) {
+                    await saveUserToFirestore(result.user, {
+                        displayName: result.user.displayName,
+                        name: result.user.displayName,
+                        accountType: 'corretor',
+                    });
+                    toast({ title: "Login bem-sucedido!" });
+                    router.push('/dashboard');
+                } else {
+                    setIsGoogleLoading(false); // No redirect result, stop loading
+                }
+            })
+            .catch((error) => {
+                handleAuthError(error as FirebaseError);
+                setIsGoogleLoading(false);
+            });
+    }, [auth, router, toast]);
 
     const loginForm = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
@@ -85,7 +108,9 @@ function LoginPageContent() {
         switch (error.code) {
             case 'auth/cancelled-popup-request':
             case 'auth/popup-closed-by-user':
-                return; 
+                title = "Login Cancelado";
+                description = "A janela de login foi fechada antes da conclusão.";
+                break;
             case 'auth/user-not-found':
             case 'auth/wrong-password':
             case 'auth/invalid-credential':
@@ -103,10 +128,6 @@ function LoginPageContent() {
             case 'auth/invalid-email':
                 title = "E-mail Inválido";
                 description = "O formato do e-mail fornecido não é válido.";
-                break;
-            case 'auth/account-exists-with-different-credential':
-                title = "Conta já existe";
-                description = "Já existe uma conta com este e-mail. Tente fazer login com o método original (ex: E-mail e Senha).";
                 break;
         }
 
@@ -126,7 +147,7 @@ function LoginPageContent() {
                 title: "Login bem-sucedido!",
                 description: "Redirecionando para o seu painel...",
             });
-            router.push('/dashboard');
+            // Let the useEffect handle the redirect
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -150,7 +171,7 @@ function LoginPageContent() {
                 title: "Conta criada com sucesso!",
                 description: "Redirecionando para o seu painel...",
             });
-            router.push('/dashboard');
+             // Let the useEffect handle the redirect
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -161,21 +182,9 @@ function LoginPageContent() {
     async function handleGoogleLogin() {
         if (!auth) return;
         setIsGoogleLoading(true);
-        try {
-            const result = await signInWithPopup(auth, googleProvider);
-            await saveUserToFirestore(result.user, {
-                displayName: result.user.displayName,
-                name: result.user.displayName,
-                accountType: 'corretor',
-            });
-            toast({ title: "Login bem-sucedido!" });
-            router.push('/dashboard');
-        } catch (error) {
-            handleAuthError(error as FirebaseError);
-        } finally {
-            setIsGoogleLoading(false);
-        }
+        signInWithRedirect(auth, googleProvider);
     }
+
 
     if (isUserLoading || user) {
         return (
@@ -184,6 +193,7 @@ function LoginPageContent() {
              </div>
         )
     }
+
 
     return (
         <div className="relative min-h-screen flex items-center justify-center p-4">
@@ -232,7 +242,7 @@ function LoginPageContent() {
                                             <FormControl><Input type="password" placeholder="********" {...field} /></FormControl><FormMessage /></FormItem>
                                     )} />
                                     <Button type="submit" size="lg" className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity" disabled={isLoading}>
-                                        {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Entrando...</> : 'Entrar'}
+                                        {isLoading ? 'Entrando...' : 'Entrar'}
                                     </Button>
                                 </form>
                             </Form>
@@ -242,14 +252,6 @@ function LoginPageContent() {
                                 <CardTitle className="text-2xl font-bold font-headline">Crie sua Conta</CardTitle>
                                 <CardDescription>Comece a gerenciar seus imóveis hoje mesmo.</CardDescription>
                             </CardHeader>
-                            <Button variant="outline" className="w-full mb-4" onClick={handleGoogleLogin} disabled={isGoogleLoading}>
-                                {isGoogleLoading ? "Aguardando..." : <><GoogleIcon /> <span className="ml-2">Continuar com Google</span></>}
-                            </Button>
-                             <div className="flex items-center my-4">
-                                <Separator className="flex-1" />
-                                <span className="px-4 text-xs text-muted-foreground">OU</span>
-                                <Separator className="flex-1" />
-                            </div>
                             <Form {...signUpForm}>
                                 <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4">
                                      <FormField control={signUpForm.control} name="displayName" render={({ field }) => (
@@ -302,7 +304,7 @@ function LoginPageContent() {
                                         <FormItem><FormLabel>Confirmar Senha</FormLabel><FormControl><Input type="password" placeholder="Repita a senha" {...field} /></FormControl><FormMessage /></FormItem>
                                     )} />
                                     <Button type="submit" size="lg" className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity" disabled={isLoading}>
-                                         {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando conta...</> : 'Criar Conta com E-mail'}
+                                         {isLoading ? 'Criando conta...' : 'Criar Conta com E-mail'}
                                     </Button>
                                 </form>
                             </Form>
@@ -312,10 +314,4 @@ function LoginPageContent() {
             </Tabs>
         </div>
     );
-}
-
-export default function LoginPage() {
-    return (
-        <LoginPageContent />
-    )
 }
