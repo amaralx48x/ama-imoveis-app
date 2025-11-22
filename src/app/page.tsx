@@ -1,44 +1,13 @@
-import type { Metadata } from "next";
+
+'use client';
+
 import MarketingClientPage from "./marketing-client-page";
-import { getSEO } from "@/firebase/server-actions/seo";
-import { getFirebaseServer } from "@/firebase/server-init";
-import { doc, getDoc } from "firebase/firestore";
-import type { MarketingContent } from "@/lib/data";
 
-
-export async function generateMetadata(): Promise<Metadata> {
-  const seoData = await getSEO("homepage");
-  
-  const title = seoData?.title || "AMA Imóveis - A plataforma para corretores";
-  const description = seoData?.description || "Gerencie anúncios, leads, visitas e comissões — tudo num só lugar.";
-  const keywords = seoData?.keywords || ["imobiliária", "corretor de imóveis", "crm imobiliário", "site para corretor"];
-  const imageUrl = seoData?.image || "";
-
-  return {
-    title,
-    description,
-    keywords,
-    openGraph: {
-      title,
-      description,
-      images: imageUrl ? [imageUrl] : [],
-    },
-  };
-}
-
-async function getMarketingContent() {
-  const { firestore } = getFirebaseServer();
-  const marketingRef = doc(firestore, 'marketing', 'content');
-  const marketingSnap = await getDoc(marketingRef);
-
-  if (marketingSnap.exists()) {
-    // Usar JSON.parse(JSON.stringify(...)) para garantir que o objeto seja serializável
-    return JSON.parse(JSON.stringify(marketingSnap.data())) as MarketingContent;
-  }
-  return null;
-}
-
-export default async function MarketingPage() {
-  const content = await getMarketingContent();
-  return <MarketingClientPage content={content} />;
+/**
+ * Este é o ponto de entrada principal para a rota '/'.
+ * Ele renderiza um único componente cliente que encapsula toda a lógica 
+ * da página de marketing para garantir uma renderização consistente.
+ */
+export default function MarketingPage() {
+  return <MarketingClientPage />;
 }

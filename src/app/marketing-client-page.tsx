@@ -1,7 +1,7 @@
 
 'use client'
 
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import type { MarketingContent } from "@/lib/data";
@@ -9,6 +9,9 @@ import { Search, Share2 } from "lucide-react";
 import Image from 'next/image';
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { MarketingHero } from "@/components/marketing-hero";
+import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const fadeUpContainer = {
   hidden: { opacity: 0 },
@@ -23,7 +26,31 @@ const fadeUpItem = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
 
-export default function MarketingClientPage({ content }: { content: MarketingContent | null }) {
+function LoadingSkeleton() {
+  return (
+    <div className="min-h-screen bg-black">
+      <header className="sticky top-0 z-50 border-b border-white/10 backdrop-blur-sm">
+         <div className="container mx-auto flex items-center justify-between px-6 py-4">
+            <Skeleton className="h-10 w-48" />
+            <Skeleton className="h-10 w-64" />
+        </div>
+      </header>
+      <main>
+        <section className="relative min-h-[70vh] flex items-center justify-center">
+            <Skeleton className="w-full h-full absolute inset-0"/>
+        </section>
+      </main>
+    </div>
+  )
+}
+
+export default function MarketingClientPage() {
+  const firestore = useFirestore();
+  const marketingRef = useMemoFirebase(
+    () => (firestore ? doc(firestore, 'marketing', 'content') : null),
+    [firestore]
+  );
+  const { data: content, isLoading } = useDoc<MarketingContent>(marketingRef);
   
   const getImage = (field: keyof MarketingContent, defaultSeed: string) => {
     // @ts-ignore
@@ -33,10 +60,14 @@ export default function MarketingClientPage({ content }: { content: MarketingCon
     return placeholder?.imageUrl || `https://picsum.photos/seed/${defaultSeed}/1200/800`;
   };
 
+  if (isLoading) {
+    return <LoadingSkeleton />;
+  }
+
   return (
     <div className="min-h-screen text-white bg-black">
       {/* NAV */}
-      <header className="sticky top-0 z-50 border-b border-white/6 backdrop-blur-sm">
+      <header className="sticky top-0 z-50 border-b border-white/10 backdrop-blur-sm">
         <div className="container mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm bg-primary">
