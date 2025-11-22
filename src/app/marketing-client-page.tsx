@@ -55,7 +55,7 @@ function MarketingHero({ content }: HeroProps) {
                 src={mediaUrl}
                 alt="Plataforma para corretores e imobiliárias"
                 fill
-                priority // Essencial para LCP (Largest Contentful Paint) e SEO
+                priority
                 className="object-cover brightness-50"
                 sizes="100vw"
               />
@@ -365,5 +365,3 @@ export default function MarketingClientPage() {
     </div>
   );
 }
-
-    
