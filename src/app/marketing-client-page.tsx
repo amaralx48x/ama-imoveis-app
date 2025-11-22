@@ -9,11 +9,9 @@ import { doc } from "firebase/firestore";
 import type { MarketingContent } from "@/lib/data";
 import { Search, Share2 } from "lucide-react";
 import Image from 'next/image';
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
-// --- Início do Novo Componente Hero (Reconstruído) ---
-interface HeroProps {
-  content?: MarketingContent | null;
-}
+// --- Hero Section Rebuilt From Scratch ---
 
 const fadeUpContainer = {
   hidden: { opacity: 0 },
@@ -28,19 +26,22 @@ const fadeUpItem = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
 
-function MarketingHero({ content }: HeroProps) {
-  const mediaUrl = content?.hero_media_url;
-  const mediaType = content?.hero_media_type;
+function RebuiltMarketingHero({ content, isLoading }: { content?: MarketingContent | null, isLoading: boolean }) {
+  // Use the uploaded media if available, otherwise use a default placeholder
+  const defaultHeroImage = PlaceHolderImages.find(img => img.id === 'hero-background');
+  const mediaUrl = content?.hero_media_url || defaultHeroImage?.imageUrl;
+  const mediaType = content?.hero_media_url ? content.hero_media_type : 'image';
 
   return (
     <section className="relative min-h-[70vh] flex items-center justify-center text-white text-center py-20 px-6 overflow-hidden">
       
-      {/* --- BACKGROUND (Renderizado no Servidor para evitar piscar) --- */}
+      {/* --- BACKGROUND (Renders on Server, loads instantly) --- */}
       <div className="absolute inset-0 -z-20 bg-black">
-        {mediaUrl ? (
+        {mediaUrl && (
           <>
             {mediaType === 'video' ? (
               <video
+                key={mediaUrl} // Key helps React differentiate if URL changes
                 src={mediaUrl}
                 autoPlay
                 loop
@@ -53,19 +54,16 @@ function MarketingHero({ content }: HeroProps) {
                 src={mediaUrl}
                 alt="Plataforma para corretores e imobiliárias"
                 fill
-                priority
+                priority // Crucial for LCP (Largest Contentful Paint)
                 className="object-cover brightness-50"
                 sizes="100vw"
               />
             )}
           </>
-        ) : (
-           // Fallback se não houver mídia, um fundo escuro sólido
-          <div className="absolute inset-0 bg-gray-900" />
         )}
       </div>
 
-      {/* --- CONTEÚDO DE TEXTO (Animado no Cliente) --- */}
+      {/* --- TEXT CONTENT (Animates on client) --- */}
       <motion.div 
         variants={fadeUpContainer}
         initial="hidden"
@@ -113,7 +111,6 @@ function MarketingHero({ content }: HeroProps) {
     </section>
   );
 }
-// --- Fim do Novo Componente Hero ---
 
 
 export default function MarketingClientPage() {
@@ -157,7 +154,7 @@ export default function MarketingClientPage() {
       </header>
       
       {/* HERO */}
-      <MarketingHero content={marketingData} />
+      <RebuiltMarketingHero content={marketingData} isLoading={isLoading} />
 
       {/* MAIN CONTENT */}
       <main className="container mx-auto px-6 py-20">
@@ -205,12 +202,12 @@ export default function MarketingClientPage() {
            <div className="relative h-80 lg:h-96">
               <motion.div initial={{ opacity: 0, x: -20, rotate: -5 }} whileInView={{ opacity: 1, x: 0, rotate: -8 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }} className="absolute top-0 left-0 w-3/4 rounded-lg overflow-hidden shadow-lg border border-white/10">
                   <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
-                    <img src={getImage('section2_image', "https://picsum.photos/seed/page1/1200/800")} alt="Visão do painel" width={1200} height={800} className="object-cover" />
+                    <Image src={getImage('section2_image', "https://picsum.photos/seed/page1/1200/800")} alt="Visão do painel" width={1200} height={800} className="object-cover" />
                   </React.Suspense>
               </motion.div>
               <motion.div initial={{ opacity: 0, x: 20, rotate: 5 }} whileInView={{ opacity: 1, x: 0, rotate: 2 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }} className="absolute bottom-0 right-0 w-3/4 rounded-lg overflow-hidden shadow-2xl border border-white/10">
                    <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
-                    <img src={getImage('section4_image1', "https://picsum.photos/seed/page2/600/400")} alt="Detalhe do painel" width={600} height={400} className="object-cover" />
+                    <Image src={getImage('section4_image1', "https://picsum.photos/seed/page2/600/400")} alt="Detalhe do painel" width={600} height={400} className="object-cover" />
                   </React.Suspense>
               </motion.div>
           </div>
@@ -232,7 +229,7 @@ export default function MarketingClientPage() {
           </div>
           <div className="rounded-xl overflow-hidden shadow-lg h-full lg:order-first aspect-[4/3]">
             <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
-                <img 
+                <Image 
                     src={getImage('section3_image', "https://picsum.photos/seed/agent-site/1200/800")} 
                     alt="Site público do corretor" 
                     width={1200} height={900} 
@@ -276,7 +273,7 @@ export default function MarketingClientPage() {
             </div>
              <div className="rounded-xl overflow-hidden shadow-lg h-full aspect-video">
                 <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
-                    <img 
+                    <Image 
                         src={getImage('section6_image', "https://picsum.photos/seed/seo-example/1200/630")} 
                         alt="Exemplo de SEO" 
                         width={1200} height={630} 
@@ -363,5 +360,3 @@ export default function MarketingClientPage() {
     </div>
   );
 }
-
-    
