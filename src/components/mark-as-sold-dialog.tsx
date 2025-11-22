@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import {
@@ -37,7 +36,7 @@ export function MarkAsSoldDialog({ isOpen, onOpenChange, property, onConfirm }: 
   );
   const { data: agentData } = useDoc<Agent>(agentRef);
   
-  const isForSale = property.operation === 'Comprar';
+  const isForSale = property.operation === 'Venda';
   const newStatus = isForSale ? 'vendido' : 'alugado';
 
   const defaultCommission = isForSale 

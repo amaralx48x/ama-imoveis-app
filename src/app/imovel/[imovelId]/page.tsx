@@ -1,4 +1,3 @@
-
 'use client';
 
 import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
@@ -9,10 +8,11 @@ import { Footer } from "@/components/layout/footer";
 import { PropertyView } from '@/components/imovel/PropertyView';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useFirestore } from '@/firebase';
 import { RelatedProperties } from '@/components/imovel/RelatedProperties';
 import { getProperties as getStaticProperties } from '@/lib/data';
+import { Skeleton } from '@/components/ui/skeleton';
 
 function BackButton() {
     const router = useRouter();
@@ -24,12 +24,50 @@ function BackButton() {
     );
 }
 
-type Props = {
-  params: { imovelId: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-};
+function LoadingSkeleton() {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Skeleton className="h-10 w-32 mb-6" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+                <Card>
+                    <CardHeader className="p-0">
+                        <Skeleton className="aspect-video w-full rounded-t-lg" />
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                        <Skeleton className="h-6 w-1/4 mb-2" />
+                        <Skeleton className="h-10 w-3/4 mb-2" />
+                        <Skeleton className="h-6 w-1/2 mb-4" />
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 my-4">
+                            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+                        </div>
+                        <Skeleton className="h-5 w-1/3 my-6" />
+                        <Skeleton className="h-4 w-full mb-2" />
+                        <Skeleton className="h-4 w-full mb-2" />
+                        <Skeleton className="h-4 w-5/6" />
+                    </CardContent>
+                </Card>
+            </div>
+            <div className="lg:col-span-1">
+                <Card className="sticky top-24">
+                    <CardContent className="pt-6 space-y-3">
+                       <Skeleton className="h-8 w-full" />
+                       <Skeleton className="h-12 w-full" />
+                       <Skeleton className="h-12 w-full" />
+                       <Skeleton className="h-12 w-full" />
+                       <Skeleton className="h-12 w-full" />
+                       <div className="flex justify-center gap-3 pt-4">
+                            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-11 w-11 rounded-full" />)}
+                       </div>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+      </div>
+    )
+}
 
-export default function PropertyPage({ }: Props) {
+export default function PropertyPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   
@@ -60,12 +98,10 @@ export default function PropertyPage({ }: Props) {
             if (agentId) {
                 const agentRef = doc(firestore, 'agents', agentId);
                 const propertyRef = doc(firestore, `agents/${agentId}/properties`, imovelId);
-                const allPropertiesQuery = query(collection(firestore, `agents/${agentId}/properties`), where('status', '==', 'ativo'));
                 
-                const [agentSnap, propertySnap, allPropertiesSnap] = await Promise.all([
+                const [agentSnap, propertySnap] = await Promise.all([
                   getDoc(agentRef),
                   getDoc(propertyRef),
-                  getDocs(allPropertiesQuery)
                 ]);
 
                 if (propertySnap.exists()) {
@@ -74,10 +110,12 @@ export default function PropertyPage({ }: Props) {
 
                 if (agentSnap.exists()) {
                     agent = { id: agentSnap.id, ...(agentSnap.data() as Omit<Agent, 'id'>) };
-                }
-
-                if (!allPropertiesSnap.empty) {
-                    relatedProps = allPropertiesSnap.docs.map(d => ({ ...(d.data() as Omit<Property, 'id'>), id: d.id, agentId }));
+                    // If agent is found, fetch their properties for "related" section
+                    const allPropertiesQuery = query(collection(firestore, `agents/${agentId}/properties`), where('status', '==', 'ativo'));
+                    const allPropertiesSnap = await getDocs(allPropertiesQuery);
+                    if (!allPropertiesSnap.empty) {
+                        relatedProps = allPropertiesSnap.docs.map(d => ({ ...(d.data() as Omit<Property, 'id'>), id: d.id, agentId }));
+                    }
                 }
             }
 
@@ -86,16 +124,20 @@ export default function PropertyPage({ }: Props) {
                 const staticProperties = getStaticProperties();
                 const staticProp = staticProperties.find(p => p.id === imovelId);
                 if (staticProp) {
-                    property = { ...staticProp, agentId: agentId || 'exemplo' }; // Garante agentId para o link
-                    // Se o corretor não foi encontrado, usamos um mock para os exemplos
-                    if (!agent && agentId) {
-                         const agentRef = doc(firestore, 'agents', agentId);
-                         const agentSnap = await getDoc(agentRef);
-                         if(agentSnap.exists()){
-                            agent = { id: agentSnap.id, ...(agentSnap.data() as Omit<Agent, 'id'>) };
-                         }
-                    }
+                    property = { ...staticProp, agentId: agentId || 'exemplo' }; 
                     relatedProps = staticProperties;
+                     // Se o corretor não foi encontrado, usamos um mock para os exemplos
+                    if (!agent && agentId) {
+                        if (agentId === 'exemplo') {
+                             agent = { id: 'exemplo', name: 'Imóveis Exemplo' } as Agent;
+                        } else {
+                            const agentRef = doc(firestore, 'agents', agentId);
+                            const agentSnap = await getDoc(agentRef);
+                            if(agentSnap.exists()){
+                                agent = { id: agentSnap.id, ...(agentSnap.data() as Omit<Agent, 'id'>) };
+                            }
+                        }
+                    }
                 }
             }
 
@@ -120,10 +162,8 @@ export default function PropertyPage({ }: Props) {
     return (
       <>
         <Header agentId={agentId || undefined} />
-        <main className="min-h-[calc(100vh-theme(spacing.14)-theme(spacing.32))] container mx-auto px-4 py-8">
-             <div className="flex items-center justify-center h-64">
-                <div className="w-12 h-12 border-4 border-dashed rounded-full animate-spin border-primary"></div>
-            </div>
+        <main className="min-h-screen">
+          <LoadingSkeleton />
         </main>
         <Footer agentId={agentId || undefined} />
       </>

@@ -1,4 +1,3 @@
-
 import type { Metadata } from "next";
 import AgentPageClient from "@/app/corretor/[agentId]/agent-page-client";
 import { getFirebaseServer } from "@/firebase/server-init";
@@ -12,56 +11,56 @@ import { getSEO } from "@/firebase/server-actions/seo";
 async function getAgentData(agentId: string) {
   const { firestore } = getFirebaseServer();
   
+  // Early exit for example page to avoid unnecessary Firestore calls
+  if (agentId === 'exemplo') {
+    const exampleAgent: Agent = {
+      id: 'exemplo',
+      displayName: 'Corretor Exemplo',
+      name: 'Imóveis Exemplo',
+      accountType: 'corretor',
+      description: 'Este é um perfil de demonstração para mostrar como seu site público pode parecer. Todas as informações e imóveis aqui são fictícios.',
+      email: 'contato@exemplo.com',
+      creci: '000000-F',
+      photoUrl: 'https://images.unsplash.com/photo-1581065178047-8ee15951ede6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjE5NTYzOTR8MA&ixlib=rb-4.1.0&q=80&w=1080',
+      siteSettings: {
+          showReviews: true,
+          socialLinks: [
+              { id: '1', label: 'WhatsApp', url: '5511999999999', icon: 'whatsapp' },
+              { id: '2', label: 'Instagram', url: 'seu_usuario', icon: 'instagram' },
+          ]
+      }
+    };
+    const allProperties = getStaticProperties().map(p => ({...p, agentId: 'exemplo'}));
+    const reviews = getStaticReviews();
+    
+    return { 
+        agent: JSON.parse(JSON.stringify(exampleAgent)),
+        allProperties: JSON.parse(JSON.stringify(allProperties)), 
+        customSections: [],
+        reviews: JSON.parse(JSON.stringify(reviews)),
+    };
+  }
+
   const agentRef = doc(firestore, 'agents', agentId);
+  const agentSnap = await getDoc(agentRef);
+
+  if (!agentSnap.exists() || (agentSnap.data() as Agent).siteSettings?.siteStatus === false) {
+    return null;
+  }
+
+  const agent = { id: agentSnap.id, ...agentSnap.data() } as Agent;
+
   const propertiesRef = collection(firestore, `agents/${agentId}/properties`);
   const sectionsRef = collection(firestore, `agents/${agentId}/customSections`);
   const reviewsRef = collection(firestore, `agents/${agentId}/reviews`);
 
   try {
-    const [agentSnap, propertiesSnap, sectionsSnap, reviewsSnap] = await Promise.all([
-      getDoc(agentRef),
+    const [propertiesSnap, sectionsSnap, reviewsSnap] = await Promise.all([
       getDocs(query(propertiesRef, where('status', '==', 'ativo'))),
       getDocs(query(sectionsRef, orderBy('order', 'asc'))),
       getDocs(query(reviewsRef, where('approved', '==', true), limit(10))),
     ]);
 
-    // Lógica para a página de exemplo
-    if (agentId === 'exemplo') {
-        const exampleAgent: Agent = {
-            id: 'exemplo',
-            displayName: 'Corretor Exemplo',
-            name: 'Imóveis Exemplo',
-            accountType: 'corretor',
-            description: 'Este é um perfil de demonstração para mostrar como seu site público pode parecer. Todas as informações e imóveis aqui são fictícios.',
-            email: 'contato@exemplo.com',
-            creci: '000000-F',
-            photoUrl: 'https://images.unsplash.com/photo-1581065178047-8ee15951ede6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjE5NTYzOTR8MA&ixlib=rb-4.1.0&q=80&w=1080',
-            siteSettings: {
-                showReviews: true,
-                socialLinks: [
-                    { id: '1', label: 'WhatsApp', url: '5511999999999', icon: 'whatsapp' },
-                    { id: '2', label: 'Instagram', url: 'seu_usuario', icon: 'instagram' },
-                ]
-            }
-        };
-        const allProperties = getStaticProperties().map(p => ({...p, agentId: 'exemplo'}));
-        const reviews = getStaticReviews();
-        
-        return { 
-            agent: JSON.parse(JSON.stringify(exampleAgent)),
-            allProperties: JSON.parse(JSON.stringify(allProperties)), 
-            customSections: [],
-            reviews: JSON.parse(JSON.stringify(reviews)),
-        };
-    }
-
-
-    if (!agentSnap.exists() || (agentSnap.data() as Agent).siteSettings?.siteStatus === false) {
-      return null;
-    }
-
-    const agent = { id: agentSnap.id, ...agentSnap.data() } as Agent;
-    
     let allProperties: Property[];
     if (!propertiesSnap.empty) {
         allProperties = propertiesSnap.docs.map(d => ({ ...(d.data() as Omit<Property, 'id'>), id: d.id, agentId }) as Property);

@@ -1,11 +1,8 @@
-
 'use client'
 
 import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
-import { doc } from "firebase/firestore";
 import type { MarketingContent } from "@/lib/data";
 import { Search, Share2 } from "lucide-react";
 import Image from 'next/image';
@@ -26,7 +23,7 @@ const fadeUpItem = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
 
-function RebuiltMarketingHero({ content, isLoading }: { content?: MarketingContent | null, isLoading: boolean }) {
+function RebuiltMarketingHero({ content }: { content?: MarketingContent | null }) {
   // Use the uploaded media if available, otherwise use a default placeholder
   const defaultHeroImage = PlaceHolderImages.find(img => img.id === 'hero-background');
   const mediaUrl = content?.hero_media_url || defaultHeroImage?.imageUrl;
@@ -113,20 +110,15 @@ function RebuiltMarketingHero({ content, isLoading }: { content?: MarketingConte
 }
 
 
-export default function MarketingClientPage() {
-  const firestore = useFirestore();
-  const marketingRef = useMemoFirebase(
-    () => (firestore ? doc(firestore, "marketing", "content") : null),
-    [firestore]
-  );
-  const { data: marketingData, isLoading } = useDoc<MarketingContent>(marketingRef);
-
-  const getImage = (field: keyof MarketingContent, defaultUrl: string) => {
-    if (isLoading) return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+export default function MarketingClientPage({ content }: { content: MarketingContent | null }) {
+  
+  const getImage = (field: keyof MarketingContent, defaultSeed: string) => {
     // @ts-ignore
-    return marketingData?.[field] || defaultUrl;
+    const url = content?.[field];
+    if (url) return url;
+    const placeholder = PlaceHolderImages.find(img => img.id === defaultSeed);
+    return placeholder?.imageUrl || `https://picsum.photos/seed/${defaultSeed}/1200/800`;
   };
-
 
   return (
     <div className="min-h-screen text-white bg-black">
@@ -154,7 +146,7 @@ export default function MarketingClientPage() {
       </header>
       
       {/* HERO */}
-      <RebuiltMarketingHero content={marketingData} isLoading={isLoading} />
+      <RebuiltMarketingHero content={content} />
 
       {/* MAIN CONTENT */}
       <main className="container mx-auto px-6 py-20">
@@ -201,14 +193,10 @@ export default function MarketingClientPage() {
         <section className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center py-10">
            <div className="relative h-80 lg:h-96">
               <motion.div initial={{ opacity: 0, x: -20, rotate: -5 }} whileInView={{ opacity: 1, x: 0, rotate: -8 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }} className="absolute top-0 left-0 w-3/4 rounded-lg overflow-hidden shadow-lg border border-white/10">
-                  <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
-                    <Image src={getImage('section2_image', "https://picsum.photos/seed/page1/1200/800")} alt="Visão do painel" width={1200} height={800} className="object-cover" />
-                  </React.Suspense>
+                <Image src={getImage('section2_image', "property-1-2")} alt="Visão do painel" width={1200} height={800} className="object-cover" />
               </motion.div>
               <motion.div initial={{ opacity: 0, x: 20, rotate: 5 }} whileInView={{ opacity: 1, x: 0, rotate: 2 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }} className="absolute bottom-0 right-0 w-3/4 rounded-lg overflow-hidden shadow-2xl border border-white/10">
-                   <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
-                    <Image src={getImage('section4_image1', "https://picsum.photos/seed/page2/600/400")} alt="Detalhe do painel" width={600} height={400} className="object-cover" />
-                  </React.Suspense>
+                <Image src={getImage('section4_image1', "property-2-2")} alt="Detalhe do painel" width={600} height={400} className="object-cover" />
               </motion.div>
           </div>
           <div className="p-6 rounded-xl bg-white/5 border border-white/10 h-full flex flex-col justify-center">
@@ -228,14 +216,12 @@ export default function MarketingClientPage() {
             </p>
           </div>
           <div className="rounded-xl overflow-hidden shadow-lg h-full lg:order-first aspect-[4/3]">
-            <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
-                <Image 
-                    src={getImage('section3_image', "https://picsum.photos/seed/agent-site/1200/800")} 
-                    alt="Site público do corretor" 
-                    width={1200} height={900} 
-                    className="object-cover w-full h-full" 
-                    data-ai-hint="real estate website" />
-             </React.Suspense>
+            <Image 
+                src={getImage('section3_image', "agent-photo")} 
+                alt="Site público do corretor" 
+                width={1200} height={900} 
+                className="object-cover w-full h-full" 
+                data-ai-hint="real estate website" />
           </div>
         </section>
 
@@ -272,14 +258,12 @@ export default function MarketingClientPage() {
                 </div>
             </div>
              <div className="rounded-xl overflow-hidden shadow-lg h-full aspect-video">
-                <React.Suspense fallback={<div className="w-full h-full bg-muted animate-pulse"></div>}>
-                    <Image 
-                        src={getImage('section6_image', "https://picsum.photos/seed/seo-example/1200/630")} 
-                        alt="Exemplo de SEO" 
-                        width={1200} height={630} 
-                        className="object-cover w-full h-full" 
-                        data-ai-hint="search engine optimization" />
-                </React.Suspense>
+                <Image 
+                    src={getImage('section6_image', "property-3-1")} 
+                    alt="Exemplo de SEO" 
+                    width={1200} height={630} 
+                    className="object-cover w-full h-full" 
+                    data-ai-hint="search engine optimization" />
             </div>
         </section>
 

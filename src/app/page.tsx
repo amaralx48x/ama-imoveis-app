@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import MarketingClientPage from "./marketing-client-page";
 import { getSEO } from "@/firebase/server-actions/seo";
+import { getFirebaseServer } from "@/firebase/server-init";
+import { doc, getDoc } from "firebase/firestore";
+import type { MarketingContent } from "@/lib/data";
 
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -23,6 +26,18 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function MarketingPage() {
-  return <MarketingClientPage />;
+async function getMarketingContent() {
+  const { firestore } = getFirebaseServer();
+  const marketingRef = doc(firestore, 'marketing', 'content');
+  const marketingSnap = await getDoc(marketingRef);
+
+  if (marketingSnap.exists()) {
+    return JSON.parse(JSON.stringify(marketingSnap.data())) as MarketingContent;
+  }
+  return null;
+}
+
+export default async function MarketingPage() {
+  const content = await getMarketingContent();
+  return <MarketingClientPage content={content} />;
 }
