@@ -5,10 +5,9 @@ import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import type { MarketingContent } from "@/lib/data";
-import { Search } from "lucide-react";
+import { Search, Share2 } from "lucide-react";
 import Image from 'next/image';
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { MarketingHero } from "@/components/marketing-hero";
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -56,7 +55,7 @@ export default function MarketingClientPage() {
   );
   const { data: content, isLoading } = useDoc<MarketingContent>(marketingRef);
   
-  const getImage = (field: keyof Omit<MarketingContent, 'hero_media_type'>, defaultSeed: string) => {
+  const getImage = (field: keyof Omit<MarketingContent, 'hero_media_type' | 'hero_media_url'>, defaultSeed: string) => {
     // @ts-ignore
     const url = content?.[field];
     if (url) return url;
@@ -93,9 +92,6 @@ export default function MarketingClientPage() {
         </div>
       </header>
       
-      {/* HERO */}
-      <MarketingHero content={content} />
-
       {/* MAIN CONTENT */}
       <main className="container mx-auto px-6 py-20">
         
@@ -288,5 +284,3 @@ export default function MarketingClientPage() {
     </div>
   );
 }
-
-    
