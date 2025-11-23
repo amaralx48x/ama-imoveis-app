@@ -36,38 +36,33 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
   const fallback = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
   return (
-    <section className="relative min-h-[60vh] w-full text-white overflow-hidden">
-      
+    <section className="relative w-full text-white">
       {/* 1. Camada da Imagem/Vídeo de Fundo */}
-      {/* Esta camada preenche a seção e atua como o fundo visual. */}
-      {mediaType === 'video' && mediaUrl ? (
-        <video
-          src={mediaUrl}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-          aria-hidden
-        />
-      ) : (
-        <Image
-          src={mediaUrl || fallback}
-          alt="Imagem de apresentação de imóveis"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
-      )}
+      <div className="absolute inset-0 z-[-1] bg-black">
+        {mediaType === 'video' && mediaUrl ? (
+          <video
+            src={mediaUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover opacity-80"
+            aria-hidden
+          />
+        ) : (
+          <Image
+            src={mediaUrl || fallback}
+            alt="Imagem de apresentação de imóveis"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover opacity-80"
+          />
+        )}
+      </div>
 
-      {/* 2. Camada de Sobreposição para Legibilidade */}
-      {/* Este div fica sobre a imagem/vídeo para escurecê-la e garantir que o texto seja legível. */}
-      <div className="absolute inset-0 bg-black/50"></div>
-
-      {/* 3. Camada de Conteúdo */}
-      {/* Este div fica sobre a camada de sobreposição e centraliza o texto e os botões. */}
-      <div className="relative z-10 h-full min-h-[60vh] flex items-center justify-center text-center p-6">
+      {/* 2. Camada de Conteúdo */}
+      <div className="relative z-10 flex min-h-[80vh] items-center justify-center p-6 text-center">
         <motion.div
           variants={fadeUpContainer}
           initial="hidden"
