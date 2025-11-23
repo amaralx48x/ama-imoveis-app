@@ -7,6 +7,7 @@ import PropertyFilters from '@/components/property-filters';
 import { filterProperties, type Filters } from '@/lib/filter-logic';
 import { PropertyCard } from '@/components/property-card';
 import { getPropertyTypes } from '@/lib/data';
+import { useRouter } from 'next/navigation';
 
 interface AgentPageContentProps {
     allProperties: Property[];
@@ -14,11 +15,23 @@ interface AgentPageContentProps {
 }
 
 export function AgentPageContent({ allProperties, agent }: AgentPageContentProps) {
-    const [filteredProperties, setFilteredProperties] = useState<Property[]>(allProperties);
+    const router = useRouter();
 
     const handleFilter = (filters: Filters) => {
-        const result = filterProperties(allProperties, filters);
-        setFilteredProperties(result);
+        const queryParams = new URLSearchParams();
+        
+        // Add agentId to every search
+        if (agent.id) {
+            queryParams.set('agentId', agent.id);
+        }
+
+        Object.entries(filters).forEach(([key, value]) => {
+            if (value) {
+                queryParams.set(key, value);
+            }
+        });
+        
+        router.push(`/search-results?${queryParams.toString()}`);
     };
 
     const cities = agent.cities || [];
@@ -26,31 +39,7 @@ export function AgentPageContent({ allProperties, agent }: AgentPageContentProps
 
     return (
         <>
-            <PropertyFilters onFilter={handleFilter} agent={{...agent, cities}} propertyTypes={propertyTypes} />
-            <section className="py-16 sm:py-24 bg-background" id="imoveis">
-                <div className="container mx-auto px-4">
-                    <div className="text-center mb-12">
-                        <h2 className="text-4xl md:text-5xl font-extrabold font-headline">
-                            Nossos <span className="text-gradient">Imóveis</span>
-                        </h2>
-                        <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-                            Explore nosso portfólio completo de propriedades disponíveis.
-                        </p>
-                    </div>
-                    {filteredProperties.length > 0 ? (
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            {filteredProperties.map((property) => (
-                                <PropertyCard key={property.id} property={property} />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-16 rounded-lg border-2 border-dashed">
-                            <h2 className="text-2xl font-bold mb-2">Nenhum imóvel encontrado</h2>
-                            <p className="text-muted-foreground">Tente ajustar seus filtros ou limpar a busca.</p>
-                        </div>
-                    )}
-                </div>
-            </section>
+            {/* The PropertyFilters component is now inside the Hero component, so this is not needed here. */}
         </>
     );
 }

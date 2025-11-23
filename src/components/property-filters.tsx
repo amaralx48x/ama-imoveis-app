@@ -21,8 +21,9 @@ type PropertyFiltersProps = {
 
 export default function PropertyFilters({ agent, propertyTypes = [], onFilter }: PropertyFiltersProps) {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
-  const [operation, setOperation] = useState(searchParams.get('operation') || '');
+  const [operation, setOperation] = useState(searchParams.get('operation') || 'Venda');
   const [city, setCity] = useState(searchParams.get('city') || '');
   const [type, setType] = useState(searchParams.get('type') || '');
   const [bedrooms, setBedrooms] = useState(searchParams.get('bedrooms') || '');
@@ -48,6 +49,8 @@ export default function PropertyFilters({ agent, propertyTypes = [], onFilter }:
     if (keyword) filters.keyword = keyword;
     if (minPrice) filters.minPrice = minPrice.replace(/\D/g, '');
     if (maxPrice) filters.maxPrice = maxPrice.replace(/\D/g, '');
+
+    // Instead of navigating, call the onFilter callback
     onFilter(filters);
   };
 
@@ -85,7 +88,7 @@ export default function PropertyFilters({ agent, propertyTypes = [], onFilter }:
                         <SelectValue placeholder="Comprar ou Alugar" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="Comprar">Comprar</SelectItem>
+                        <SelectItem value="Venda">Venda</SelectItem>
                         <SelectItem value="Alugar">Alugar</SelectItem>
                     </SelectContent>
                 </Select>
