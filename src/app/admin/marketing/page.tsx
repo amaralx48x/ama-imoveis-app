@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -16,16 +16,28 @@ import {
 } from '@/components/ui/form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { setDoc, doc } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import type { MarketingContent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MonitorPlay, Loader2 } from 'lucide-react';
 import ImageUpload from '@/components/image-upload';
-import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+
+const marketingFormSchema = z.object({
+  hero_media_url: z.string().url('URL inválida').optional().or(z.literal('')),
+  hero_media_type: z.enum(['image', 'video']).optional(),
+  feature_video_url: z.string().url('URL inválida').optional().or(z.literal('')),
+  section2_image: z.string().url('URL inválida').optional().or(z.literal('')),
+  section3_image: z.string().url('URL inválida').optional().or(z.literal('')),
+  section4_image1: z.string().url('URL inválida').optional().or(z.literal('')),
+  section4_image2: z.string().url('URL inválida').optional().or(z.literal('')),
+  section5_image1: z.string().url('URL inválida').optional().or(z.literal('')),
+  section5_image2: z.string().url('URL inválida').optional().or(z.literal('')),
+  section6_image: z.string().url('URL inválida').optional().or(z.literal('')),
+});
+
 
 type ImageField = {
     name: keyof Omit<MarketingContent, 'hero_media_url' | 'hero_media_type'>;
@@ -43,17 +55,6 @@ const otherImageFields: ImageField[] = [
     { name: 'section5_image2', label: 'Seção 5: Imagem Sobreposta 4', description: 'Tamanho recomendado: 600x400' },
     { name: 'section6_image', label: 'Seção 6: Imagem de SEO', description: 'Tamanho recomendado: 1200x630' },
 ];
-
-const formSchemaDefinition = otherImageFields.reduce((acc, field) => {
-    acc[field.name] = z.string().url('URL inválida').optional().or(z.literal(''));
-    return acc;
-}, {
-    hero_media_url: z.string().url('URL inválida').optional().or(z.literal('')),
-    hero_media_type: z.enum(['image', 'video']).optional(),
-} as Record<keyof MarketingContent, z.ZodType<any, any>>);
-
-const marketingFormSchema = z.object(formSchemaDefinition);
-
 
 function MarketingFormSkeleton() {
   return (
@@ -80,7 +81,6 @@ function MarketingFormSkeleton() {
 export default function MarketingAdminPage() {
     const { toast } = useToast();
     const firestore = useFirestore();
-    const { user } = useUser();
 
     const marketingRef = useMemoFirebase(
         () => (firestore ? doc(firestore, 'marketing', 'content') : null),
@@ -201,7 +201,7 @@ export default function MarketingAdminPage() {
                                 <FormField
                                     key={fieldInfo.name}
                                     control={form.control}
-                                    name={fieldInfo.name}
+                                    name={fieldInfo.name as any}
                                     render={({ field }) => (
                                     <FormItem className="p-4 border rounded-lg space-y-4">
                                         <div>
@@ -210,7 +210,7 @@ export default function MarketingAdminPage() {
                                         </div>
                                         <FormControl>
                                         <ImageUpload
-                                                onUploadComplete={handleUploadComplete(fieldInfo.name)}
+                                                onUploadComplete={handleUploadComplete(fieldInfo.name as any)}
                                                 currentImageUrl={field.value}
                                                 agentId="marketing" // Use a dedicated folder
                                                 propertyId={fieldInfo.name} // Use field name for uniqueness
@@ -236,3 +236,5 @@ export default function MarketingAdminPage() {
         </div>
     )
 }
+
+    
