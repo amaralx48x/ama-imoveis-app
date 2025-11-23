@@ -16,6 +16,8 @@ import PropertyFilters from '@/components/property-filters';
 import { getPropertyTypes } from '@/lib/data';
 import { filterProperties, type Filters } from '@/lib/filter-logic';
 import { PropertyCard } from '@/components/property-card';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 
 
 export default function AgentPageClient({
@@ -47,7 +49,14 @@ export default function AgentPageClient({
     const result = filterProperties(allProperties, filters);
     setFilteredProperties(result);
     // Smooth scroll to results
-    document.getElementById('imoveis')?.scrollIntoView({ behavior: 'smooth' });
+    const resultsElement = document.getElementById('search-results-section');
+    if (resultsElement) {
+        resultsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const handleClearFilter = () => {
+    setFilteredProperties(null);
   };
   
   const propertyTypes = getPropertyTypes();
@@ -63,27 +72,22 @@ export default function AgentPageClient({
           </Hero>
         </div>
 
-        {/* This section will now serve as the container for dynamic results */}
-        <section className="py-16 sm:py-24 bg-background" id="imoveis">
-            <div className="container mx-auto px-4">
-                {filteredProperties !== null ? (
-                    // Displaying search results
+        {/* --- Render Search Results OR Default Sections --- */}
+
+        {filteredProperties !== null ? (
+            // Displaying search results
+            <section id="search-results-section" className="py-16 sm:py-24 bg-background">
+                <div className="container mx-auto px-4">
                      <div className="text-center mb-12">
                         <h2 className="text-4xl md:text-5xl font-extrabold font-headline">
                             Resultados da <span className="text-gradient">Busca</span> ({filteredProperties.length})
                         </h2>
+                        <Button variant="ghost" onClick={handleClearFilter} className="mt-4">
+                            <X className="mr-2 h-4 w-4" />
+                            Limpar Busca e ver destaques
+                        </Button>
                     </div>
-                ) : (
-                    // Default view before any search
-                     <div className="text-center mb-12">
-                        <h2 className="text-4xl md:text-5xl font-extrabold font-headline">
-                            Nossos <span className="text-gradient">Imóveis</span>
-                        </h2>
-                    </div>
-                )}
-                
-                {filteredProperties !== null ? (
-                    filteredProperties.length > 0 ? (
+                     {filteredProperties.length > 0 ? (
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {filteredProperties.map((property) => (
                                 <PropertyCard key={property.id} property={property} />
@@ -94,27 +98,29 @@ export default function AgentPageClient({
                             <h2 className="text-2xl font-bold mb-2">Nenhum imóvel encontrado</h2>
                             <p className="text-muted-foreground">Tente ajustar seus filtros ou limpar a busca.</p>
                         </div>
-                    )
-                ) : (
-                    // Initially, show featured properties if no search has been performed
-                    <FeaturedProperties properties={featuredProperties} agentId={agent.id} />
-                )}
-            </div>
-        </section>
-
-        {/* Render custom sections only if no search is active */}
-        {filteredProperties === null && customSections.map(section => {
-          const sectionProperties = allProperties.filter(p => (p.sectionIds || []).includes(section.id));
-          return (
-            <CustomPropertySection
-              key={section.id}
-              title={section.title}
-              properties={sectionProperties}
-              agentId={agent.id}
-              sectionId={section.id}
-            />
-          );
-        })}
+                    )}
+                </div>
+            </section>
+        ) : (
+          // Default view before any search
+          <>
+            <FeaturedProperties properties={featuredProperties} agentId={agent.id} />
+            
+            {customSections.map(section => {
+              const sectionProperties = allProperties.filter(p => (p.sectionIds || []).includes(section.id));
+              if (sectionProperties.length === 0) return null;
+              return (
+                <CustomPropertySection
+                  key={section.id}
+                  title={section.title}
+                  properties={sectionProperties}
+                  agentId={agent.id}
+                  sectionId={section.id}
+                />
+              );
+            })}
+          </>
+        )}
 
         <AgentProfile agent={agent} />
 

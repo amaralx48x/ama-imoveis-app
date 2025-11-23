@@ -21,7 +21,6 @@ type PropertyFiltersProps = {
 
 export default function PropertyFilters({ agent, propertyTypes = [], onFilter }: PropertyFiltersProps) {
   const searchParams = useSearchParams();
-  const router = useRouter();
 
   const [operation, setOperation] = useState(searchParams.get('operation') || 'Venda');
   const [city, setCity] = useState(searchParams.get('city') || '');
@@ -89,7 +88,7 @@ export default function PropertyFilters({ agent, propertyTypes = [], onFilter }:
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="Venda">Venda</SelectItem>
-                        <SelectItem value="Alugar">Alugar</SelectItem>
+                        <SelectItem value="Aluguel">Aluguel</SelectItem>
                     </SelectContent>
                 </Select>
 
