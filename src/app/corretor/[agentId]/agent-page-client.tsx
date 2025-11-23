@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -7,14 +6,13 @@ import { notFound } from 'next/navigation';
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Hero } from "@/components/hero";
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FeaturedProperties } from '@/components/featured-properties';
 import { CustomPropertySection } from '@/components/custom-property-section';
 import { AgentProfile } from '@/components/agent-profile';
 import { ClientReviews } from '@/components/client-reviews';
 import { FloatingContactButton } from '@/components/floating-contact-button';
 import PropertyFilters from '@/components/property-filters';
-import { getPropertyTypes, getReviews as getStaticReviews } from '@/lib/data';
+import { getPropertyTypes } from '@/lib/data';
 
 
 export default function AgentPageClient({
@@ -41,7 +39,7 @@ export default function AgentPageClient({
     return notFound();
   }
 
-  const heroImage = PlaceHolderImages.find(img => img.id === 'hero-background');
+  const heroImageUrl = agent.siteSettings?.heroImageUrl;
   const featuredProperties = allProperties.filter(p => (p.sectionIds || []).includes('featured') && p.status === 'ativo');
   const propertyTypes = getPropertyTypes();
   const showReviews = agent.siteSettings?.showReviews ?? true;
@@ -52,7 +50,7 @@ export default function AgentPageClient({
       <Header agent={agent} agentId={agent.id} />
       <main className="min-h-screen">
         <div className="relative mb-24 md:mb-36">
-          <Hero heroImage={heroImage}>
+          <Hero heroImageUrl={heroImageUrl}>
             <PropertyFilters agent={{...agent, cities: citiesForFilter}} propertyTypes={propertyTypes} />
           </Hero>
         </div>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from "next/image";
@@ -7,32 +6,42 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 interface HeroProps {
   children?: ReactNode;
-  heroImage?: (typeof PlaceHolderImages)[0];
+  heroImageUrl?: string | null;
 }
 
-export function Hero({ children, heroImage }: HeroProps) {
+export function Hero({ children, heroImageUrl }: HeroProps) {
+  // Garante que sempre haverá uma imagem, usando o fallback se a URL não for fornecida.
+  const fallbackImage = PlaceHolderImages.find(img => img.id === 'hero-background');
+  const finalImageUrl = heroImageUrl || fallbackImage?.imageUrl || 'https://picsum.photos/seed/hero/1920/1080';
 
   return (
     <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center text-white">
-       {heroImage && (
-        <Image
-          src={heroImage.imageUrl}
-          alt={heroImage.description}
-          fill
-          sizes="100vw"
-          className="object-cover -z-10 brightness-50"
-          data-ai-hint={heroImage.imageHint}
-          priority
-        />
-      )}
-      <div className="container mx-auto px-4 text-center z-10">
-        <h1 className="text-4xl md:text-6xl font-extrabold font-headline mb-4 animate-fade-in-up">
-          Encontre o <span className="text-gradient">Imóvel</span> dos Seus Sonhos
-        </h1>
-        <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-8">
-          As melhores oportunidades do mercado imobiliário para você.
-        </p>
+      {/* Camada da Imagem de Fundo */}
+      <Image
+        src={finalImageUrl}
+        alt="Imagem principal do site"
+        fill
+        sizes="100vw"
+        className="object-cover"
+        data-ai-hint="real estate hero"
+        priority // Garante que a imagem principal carregue primeiro
+      />
+      {/* Camada de Sobreposição para Legibilidade */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/0" />
+
+      {/* Camada de Conteúdo */}
+      <div className="relative z-10 container mx-auto px-4 text-center">
+        <div className="animate-fade-in-up">
+            <h1 className="text-4xl md:text-6xl font-extrabold font-headline mb-4">
+            Encontre o <span className="text-gradient">Imóvel</span> dos Seus Sonhos
+            </h1>
+            <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-8">
+            As melhores oportunidades do mercado imobiliário para você.
+            </p>
+        </div>
       </div>
+      
+      {/* Conteúdo Filho (Filtros) sobreposto */}
        {children && (
         <div className='absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-4 z-20'>
            {children}
