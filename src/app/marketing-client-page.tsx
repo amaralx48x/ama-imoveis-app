@@ -78,7 +78,7 @@ export default function MarketingClientPage() {
               <span className="font-bold">AMA</span>
             </div>
             <div>
-              <h1 className="text-xl font-extrabold">AMA Imobi</h1>
+              <h1 className="text-xl font-extrabold">AMA Imóveis</h1>
               <div className="text-xs text-white/50">por AMA Tecnologia</div>
             </div>
           </div>
@@ -288,7 +288,7 @@ export default function MarketingClientPage() {
             {/* Final CTA */}
             <section className="mt-20 mb-24 text-center">
               <div className="mx-auto max-w-2xl p-8 rounded-2xl border border-white/10 bg-gradient-to-b from-black/40 to-black/20">
-                <h3 className="text-2xl font-bold">Teste AMA Imobi por 7 dias — grátis</h3>
+                <h3 className="text-2xl font-bold">Teste AMA Imóveis por 7 dias — grátis</h3>
                 <p className="mt-2 text-white/70">Sem cartão no teste — experimente e veja o impacto nas suas vendas.</p>
                 <div className="mt-6 flex justify-center gap-4">
                   <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-6 py-3 rounded-lg font-semibold`}>Começar 7 dias grátis</Link>
@@ -303,7 +303,7 @@ export default function MarketingClientPage() {
       {/* FOOTER */}
       <footer className="border-t border-white/10 py-8">
         <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-white/60">© {new Date().getFullYear()} AMA Tecnologia — AMA Imobi</div>
+          <div className="text-sm text-white/60">© {new Date().getFullYear()} AMA Tecnologia. Todos os direitos reservados.</div>
           <div className="flex items-center gap-3 text-white/60">
             <a href="#" className="text-sm hover:text-white">Termos</a>
             <a href="#" className="text-sm hover:text-white">Privacidade</a>

@@ -17,7 +17,7 @@ interface HeaderProps {
 
 export function Header({ agentName, agentId, agent }: HeaderProps) {
   
-  const siteName = agent?.name || agentName || "AMA Imóveis";
+  const siteName = agent?.name || agentName || "Portal Imobiliário";
   const [isProprietarioFormOpen, setIsProprietarioFormOpen] = useState(false);
   
   const agentBaseUrl = agentId ? `/corretor/${agentId}` : '#';
