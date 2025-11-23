@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -8,12 +9,10 @@ import Link from 'next/link';
 export interface MarketingContent {
   hero_media_url?: string | null;
   hero_media_type?: 'image' | 'video' | null;
-  /** outros campos... */
 }
 
 interface MarketingHeroProps {
   content?: MarketingContent | null;
-  /** largura máxima do hero (tailwind class) */
   maxWidthClass?: string;
 }
 
@@ -28,16 +27,16 @@ const fadeUpItem = {
 };
 
 export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: MarketingHeroProps) {
-  const mediaUrl = content?.hero_media_url;
+  const mediaUrl = content?.hero_media_url || null;
   const mediaType = content?.hero_media_type ?? 'image';
 
-  // fallback seguro (1x1 transparent gif) para evitar erros de layout se não houver imagem
-  const fallback = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+  // Usando um fallback de uma imagem placeholder local se existir, ou um data URL seguro.
+  const fallback = "/hero-placeholder.jpg"; // Supondo que você adicionará este arquivo em /public
 
   return (
     <section className="relative h-screen text-white">
-      {/* Camada da imagem/vídeo */}
-      <div className="absolute inset-0 z-[-1] bg-black">
+      {/* Background */}
+      <div className="absolute inset-0 z-[-1] bg-black/40">
         {mediaType === 'video' && mediaUrl ? (
           <video
             src={mediaUrl}
@@ -45,7 +44,7 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
             loop
             muted
             playsInline
-            className="absolute inset-0 w-full h-full object-cover opacity-80"
+            className="absolute inset-0 w-full h-full object-cover opacity-70"
             aria-hidden
           />
         ) : (
@@ -54,13 +53,14 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
             alt="Imagem de apresentação"
             fill
             priority
+            unoptimized // Essencial para fallbacks ou URLs não configuradas
             sizes="100vw"
-            className="object-cover opacity-80"
+            className="object-cover opacity-70"
           />
         )}
       </div>
 
-      {/* Camada de Conteúdo sobreposta */}
+      {/* Conteúdo */}
       <div className="relative z-10 h-full flex items-center justify-center text-center p-6">
         <motion.div
           variants={fadeUpContainer}
@@ -87,6 +87,7 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
             >
               Iniciar 7 dias grátis
             </Link>
+
             <a href="#features" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10 text-sm hover:bg-white/5 transition">
               Conhecer recursos
             </a>
@@ -96,3 +97,4 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
     </section>
   );
 }
+
