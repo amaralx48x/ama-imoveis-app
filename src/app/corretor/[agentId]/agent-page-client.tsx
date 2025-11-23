@@ -1,18 +1,16 @@
+
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Agent, Property, Review, CustomSection } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Hero } from "@/components/hero";
-import { FeaturedProperties } from '@/components/featured-properties';
-import { CustomPropertySection } from '@/components/custom-property-section';
+import { AgentPageContent } from '@/components/agent-page-content';
 import { AgentProfile } from '@/components/agent-profile';
 import { ClientReviews } from '@/components/client-reviews';
 import { FloatingContactButton } from '@/components/floating-contact-button';
-import PropertyFilters from '@/components/property-filters';
-import { getPropertyTypes } from '@/lib/data';
 
 
 export default function AgentPageClient({
@@ -27,21 +25,11 @@ export default function AgentPageClient({
   reviews: Review[];
 }) {
 
-  const citiesForFilter = useMemo(() => {
-    if (!agent) return [];
-    const agentCities = agent.cities || [];
-    const propertyCities = allProperties.map(p => p.city).filter(Boolean);
-    return [...new Set([...agentCities, ...propertyCities])].sort();
-  }, [agent, allProperties]);
-
   if (!agent) {
-    // Though we check in the server component, this is a safeguard.
     return notFound();
   }
 
   const heroImageUrl = agent.siteSettings?.heroImageUrl;
-  const featuredProperties = allProperties.filter(p => (p.sectionIds || []).includes('featured') && p.status === 'ativo');
-  const propertyTypes = getPropertyTypes();
   const showReviews = agent.siteSettings?.showReviews ?? true;
   const whatsAppLink = agent.siteSettings?.socialLinks?.find(link => link.icon === 'whatsapp');
 
@@ -51,27 +39,11 @@ export default function AgentPageClient({
       <main className="min-h-screen">
         <div className="relative mb-24 md:mb-36">
           <Hero heroImageUrl={heroImageUrl}>
-            <PropertyFilters agent={{...agent, cities: citiesForFilter}} propertyTypes={propertyTypes} />
+            {/* The PropertyFilters component is now inside AgentPageContent */}
           </Hero>
         </div>
 
-        {featuredProperties.length > 0 && (
-          <FeaturedProperties properties={featuredProperties} agentId={agent.id} />
-        )}
-
-        {customSections.map(section => {
-          const sectionProperties = allProperties.filter(p => (p.sectionIds || []).includes(section.id) && p.status === 'ativo');
-          if (sectionProperties.length === 0) return null;
-          return (
-            <CustomPropertySection
-              key={section.id}
-              title={section.title}
-              properties={sectionProperties}
-              agentId={agent.id}
-              sectionId={section.id}
-            />
-          );
-        })}
+        <AgentPageContent allProperties={allProperties} agent={agent} />
 
         <AgentProfile agent={agent} />
 

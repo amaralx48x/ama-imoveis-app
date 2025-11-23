@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import type { Property, Agent } from '@/lib/data';
 import PropertyFilters from '@/components/property-filters';
-import { filterProperties } from '@/lib/filter-logic';
+import { filterProperties, type Filters } from '@/lib/filter-logic';
 import { PropertyCard } from '@/components/property-card';
 import { getPropertyTypes } from '@/lib/data';
 
@@ -16,7 +16,7 @@ interface AgentPageContentProps {
 export function AgentPageContent({ allProperties, agent }: AgentPageContentProps) {
     const [filteredProperties, setFilteredProperties] = useState<Property[]>(allProperties);
 
-    const handleFilter = (filters: any) => {
+    const handleFilter = (filters: Filters) => {
         const result = filterProperties(allProperties, filters);
         setFilteredProperties(result);
     };
@@ -26,7 +26,7 @@ export function AgentPageContent({ allProperties, agent }: AgentPageContentProps
 
     return (
         <>
-            <PropertyFilters onFilter={handleFilter} cities={cities} propertyTypes={propertyTypes} />
+            <PropertyFilters onFilter={handleFilter} agent={{...agent, cities}} propertyTypes={propertyTypes} />
             <section className="py-16 sm:py-24 bg-background" id="imoveis">
                 <div className="container mx-auto px-4">
                     <div className="text-center mb-12">
