@@ -1,3 +1,4 @@
+
 'use client';
 
 import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
@@ -13,6 +14,7 @@ import { useFirestore } from '@/firebase';
 import { RelatedProperties } from '@/components/imovel/RelatedProperties';
 import { getProperties as getStaticProperties } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 function BackButton() {
     const router = useRouter();
