@@ -30,44 +30,19 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
   const mediaUrl = content?.hero_media_url || null;
   const mediaType = content?.hero_media_type ?? 'image';
 
-  // Usando um fallback de uma imagem placeholder local se existir, ou um data URL seguro.
+  // Usando um fallback de uma imagem placeholder local.
   const fallback = "/hero-placeholder.jpg"; // Supondo que você adicionará este arquivo em /public
 
   return (
-    <section className="relative h-screen text-white">
-      {/* Background */}
-      <div className="absolute inset-0 z-[-1] bg-black/40">
-        {mediaType === 'video' && mediaUrl ? (
-          <video
-            src={mediaUrl}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover opacity-70"
-            aria-hidden
-          />
-        ) : (
-          <Image
-            src={mediaUrl || fallback}
-            alt="Imagem de apresentação"
-            fill
-            priority
-            unoptimized // Essencial para fallbacks ou URLs não configuradas
-            sizes="100vw"
-            className="object-cover opacity-70"
-          />
-        )}
-      </div>
-
-      {/* Conteúdo */}
-      <div className="relative z-10 h-full flex items-center justify-center text-center p-6">
+    <section className="text-white pt-24">
+      {/* Conteúdo de Texto */}
+      <div className="text-center p-6">
         <motion.div
           variants={fadeUpContainer}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
-          className={`${maxWidthClass} w-full`}
+          className={`${maxWidthClass} w-full mx-auto`}
         >
           <motion.h1 variants={fadeUpItem} className="text-3xl md:text-5xl font-extrabold leading-tight">
             A plataforma completa para{' '}
@@ -94,7 +69,31 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
           </motion.div>
         </motion.div>
       </div>
+
+      {/* Imagem Simples Abaixo do Texto */}
+      <div className="relative w-full max-w-5xl mx-auto mt-12 aspect-video rounded-lg overflow-hidden border border-white/10 shadow-2xl">
+        {mediaType === 'video' && mediaUrl ? (
+          <video
+            src={mediaUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+            aria-hidden
+          />
+        ) : (
+          <Image
+            src={mediaUrl || fallback}
+            alt="Apresentação da plataforma"
+            fill
+            priority
+            unoptimized
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 1280px"
+            className="object-cover"
+          />
+        )}
+      </div>
     </section>
   );
 }
-
