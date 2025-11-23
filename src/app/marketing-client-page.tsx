@@ -56,7 +56,7 @@ export default function MarketingClientPage() {
   );
   const { data: content, isLoading } = useDoc<MarketingContent>(marketingRef);
   
-  const getImage = (field: keyof Omit<MarketingContent, 'hero_media_type' | 'hero_media_url' | 'feature_video_url'>, defaultSeed: string) => {
+  const getImage = (field: keyof Omit<MarketingContent, 'hero_media_type' | 'hero_media_url' | 'feature_video_url' | 'feature_video_title'>, defaultSeed: string) => {
     // @ts-ignore
     const url = content?.[field];
     if (url) return url;
@@ -94,52 +94,7 @@ export default function MarketingClientPage() {
       </header>
       
       <main className="relative">
-        <section className="relative h-screen">
-          <div className="absolute inset-0">
-             <Image
-                src={getImage('hero_media_url' as any, 'hero-background')}
-                alt="Imagem de apresentação"
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover"
-            />
-             <div className="absolute inset-0 bg-black/50" />
-          </div>
-          <div className="relative z-10 h-full flex items-center justify-center text-center p-6">
-               <motion.div
-                variants={fadeUpContainer}
-                initial="hidden"
-                whileInView="show"
-                viewport={{ once: true }}
-                className="max-w-3xl w-full mx-auto"
-                >
-                <motion.h1 variants={fadeUpItem} className="text-3xl md:text-5xl font-extrabold leading-tight">
-                    A plataforma completa para{' '}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-indigo-400">
-                    corretores e imobiliárias
-                    </span>
-                </motion.h1>
-
-                <motion.p variants={fadeUpItem} className="mt-4 text-lg text-white/80">
-                    Gerencie anúncios, leads e comissões — tudo em um só lugar.
-                </motion.p>
-
-                <motion.div variants={fadeUpItem} className="mt-8 flex gap-3 justify-center flex-wrap">
-                    <Link
-                    href="/login"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-semibold shadow-lg"
-                    >
-                    Iniciar 7 dias grátis
-                    </Link>
-
-                    <a href="#features" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10 text-sm hover:bg-white/5 transition">
-                    Conhecer recursos
-                    </a>
-                </motion.div>
-                </motion.div>
-          </div>
-        </section>
+        <MarketingHero content={content} />
       
         <div className="relative bg-black z-10">
           <div className="container mx-auto px-6 py-20">
@@ -238,22 +193,26 @@ export default function MarketingClientPage() {
             </section>
             
             {/* Video Section */}
-            <section className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-10">
-                <div className="rounded-xl bg-white/5 border border-white/10 aspect-video overflow-hidden shadow-lg h-full flex items-center justify-center">
+            <section className="mt-16 py-10">
+                <div className="relative rounded-xl border border-white/10 aspect-video overflow-hidden shadow-lg h-full flex items-center justify-center">
                     {content?.feature_video_url ? (
-                        <video src={content.feature_video_url} controls className="w-full h-full object-cover" />
+                        <video 
+                            src={content.feature_video_url} 
+                            autoPlay 
+                            loop 
+                            muted 
+                            playsInline
+                            className="absolute inset-0 w-full h-full object-cover" 
+                        />
                     ) : (
                         <div className="text-center text-white/50 flex flex-col items-center gap-2">
                            <Video className="w-10 h-10"/>
                            <span>Vídeo de Demonstração</span>
                         </div>
                     )}
-                </div>
-                <div className="p-6 rounded-xl bg-white/5 border border-white/10 h-full flex flex-col justify-center">
-                    <h4 className="font-bold text-lg">Veja a Plataforma em Ação</h4>
-                    <p className="mt-4 text-sm text-white/70">
-                       Assista a uma rápida demonstração e descubra como nosso painel pode transformar sua rotina. Veja como é fácil cadastrar um imóvel, gerenciar seus leads e acompanhar suas comissões, tudo em uma interface limpa e eficiente. Dê o play e veja o futuro da gestão imobiliária.
-                    </p>
+                    <div className="relative z-10 text-center">
+                        <h4 className="font-extrabold text-4xl text-white drop-shadow-lg">{content?.feature_video_title || "Veja a Plataforma em Ação"}</h4>
+                    </div>
                 </div>
             </section>
 

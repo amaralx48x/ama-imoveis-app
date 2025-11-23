@@ -14,6 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -29,6 +30,7 @@ const marketingFormSchema = z.object({
   hero_media_url: z.string().url('URL inválida').optional().or(z.literal('')),
   hero_media_type: z.enum(['image', 'video']).optional(),
   feature_video_url: z.string().url('URL inválida').optional().or(z.literal('')),
+  feature_video_title: z.string().optional(),
   section2_image: z.string().url('URL inválida').optional().or(z.literal('')),
   section3_image: z.string().url('URL inválida').optional().or(z.literal('')),
   section4_image1: z.string().url('URL inválida').optional().or(z.literal('')),
@@ -40,7 +42,7 @@ const marketingFormSchema = z.object({
 
 
 type ImageField = {
-    name: keyof Omit<MarketingContent, 'hero_media_url' | 'hero_media_type' | 'feature_video_url'>;
+    name: keyof Omit<MarketingContent, 'hero_media_url' | 'hero_media_type' | 'feature_video_url' | 'feature_video_title'>;
     label: string;
     description: string;
 }
@@ -92,6 +94,7 @@ export default function MarketingAdminPage() {
         resolver: zodResolver(marketingFormSchema),
         defaultValues: {
             hero_media_type: 'image',
+            feature_video_title: "Veja a Plataforma em Ação",
         },
     });
 
@@ -100,6 +103,7 @@ export default function MarketingAdminPage() {
             form.reset({
                 ...marketingData,
                 hero_media_type: marketingData.hero_media_type || 'image',
+                feature_video_title: marketingData.feature_video_title || 'Veja a Plataforma em Ação',
             });
         }
     }, [marketingData, form]);
@@ -195,8 +199,8 @@ export default function MarketingAdminPage() {
                             <CardTitle>Seção de Vídeo de Features</CardTitle>
                              <CardDescription>Vídeo que demonstra as funcionalidades da plataforma.</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                             <FormField
+                        <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <FormField
                                 name="feature_video_url"
                                 control={form.control}
                                 render={({ field }) => (
@@ -210,6 +214,20 @@ export default function MarketingAdminPage() {
                                                 agentId="marketing"
                                                 propertyId="feature_video"
                                             />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                             />
+                             <FormField
+                                name="feature_video_title"
+                                control={form.control}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Título da Seção do Vídeo</FormLabel>
+                                        <FormDescription>Este título aparecerá sobre o vídeo.</FormDescription>
+                                        <FormControl>
+                                            <Input {...field} placeholder="Ex: Veja a Plataforma em Ação"/>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

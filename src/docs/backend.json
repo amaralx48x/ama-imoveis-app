@@ -222,6 +222,7 @@
         "hero_media_url": { "type": "string", "format": "uri", "description": "URL for the main hero media (video or image)." },
         "hero_media_type": { "type": "string", "enum": ["image", "video"], "description": "Type of the hero media." },
         "feature_video_url": { "type": "string", "format": "uri", "description": "URL for the feature video section." },
+        "feature_video_title": { "type": "string", "description": "Title to be displayed over the feature video." },
         "section2_image": { "type": "string", "format": "uri" },
         "section3_image": { "type": "string", "format": "uri" },
         "section4_image1": { "type": "string", "format": "uri" },
