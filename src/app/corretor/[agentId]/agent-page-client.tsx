@@ -72,10 +72,8 @@ export default function AgentPageClient({
           </Hero>
         </div>
 
-        {/* --- Render Search Results OR Default Sections --- */}
-
-        {filteredProperties !== null ? (
-            // Displaying search results
+        {/* --- Render Search Results --- */}
+        {filteredProperties !== null && (
             <section id="search-results-section" className="py-16 sm:py-24 bg-background">
                 <div className="container mx-auto px-4">
                      <div className="text-center mb-12">
@@ -101,26 +99,24 @@ export default function AgentPageClient({
                     )}
                 </div>
             </section>
-        ) : (
-          // Default view before any search
-          <>
-            <FeaturedProperties properties={featuredProperties} agentId={agent.id} />
-            
-            {customSections.map(section => {
-              const sectionProperties = allProperties.filter(p => (p.sectionIds || []).includes(section.id));
-              if (sectionProperties.length === 0) return null;
-              return (
-                <CustomPropertySection
-                  key={section.id}
-                  title={section.title}
-                  properties={sectionProperties}
-                  agentId={agent.id}
-                  sectionId={section.id}
-                />
-              );
-            })}
-          </>
         )}
+
+        {/* --- Render Default Sections --- */}
+        <FeaturedProperties properties={featuredProperties} agentId={agent.id} />
+        
+        {customSections.map(section => {
+          const sectionProperties = allProperties.filter(p => (p.sectionIds || []).includes(section.id));
+          if (sectionProperties.length === 0) return null;
+          return (
+            <CustomPropertySection
+              key={section.id}
+              title={section.title}
+              properties={sectionProperties}
+              agentId={agent.id}
+              sectionId={section.id}
+            />
+          );
+        })}
 
         <AgentProfile agent={agent} />
 
