@@ -36,7 +36,7 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
   const fallback = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
   return (
-    <section className="relative w-full text-white">
+    <section className="relative text-white">
       {/* 1. Camada da Imagem/Vídeo de Fundo */}
       <div className="absolute inset-0 z-[-1] bg-black">
         {mediaType === 'video' && mediaUrl ? (
@@ -52,7 +52,7 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
         ) : (
           <Image
             src={mediaUrl || fallback}
-            alt="Imagem de apresentação de imóveis"
+            alt="Imagem de apresentação"
             fill
             priority
             sizes="100vw"
@@ -62,7 +62,7 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
       </div>
 
       {/* 2. Camada de Conteúdo */}
-      <div className="relative z-10 flex min-h-[80vh] items-center justify-center p-6 text-center">
+      <div className="relative z-10 flex flex-col items-center justify-center text-center p-6 pt-32 pb-20">
         <motion.div
           variants={fadeUpContainer}
           initial="hidden"
