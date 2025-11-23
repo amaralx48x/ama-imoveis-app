@@ -40,13 +40,12 @@ const marketingFormSchema = z.object({
 
 
 type ImageField = {
-    name: keyof Omit<MarketingContent, 'hero_media_url' | 'hero_media_type'>;
+    name: keyof Omit<MarketingContent, 'hero_media_url' | 'hero_media_type' | 'feature_video_url'>;
     label: string;
     description: string;
 }
 
 const otherImageFields: ImageField[] = [
-    { name: 'feature_video_url', label: 'Seção de Features: Vídeo', description: 'URL do vídeo de features.' },
     { name: 'section2_image', label: 'Seção 2: Imagem do Painel', description: 'Tamanho recomendado: 1200x800' },
     { name: 'section3_image', label: 'Seção 3: Imagem do Site Público', description: 'Tamanho recomendado: 1200x800' },
     { name: 'section4_image1', label: 'Seção 4: Imagem Sobreposta 1', description: 'Tamanho recomendado: 600x400' },
@@ -193,6 +192,34 @@ export default function MarketingAdminPage() {
 
                     <Card>
                         <CardHeader>
+                            <CardTitle>Seção de Vídeo de Features</CardTitle>
+                             <CardDescription>Vídeo que demonstra as funcionalidades da plataforma.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                             <FormField
+                                name="feature_video_url"
+                                control={form.control}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Upload do Vídeo de Features</FormLabel>
+                                        <FormDescription>Envie um vídeo no formato .mp4.</FormDescription>
+                                        <FormControl>
+                                            <ImageUpload
+                                                onUploadComplete={handleUploadComplete('feature_video_url')}
+                                                currentImageUrl={field.value}
+                                                agentId="marketing"
+                                                propertyId="feature_video"
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                             />
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
                             <CardTitle>Demais Seções</CardTitle>
                              <CardDescription>Imagens para as outras seções da página de marketing.</CardDescription>
                         </CardHeader>
@@ -236,5 +263,3 @@ export default function MarketingAdminPage() {
         </div>
     )
 }
-
-    
