@@ -29,14 +29,38 @@ const fadeUpItem = {
 export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: MarketingHeroProps) {
   const mediaUrl = content?.hero_media_url || null;
   const mediaType = content?.hero_media_type ?? 'image';
-
-  // Usando um fallback de uma imagem placeholder local.
-  const fallback = "/hero-placeholder.jpg"; // Supondo que você adicionará este arquivo em /public
+  const fallback = "/hero-placeholder.jpg"; 
 
   return (
-    <section className="text-white pt-24">
-      {/* Conteúdo de Texto */}
-      <div className="text-center p-6">
+    <section className="relative h-[80vh] min-h-[600px] w-full flex items-center justify-center text-white">
+      {/* Camada da Imagem de Fundo */}
+      <div className="absolute inset-0">
+        {mediaType === 'video' && mediaUrl ? (
+          <video
+            src={mediaUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <Image
+            src={mediaUrl || fallback}
+            alt="Apresentação da plataforma"
+            fill
+            priority
+            unoptimized
+            sizes="100vw"
+            className="object-cover"
+          />
+        )}
+        {/* Sobreposição para legibilidade */}
+        <div className="absolute inset-0 bg-black/50" />
+      </div>
+
+      {/* Camada de Conteúdo de Texto (Sobreposta) */}
+      <div className="relative z-10 text-center p-6">
         <motion.div
           variants={fadeUpContainer}
           initial="hidden"
@@ -68,31 +92,6 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
             </a>
           </motion.div>
         </motion.div>
-      </div>
-
-      {/* Imagem Simples Abaixo do Texto */}
-      <div className="relative w-full max-w-5xl mx-auto mt-12 aspect-video rounded-lg overflow-hidden border border-white/10 shadow-2xl">
-        {mediaType === 'video' && mediaUrl ? (
-          <video
-            src={mediaUrl}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover"
-            aria-hidden
-          />
-        ) : (
-          <Image
-            src={mediaUrl || fallback}
-            alt="Apresentação da plataforma"
-            fill
-            priority
-            unoptimized
-            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 1280px"
-            className="object-cover"
-          />
-        )}
       </div>
     </section>
   );
