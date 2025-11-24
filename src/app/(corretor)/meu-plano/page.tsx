@@ -101,7 +101,7 @@ export default function MeuPlanoPage() {
 
                         <div>
                             <div className="flex justify-between text-sm mb-1">
-                                <span className="font-medium">Uso de Dados Simulado</span>
+                                <span className="font-medium">Uso de Dados</span>
                                 <span className="text-muted-foreground">
                                     <span className="font-bold text-foreground">{(simulatedStorageUsed / (1024*1024)).toFixed(2)}</span> / {(limits.maxStorageMB / 1024).toFixed(0)} GB
                                 </span>
