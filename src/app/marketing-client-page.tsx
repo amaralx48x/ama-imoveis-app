@@ -134,7 +134,7 @@ export default function MarketingClientPage() {
                         </a>
                     </motion.div>
                     <motion.p variants={fadeUpItem} className="mt-3 text-white/70">
-                        veja um site simples e profissional
+                        Seu site ficara assim!
                     </motion.p>
                 </motion.div>
             </section>
