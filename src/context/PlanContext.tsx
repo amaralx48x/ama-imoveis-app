@@ -1,7 +1,7 @@
 
 'use client';
 
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, doc, onSnapshot } from 'firebase/firestore';
 import {
   createContext,
   useContext,
@@ -10,7 +10,8 @@ import {
   useMemo,
   useEffect,
 } from 'react';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore, useUser, useDoc, useMemoFirebase } from '@/firebase';
+import type { Agent } from '@/lib/data';
 
 export type PlanType = 'corretor' | 'imobiliaria';
 
@@ -20,10 +21,13 @@ interface PlanContextProps {
   limits: {
     maxProperties: number;
     canImportCSV: boolean;
+    maxStorageMB: number;
   };
   currentPropertiesCount: number;
+  simulatedStorageUsed: number;
   isLoading: boolean;
   canAddNewProperty: () => boolean;
+  canUpload: () => boolean;
 }
 
 const defaultPlan: PlanContextProps = {
@@ -32,10 +36,13 @@ const defaultPlan: PlanContextProps = {
   limits: {
     maxProperties: 50,
     canImportCSV: false,
+    maxStorageMB: 5 * 1024, // 5GB
   },
   currentPropertiesCount: 0,
+  simulatedStorageUsed: 0,
   isLoading: true,
   canAddNewProperty: () => true,
+  canUpload: () => true,
 };
 
 const PlanContext = createContext<PlanContextProps>(defaultPlan);
@@ -43,64 +50,86 @@ const PlanContext = createContext<PlanContextProps>(defaultPlan);
 export const PlanProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useUser();
   const firestore = useFirestore();
-  const [plan, setPlanState] = useState<PlanType>('corretor'); // Default plan
-  const [currentPropertiesCount, setCurrentPropertiesCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  
+  const agentRef = useMemoFirebase(() => (user && firestore ? doc(firestore, `agents/${user.uid}`) : null), [user, firestore]);
+  const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
 
-  // Function to fetch current properties count in real-time
+  const [currentPropertiesCount, setCurrentPropertiesCount] = useState(0);
+  const [isPropertyCountLoading, setIsPropertyCountLoading] = useState(true);
+
+  // Derives plan from agentData, with 'corretor' as fallback
+  const plan = agentData?.plan || 'corretor';
+  // Derives simulated storage from agentData
+  const simulatedStorageUsed = agentData?.simulatedStorageUsed || 0;
+
   useEffect(() => {
     if (user && firestore) {
-      setIsLoading(true);
+      setIsPropertyCountLoading(true);
       const propertiesRef = collection(firestore, `agents/${user.uid}/properties`);
-      
-      // Use onSnapshot for real-time updates
       const unsubscribe = onSnapshot(
         propertiesRef,
         (snapshot) => {
           setCurrentPropertiesCount(snapshot.size);
-          setIsLoading(false);
+          setIsPropertyCountLoading(false);
         },
         (error) => {
           console.error("Error fetching properties count:", error);
-          setIsLoading(false);
+          setIsPropertyCountLoading(false);
         }
       );
-
-      // Cleanup listener on unmount
       return () => unsubscribe();
     } else {
-      // If there's no user, reset the count and loading state
       setCurrentPropertiesCount(0);
-      setIsLoading(false);
+      setIsPropertyCountLoading(false);
     }
   }, [user, firestore]);
+  
+  const setPlan = (newPlan: PlanType) => {
+      if(agentRef) {
+          // This should ideally be an update to the Firestore document.
+          // For now, it's a client-side simulation.
+          console.log(`Simulating plan change to ${newPlan}`);
+      }
+  }
 
-  const setPlan = (newPlan: PlanType) => setPlanState(newPlan);
 
   const limits = useMemo(() => {
     return plan === 'imobiliaria'
       ? {
           maxProperties: 300,
           canImportCSV: true,
+          maxStorageMB: 20 * 1024, // 20GB
         }
       : {
           maxProperties: 50,
           canImportCSV: false,
+          maxStorageMB: 5 * 1024, // 5GB
         };
   }, [plan]);
 
+  const isLoading = isAgentLoading || isPropertyCountLoading;
+
   const canAddNewProperty = () => {
-    if (isLoading) return false; // Don't allow adding if count is not confirmed
+    if (isLoading) return false;
     return currentPropertiesCount < limits.maxProperties;
   };
+
+  const canUpload = () => {
+    if (isLoading) return false;
+    // Convert MB to Bytes for comparison
+    const maxStorageBytes = limits.maxStorageMB * 1024 * 1024;
+    return simulatedStorageUsed < maxStorageBytes;
+  }
 
   const value = {
     plan,
     setPlan,
     limits,
     currentPropertiesCount,
+    simulatedStorageUsed,
     isLoading,
     canAddNewProperty,
+    canUpload
   };
 
   return <PlanContext.Provider value={value}>{children}</PlanContext.Provider>;
