@@ -80,7 +80,7 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
   const limits = useMemo(() => {
     return plan === 'imobiliaria'
       ? {
-          maxProperties: 1000,
+          maxProperties: 300,
           canImportCSV: true,
         }
       : {

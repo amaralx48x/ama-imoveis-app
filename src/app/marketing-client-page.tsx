@@ -78,16 +78,18 @@ export default function MarketingClientPage() {
 
   const amaplusFeatures = [
     "Até 50 imóveis simultâneos",
-    "Domínio pago à parte (R$ 40/anual)",
     "5 GB de dados por mês",
-    "Suporte padrão via e-mail",
+    "Domínio pago à parte (R$ 40/anual)",
+    "Importar lista de imóveis por CSV",
+    "Atendimento prioritário técnico",
+    "Domínio personalizado de graça",
   ];
 
   const ultraplusFeatures = [
-    "Até 1000 imóveis simultâneos",
-    "Domínio personalizado de graça",
+    "Até 300 imóveis simultâneos",
     "20 GB de dados por mês",
     "Importar lista de imóveis por CSV",
+    "Domínio personalizado de graça",
     "Atendimento prioritário técnico",
   ];
 
@@ -278,19 +280,22 @@ export default function MarketingClientPage() {
                         </div>
                         <ul className="mt-4 text-sm text-white/70 space-y-2 flex-grow">
                             {commonFeatures.map(f => <li key={f}>✅ {f}</li>)}
-                            <li className="font-semibold text-white/90 pt-2">Limitações do plano:</li>
-                            {amaplusFeatures.map(f => <li key={f}>❌ {f}</li>)}
+                            {amaplusFeatures.map((f, i) => (
+                              <li key={i} className={i < 3 ? '' : 'text-white/40'}>
+                                {i < 3 ? '✅' : '❌'} {f}
+                              </li>
+                            ))}
                         </ul>
                         <div className="mt-6">
                             <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary/80 to-accent/80 text-white px-4 py-2 rounded-md font-medium w-full justify-center`}>Iniciar 7 dias</Link>
                         </div>
                     </motion.div>
 
-                    {/* AMA ULTRAPlus Plan */}
+                    {/* AMA ULTRA Plan */}
                     <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="p-6 rounded-2xl border border-primary bg-primary/10 shadow-lg flex flex-col">
                         <div className="flex items-center justify-between">
                             <div>
-                                <div className="font-semibold text-lg">AMA ULTRAPlus</div>
+                                <div className="font-semibold text-lg">AMA ULTRA</div>
                                 <div className="text-xs text-white/60">Para equipes e imobiliárias</div>
                             </div>
                             <div className="text-right">
@@ -300,7 +305,6 @@ export default function MarketingClientPage() {
                         </div>
                          <ul className="mt-4 text-sm text-white/70 space-y-2 flex-grow">
                             {commonFeatures.map(f => <li key={f}>✅ {f}</li>)}
-                            <li className="font-semibold text-white/90 pt-2">Tudo do AMAPLUS e mais:</li>
                             {ultraplusFeatures.map(f => <li key={f}>✅ {f}</li>)}
                         </ul>
                         <div className="mt-6">

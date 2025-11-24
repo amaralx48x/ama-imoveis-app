@@ -34,7 +34,6 @@ export default function MeuPlanoPage() {
         { text: "Até 50 imóveis simultâneos", included: true },
         { text: "5 GB de dados por mês", included: true },
         { text: "Domínio pago à parte (R$ 40/anual)", included: true },
-        { text: "Suporte padrão via e-mail", included: true },
         { text: "Importar lista de imóveis por CSV", included: false },
         { text: "Atendimento prioritário técnico", included: false },
         { text: "Domínio personalizado de graça", included: false },
@@ -44,12 +43,12 @@ export default function MeuPlanoPage() {
       isCurrent: plan === 'corretor',
     },
     imobiliaria: {
-      name: 'AMA ULTRAPlus',
+      name: 'AMA ULTRA',
       price: '59,90',
       description: 'Para quem busca o máximo desempenho.',
       features: [
         ...commonFeatures,
-        { text: "Até 1000 imóveis cadastrados", included: true },
+        { text: "Até 300 imóveis cadastrados", included: true },
         { text: "20 GB de dados por mês", included: true },
         { text: "Importar lista de imóveis por CSV", included: true },
         { text: "Domínio personalizado de graça", included: true },
@@ -68,7 +67,7 @@ export default function MeuPlanoPage() {
                 Aqui você pode visualizar os recursos do seu plano atual e o que cada um oferece. A troca de planos é simulada para que você possa entender as vantagens de cada um.
             </p>
             <p>
-                O plano <strong>AMAPLUS</strong> é ideal para começar, enquanto o <strong>AMA ULTRAPlus</strong> oferece recursos avançados como mais imóveis e importação de dados, perfeito para quem tem um portfólio maior.
+                O plano <strong>AMAPLUS</strong> é ideal para começar, enquanto o <strong>AMA ULTRA</strong> oferece recursos avançados como mais imóveis e importação de dados, perfeito para quem tem um portfólio maior.
             </p>
         </InfoCard>
 
@@ -105,7 +104,7 @@ export default function MeuPlanoPage() {
                     <Separator/>
                     <ul className="space-y-2">
                         {planDetails.corretor.features.map((feat, i) => (
-                            <li key={i} className={`flex items-center gap-2 ${!feat.included ? 'text-muted-foreground line-through' : ''}`}>
+                            <li key={i} className={`flex items-center gap-2 ${!feat.included ? 'text-muted-foreground' : ''}`}>
                                 {feat.included ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-muted-foreground/50"/>}
                                 <span>{feat.text}</span>
                             </li>
@@ -131,8 +130,8 @@ export default function MeuPlanoPage() {
                      <Separator/>
                      <ul className="space-y-2">
                         {planDetails.imobiliaria.features.map((feat, i) => (
-                             <li key={i} className={`flex items-center gap-2 ${!feat.included ? 'text-muted-foreground line-through' : ''}`}>
-                                {feat.included ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-muted-foreground/50"/>}
+                             <li key={i} className={`flex items-center gap-2 ${!feat.included ? 'text-muted-foreground' : ''}`}>
+                                <CheckCircle className="h-5 w-5 text-green-500" />
                                 <span>{feat.text}</span>
                             </li>
                         ))}
