@@ -4,7 +4,7 @@
 import { usePlan, PlanType } from '@/context/PlanContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, XCircle, Gem } from 'lucide-react';
+import { CheckCircle, XCircle, Gem, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { InfoCard } from '@/components/info-card';
 import { Separator } from '@/components/ui/separator';
@@ -32,12 +32,11 @@ export default function MeuPlanoPage() {
       description: 'Ideal para começar com o essencial.',
       features: [
         ...commonFeatures,
-        { text: "Até 50 imóveis simultâneos", included: true },
-        { text: "5 GB de dados por mês", included: true },
+        { text: `Até ${limits.maxProperties} imóveis simultâneos`, included: true },
+        { text: `5 GB de dados por mês`, included: true },
         { text: "Domínio pago à parte (R$ 40/anual)", included: true },
         { text: "Importar lista de imóveis por CSV", included: false },
         { text: "Atendimento prioritário técnico", included: false },
-        { text: "Domínio personalizado de graça", included: false },
       ],
       action: () => handlePlanChange('imobiliaria'),
       actionLabel: 'Fazer Upgrade',
@@ -49,8 +48,8 @@ export default function MeuPlanoPage() {
       description: 'Para quem busca o máximo desempenho.',
       features: [
         ...commonFeatures,
-        { text: "Até 300 imóveis cadastrados", included: true },
-        { text: "10 GB de dados por mês", included: true },
+        { text: `Até ${limits.maxProperties} imóveis cadastrados`, included: true },
+        { text: `10 GB de dados por mês`, included: true },
         { text: "Importar lista de imóveis por CSV", included: true },
         { text: "Domínio personalizado de graça", included: true },
         { text: "Atendimento prioritário técnico", included: true },
@@ -86,7 +85,10 @@ export default function MeuPlanoPage() {
             </CardHeader>
             <CardContent>
                 {isLoading ? (
-                    <p>Carregando...</p>
+                    <div className="flex items-center justify-center p-8">
+                        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                        <p className="ml-2">Carregando dados do plano...</p>
+                    </div>
                 ) : (
                     <div className="space-y-4">
                         <p>Plano Atual: <span className="font-bold text-primary">{planDetails[plan].name}</span></p>

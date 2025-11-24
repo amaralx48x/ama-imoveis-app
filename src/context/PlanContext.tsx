@@ -1,7 +1,7 @@
 
 'use client';
 
-import { collection, doc, onSnapshot } from 'firebase/firestore';
+import { collection, doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import {
   createContext,
   useContext,
@@ -12,6 +12,7 @@ import {
 } from 'react';
 import { useFirestore, useUser, useDoc, useMemoFirebase } from '@/firebase';
 import type { Agent } from '@/lib/data';
+import { useToast } from '@/hooks/use-toast';
 
 export type PlanType = 'corretor' | 'imobiliaria';
 
@@ -50,9 +51,10 @@ const PlanContext = createContext<PlanContextProps>(defaultPlan);
 export const PlanProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
   
   const agentRef = useMemoFirebase(() => (user && firestore ? doc(firestore, `agents/${user.uid}`) : null), [user, firestore]);
-  const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
+  const { data: agentData, isLoading: isAgentLoading, mutate: mutateAgent } = useDoc<Agent>(agentRef);
 
   const [currentPropertiesCount, setCurrentPropertiesCount] = useState(0);
   const [isPropertyCountLoading, setIsPropertyCountLoading] = useState(true);
@@ -84,11 +86,21 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user, firestore]);
   
-  const setPlan = (newPlan: PlanType) => {
-      if(agentRef) {
-          // This should ideally be an update to the Firestore document.
-          // For now, it's a client-side simulation.
-          console.log(`Simulating plan change to ${newPlan}`);
+  const setPlan = async (newPlan: PlanType) => {
+      if(!agentRef) {
+          toast({title: "Erro: Referência do agente não encontrada.", variant: "destructive"});
+          return;
+      }
+      try {
+        await updateDoc(agentRef, { plan: newPlan });
+        mutateAgent(); // Re-fetch agent data to update context
+        toast({
+            title: "Plano atualizado!",
+            description: `Seu plano agora é ${newPlan === 'imobiliaria' ? 'AMA ULTRA' : 'AMAPLUS'}.`
+        });
+      } catch (error) {
+          console.error("Erro ao atualizar o plano:", error);
+          toast({title: "Erro ao trocar de plano.", variant: "destructive"})
       }
   }
 
