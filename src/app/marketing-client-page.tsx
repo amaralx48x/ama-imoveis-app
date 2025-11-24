@@ -124,19 +124,36 @@ export default function MarketingClientPage() {
           <div className="container mx-auto px-6 py-20">
             {/* Call to Action Section */}
             <section className="py-10 text-center">
-                <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUpContainer}>
-                    <motion.h3 variants={fadeUpItem} className="text-2xl font-semibold text-white/90">
-                        Um click diz mais que mil palavras
-                    </motion.h3>
-                    <motion.div variants={fadeUpItem} className="mt-4">
-                        <a href="https://studio--ama-imveis-041125-945215-63275.us-central1.hosted.app/corretor/4vEISo4pEORjFhv6RzD7eC42cgm2" className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white text-lg shadow-lg hover:scale-105 transition-transform`}>
-                            Clique aqui
-                        </a>
-                    </motion.div>
-                    <motion.p variants={fadeUpItem} className="mt-3 text-white/70">
-                        Seu site ficara assim!
-                    </motion.p>
+              <motion.div 
+                initial="hidden" 
+                whileInView="show" 
+                viewport={{ once: true }} 
+                variants={fadeUpContainer}
+                className="flex flex-col md:flex-row items-center justify-center gap-8"
+              >
+                <div className="flex-1 text-center md:text-left">
+                  <motion.h3 variants={fadeUpItem} className="text-2xl font-semibold text-white/90">
+                    Um click diz mais que mil palavras
+                  </motion.h3>
+                  <motion.div variants={fadeUpItem} className="mt-4">
+                    <a href="https://studio--ama-imveis-041125-945215-63275.us-central1.hosted.app/corretor/4vEISo4pEORjFhv6RzD7eC42cgm2" className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white text-lg shadow-lg hover:scale-105 transition-transform`}>
+                      Clique aqui
+                    </a>
+                  </motion.div>
+                  <motion.p variants={fadeUpItem} className="mt-3 text-white/70">
+                    Seu site ficara assim!
+                  </motion.p>
+                </div>
+                 <motion.div variants={fadeUpItem} className="flex-shrink-0">
+                  <Image
+                    src="https://storage.googleapis.com/im-be-images/default-images/1728489725835.png"
+                    alt="Ilustração de pessoas conversando"
+                    width={300}
+                    height={169}
+                    className="rounded-lg"
+                  />
                 </motion.div>
+              </motion.div>
             </section>
 
             {/* Features */}
