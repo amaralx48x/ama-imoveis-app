@@ -60,7 +60,7 @@ export default function PerfilPage() {
   const { toast } = useToast();
   const firestore = useFirestore();
   const { user } = useUser();
-  const { canUpload } = usePlan();
+  const { canUpload, isLoading: isPlanLoading } = usePlan();
   
   const agentRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, 'agents', user.uid) : null),
@@ -70,8 +70,6 @@ export default function PerfilPage() {
   const { data: agentData, isLoading: isAgentLoading, mutate } = useDoc<Agent>(agentRef);
 
   const [newCity, setNewCity] = useState('');
-  const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
 
   const form = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
@@ -106,20 +104,10 @@ export default function PerfilPage() {
     }
   }, [agentData, form]);
 
-  const handleUploadComplete = async (url: string, simulatedSizeMB: number) => {
-    if (!agentRef) return;
-    try {
-        await updateDoc(agentRef, { 
-            photoUrl: url,
-            simulatedStorageUsed: increment(simulatedSizeMB)
-        });
-        mutate(); // Re-fetch agent data to get new storage usage
-        form.setValue('photoUrl', url);
-        toast({ title: 'Foto de Perfil Atualizada!' });
-    } catch (error) {
-        console.error("Erro ao atualizar foto e armazenamento:", error);
-        toast({ title: "Erro ao salvar foto", variant: "destructive" });
-    }
+  const handleUploadComplete = (url: string) => {
+    mutate(); // Re-fetch agent data to get new storage usage
+    form.setValue('photoUrl', url);
+    toast({ title: 'Foto de Perfil Atualizada!' });
   };
 
 
@@ -177,7 +165,7 @@ export default function PerfilPage() {
   }
 
 
-  if (isAgentLoading) {
+  if (isAgentLoading || isPlanLoading) {
     return (
         <Card>
             <CardHeader>
@@ -236,8 +224,11 @@ export default function PerfilPage() {
                             currentImageUrl={agentData?.photoUrl}
                             agentId={user.uid}
                             propertyId="profile"
-                            disabled={!canUpload}
+                            disabled={!canUpload()}
                         />
+                    )}
+                     {!canUpload() && (
+                        <p className="text-xs text-destructive">Você atingiu seu limite de armazenamento de dados.</p>
                     )}
                 </div>
             </div>

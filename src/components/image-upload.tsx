@@ -5,11 +5,13 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { useFirebaseApp, useUser, storage } from '@/firebase';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, updateDoc, increment } from 'firebase/firestore';
+import { useFirebaseApp, useUser, storage, useFirestore } from '@/firebase';
 import { Loader2, Upload, X } from 'lucide-react';
 import Image from 'next/image';
 import { v4 as uuidv4 } from 'uuid';
+import { usePlan } from '@/context/PlanContext';
 
 type Props = {
   onUploadComplete?: (url: string) => void;
@@ -19,12 +21,23 @@ type Props = {
   agentId: string;
   propertyId: string;
   id?: string;
+  disabled?: boolean;
 };
 
-export default function ImageUpload({ onUploadComplete, onFileChange, multiple, currentImageUrl, agentId, propertyId, id }: Props) {
+export default function ImageUpload({ 
+    onUploadComplete, 
+    onFileChange, 
+    multiple, 
+    currentImageUrl, 
+    agentId, 
+    propertyId, 
+    id,
+    disabled = false,
+}: Props) {
   const [files, setFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+  const firestore = useFirestore();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -49,9 +62,8 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
       return;
     }
     
-    if (!agentId || !propertyId) {
+    if (!agentId || !propertyId || !firestore) {
         toast({ title: "Erro interno: IDs ausentes para upload", variant: "destructive"});
-        console.error("agentId or propertyId is missing for ImageUpload", { agentId, propertyId });
         return;
     }
 
@@ -89,11 +101,20 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
 
         const filePath = `${basePath}/${fileName}`;
         const fileRef = ref(storage, filePath);
-        await uploadBytes(fileRef, file);
+        const uploadResult = await uploadBytes(fileRef, file);
         const url = await getDownloadURL(fileRef);
         
         if (onUploadComplete) {
             onUploadComplete(url);
+        }
+
+        // Increment simulated storage usage if not admin/marketing
+        if (agentId !== 'admin' && agentId !== 'marketing') {
+            const agentRef = doc(firestore, 'agents', agentId);
+            const simulatedSize = 0.8 * 1024 * 1024 + Math.random() * (20 - 0.8) * 1024 * 1024; // 800KB to 20MB in bytes
+            await updateDoc(agentRef, {
+                simulatedStorageUsed: increment(simulatedSize)
+            });
         }
       });
       
@@ -132,6 +153,7 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
           onChange={handleFileChange}
           className='file:text-primary file:font-semibold'
           multiple={multiple}
+          disabled={disabled || isUploading}
         />
       </div>
       
@@ -153,7 +175,7 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
       )}
       
       {!hasOnFileSelected && (
-        <Button onClick={handleUpload} disabled={isUploading || files.length === 0} type="button">
+        <Button onClick={handleUpload} disabled={disabled || isUploading || files.length === 0} type="button">
             {isUploading ? (
             <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
