@@ -77,20 +77,20 @@ export default function MarketingClientPage() {
   ];
 
   const amaplusFeatures = [
-    "Até 50 imóveis simultâneos",
-    "5 GB de dados por mês",
-    "Domínio pago à parte (R$ 40/anual)",
-    "Importar lista de imóveis por CSV",
-    "Atendimento prioritário técnico",
-    "Domínio personalizado de graça",
+    { text: "Até 50 imóveis simultâneos", included: true },
+    { text: "5 GB de dados por mês", included: true },
+    { text: "Domínio pago à parte (R$ 40/anual)", included: true },
+    { text: "Importar lista de imóveis por CSV", included: false },
+    { text: "Atendimento prioritário técnico", included: false },
+    { text: "Domínio personalizado de graça", included: false },
   ];
 
   const ultraplusFeatures = [
-    "Até 300 imóveis simultâneos",
-    "20 GB de dados por mês",
-    "Importar lista de imóveis por CSV",
-    "Domínio personalizado de graça",
-    "Atendimento prioritário técnico",
+    { text: "Até 300 imóveis cadastrados", included: true },
+    { text: "20 GB de dados por mês", included: true },
+    { text: "Importar lista de imóveis por CSV", included: true },
+    { text: "Domínio personalizado de graça", included: true },
+    { text: "Atendimento prioritário técnico", included: true },
   ];
 
   return (
@@ -281,8 +281,8 @@ export default function MarketingClientPage() {
                         <ul className="mt-4 text-sm text-white/70 space-y-2 flex-grow">
                             {commonFeatures.map(f => <li key={f}>✅ {f}</li>)}
                             {amaplusFeatures.map((f, i) => (
-                              <li key={i} className={i < 3 ? '' : 'text-white/40'}>
-                                {i < 3 ? '✅' : '❌'} {f}
+                              <li key={f.text} className={!f.included ? 'text-white/40' : ''}>
+                                {f.included ? '✅' : '❌'} {f.text}
                               </li>
                             ))}
                         </ul>
@@ -305,7 +305,7 @@ export default function MarketingClientPage() {
                         </div>
                          <ul className="mt-4 text-sm text-white/70 space-y-2 flex-grow">
                             {commonFeatures.map(f => <li key={f}>✅ {f}</li>)}
-                            {ultraplusFeatures.map(f => <li key={f}>✅ {f}</li>)}
+                            {ultraplusFeatures.map(f => <li key={f.text}>✅ {f.text}</li>)}
                         </ul>
                         <div className="mt-6">
                             <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-4 py-2 rounded-md font-medium w-full justify-center`}>Iniciar 7 dias</Link>
@@ -313,7 +313,23 @@ export default function MarketingClientPage() {
                     </motion.div>
                 </div>
             </section>
-
+            
+            {/* New Differentiation Section */}
+            <section className="mt-20 py-10">
+              <div className="mx-auto max-w-4xl text-center">
+                <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUpContainer}>
+                  <motion.h3 variants={fadeUpItem} className="text-3xl font-extrabold">
+                    A <span className="text-gradient">Receita Certa</span> para o seu Sucesso
+                  </motion.h3>
+                  <motion.p variants={fadeUpItem} className="mt-4 text-lg text-white/70">
+                    Com o melhor preço do Brasil, nossa plataforma é uma das mais completas e intuitivas do mercado. Pense nela como a base de um bolo perfeito: nós fornecemos a estrutura validada e otimizada. Você só precisa adicionar seu toque único — o recheio e os confeitos.
+                  </motion.p>
+                  <motion.p variants={fadeUpItem} className="mt-4 text-white/70">
+                    Em vez de perder horas com modelos complicados, foque no que importa: sua marca, seus imóveis e seus clientes. Com uma interface simples e um atendimento humano e atencioso, estamos aqui para cuidar de cada detalhe técnico e apoiar suas particularidades.
+                  </motion.p>
+                </motion.div>
+              </div>
+            </section>
 
             {/* Final CTA */}
             <section className="mt-20 mb-24 text-center">
