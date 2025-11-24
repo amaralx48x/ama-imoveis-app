@@ -230,7 +230,8 @@
         "section4_image2": { "type": "string", "format": "uri" },
         "section5_image1": { "type": "string", "format": "uri" },
         "section5_image2": { "type": "string", "format": "uri" },
-        "section6_image": { "type": "string", "format": "uri" }
+        "section6_image": { "type": "string", "format": "uri" },
+        "supportWhatsapp": { "type": "string", "description": "WhatsApp number for priority support." }
       }
     }
   },

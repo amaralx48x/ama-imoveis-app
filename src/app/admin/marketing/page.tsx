@@ -22,7 +22,7 @@ import { setDoc, doc } from 'firebase/firestore';
 import { useEffect } from 'react';
 import type { MarketingContent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MonitorPlay, Loader2 } from 'lucide-react';
+import { MonitorPlay, Loader2, MessageCircle } from 'lucide-react';
 import ImageUpload from '@/components/image-upload';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
@@ -40,11 +40,12 @@ const marketingFormSchema = z.object({
   section5_image1: z.string().url('URL inválida').optional().or(z.literal('')),
   section5_image2: z.string().url('URL inválida').optional().or(z.literal('')),
   section6_image: z.string().url('URL inválida').optional().or(z.literal('')),
+  supportWhatsapp: z.string().optional(),
 });
 
 
 type ImageField = {
-    name: keyof Omit<MarketingContent, 'hero_media_url' | 'hero_media_type' | 'feature_video_url' | 'feature_video_title' | 'ctaImageUrl'>;
+    name: keyof Omit<MarketingContent, 'hero_media_url' | 'hero_media_type' | 'feature_video_url' | 'feature_video_title' | 'ctaImageUrl' | 'supportWhatsapp'>;
     label: string;
     description: string;
 }
@@ -106,12 +107,13 @@ export default function MarketingAdminPage() {
                 ...marketingData,
                 hero_media_type: marketingData.hero_media_type || 'image',
                 feature_video_title: marketingData.feature_video_title || 'Veja a Plataforma em Ação',
+                supportWhatsapp: marketingData.supportWhatsapp || '',
             });
         }
     }, [marketingData, form]);
     
     const handleUploadComplete = (fieldName: keyof MarketingContent) => (url: string) => {
-        form.setValue(fieldName, url, { shouldDirty: true });
+        form.setValue(fieldName as any, url, { shouldDirty: true });
     };
 
     async function onSubmit(values: z.infer<typeof marketingFormSchema>) {
@@ -142,6 +144,28 @@ export default function MarketingAdminPage() {
             {isLoading ? <MarketingFormSkeleton /> : (
                 <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                     <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><MessageCircle /> Suporte Prioritário</CardTitle>
+                            <CardDescription>Configure o número de WhatsApp para o suporte prioritário do plano AMA ULTRA.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                             <FormField
+                                control={form.control}
+                                name="supportWhatsapp"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Número de WhatsApp para Suporte</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="5511999999999" {...field} />
+                                    </FormControl>
+                                    <FormDescription>Insira apenas números, incluindo o código do país (ex: 55 para o Brasil).</FormDescription>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </CardContent>
+                    </Card>
                     <Card>
                         <CardHeader>
                             <CardTitle>Seção de Herói</CardTitle>
