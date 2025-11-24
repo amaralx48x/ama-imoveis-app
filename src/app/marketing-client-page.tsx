@@ -82,7 +82,6 @@ export default function MarketingClientPage() {
     { text: "Domínio pago à parte (R$ 40/anual)", included: true },
     { text: "Importar lista de imóveis por CSV", included: false },
     { text: "Atendimento prioritário técnico", included: false },
-    { text: "Domínio personalizado de graça", included: false },
   ];
 
   const ultraplusFeatures = [
@@ -159,6 +158,23 @@ export default function MarketingClientPage() {
                   ))}
                 </div>
               </motion.div>
+            </section>
+
+            {/* New Differentiation Section */}
+            <section className="mt-20 py-10">
+              <div className="mx-auto max-w-4xl text-center">
+                <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUpContainer}>
+                  <motion.h3 variants={fadeUpItem} className="text-3xl font-extrabold">
+                    A <span className="text-gradient">Receita Certa</span> para o seu Sucesso
+                  </motion.h3>
+                  <motion.p variants={fadeUpItem} className="mt-4 text-lg text-white/70">
+                    Com o melhor preço do Brasil, nossa plataforma é uma das mais completas e intuitivas do mercado. Pense nela como a base de um bolo perfeito: nós fornecemos a estrutura validada e otimizada. Você só precisa adicionar seu toque único — o recheio e os confeitos.
+                  </motion.p>
+                  <motion.p variants={fadeUpItem} className="mt-4 text-white/70">
+                    Em vez de perder horas com modelos complicados, foque no que importa: sua marca, seus imóveis e seus clientes. Com uma interface simples e um atendimento humano e atencioso, estamos aqui para cuidar de cada detalhe técnico e apoiar suas particularidades.
+                  </motion.p>
+                </motion.div>
+              </div>
             </section>
 
             {/* Image gallery + social proof */}
@@ -280,7 +296,7 @@ export default function MarketingClientPage() {
                         </div>
                         <ul className="mt-4 text-sm text-white/70 space-y-2 flex-grow">
                             {commonFeatures.map(f => <li key={f}>✅ {f}</li>)}
-                            {amaplusFeatures.map((f, i) => (
+                            {amaplusFeatures.map((f) => (
                               <li key={f.text} className={!f.included ? 'text-white/40' : ''}>
                                 {f.included ? '✅' : '❌'} {f.text}
                               </li>
@@ -314,23 +330,6 @@ export default function MarketingClientPage() {
                 </div>
             </section>
             
-            {/* New Differentiation Section */}
-            <section className="mt-20 py-10">
-              <div className="mx-auto max-w-4xl text-center">
-                <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUpContainer}>
-                  <motion.h3 variants={fadeUpItem} className="text-3xl font-extrabold">
-                    A <span className="text-gradient">Receita Certa</span> para o seu Sucesso
-                  </motion.h3>
-                  <motion.p variants={fadeUpItem} className="mt-4 text-lg text-white/70">
-                    Com o melhor preço do Brasil, nossa plataforma é uma das mais completas e intuitivas do mercado. Pense nela como a base de um bolo perfeito: nós fornecemos a estrutura validada e otimizada. Você só precisa adicionar seu toque único — o recheio e os confeitos.
-                  </motion.p>
-                  <motion.p variants={fadeUpItem} className="mt-4 text-white/70">
-                    Em vez de perder horas com modelos complicados, foque no que importa: sua marca, seus imóveis e seus clientes. Com uma interface simples e um atendimento humano e atencioso, estamos aqui para cuidar de cada detalhe técnico e apoiar suas particularidades.
-                  </motion.p>
-                </motion.div>
-              </div>
-            </section>
-
             {/* Final CTA */}
             <section className="mt-20 mb-24 text-center">
               <div className="mx-auto max-w-2xl p-8 rounded-2xl border border-white/10 bg-gradient-to-b from-black/40 to-black/20">
