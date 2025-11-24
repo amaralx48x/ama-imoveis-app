@@ -8,9 +8,10 @@ import { CheckCircle, XCircle, Gem } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { InfoCard } from '@/components/info-card';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
 
 export default function MeuPlanoPage() {
-  const { plan, setPlan, limits, currentPropertiesCount, isLoading } = usePlan();
+  const { plan, setPlan, limits, currentPropertiesCount, isLoading, simulatedStorageUsed } = usePlan();
 
   const handlePlanChange = (newPlan: PlanType) => {
     setPlan(newPlan);
@@ -49,7 +50,7 @@ export default function MeuPlanoPage() {
       features: [
         ...commonFeatures,
         { text: "Até 300 imóveis cadastrados", included: true },
-        { text: "20 GB de dados por mês", included: true },
+        { text: "10 GB de dados por mês", included: true },
         { text: "Importar lista de imóveis por CSV", included: true },
         { text: "Domínio personalizado de graça", included: true },
         { text: "Atendimento prioritário técnico", included: true },
@@ -59,6 +60,8 @@ export default function MeuPlanoPage() {
       isCurrent: plan === 'imobiliaria',
     },
   };
+  
+  const storagePercentage = (simulatedStorageUsed / (limits.maxStorageMB * 1024 * 1024)) * 100;
 
   return (
     <div className="space-y-8">
@@ -85,9 +88,27 @@ export default function MeuPlanoPage() {
                 {isLoading ? (
                     <p>Carregando...</p>
                 ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                         <p>Plano Atual: <span className="font-bold text-primary">{planDetails[plan].name}</span></p>
-                        <p>Imóveis Cadastrados: <span className="font-bold">{currentPropertiesCount} / {limits.maxProperties === Infinity ? 'Ilimitado' : limits.maxProperties}</span></p>
+                        
+                        <div>
+                            <div className="flex justify-between text-sm mb-1">
+                                <span className="font-medium">Imóveis Cadastrados</span>
+                                <span className="text-muted-foreground"><span className="font-bold text-foreground">{currentPropertiesCount}</span> / {limits.maxProperties === Infinity ? 'Ilimitado' : limits.maxProperties}</span>
+                            </div>
+                            <Progress value={(currentPropertiesCount / limits.maxProperties) * 100} className="h-2" />
+                        </div>
+
+                        <div>
+                            <div className="flex justify-between text-sm mb-1">
+                                <span className="font-medium">Uso de Dados Simulado</span>
+                                <span className="text-muted-foreground">
+                                    <span className="font-bold text-foreground">{(simulatedStorageUsed / (1024*1024)).toFixed(2)}</span> / {(limits.maxStorageMB / 1024).toFixed(0)} GB
+                                </span>
+                            </div>
+                           <Progress value={storagePercentage} className="h-2" />
+                        </div>
+
                     </div>
                 )}
             </CardContent>

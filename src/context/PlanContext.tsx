@@ -98,7 +98,7 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
       ? {
           maxProperties: 300,
           canImportCSV: true,
-          maxStorageMB: 20 * 1024, // 20GB
+          maxStorageMB: 10 * 1024, // 10GB
         }
       : {
           maxProperties: 50,
