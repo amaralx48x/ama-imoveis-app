@@ -20,9 +20,6 @@ interface PlanContextProps {
   limits: {
     maxProperties: number;
     canImportCSV: boolean;
-    canAddCNPJ: boolean; // This is a placeholder, as the field doesn't exist yet
-    canAddAddress: boolean; // This is a placeholder
-    canAddPrice: boolean; // This is a placeholder
   };
   currentPropertiesCount: number;
   isLoading: boolean;
@@ -33,11 +30,8 @@ const defaultPlan: PlanContextProps = {
   plan: 'corretor',
   setPlan: () => {},
   limits: {
-    maxProperties: 30,
+    maxProperties: 50,
     canImportCSV: false,
-    canAddCNPJ: false,
-    canAddAddress: true, // Address is a core feature
-    canAddPrice: true, // Price is a core feature
   },
   currentPropertiesCount: 0,
   isLoading: true,
@@ -86,18 +80,12 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
   const limits = useMemo(() => {
     return plan === 'imobiliaria'
       ? {
-          maxProperties: Infinity,
+          maxProperties: 1000,
           canImportCSV: true,
-          canAddCNPJ: true, // Placeholder
-          canAddAddress: true, // Placeholder
-          canAddPrice: true, // Placeholder
         }
       : {
-          maxProperties: 30,
+          maxProperties: 50,
           canImportCSV: false,
-          canAddCNPJ: false, // Placeholder
-          canAddAddress: true, // Placeholder
-          canAddPrice: true, // Placeholder
         };
   }, [plan]);
 

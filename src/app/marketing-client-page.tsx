@@ -68,6 +68,29 @@ export default function MarketingClientPage() {
     return <LoadingSkeleton />;
   }
 
+  const commonFeatures = [
+    "Site profissional personalizável",
+    "Painel de controle",
+    "CRM completo",
+    "SEO (Otimização para Google)",
+    "Lista de captação de leads",
+  ];
+
+  const amaplusFeatures = [
+    "Até 50 imóveis simultâneos",
+    "Domínio pago à parte (R$ 40/anual)",
+    "5 GB de dados por mês",
+    "Suporte padrão via e-mail",
+  ];
+
+  const ultraplusFeatures = [
+    "Até 1000 imóveis simultâneos",
+    "Domínio personalizado de graça",
+    "20 GB de dados por mês",
+    "Importar lista de imóveis por CSV",
+    "Atendimento prioritário técnico",
+  ];
+
   return (
     <div className="min-h-screen text-white bg-black">
       {/* NAV */}
@@ -237,53 +260,56 @@ export default function MarketingClientPage() {
 
             {/* Plans & CTA */}
             <section id="plans" className="mt-20 py-10">
-              <motion.h3 variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-3xl font-extrabold text-center">Planos</motion.h3>
-              <p className="mt-2 text-white/70 text-center">Teste 7 dias grátis. Depois, escolha seu plano.</p>
+                <motion.h3 variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-3xl font-extrabold text-center">Planos</motion.h3>
+                <p className="mt-2 text-white/70 text-center">Teste 7 dias grátis. Depois, escolha seu plano.</p>
 
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="p-6 rounded-2xl border border-white/10 bg-white/5 shadow-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-semibold text-lg">Corretor Plus</div>
-                      <div className="text-xs text-white/60">Para profissionais solo</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-extrabold">R$ 59,90</div>
-                      <div className="text-xs text-white/60">por mês</div>
-                    </div>
-                  </div>
-                  <ul className="mt-4 text-sm text-white/70 space-y-2">
-                    <li>✅ Gestão de imóveis</li>
-                    <li>✅ CRM e leads</li>
-                    <li>❌ Import CSV (restrito)</li>
-                  </ul>
-                  <div className="mt-6">
-                    <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-4 py-2 rounded-md font-medium`}>Iniciar 7 dias</Link>
-                  </div>
-                </motion.div>
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+                    {/* AMAPLUS Plan */}
+                    <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="p-6 rounded-2xl border border-white/10 bg-white/5 shadow-lg flex flex-col">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <div className="font-semibold text-lg">AMAPLUS</div>
+                                <div className="text-xs text-white/60">Para corretores individuais</div>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-2xl font-extrabold">R$ 39,90</div>
+                                <div className="text-xs text-white/60">por mês</div>
+                            </div>
+                        </div>
+                        <ul className="mt-4 text-sm text-white/70 space-y-2 flex-grow">
+                            {commonFeatures.map(f => <li key={f}>✅ {f}</li>)}
+                            <li className="font-semibold text-white/90 pt-2">Limitações do plano:</li>
+                            {amaplusFeatures.map(f => <li key={f}>❌ {f}</li>)}
+                        </ul>
+                        <div className="mt-6">
+                            <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary/80 to-accent/80 text-white px-4 py-2 rounded-md font-medium w-full justify-center`}>Iniciar 7 dias</Link>
+                        </div>
+                    </motion.div>
 
-                <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="p-6 rounded-2xl border border-primary bg-primary/10 shadow-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-semibold text-lg">Imobiliária Plus</div>
-                      <div className="text-xs text-white/60">Para equipes e imobiliárias</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-extrabold">R$ 89,90</div>
-                      <div className="text-xs text-white/60">por mês</div>
-                    </div>
-                  </div>
-                  <ul className="mt-4 text-sm text-white/70 space-y-2">
-                    <li>✅ Import CSV</li>
-                    <li>✅ Limite maior de anúncios</li>
-                    <li>✅ Controle multiusuário</li>
-                  </ul>
-                  <div className="mt-6">
-                    <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-4 py-2 rounded-md font-medium`}>Iniciar 7 dias</Link>
-                  </div>
-                </motion.div>
-              </div>
+                    {/* AMA ULTRAPlus Plan */}
+                    <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="p-6 rounded-2xl border border-primary bg-primary/10 shadow-lg flex flex-col">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <div className="font-semibold text-lg">AMA ULTRAPlus</div>
+                                <div className="text-xs text-white/60">Para equipes e imobiliárias</div>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-2xl font-extrabold">R$ 59,90</div>
+                                <div className="text-xs text-white/60">por mês</div>
+                            </div>
+                        </div>
+                         <ul className="mt-4 text-sm text-white/70 space-y-2 flex-grow">
+                            {commonFeatures.map(f => <li key={f}>✅ {f}</li>)}
+                            <li className="font-semibold text-white/90 pt-2">Tudo do AMAPLUS e mais:</li>
+                            {ultraplusFeatures.map(f => <li key={f}>✅ {f}</li>)}
+                        </ul>
+                        <div className="mt-6">
+                            <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-4 py-2 rounded-md font-medium w-full justify-center`}>Iniciar 7 dias</Link>
+                        </div>
+                    </motion.div>
+                </div>
             </section>
+
 
             {/* Final CTA */}
             <section className="mt-20 mb-24 text-center">
