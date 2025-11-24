@@ -19,7 +19,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { setDoc, doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { setDoc, doc, updateDoc, arrayUnion, arrayRemove, increment } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useEffect, useState } from 'react';
 import type { Agent } from '@/lib/data';
@@ -31,6 +31,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { InfoCard } from '@/components/info-card';
+import { usePlan } from '@/context/PlanContext';
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, { message: 'O nome de exibição deve ter pelo menos 2 caracteres.' }),
@@ -59,6 +60,7 @@ export default function PerfilPage() {
   const { toast } = useToast();
   const firestore = useFirestore();
   const { user } = useUser();
+  const { canUpload } = usePlan();
   
   const agentRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, 'agents', user.uid) : null),
@@ -104,71 +106,19 @@ export default function PerfilPage() {
     }
   }, [agentData, form]);
 
-  async function onSubmit(values: z.infer<typeof profileFormSchema>) {
-    if (!agentRef) {
-      toast({
-        title: 'Erro',
-        description: 'Usuário não autenticado. Não é possível salvar.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    const dataToSave = {
-        displayName: values.displayName,
-        name: values.siteName,
-        description: values.description,
-        accountType: values.accountType,
-        creci: values.creci,
-        phone: values.phone,
-        availability: {
-          days: values.availabilityDays,
-          startTime: values.availabilityStartTime,
-          endTime: values.availabilityEndTime,
-        }
-    };
-
-    try {
-        await setDoc(agentRef, dataToSave, { merge: true });
-        mutate();
-
-        toast({
-            title: 'Perfil Atualizado!',
-            description: 'Suas informações foram salvas com sucesso.',
-        });
-    } catch (error) {
-        console.error("Erro ao salvar perfil:", error);
-        toast({title: "Erro ao salvar", variant: "destructive"});
-    }
-  }
-
-  const handleSavePhoto = async () => {
-    if (!profilePhotoFile || !user || !firestore) {
-      toast({ title: 'Nenhum arquivo selecionado', variant: 'destructive' });
-      return;
-    }
+  const handleUploadComplete = async (url: string, simulatedSizeMB: number) => {
     if (!agentRef) return;
-
-    setIsUploading(true);
-    const storage = getStorage();
-    const filePath = `agents/${user.uid}/profile/${profilePhotoFile.name}`;
-    const fileRef = ref(storage, filePath);
-
     try {
-      await uploadBytes(fileRef, profilePhotoFile);
-      const photoUrl = await getDownloadURL(fileRef);
-
-      await setDoc(agentRef, { photoUrl }, { merge: true });
-      mutate();
-
-      form.setValue('photoUrl', photoUrl);
-      setProfilePhotoFile(null); // Clear file after upload
-      toast({ title: 'Foto de Perfil Atualizada!' });
+        await updateDoc(agentRef, { 
+            photoUrl: url,
+            simulatedStorageUsed: increment(simulatedSizeMB)
+        });
+        mutate(); // Re-fetch agent data to get new storage usage
+        form.setValue('photoUrl', url);
+        toast({ title: 'Foto de Perfil Atualizada!' });
     } catch (error) {
-      console.error(error);
-      toast({ title: 'Erro ao fazer upload', variant: 'destructive' });
-    } finally {
-      setIsUploading(false);
+        console.error("Erro ao atualizar foto e armazenamento:", error);
+        toast({ title: "Erro ao salvar foto", variant: "destructive" });
     }
   };
 
@@ -195,6 +145,37 @@ export default function PerfilPage() {
         toast({title: "Erro ao remover cidade", variant: "destructive"});
     }
   };
+
+  async function onSubmit(values: z.infer<typeof profileFormSchema>) {
+    if (!agentRef) {
+      toast({ title: 'Erro', description: 'Usuário não autenticado.', variant: 'destructive' });
+      return;
+    }
+    
+    const dataToSave = {
+        displayName: values.displayName,
+        name: values.siteName,
+        description: values.description,
+        accountType: values.accountType,
+        creci: values.creci,
+        phone: values.phone,
+        availability: {
+          days: values.availabilityDays,
+          startTime: values.availabilityStartTime,
+          endTime: values.availabilityEndTime,
+        }
+    };
+
+    try {
+        await setDoc(agentRef, dataToSave, { merge: true });
+        mutate();
+        toast({ title: 'Perfil Atualizado!' });
+    } catch (error) {
+        console.error("Erro ao salvar perfil:", error);
+        toast({title: "Erro ao salvar", variant: "destructive"});
+    }
+  }
+
 
   if (isAgentLoading) {
     return (
@@ -251,15 +232,13 @@ export default function PerfilPage() {
                 <div className='flex-grow space-y-2'>
                     {user && (
                         <ImageUpload 
-                            onFileChange={setProfilePhotoFile}
+                            onUploadComplete={handleUploadComplete}
                             currentImageUrl={agentData?.photoUrl}
                             agentId={user.uid}
                             propertyId="profile"
+                            disabled={!canUpload}
                         />
                     )}
-                     <Button onClick={handleSavePhoto} disabled={!profilePhotoFile || isUploading}>
-                        {isUploading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando...</> : "Salvar Foto"}
-                    </Button>
                 </div>
             </div>
         </div>

@@ -4,6 +4,7 @@
 
 
 
+
 export type SocialLink = {
   id: string;
   label: string;
@@ -95,6 +96,7 @@ export type Agent = {
     siteSettings?: SiteSettings;
     role?: 'corretor' | 'admin';
     plan?: 'corretor' | 'imobiliaria';
+    simulatedStorageUsed?: number;
 }
 
 export type LeadType = "seller" | "buyer" | "other";
@@ -340,6 +342,7 @@ export const getProperties = () => properties;
 export const getReviews = () => staticReviews;
 export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Guarujá', 'Rio de Janeiro', 'Belo Horizonte', 'Curitiba', 'Porto Alegre'];
 export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
+
 
 
 
