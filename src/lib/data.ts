@@ -2,6 +2,7 @@
 
 
 
+
 export type SocialLink = {
   id: string;
   label: string;
@@ -148,6 +149,9 @@ export type SupportMessage = {
 export type MarketingContent = {
     hero_media_url?: string;
     hero_media_type?: 'image' | 'video';
+    feature_video_url?: string;
+    feature_video_title?: string;
+    ctaImageUrl?: string;
     section2_image?: string;
     section3_image?: string;
     section4_image1?: string;
@@ -334,6 +338,7 @@ export const getProperties = () => properties;
 export const getReviews = () => staticReviews;
 export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Guarujá', 'Rio de Janeiro', 'Belo Horizonte', 'Curitiba', 'Porto Alegre'];
 export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
+
 
 
 

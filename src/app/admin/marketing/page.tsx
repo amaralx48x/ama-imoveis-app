@@ -25,12 +25,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { MonitorPlay, Loader2 } from 'lucide-react';
 import ImageUpload from '@/components/image-upload';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Separator } from '@/components/ui/separator';
 
 const marketingFormSchema = z.object({
   hero_media_url: z.string().url('URL inválida').optional().or(z.literal('')),
   hero_media_type: z.enum(['image', 'video']).optional(),
   feature_video_url: z.string().url('URL inválida').optional().or(z.literal('')),
   feature_video_title: z.string().optional(),
+  ctaImageUrl: z.string().url('URL inválida').optional().or(z.literal('')),
   section2_image: z.string().url('URL inválida').optional().or(z.literal('')),
   section3_image: z.string().url('URL inválida').optional().or(z.literal('')),
   section4_image1: z.string().url('URL inválida').optional().or(z.literal('')),
@@ -42,7 +44,7 @@ const marketingFormSchema = z.object({
 
 
 type ImageField = {
-    name: keyof Omit<MarketingContent, 'hero_media_url' | 'hero_media_type' | 'feature_video_url' | 'feature_video_title'>;
+    name: keyof Omit<MarketingContent, 'hero_media_url' | 'hero_media_type' | 'feature_video_url' | 'feature_video_title' | 'ctaImageUrl'>;
     label: string;
     description: string;
 }
@@ -193,6 +195,35 @@ export default function MarketingAdminPage() {
                              />
                         </CardContent>
                     </Card>
+
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Seção "Call to Action"</CardTitle>
+                            <CardDescription>Imagem que aparece ao lado do botão "Clique aqui".</CardDescription>
+                        </CardHeader>
+                        <CardContent className="pt-6">
+                            <FormField
+                                name="ctaImageUrl"
+                                control={form.control}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Upload da Imagem</FormLabel>
+                                        <FormDescription>Envie uma imagem com fundo transparente (.png) para melhor resultado. Tamanho recomendado: 300x300</FormDescription>
+                                        <FormControl>
+                                            <ImageUpload
+                                                onUploadComplete={handleUploadComplete('ctaImageUrl')}
+                                                currentImageUrl={field.value}
+                                                agentId="marketing"
+                                                propertyId="cta_image"
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                             />
+                        </CardContent>
+                    </Card>
+
 
                     <Card>
                         <CardHeader>
