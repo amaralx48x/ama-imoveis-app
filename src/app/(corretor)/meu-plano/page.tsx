@@ -31,10 +31,16 @@ export default function MeuPlanoPage() {
 
 
   const handlePlanChange = (newPlan: PlanType) => {
+    // A lógica de permissão já está no context, mas reforçamos aqui.
     if (isAdmin) {
       setPlan(newPlan);
     }
   };
+
+  const planSettings = {
+    corretor: { maxProperties: 50 },
+    imobiliaria: { maxProperties: 300 }
+  }
 
   const planDetails = {
     corretor: {
@@ -77,25 +83,16 @@ export default function MeuPlanoPage() {
     },
   };
   
-    const planSettings = {
-    corretor: { maxProperties: 50 },
-    imobiliaria: { maxProperties: 300 }
-  }
-
 
   return (
     <div className="space-y-8">
         <InfoCard cardId="meu-plano-info" title="Seu Plano e Limites">
             <p>
-                Aqui você pode visualizar os recursos do seu plano atual e seus limites de uso.
+                Aqui você pode visualizar os recursos do seu plano atual e seus limites de uso. Para fazer upgrade ou downgrade do seu plano, entre em contato com nosso suporte.
             </p>
-             {isAdmin ? (
-                <p>
-                    Como administrador, você pode alternar entre os planos para testar as funcionalidades. Esta alteração é salva em seu perfil.
-                </p>
-             ) : (
-                <p>
-                    Para fazer upgrade ou downgrade do seu plano, entre em contato com nosso suporte.
+             {isAdmin && (
+                <p className="mt-2 text-primary font-semibold">
+                    Você é um administrador. Os botões de troca de plano estão ativos para fins de teste.
                 </p>
              )}
         </InfoCard>
