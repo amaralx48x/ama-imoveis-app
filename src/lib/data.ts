@@ -1,7 +1,5 @@
 
 
-
-
 export type SocialLink = {
   id: string;
   label: string;
@@ -155,6 +153,20 @@ export type MarketingContent = {
     section5_image1?: string;
     section5_image2?: string;
     section6_image?: string;
+}
+
+export type Customer = {
+  userId: string;
+  stripeCustomerId: string;
+}
+
+export type Subscription = {
+  userId: string;
+  stripeSubscriptionId: string;
+  status: 'active' | 'canceled' | 'past_due' | 'unpaid';
+  priceId: string;
+  createdAt?: any;
+  currentPeriodEnd?: any;
 }
 
 
@@ -334,6 +346,7 @@ export const getProperties = () => properties;
 export const getReviews = () => staticReviews;
 export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Guarujá', 'Rio de Janeiro', 'Belo Horizonte', 'Curitiba', 'Porto Alegre'];
 export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
+
 
 
 

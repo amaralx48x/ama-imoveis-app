@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "Property": {
@@ -91,7 +90,6 @@
         "accountType": { "type": "string", "enum": ["corretor", "imobiliaria"], "description": "The type of account, either an individual agent or an agency." },
         "plan": { "type": "string", "enum": ["corretor", "imobiliaria"], "description": "The subscription plan of the user.", "default": "corretor" },
         "role": { "type": "string", "enum": ["corretor", "admin"], "description": "The user's role in the system.", "default": "corretor" },
-        "simulatedStorageUsed": { "type": "number", "description": "The simulated storage used by the agent in bytes.", "default": 0 },
         "description": { "type": "string", "description": "A public-facing description of the agent or agency." },
         "creci": { "type": "string", "description": "CRECI number of the agent." },
         "photoUrl": { "type": "string", "description": "URL of the agent's photo." },
@@ -145,6 +143,30 @@
         }
       },
       "required": ["id", "displayName", "name", "accountType", "email", "role"]
+    },
+    "Customer": {
+        "title": "Customer",
+        "type": "object",
+        "description": "Represents a Stripe customer linked to a Firebase user.",
+        "properties": {
+            "userId": { "type": "string", "description": "The Firebase UID of the user." },
+            "stripeCustomerId": { "type": "string", "description": "The ID of the customer object in Stripe." }
+        },
+        "required": ["userId", "stripeCustomerId"]
+    },
+    "Subscription": {
+        "title": "Subscription",
+        "type": "object",
+        "description": "Represents a user's subscription.",
+        "properties": {
+            "userId": { "type": "string" },
+            "stripeSubscriptionId": { "type": "string" },
+            "status": { "type": "string" },
+            "priceId": { "type": "string" },
+            "createdAt": { "type": "string", "format": "date-time" },
+            "currentPeriodEnd": { "type": "string", "format": "date-time" }
+        },
+        "required": ["userId", "stripeSubscriptionId", "status", "priceId"]
     },
     "Lead": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -282,6 +304,16 @@
         "path": "/marketing/content",
         "schema": { "$ref": "#/entities/MarketingContent" },
         "description": "Stores content for the public marketing page. This is a single-document collection."
+      },
+      {
+        "path": "/customers/{userId}",
+        "schema": { "$ref": "#/entities/Customer" },
+        "description": "Stores Stripe customer information linked to a Firebase user."
+      },
+      {
+        "path": "/customers/{userId}/subscriptions/{subscriptionId}",
+        "schema": { "$ref": "#/entities/Subscription" },
+        "description": "Stores the user's subscription details."
       }
     ]
   }

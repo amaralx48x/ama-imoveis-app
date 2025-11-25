@@ -23,12 +23,10 @@ service cloud.firestore {
     // Coleção de Agentes/Imobiliárias
     // =========================
     match /agents/{agentId} {
-      // Leitura pública de um agente específico é permitida para exibir a página pública e para as regras do Storage.
+      // Qualquer um pode ler os dados públicos de um agente (para a página pública).
       allow get: if true;
-      
       // Apenas admins podem listar todos os agentes.
       allow list: if isAdmin();
-
       // O próprio agente ou um admin podem escrever/atualizar seu perfil.
       allow write: if isOwner(agentId) || isAdmin();
 
@@ -73,25 +71,29 @@ service cloud.firestore {
         allow read, update, delete: if isOwner(agentId) || isAdmin();
       }
     }
+    
+    // =========================
+    // Coleção de Clientes (Stripe)
+    // =========================
+    match /customers/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+      
+      // Assinaturas de um cliente
+      match /subscriptions/{subscriptionId} {
+          allow read, write: if isOwner(userId) || isAdmin();
+      }
+    }
 
     // =========================
     // Mensagens de suporte
     // =========================
     match /supportMessages/{messageId} {
-      // Admins podem ler qualquer mensagem individualmente e listar todas.
-      allow get, list: if isAdmin();
-      
-      // Admins podem responder (update) ou excluir.
-      allow write: if isAdmin();
-
+      // Apenas admins podem ler/escrever em todos os tickets.
+      allow read, write: if isAdmin();
       // Usuários autenticados podem criar tickets.
       allow create: if isSignedIn();
-      
-      // O remetente pode ler seu próprio ticket individualmente.
+      // O remetente pode ler seu próprio ticket.
       allow get: if isOwner(resource.data.senderId);
-
-      // Usuários podem listar APENAS os seus próprios tickets.
-      allow list: if isSignedIn() && request.query.where.senderId == request.auth.uid;
     }
 
     // =========================
