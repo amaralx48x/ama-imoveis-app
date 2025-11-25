@@ -1,4 +1,3 @@
-{// src/app/api/create-checkout-session/route.ts
 import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
 
