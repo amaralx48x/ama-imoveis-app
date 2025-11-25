@@ -110,7 +110,7 @@ export default function ImageUpload({
         let url = await getDownloadURL(fileRef);
 
         // Add a timestamp query parameter to bust browser cache
-        url = `${url}?t=${new Date().getTime()}`;
+        url = `${url}&t=${new Date().getTime()}`;
         
         if (onUploadComplete) {
             onUploadComplete(url);
