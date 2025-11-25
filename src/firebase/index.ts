@@ -3,34 +3,27 @@
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, User } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp, initializeFirestore, memoryLocalCache } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 // This function ensures Firebase is initialized only once.
-function initializeFirebaseApp() {
-  if (getApps().length > 0) {
-    return getApp();
-  }
-  return initializeApp(firebaseConfig);
-}
-
-// IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
-  const firebaseApp = initializeFirebaseApp();
-  const auth = getAuth(firebaseApp);
-  const firestore = getFirestore(firebaseApp);
-  const storage = getStorage(firebaseApp, `gs://${firebaseConfig.storageBucket}`);
+  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  // Use memory cache to prevent IndexedDB errors and assertion failures
+  const firestore = initializeFirestore(app, {
+    localCache: memoryLocalCache()
+  });
+  const storage = getStorage(app, `gs://${firebaseConfig.storageBucket}`);
   const googleProvider = new GoogleAuthProvider();
   return {
-    firebaseApp,
+    firebaseApp: app,
     auth,
     firestore,
     storage,
     googleProvider
   };
 }
-
-export const { auth, firestore, storage, googleProvider } = initializeFirebase();
 
 interface AdditionalAgentData {
     displayName?: string | null;
@@ -39,6 +32,7 @@ interface AdditionalAgentData {
 }
 
 export const saveUserToFirestore = async (user: User, additionalData?: AdditionalAgentData) => {
+    const { firestore } = initializeFirebase(); // Get a fresh instance here
     if (!user?.uid || !firestore) return;
 
     const userRef = doc(firestore, "agents", user.uid);

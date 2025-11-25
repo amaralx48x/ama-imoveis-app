@@ -49,14 +49,15 @@ function LoadingSkeleton() {
 }
 
 export default function MarketingClientPage() {
-  const firestore = useFirestore();
+  const firestore = useFirestore(); // Use the hook to get the singleton instance
+
   const marketingRef = useMemoFirebase(
     () => (firestore ? doc(firestore, 'marketing', 'content') : null),
     [firestore]
   );
   const { data: content, isLoading } = useDoc<MarketingContent>(marketingRef);
   
-  const getImage = (field: keyof Omit<MarketingContent, 'hero_media_type' | 'hero_media_url' | 'feature_video_url' | 'feature_video_title'>, defaultSeed: string) => {
+  const getImage = (field: keyof Omit<MarketingContent, 'hero_media_type' | 'hero_media_url' | 'feature_video_url' | 'feature_video_title' | 'supportWhatsapp'>, defaultSeed: string) => {
     // @ts-ignore
     const url = content?.[field];
     if (url) return url;
@@ -86,7 +87,7 @@ export default function MarketingClientPage() {
 
   const ultraplusFeatures = [
     { text: "Até 300 imóveis cadastrados", included: true },
-    { text: "20 GB de dados por mês", included: true },
+    { text: "10 GB de dados por mês", included: true },
     { text: "Importar lista de imóveis por CSV", included: true },
     { text: "Domínio personalizado de graça", included: true },
     { text: "Atendimento prioritário técnico", included: true },
