@@ -1,27 +1,30 @@
-
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, User } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp, initializeFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+
+let firebaseApp: FirebaseApp;
+let auth: ReturnType<typeof getAuth>;
+let firestore: ReturnType<typeof getFirestore>;
+let storage: ReturnType<typeof getStorage>;
 
 // This function ensures Firebase is initialized only once.
 export function initializeFirebase() {
-  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  // Use default cache settings to match server-side initialization
-  const firestore = getFirestore(app);
-  const storage = getStorage(app, `gs://${firebaseConfig.storageBucket}`);
-  const googleProvider = new GoogleAuthProvider();
-  return {
-    firebaseApp: app,
-    auth,
-    firestore,
-    storage,
-    googleProvider
-  };
+  if (!getApps().length) {
+    firebaseApp = initializeApp(firebaseConfig);
+    auth = getAuth(firebaseApp);
+    firestore = getFirestore(firebaseApp);
+    storage = getStorage(firebaseApp, `gs://${firebaseConfig.storageBucket}`);
+  } else {
+    firebaseApp = getApp();
+    auth = getAuth(firebaseApp);
+    firestore = getFirestore(firebaseApp);
+    storage = getStorage(firebaseApp, `gs://${firebaseConfig.storageBucket}`);
+  }
+  return { firebaseApp, auth, firestore, storage };
 }
 
 interface AdditionalAgentData {
@@ -62,6 +65,7 @@ export const saveUserToFirestore = async (user: User, additionalData?: Additiona
     }
 };
 
+export const googleProvider = new GoogleAuthProvider();
 
 export * from './provider';
 export * from './client-provider';

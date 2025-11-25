@@ -1,17 +1,15 @@
-
 'use client';
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, updateDoc, increment } from 'firebase/firestore';
-import { useFirebaseApp, useUser, storage, useFirestore } from '@/firebase';
+import { useFirebase, useUser } from '@/firebase';
 import { Loader2, Upload, X } from 'lucide-react';
 import Image from 'next/image';
 import { v4 as uuidv4 } from 'uuid';
-import { usePlan } from '@/context/PlanContext';
 
 type Props = {
   onUploadComplete?: (url: string) => void;
@@ -37,7 +35,7 @@ export default function ImageUpload({
   const [files, setFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
-  const firestore = useFirestore();
+  const { firestore, storage } = useFirebase();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -62,8 +60,8 @@ export default function ImageUpload({
       return;
     }
     
-    if (!agentId || !propertyId || !firestore) {
-        toast({ title: "Erro interno: IDs ausentes para upload", variant: "destructive"});
+    if (!agentId || !propertyId || !firestore || !storage) {
+        toast({ title: "Erro interno: Serviços Firebase ausentes", variant: "destructive"});
         return;
     }
 
@@ -94,7 +92,11 @@ export default function ImageUpload({
         } else if (propertyId === 'seo-image') {
              basePath = `agents/${agentId}/site-assets`;
              fileName = `seo-og-image.${fileExtension}`;
-        } else {
+        } else if (propertyId === 'hero-image') {
+             basePath = `agents/${agentId}/site-assets`;
+             fileName = `hero-image.${fileExtension}`;
+        }
+        else {
             basePath = `agents/${agentId}/properties/${propertyId}`;
             fileName = `${Date.now()}_${uuidv4()}.${fileExtension}`;
         }
@@ -108,12 +110,10 @@ export default function ImageUpload({
             onUploadComplete(url);
         }
 
-        // Increment simulated storage usage if not admin/marketing
         if (agentId !== 'admin' && agentId !== 'marketing') {
             const agentRef = doc(firestore, 'agents', agentId);
-            const simulatedSize = 0.8 * 1024 * 1024 + Math.random() * (20 - 0.8) * 1024 * 1024; // 800KB to 20MB in bytes
             await updateDoc(agentRef, {
-                simulatedStorageUsed: increment(simulatedSize)
+                simulatedStorageUsed: increment(uploadResult.metadata.size)
             });
         }
       });
