@@ -1,19 +1,18 @@
+
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, User } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp, initializeFirestore, memoryLocalCache } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 // This function ensures Firebase is initialized only once.
 export function initializeFirebase() {
   const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  // Use memory cache to prevent IndexedDB errors and assertion failures
-  const firestore = initializeFirestore(app, {
-    localCache: memoryLocalCache()
-  });
+  // Use default cache settings to match server-side initialization
+  const firestore = getFirestore(app);
   const storage = getStorage(app, `gs://${firebaseConfig.storageBucket}`);
   const googleProvider = new GoogleAuthProvider();
   return {
