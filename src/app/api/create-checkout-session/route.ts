@@ -1,9 +1,20 @@
 import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
+// Check for the secret key at the module level
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+if (!stripeSecretKey) {
+  console.error('CRITICAL: STRIPE_SECRET_KEY is not set in the environment.');
+}
+
+const stripe = new Stripe(stripeSecretKey!, { apiVersion: '2024-06-20' });
 
 export async function POST(req: Request) {
+  // Explicitly check for the key within the request handler as well
+  if (!stripeSecretKey) {
+    return NextResponse.json({ error: 'Stripe secret key not configured on the server.' }, { status: 500 });
+  }
+
   try {
     const body = await req.json();
     const { priceId, customerEmail, userId } = body; 
@@ -29,7 +40,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: session.url });
   } catch (err: any) {
-    console.error('create-checkout-session error', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error('create-checkout-session error:', err);
+    // Return a more structured error message
+    return NextResponse.json({ error: `Stripe API Error: ${err.message}` }, { status: 500 });
   }
 }

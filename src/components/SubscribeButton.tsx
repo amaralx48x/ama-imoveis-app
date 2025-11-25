@@ -25,16 +25,29 @@ export default function SubscribeButton({ priceId, email, userId, children, vari
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ priceId, customerEmail: email, userId }),
       });
+
+      // Check if the response is successful, not just if it exists
+      if (!res.ok) {
+        // Try to parse the error message from the server
+        const errorData = await res.json().catch(() => ({ error: 'O servidor retornou uma resposta inválida.' }));
+        throw new Error(errorData.error || `Erro do servidor: ${res.statusText}`);
+      }
+
       const data = await res.json();
+
       if (data?.url) {
         window.location.href = data.url;
       } else {
-        console.error('Erro ao criar sessão', data);
-        toast({ title: 'Erro ao iniciar pagamento', description: data.error, variant: 'destructive'});
+        // This case handles a successful response but with missing URL
+        throw new Error('A resposta do servidor não continha a URL de checkout.');
       }
-    } catch (err) {
-      console.error(err);
-      toast({ title: 'Erro ao iniciar pagamento', variant: 'destructive'});
+    } catch (err: any) {
+      console.error('Erro ao criar sessão:', err);
+      toast({ 
+          title: 'Erro ao iniciar pagamento', 
+          description: err.message || 'Não foi possível se comunicar com o servidor de pagamento.',
+          variant: 'destructive'
+      });
     } finally {
         setIsLoading(false);
     }
