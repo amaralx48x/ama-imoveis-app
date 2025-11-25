@@ -2,21 +2,27 @@
 
 import React, { useMemo, type ReactNode } from 'react';
 import { FirebaseProvider } from '@/firebase/provider';
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { firebaseConfig } from './config';
+import { initializeFirebase } from './init'; // Import the centralized initializer
 
 interface FirebaseClientProviderProps {
   children: ReactNode;
 }
 
 export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
-  const firebaseApp = useMemo(() => {
-    // Initialize Firebase on the client side, once per component mount.
-    return getApps().length ? getApp() : initializeApp(firebaseConfig);
+  // The magic happens here: initializeFirebase is called once on the client
+  // and returns the singleton instances of all services.
+  const { firebaseApp, auth, firestore, storage } = useMemo(() => {
+    return initializeFirebase();
   }, []); // Empty dependency array ensures this runs only once on mount
 
   return (
-    <FirebaseProvider firebaseApp={firebaseApp}>
+    // Pass the singleton instances to the provider.
+    <FirebaseProvider 
+        firebaseApp={firebaseApp}
+        auth={auth}
+        firestore={firestore}
+        storage={storage}
+    >
       {children}
     </FirebaseProvider>
   );

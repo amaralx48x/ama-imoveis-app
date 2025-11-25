@@ -1,7 +1,7 @@
 'use client';
 // src/firebase/seo.ts
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { initializeFirebase } from "@/firebase";
+import { initializeFirebase } from "@/firebase/init";
 import { errorEmitter } from "./error-emitter";
 import { FirestorePermissionError } from "./errors";
 

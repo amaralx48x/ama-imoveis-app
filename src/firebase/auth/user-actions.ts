@@ -1,6 +1,6 @@
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { User, GoogleAuthProvider } from 'firebase/auth';
-import { initializeFirebase } from '@/firebase/init'; // Use the clean init file
+import { initializeFirebase } from '@/firebase/init'; 
 
 interface AdditionalAgentData {
     displayName?: string | null;
@@ -9,7 +9,7 @@ interface AdditionalAgentData {
 }
 
 export const saveUserToFirestore = async (user: User, additionalData?: AdditionalAgentData) => {
-    const { firestore } = initializeFirebase(); // Get a fresh instance here
+    const { firestore } = initializeFirebase(); // Get singleton instance
     if (!user?.uid || !firestore) return;
 
     const userRef = doc(firestore, "agents", user.uid);

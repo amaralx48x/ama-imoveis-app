@@ -3,15 +3,18 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { getFirestore, Firestore } from 'firebase/firestore';
-import { getAuth, Auth, User, onAuthStateChanged } from 'firebase/auth';
-import { getStorage, FirebaseStorage } from 'firebase/storage';
+import { Firestore } from 'firebase/firestore';
+import { Auth, User, onAuthStateChanged } from 'firebase/auth';
+import { FirebaseStorage } from 'firebase/storage';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 
 interface FirebaseProviderProps {
   children: ReactNode;
   firebaseApp: FirebaseApp;
+  auth: Auth;
+  firestore: Firestore;
+  storage: FirebaseStorage;
 }
 
 // Internal state for user authentication
@@ -60,23 +63,11 @@ export const FirebaseContext = createContext<FirebaseContextState | undefined>(u
  */
 export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   children,
-  firebaseApp
+  firebaseApp,
+  auth,
+  firestore,
+  storage,
 }) => {
-
-  const services = useMemo(() => {
-    if (!firebaseApp) {
-      return { auth: null, firestore: null, storage: null };
-    }
-    // These calls get the existing instances or create them if they don't exist for the app.
-    // They act as singletons for the given app instance.
-    return {
-      auth: getAuth(firebaseApp),
-      firestore: getFirestore(firebaseApp),
-      storage: getStorage(firebaseApp)
-    };
-  }, [firebaseApp]);
-
-  const { auth, firestore, storage } = services;
 
   const [userAuthState, setUserAuthState] = useState<UserAuthState>({
     user: auth?.currentUser || null, // Initialize with currentUser if available
