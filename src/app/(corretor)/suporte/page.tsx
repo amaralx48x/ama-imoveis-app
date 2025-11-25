@@ -318,9 +318,6 @@ export default function SuportePage() {
         </CardHeader>
       </Card>
       
-      {plan === 'imobiliaria' && (
-        <PrioritySupportCard whatsappNumber={marketingContent?.supportWhatsapp}/>
-      )}
 
       <Card>
         <CardHeader>
