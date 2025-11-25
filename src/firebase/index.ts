@@ -1,6 +1,8 @@
+
 'use client';
 
-// Barrel file for easy imports.
+// Barrel file para facilitar as importações.
+// Este arquivo apenas re-exporta funcionalidades de outros módulos.
 
 export * from './init';
 export * from './provider';
@@ -9,7 +11,7 @@ export * from './firestore/use-collection';
 export * from './firestore/use-doc';
 export * from './errors';
 
-// Re-exporting auth functions for convenience
+// Re-exportando funções de autenticação para conveniência
 export { 
     createUserWithEmailAndPassword, 
     signInWithEmailAndPassword, 
