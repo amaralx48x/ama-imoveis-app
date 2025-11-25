@@ -127,6 +127,7 @@
             "defaultSaleCommission": { "type": "number", "description": "Default commission percentage for sales." },
             "defaultRentCommission": { "type": "number", "description": "Default commission percentage for rentals." },
             "faviconUrl": { "type": "string", "format": "uri", "description": "URL for the site's favicon." },
+            "propertiesPerSection": { "type": "number", "description": "Number of properties to display per section carousel.", "default": 4 },
             "socialLinks": {
               "type": "array",
               "description": "List of social media links.",
@@ -284,3 +285,5 @@
     ]
   }
 }
+
+    

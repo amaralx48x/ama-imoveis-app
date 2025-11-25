@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -56,7 +57,7 @@ export default function AgentPageClient({
         </div>
 
         {featuredProperties.length > 0 && (
-          <FeaturedProperties properties={featuredProperties} agentId={agent.id} />
+          <FeaturedProperties properties={featuredProperties} agent={agent} />
         )}
 
         {customSections.map(section => {
@@ -67,7 +68,7 @@ export default function AgentPageClient({
               key={section.id}
               title={section.title}
               properties={sectionProperties}
-              agentId={agent.id}
+              agent={agent}
               sectionId={section.id}
             />
           );
@@ -87,3 +88,5 @@ export default function AgentPageClient({
     </>
   );
 }
+
+    

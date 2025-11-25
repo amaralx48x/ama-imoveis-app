@@ -21,17 +21,19 @@ import { doc, setDoc } from 'firebase/firestore';
 import { useEffect } from 'react';
 import type { Agent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Palette, Sun, Moon, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Palette, Sun, Moon, Loader2, Image as ImageIcon, View } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { InfoCard } from '@/components/info-card';
 import ImageUpload from '@/components/image-upload';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
+import { Slider } from '@/components/ui/slider';
 
 const appearanceFormSchema = z.object({
   theme: z.enum(['light', 'dark'], { required_error: 'Por favor, selecione um tema.' }),
   heroImageUrl: z.string().url("URL inválida").optional().or(z.literal('')),
+  propertiesPerSection: z.coerce.number().min(3).max(8).default(4),
 });
 
 function AppearanceFormSkeleton() {
@@ -46,6 +48,11 @@ function AppearanceFormSkeleton() {
             </div>
             <Separator />
             <div className="space-y-4">
+                <Skeleton className="h-5 w-1/3" />
+                <Skeleton className="h-24 w-full rounded-md" />
+            </div>
+            <Separator />
+             <div className="space-y-4">
                 <Skeleton className="h-5 w-1/3" />
                 <Skeleton className="h-24 w-full rounded-md" />
             </div>
@@ -71,6 +78,7 @@ export default function AparenciaPage() {
     defaultValues: {
       theme: 'dark',
       heroImageUrl: '',
+      propertiesPerSection: 4,
     },
   });
 
@@ -79,14 +87,13 @@ export default function AparenciaPage() {
       form.reset({
         theme: agentData.siteSettings.theme || 'dark',
         heroImageUrl: agentData.siteSettings.heroImageUrl || '',
+        propertiesPerSection: agentData.siteSettings.propertiesPerSection || 4,
       });
     }
   }, [agentData, form]);
 
   const handleThemeChange = (theme: 'light' | 'dark') => {
-    // Atualiza o formulário
     form.setValue('theme', theme);
-    // Aplica o tema imediatamente ao painel
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(theme);
   };
@@ -125,12 +132,13 @@ export default function AparenciaPage() {
   }
   
   const currentHeroImage = form.watch('heroImageUrl');
+  const propertiesPerSection = form.watch('propertiesPerSection');
 
   return (
     <div className="space-y-6">
         <InfoCard cardId="aparencia-info" title="Personalize a Aparência">
             <p>
-                Escolha o tema de cores e a imagem de fundo principal para o seu site. Sua seleção de tema é aplicada instantaneamente neste painel para você ter uma pré-visualização.
+                Escolha o tema de cores, a imagem de fundo e a densidade de imóveis nas seções do seu site. Suas seleções são aplicadas instantaneamente neste painel para você ter uma pré-visualização.
             </p>
             <p>
                 Ao clicar em "Salvar", as mudanças serão aplicadas também no seu site público, garantindo uma experiência visual consistente para seus clientes.
@@ -221,6 +229,37 @@ export default function AparenciaPage() {
                         </div>
                     </div>
                 )}
+                
+                <Separator />
+
+                <FormField
+                  control={form.control}
+                  name="propertiesPerSection"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-lg font-semibold flex items-center gap-2">
+                        <View /> Imóveis por Seção
+                      </FormLabel>
+                      <div className="flex items-center gap-4">
+                        <FormControl>
+                            <Slider
+                                min={3}
+                                max={8}
+                                step={1}
+                                value={[field.value]}
+                                onValueChange={(value) => field.onChange(value[0])}
+                                className="flex-1"
+                            />
+                        </FormControl>
+                        <span className="font-bold text-lg w-10 text-center">{propertiesPerSection}</span>
+                      </div>
+                      <FormDescription>
+                        Escolha quantos imóveis aparecerão por vez nas seções em carrossel do seu site público.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
 
                 <Button type="submit" size="lg" disabled={form.formState.isSubmitting || !form.formState.isDirty} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
@@ -239,3 +278,5 @@ export default function AparenciaPage() {
     </div>
   );
 }
+
+    
