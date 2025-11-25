@@ -1,4 +1,3 @@
-
 'use client';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -191,7 +190,7 @@ export default function ImoveisPage() {
 
             <div className="flex justify-between items-center animate-fade-in-up">
                 <div>
-                    <h1 className="text-3xl font-bold font-headline">Meus Imóveis ({currentPropertiesCount} / {limits.maxProperties === Infinity ? 'Ilimitado' : limits.maxProperties})</h1>
+                    <h1 className="text-3xl font-bold font-headline">Meus Imóveis ({currentPropertiesCount} / {limits.maxProperties})</h1>
                     <p className="text-muted-foreground">Gerencie seu portfólio de imóveis.</p>
                 </div>
                  <div className="flex gap-2">
@@ -209,7 +208,7 @@ export default function ImoveisPage() {
                         </TooltipTrigger>
                         {!limits.canImportCSV && (
                           <TooltipContent>
-                            <p className="flex items-center gap-2"><Gem className="h-4 w-4 text-primary"/> Disponível no plano Imobiliária Plus.</p>
+                            <p className="flex items-center gap-2"><Gem className="h-4 w-4 text-primary"/> Disponível no plano AMA ULTRA.</p>
                           </TooltipContent>
                         )}
                       </Tooltip>

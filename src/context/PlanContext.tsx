@@ -1,6 +1,6 @@
 'use client';
 
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDoc, updateDoc } from 'firebase/firestore';
 import {
   createContext,
   useContext,
@@ -8,8 +8,11 @@ import {
   ReactNode,
   useMemo,
   useEffect,
+  useCallback,
 } from 'react';
 import { useFirestore, useUser } from '@/firebase';
+import type { Agent } from '@/lib/data';
+import { useToast } from '@/hooks/use-toast';
 
 export type PlanType = 'corretor' | 'imobiliaria';
 
@@ -41,31 +44,50 @@ const planSettings: Record<PlanType, PlanLimits> = {
     }
 }
 
-const defaultPlan: PlanContextProps = {
+const defaultPlanContext: PlanContextProps = {
   plan: 'corretor',
   setPlan: () => {},
   limits: planSettings.corretor,
   currentPropertiesCount: 0,
   isLoading: true,
-  canAddNewProperty: () => true,
+  canAddNewProperty: () => false,
 };
 
-const PlanContext = createContext<PlanContextProps>(defaultPlan);
+const PlanContext = createContext<PlanContextProps>(defaultPlanContext);
 
 export const PlanProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useUser();
   const firestore = useFirestore();
-  const [plan, setPlanState] = useState<PlanType>('corretor'); // Default plan
+  const { toast } = useToast();
+  
+  const [agentData, setAgentData] = useState<Agent | null>(null);
   const [currentPropertiesCount, setCurrentPropertiesCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Function to fetch current properties count in real-time
+  // Fetch agent data (including plan)
+  useEffect(() => {
+    if (user && firestore) {
+      const agentRef = doc(firestore, `agents/${user.uid}`);
+      const unsubscribe = onSnapshot(agentRef, (docSnap) => {
+        if (docSnap.exists()) {
+          setAgentData(docSnap.data() as Agent);
+        }
+        // No need to setIsLoading here, we do it in the properties fetch
+      }, (error) => {
+        console.error("Error fetching agent data:", error);
+        setIsLoading(false);
+      });
+      return () => unsubscribe();
+    } else {
+        setAgentData(null);
+    }
+  }, [user, firestore]);
+
+  // Fetch current properties count in real-time
   useEffect(() => {
     if (user && firestore) {
       setIsLoading(true);
       const propertiesRef = collection(firestore, `agents/${user.uid}/properties`);
-      
-      // Use onSnapshot for real-time updates
       const unsubscribe = onSnapshot(
         propertiesRef,
         (snapshot) => {
@@ -77,26 +99,47 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
           setIsLoading(false);
         }
       );
-
-      // Cleanup listener on unmount
       return () => unsubscribe();
     } else {
-      // If there's no user, reset the count and loading state
       setCurrentPropertiesCount(0);
       setIsLoading(false);
     }
   }, [user, firestore]);
+  
+  const setPlan = useCallback(async (newPlan: PlanType) => {
+    if (!user || !firestore || agentData?.role !== 'admin') {
+        toast({
+            title: "Permissão Negada",
+            description: "Apenas administradores podem alterar o plano.",
+            variant: "destructive"
+        })
+        return;
+    };
 
-  const setPlan = (newPlan: PlanType) => setPlanState(newPlan);
+    const agentRef = doc(firestore, 'agents', user.uid);
+    try {
+        await updateDoc(agentRef, { plan: newPlan });
+        toast({
+            title: "Plano Atualizado!",
+            description: `O plano foi alterado para ${newPlan === 'corretor' ? 'AMAPLUS' : 'AMA ULTRA'}.`
+        })
+    } catch (error) {
+        console.error("Erro ao atualizar plano:", error);
+        toast({ title: "Erro ao salvar", variant: 'destructive'})
+    }
+
+  }, [user, firestore, agentData?.role, toast]);
+
+  const plan = agentData?.plan || 'corretor';
 
   const limits = useMemo(() => {
     return planSettings[plan];
   }, [plan]);
 
-  const canAddNewProperty = () => {
-    if (isLoading) return false; // Don't allow adding if count is not confirmed
+  const canAddNewProperty = useCallback(() => {
+    if (isLoading) return false;
     return currentPropertiesCount < limits.maxProperties;
-  };
+  }, [isLoading, currentPropertiesCount, limits.maxProperties]);
 
   const value = {
     plan,
@@ -111,5 +154,3 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const usePlan = () => useContext(PlanContext);
-
-    

@@ -3,9 +3,11 @@
 import { usePlan, PlanType } from '@/context/PlanContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Gem, X } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Check, Gem, X, Loader2 } from 'lucide-react';
 import { InfoCard } from '@/components/info-card';
+import { useUser, useDoc, useMemoFirebase, useFirestore } from '@/firebase';
+import type { Agent } from '@/lib/data';
+import { doc } from 'firebase/firestore';
 
 
 const PlanFeature = ({ children, included }: { children: React.ReactNode, included: boolean }) => (
@@ -16,10 +18,22 @@ const PlanFeature = ({ children, included }: { children: React.ReactNode, includ
 );
 
 export default function MeuPlanoPage() {
+  const { user } = useUser();
+  const firestore = useFirestore();
   const { plan, setPlan, limits, currentPropertiesCount, isLoading } = usePlan();
 
+   const agentRef = useMemoFirebase(
+    () => (user && firestore ? doc(firestore, 'agents', user.uid) : null),
+    [user, firestore]
+  );
+  const { data: agentData } = useDoc<Agent>(agentRef);
+  const isAdmin = agentData?.role === 'admin';
+
+
   const handlePlanChange = (newPlan: PlanType) => {
-    setPlan(newPlan);
+    if (isAdmin) {
+      setPlan(newPlan);
+    }
   };
 
   const planDetails = {
@@ -33,13 +47,13 @@ export default function MeuPlanoPage() {
         { text: 'CRM completo', included: true },
         { text: 'SEO (Otimização para Google)', included: true },
         { text: 'Lista de captação de leads', included: true },
-        { text: `Até ${limits.maxProperties} imóveis simultâneos`, included: true },
+        { text: `Até ${planSettings.corretor.maxProperties} imóveis simultâneos`, included: true },
         { text: '5 GB de dados por mês', included: true },
         { text: 'Domínio pago à parte (R$ 40/anual)', included: true },
         { text: 'Importar lista de imóveis por CSV', included: false },
         { text: 'Atendimento prioritário técnico', included: false },
       ],
-      action: () => handlePlanChange('imobiliaria'),
+      action: () => handlePlanChange('corretor'),
       isCurrent: plan === 'corretor',
     },
     imobiliaria: {
@@ -52,26 +66,38 @@ export default function MeuPlanoPage() {
         { text: 'CRM completo', included: true },
         { text: 'SEO (Otimização para Google)', included: true },
         { text: 'Lista de captação de leads', included: true },
-        { text: 'Até 300 imóveis cadastrados', included: true },
+        { text: `Até ${planSettings.imobiliaria.maxProperties} imóveis cadastrados`, included: true },
         { text: '10 GB de dados por mês', included: true },
         { text: 'Importar lista de imóveis por CSV', included: true },
         { text: 'Domínio personalizado de graça', included: true },
         { text: 'Atendimento prioritário técnico', included: true },
       ],
-      action: () => handlePlanChange('corretor'),
+      action: () => handlePlanChange('imobiliaria'),
       isCurrent: plan === 'imobiliaria',
     },
   };
+  
+    const planSettings = {
+    corretor: { maxProperties: 50 },
+    imobiliaria: { maxProperties: 300 }
+  }
+
 
   return (
     <div className="space-y-8">
         <InfoCard cardId="meu-plano-info" title="Seu Plano e Limites">
             <p>
-                Aqui você pode visualizar os recursos do seu plano atual e o que cada um oferece. A troca de planos é simulada para que você possa entender as vantagens de cada um.
+                Aqui você pode visualizar os recursos do seu plano atual e seus limites de uso.
             </p>
-            <p>
-                O plano <strong>AMAPLUS</strong> é ideal para começar, enquanto o <strong>AMA ULTRA</strong> oferece recursos avançados como mais imóveis e importação de dados, perfeito para quem tem um portfólio maior.
-            </p>
+             {isAdmin ? (
+                <p>
+                    Como administrador, você pode alternar entre os planos para testar as funcionalidades. Esta alteração é salva em seu perfil.
+                </p>
+             ) : (
+                <p>
+                    Para fazer upgrade ou downgrade do seu plano, entre em contato com nosso suporte.
+                </p>
+             )}
         </InfoCard>
 
         <div>
@@ -86,11 +112,14 @@ export default function MeuPlanoPage() {
             </CardHeader>
             <CardContent>
                 {isLoading ? (
-                    <p>Carregando...</p>
+                     <div className="flex items-center gap-2 text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Carregando informações do plano...</span>
+                    </div>
                 ) : (
                     <div className="space-y-2">
                         <p>Plano Atual: <span className="font-bold text-primary">{planDetails[plan].name}</span></p>
-                        <p>Imóveis Cadastrados: <span className="font-bold">{currentPropertiesCount} / {limits.maxProperties === Infinity ? 'Ilimitado' : limits.maxProperties}</span></p>
+                        <p>Imóveis Cadastrados: <span className="font-bold">{currentPropertiesCount} / {limits.maxProperties}</span></p>
                     </div>
                 )}
             </CardContent>
@@ -114,7 +143,9 @@ export default function MeuPlanoPage() {
                     {planDetails.corretor.isCurrent ? (
                         <Button disabled className="w-full" variant="outline">Plano Atual</Button>
                     ) : (
-                        <Button onClick={planDetails.imobiliaria.action} className="w-full" variant="outline">Fazer Downgrade</Button>
+                         <Button onClick={planDetails.corretor.action} className="w-full" variant="outline" disabled={!isAdmin}>
+                            {isAdmin ? "Mudar para AMAPLUS" : "Fazer Downgrade"}
+                        </Button>
                     )}
                 </CardFooter>
             </Card>
@@ -136,20 +167,13 @@ export default function MeuPlanoPage() {
                      {planDetails.imobiliaria.isCurrent ? (
                         <Button disabled className="w-full" variant="outline">Plano Atual</Button>
                     ) : (
-                        <Button onClick={planDetails.corretor.action} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">Fazer Upgrade</Button>
+                        <Button onClick={planDetails.imobiliaria.action} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity" disabled={!isAdmin}>
+                             {isAdmin ? "Mudar para AMA ULTRA" : "Fazer Upgrade"}
+                        </Button>
                     )}
                 </CardFooter>
             </Card>
         </div>
-         <Alert>
-            <Gem className="h-4 w-4" />
-            <AlertTitle>Ambiente de Demonstração</AlertTitle>
-            <AlertDescription>
-                A troca de planos nesta página é apenas para simular as funcionalidades. Nenhuma cobrança real será efetuada.
-            </AlertDescription>
-        </Alert>
     </div>
   );
 }
-
-    

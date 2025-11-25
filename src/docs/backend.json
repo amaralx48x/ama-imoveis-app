@@ -91,6 +91,7 @@
         "accountType": { "type": "string", "enum": ["corretor", "imobiliaria"], "description": "The type of account, either an individual agent or an agency." },
         "plan": { "type": "string", "enum": ["corretor", "imobiliaria"], "description": "The subscription plan of the user.", "default": "corretor" },
         "role": { "type": "string", "enum": ["corretor", "admin"], "description": "The user's role in the system.", "default": "corretor" },
+        "simulatedStorageUsed": { "type": "number", "description": "The simulated storage used by the agent in bytes.", "default": 0 },
         "description": { "type": "string", "description": "A public-facing description of the agent or agency." },
         "creci": { "type": "string", "description": "CRECI number of the agent." },
         "photoUrl": { "type": "string", "description": "URL of the agent's photo." },
@@ -118,6 +119,7 @@
           "description": "Settings to control the visibility of sections on the public site.",
           "properties": {
             "heroImageUrl": { "type": "string", "format": "uri", "description": "URL for the agent's custom hero image." },
+            "logoUrl": { "type": "string", "format": "uri", "description": "URL for the agent's site logo." },
             "theme": { "type": "string", "enum": ["light", "dark"], "description": "The color theme for the site and dashboard.", "default": "dark" },
             "siteStatus": { "type": "boolean", "description": "Controls the public visibility of the agent's site.", "default": true },
             "showFinancing": { "type": "boolean", "description": "Show or hide the financing simulation button." },
@@ -126,6 +128,7 @@
             "defaultSaleCommission": { "type": "number", "description": "Default commission percentage for sales." },
             "defaultRentCommission": { "type": "number", "description": "Default commission percentage for rentals." },
             "faviconUrl": { "type": "string", "format": "uri", "description": "URL for the site's favicon." },
+            "propertiesPerSection": { "type": "number", "description": "Number of properties to display per section carousel.", "default": 4 },
             "socialLinks": {
               "type": "array",
               "description": "List of social media links.",
@@ -223,13 +226,15 @@
         "hero_media_type": { "type": "string", "enum": ["image", "video"], "description": "Type of the hero media." },
         "feature_video_url": { "type": "string", "format": "uri", "description": "URL for the feature video section." },
         "feature_video_title": { "type": "string", "description": "Title to be displayed over the feature video." },
+        "ctaImageUrl": { "type": "string", "format": "uri", "description": "URL for the image next to the CTA button." },
         "section2_image": { "type": "string", "format": "uri" },
         "section3_image": { "type": "string", "format": "uri" },
         "section4_image1": { "type": "string", "format": "uri" },
         "section4_image2": { "type": "string", "format": "uri" },
         "section5_image1": { "type": "string", "format": "uri" },
         "section5_image2": { "type": "string", "format": "uri" },
-        "section6_image": { "type": "string", "format": "uri" }
+        "section6_image": { "type": "string", "format": "uri" },
+        "supportWhatsapp": { "type": "string", "description": "WhatsApp number for priority support." }
       }
     }
   },
