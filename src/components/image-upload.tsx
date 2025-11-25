@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, updateDoc, increment } from 'firebase/firestore';
-import { useFirebase, useUser } from '@/firebase';
+import { useFirebase } from '@/firebase';
 import { Loader2, Upload, X } from 'lucide-react';
 import Image from 'next/image';
 import { v4 as uuidv4 } from 'uuid';
@@ -73,9 +73,12 @@ export default function ImageUpload({
         let fileName;
         const fileExtension = file.name.split('.').pop() || 'jpg';
 
-        if (propertyId === 'profile' || propertyId === 'favicon') {
+        if (propertyId === 'profile' || propertyId === 'favicon' || propertyId === 'hero-image') {
             basePath = `agents/${agentId}/site-assets`;
-            fileName = `${propertyId}.${fileExtension}`;
+            // Use a unique name for hero-image to bust cache, but a stable name for others
+            fileName = propertyId === 'hero-image' 
+              ? `${propertyId}-${Date.now()}.${fileExtension}`
+              : `${propertyId}.${fileExtension}`;
         } else if (propertyId.startsWith('support-ticket-')) {
             basePath = `support-images/${agentId}`;
             fileName = `${Date.now()}_${uuidv4()}.${fileExtension}`;
@@ -92,11 +95,7 @@ export default function ImageUpload({
         } else if (propertyId === 'seo-image') {
              basePath = `agents/${agentId}/site-assets`;
              fileName = `seo-og-image.${fileExtension}`;
-        } else if (propertyId === 'hero-image') {
-             basePath = `agents/${agentId}/site-assets`;
-             fileName = `hero-image.${fileExtension}`;
-        }
-        else {
+        } else {
             basePath = `agents/${agentId}/properties/${propertyId}`;
             fileName = `${Date.now()}_${uuidv4()}.${fileExtension}`;
         }
@@ -104,7 +103,10 @@ export default function ImageUpload({
         const filePath = `${basePath}/${fileName}`;
         const fileRef = ref(storage, filePath);
         const uploadResult = await uploadBytes(fileRef, file);
-        const url = await getDownloadURL(fileRef);
+        let url = await getDownloadURL(fileRef);
+
+        // Add a timestamp query parameter to bust browser cache
+        url = `${url}?t=${new Date().getTime()}`;
         
         if (onUploadComplete) {
             onUploadComplete(url);
