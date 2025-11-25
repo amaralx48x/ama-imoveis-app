@@ -6,20 +6,25 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { priceId, customerEmail, userId } = body; // priceId vindo do frontend / Dashboard
+    const { priceId, customerEmail, userId } = body; 
 
     if (!priceId) {
       return NextResponse.json({ error: 'priceId é obrigatório' }, { status: 400 });
+    }
+    if (!userId) {
+        return NextResponse.json({ error: 'userId é obrigatório' }, { status: 400 });
     }
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
-      customer_email: customerEmail, // opcional: uso rápido sem criar Customer
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/assinatura/sucesso?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/assinatura/cancelado`,
-      metadata: { userId: userId || '' }, // armazene ID do seu usuário para usar no webhook
+      customer_email: customerEmail,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/meu-plano`,
+      metadata: { 
+          userId: userId // Pass the userId to the webhook
+      }, 
     });
 
     return NextResponse.json({ url: session.url });

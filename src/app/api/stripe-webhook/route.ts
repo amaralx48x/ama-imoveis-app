@@ -1,10 +1,18 @@
-
 import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
 import { getFirebaseServer } from '@/firebase/server-init';
 import { doc, updateDoc, collection, addDoc, getDoc } from 'firebase/firestore';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
+
+const relevantEvents = new Set([
+  'checkout.session.completed',
+  'customer.subscription.created',
+  'customer.subscription.updated',
+  'customer.subscription.deleted',
+  'invoice.paid',
+  'invoice.payment_failed'
+]);
 
 export const runtime = 'nodejs'; // garante runtime node para leitura do raw body
 
@@ -25,14 +33,24 @@ async function getRawBody(req: Request): Promise<Buffer> {
 export async function POST(req: Request) {
   const sig = req.headers.get('stripe-signature')!;
   const body = await getRawBody(req);
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
+    if (!sig || !webhookSecret) {
+        console.error('Webhook secret or signature not found.');
+        return new NextResponse('Webhook secret not configured.', { status: 400 });
+    }
+    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
   } catch (err: any) {
     console.error('Webhook signature verification failed.', err.message);
     return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
   }
+  
+  if (!relevantEvents.has(event.type)) {
+      return new NextResponse('Webhook event not relevant.', { status: 200 });
+  }
+
 
   const { firestore } = getFirebaseServer();
 
@@ -41,13 +59,23 @@ export async function POST(req: Request) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.metadata?.userId;
-        const customerId = session.customer;
+        const customerId = session.customer as string;
         
-        if (userId && customerId) {
-            const customerRef = doc(firestore, 'customers', userId);
-            // Sync Stripe customer ID with Firestore customer doc
-             await updateDoc(customerRef, { stripeId: customerId });
+        if (!userId || !customerId) {
+            console.error('Missing userId or customerId in checkout session');
+            break;
         }
+
+        const customerRef = doc(firestore, 'customers', userId);
+        const customerSnap = await getDoc(customerRef);
+        
+        if (!customerSnap.exists()) {
+             await setDoc(customerRef, {
+                userId: userId,
+                stripeCustomerId: customerId,
+             });
+        }
+        
         console.log('Checkout session completed for user', userId);
         break;
       }
@@ -56,37 +84,47 @@ export async function POST(req: Request) {
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted': {
           const subscription = event.data.object as Stripe.Subscription;
-          const userId = subscription.metadata.userId;
+          const customerId = subscription.customer as string;
+          const userIdQuery = await getDocs(query(collection(firestore, 'customers'), where('stripeCustomerId', '==', customerId)));
+          
+          if(userIdQuery.empty) {
+              console.error(`Customer with stripeId ${customerId} not found in Firestore.`);
+              break;
+          }
+          const userId = userIdQuery.docs[0].id;
+
           const priceId = subscription.items.data[0].price.id;
           
           if (userId) {
               const agentRef = doc(firestore, 'agents', userId);
-              const plan = priceId === 'price_1SXSRf2K7btqnPDwReiW165r' ? 'corretor' : 'imobiliaria';
-              await updateDoc(agentRef, { plan });
+              
+              // Map your Stripe Price IDs to your application's plan names
+              const plan = priceId === (process.env.NEXT_PUBLIC_STRIPE_BASIC_PRICE_ID || 'price_1SXSRf2K7btqnPDwReiW165r') 
+                ? 'corretor' 
+                : 'imobiliaria';
+              
+              await updateDoc(agentRef, { plan: plan, stripeSubscriptionStatus: subscription.status });
+              console.log(`Updated plan for user ${userId} to ${plan} with status ${subscription.status}`);
           }
           break;
       }
 
       case 'invoice.paid': {
-        const invoice = event.data.object as Stripe.Invoice;
-        const subscriptionId = invoice.subscription;
-        console.log('invoice.paid for subscription', subscriptionId);
-        // Atualize seu banco: liberar acesso, marcar data de renovação, etc.
+        // Handle successful payment
         break;
       }
 
       case 'invoice.payment_failed': {
-        const invoice = event.data.object as Stripe.Invoice;
-        console.log('invoice.payment_failed', invoice);
-        // notificações, suspender acesso, etc.
+        // Handle failed payment
         break;
       }
       
       default:
-        console.log(`Unhandled event type ${event.type}`);
+        console.log(`Unhandled relevant event type ${event.type}`);
     }
   } catch (err) {
     console.error('Erro processando webhook', err);
+    return new NextResponse('Webhook handler failed. See logs.', { status: 500 });
   }
 
   return new NextResponse('ok', { status: 200 });

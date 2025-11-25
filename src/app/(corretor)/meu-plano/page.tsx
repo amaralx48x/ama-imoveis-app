@@ -1,3 +1,4 @@
+
 'use client';
 
 import { usePlan, PlanType } from '@/context/PlanContext';
@@ -7,7 +8,7 @@ import { Check, Gem, X, Loader2 } from 'lucide-react';
 import { InfoCard } from '@/components/info-card';
 import { useUser, useDoc, useMemoFirebase, useFirestore } from '@/firebase';
 import type { Agent } from '@/lib/data';
-import { doc, addDoc, collection, onSnapshot } from 'firebase/firestore';
+import { doc, addDoc, collection, onSnapshot, updateDoc } from 'firebase/firestore';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -38,14 +39,17 @@ function SubscribeButton({ planName, priceId, isCurrent, isAdmin, onAdminChange,
         setIsLoading(true);
 
         try {
-            const checkoutSessionRef = collection(firestore, `customers/${user.uid}/checkout_sessions`);
+             const checkoutSessionRef = collection(firestore, `customers/${user.uid}/checkout_sessions`);
             const docRef = await addDoc(checkoutSessionRef, {
                 price: priceId,
-                success_url: `${window.location.origin}/assinatura/sucesso`,
-                cancel_url: `${window.location.origin}/assinatura/cancelado`,
+                success_url: `${window.location.origin}/dashboard`,
+                cancel_url: window.location.origin,
+                allow_promotion_codes: true,
+                metadata: {
+                    userId: user.uid // Adicionando userId aos metadados
+                }
             });
             
-            // Ouve as alterações no documento da sessão de checkout
             onSnapshot(docRef, (snap) => {
                 const { error, url } = snap.data() || {};
                 if (error) {
@@ -54,7 +58,6 @@ function SubscribeButton({ planName, priceId, isCurrent, isAdmin, onAdminChange,
                     setIsLoading(false);
                 }
                 if (url) {
-                    // Redireciona para o checkout do Stripe
                     window.location.assign(url);
                 }
             });
@@ -81,7 +84,8 @@ function SubscribeButton({ planName, priceId, isCurrent, isAdmin, onAdminChange,
 export default function MeuPlanoPage() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const { plan, setPlan, limits, currentPropertiesCount, isLoading } = usePlan();
+  const { toast } = useToast();
+  const { plan, limits, currentPropertiesCount, isLoading } = usePlan();
 
    const agentRef = useMemoFirebase(
     () => (user && firestore ? doc(firestore, 'agents', user.uid) : null),
@@ -91,26 +95,33 @@ export default function MeuPlanoPage() {
   const isAdmin = agentData?.role === 'admin';
 
 
-  const handlePlanChange = (newPlan: PlanType) => {
-    if (isAdmin) {
-      setPlan(newPlan);
+  const handlePlanChange = async (newPlan: PlanType) => {
+    if (isAdmin && agentRef) {
+      try {
+        await updateDoc(agentRef, { plan: newPlan });
+        toast({ title: "Plano alterado com sucesso (Admin)"});
+      } catch (error) {
+         toast({ title: "Erro ao alterar plano", variant: "destructive"});
+      }
     }
   };
 
   const planSettings = {
     corretor: { 
+        name: 'AMAPLUS',
         maxProperties: 50,
-        priceId: "price_1SXSRf2K7btqnPDwReiW165r" 
+        priceId: process.env.NEXT_PUBLIC_STRIPE_BASIC_PRICE_ID || "price_1SXSRf2K7btqnPDwReiW165r" 
     },
     imobiliaria: { 
+        name: 'AMA ULTRA',
         maxProperties: 300,
-        priceId: "price_1SXST22K7btqnPDwfWFoUhH9"
+        priceId: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID || "price_1SXST22K7btqnPDwfWFoUhH9"
     }
   }
 
   const planDetails = {
     corretor: {
-      name: 'AMAPLUS',
+      name: planSettings.corretor.name,
       price: '39,90',
       description: 'Para corretores individuais',
       features: [
@@ -130,7 +141,7 @@ export default function MeuPlanoPage() {
       priceId: planSettings.corretor.priceId,
     },
     imobiliaria: {
-      name: 'AMA ULTRA',
+      name: planSettings.imobiliaria.name,
       price: '59,90',
       description: 'Para equipes e imobiliárias',
       features: [
@@ -206,13 +217,13 @@ export default function MeuPlanoPage() {
                 </CardContent>
                 <CardFooter>
                     <SubscribeButton
-                        planName="AMAPLUS"
+                        planName={planDetails.corretor.name}
                         priceId={planDetails.corretor.priceId}
                         isCurrent={planDetails.corretor.isCurrent}
                         isAdmin={isAdmin}
                         onAdminChange={planDetails.corretor.action}
                     >
-                         {isAdmin ? "Mudar para AMAPLUS (Admin)" : "Fazer Downgrade"}
+                         {planDetails.corretor.isCurrent ? "Plano Atual" : isAdmin ? "Mudar para AMAPLUS (Admin)" : "Fazer Downgrade"}
                     </SubscribeButton>
                 </CardFooter>
             </Card>
@@ -232,13 +243,13 @@ export default function MeuPlanoPage() {
                 </CardContent>
                 <CardFooter>
                     <SubscribeButton
-                        planName="AMA ULTRA"
+                        planName={planDetails.imobiliaria.name}
                         priceId={planDetails.imobiliaria.priceId}
                         isCurrent={planDetails.imobiliaria.isCurrent}
                         isAdmin={isAdmin}
                         onAdminChange={planDetails.imobiliaria.action}
                     >
-                         {isAdmin ? "Mudar para AMA ULTRA (Admin)" : "Fazer Upgrade"}
+                         {planDetails.imobiliaria.isCurrent ? "Plano Atual" : isAdmin ? "Mudar para AMA ULTRA (Admin)" : "Fazer Upgrade"}
                     </SubscribeButton>
                 </CardFooter>
             </Card>
