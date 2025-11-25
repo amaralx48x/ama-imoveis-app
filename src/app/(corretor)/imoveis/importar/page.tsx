@@ -11,11 +11,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowLeft, CheckCircle, FileUp, ListChecks, Send, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, FileUp, ListChecks, Send, XCircle, Gem, Loader2 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Property } from '@/lib/data';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
+import { usePlan } from '@/context/PlanContext';
 
 type CSVRow = Record<string, any>;
 type StagedProperty = {
@@ -36,6 +37,7 @@ export default function ImportImoveisPage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
+  const { limits, isLoading: isPlanLoading } = usePlan();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -156,6 +158,38 @@ export default function ImportImoveisPage() {
   
   const validCount = stagedProperties.filter(p => p.status === 'valid').length;
   const invalidCount = stagedProperties.filter(p => p.status === 'invalid').length;
+
+   if (isPlanLoading) {
+      return (
+         <div className="space-y-4 max-w-2xl mx-auto flex items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="ml-2 text-muted-foreground">Verificando permissões do plano...</p>
+        </div>
+      )
+  }
+
+  if (!limits.canImportCSV) {
+     return (
+      <div className="space-y-4 max-w-2xl mx-auto">
+        <Button variant="outline" asChild>
+            <Link href="/imoveis">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar para Meus Imóveis
+            </Link>
+        </Button>
+        <Alert variant="destructive" className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30 text-foreground">
+            <Gem className="h-4 w-4 text-primary" />
+            <AlertTitle className="text-xl text-primary font-bold">Recurso Exclusivo do Plano AMA ULTRA</AlertTitle>
+            <AlertDescription>
+                A importação de imóveis por planilha (CSV) é uma ferramenta poderosa para economizar seu tempo. Faça o upgrade para o plano AMA ULTRA para desbloquear este e outros benefícios.
+                <Button asChild variant="link" className="p-0 h-auto ml-1 text-primary">
+                    <Link href="/meu-plano">Conhecer Planos e Fazer Upgrade</Link>
+                </Button>
+            </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
 
   return (
