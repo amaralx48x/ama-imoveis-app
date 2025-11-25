@@ -8,9 +8,9 @@ import { Check, Gem, X, Loader2 } from 'lucide-react';
 import { InfoCard } from '@/components/info-card';
 import { useUser, useDoc, useMemoFirebase, useFirestore } from '@/firebase';
 import type { Agent } from '@/lib/data';
-import { doc, addDoc, collection, onSnapshot, updateDoc } from 'firebase/firestore';
-import { useState } from 'react';
+import { doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import SubscribeButton from '@/components/SubscribeButton';
 
 const PlanFeature = ({ children, included }: { children: React.ReactNode, included: boolean }) => (
     <li className={`flex items-start gap-3 ${!included ? 'text-muted-foreground' : ''}`}>
@@ -19,65 +19,26 @@ const PlanFeature = ({ children, included }: { children: React.ReactNode, includ
     </li>
 );
 
-function SubscribeButton({ planName, priceId, isCurrent, isAdmin, onAdminChange, children }: { planName: string, priceId: string, isCurrent: boolean, isAdmin: boolean, onAdminChange: () => void, children: React.ReactNode }) {
+function PlanActionButton({ planName, priceId, isCurrent, isAdmin, onAdminChange, children }: { planName: string, priceId: string, isCurrent: boolean, isAdmin: boolean, onAdminChange: () => void, children: React.ReactNode }) {
     const { user } = useUser();
-    const firestore = useFirestore();
-    const { toast } = useToast();
-    const [isLoading, setIsLoading] = useState(false);
-
-    const handleSubscribe = async () => {
-        if (isAdmin) {
-            onAdminChange();
-            return;
-        }
-
-        if (!user || !firestore) {
-            toast({ title: "Usuário não autenticado", variant: "destructive" });
-            return;
-        }
-
-        setIsLoading(true);
-
-        try {
-             const checkoutSessionRef = collection(firestore, `customers/${user.uid}/checkout_sessions`);
-            const docRef = await addDoc(checkoutSessionRef, {
-                price: priceId,
-                success_url: `${window.location.origin}/dashboard`,
-                cancel_url: window.location.origin,
-                allow_promotion_codes: true,
-                metadata: {
-                    userId: user.uid // Adicionando userId aos metadados
-                }
-            });
-            
-            onSnapshot(docRef, (snap) => {
-                const { error, url } = snap.data() || {};
-                if (error) {
-                    console.error(`Stripe Checkout Error: ${error.message}`);
-                    toast({ title: "Erro no Pagamento", description: error.message, variant: "destructive" });
-                    setIsLoading(false);
-                }
-                if (url) {
-                    window.location.assign(url);
-                }
-            });
-
-        } catch (error) {
-            console.error("Erro ao criar sessão de checkout no Firestore:", error);
-            toast({ title: "Erro ao iniciar pagamento", variant: "destructive" });
-            setIsLoading(false);
-        }
-    };
     
     if (isCurrent) {
       return <Button disabled className="w-full" variant="outline">Plano Atual</Button>;
     }
 
+    if (isAdmin) {
+        return <Button onClick={onAdminChange} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">{children}</Button>;
+    }
+
     return (
-        <Button onClick={handleSubscribe} disabled={isLoading} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+        <SubscribeButton
+            priceId={priceId}
+            email={user?.email}
+            userId={user?.uid}
+            className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity"
+        >
             {children}
-        </Button>
+        </SubscribeButton>
     )
 }
 
@@ -216,7 +177,7 @@ export default function MeuPlanoPage() {
                     </ul>
                 </CardContent>
                 <CardFooter>
-                    <SubscribeButton
+                    <PlanActionButton
                         planName={planDetails.corretor.name}
                         priceId={planDetails.corretor.priceId}
                         isCurrent={planDetails.corretor.isCurrent}
@@ -224,7 +185,7 @@ export default function MeuPlanoPage() {
                         onAdminChange={planDetails.corretor.action}
                     >
                          {planDetails.corretor.isCurrent ? "Plano Atual" : isAdmin ? "Mudar para AMAPLUS (Admin)" : "Fazer Downgrade"}
-                    </SubscribeButton>
+                    </PlanActionButton>
                 </CardFooter>
             </Card>
 
@@ -242,7 +203,7 @@ export default function MeuPlanoPage() {
                     </ul>
                 </CardContent>
                 <CardFooter>
-                    <SubscribeButton
+                    <PlanActionButton
                         planName={planDetails.imobiliaria.name}
                         priceId={planDetails.imobiliaria.priceId}
                         isCurrent={planDetails.imobiliaria.isCurrent}
@@ -250,7 +211,7 @@ export default function MeuPlanoPage() {
                         onAdminChange={planDetails.imobiliaria.action}
                     >
                          {planDetails.imobiliaria.isCurrent ? "Plano Atual" : isAdmin ? "Mudar para AMA ULTRA (Admin)" : "Fazer Upgrade"}
-                    </SubscribeButton>
+                    </PlanActionButton>
                 </CardFooter>
             </Card>
         </div>

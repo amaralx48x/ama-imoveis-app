@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
 import { getFirebaseServer } from '@/firebase/server-init';
-import { doc, updateDoc, collection, addDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, getDocs, setDoc } from 'firebase/firestore';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
 
@@ -10,11 +10,9 @@ const relevantEvents = new Set([
   'customer.subscription.created',
   'customer.subscription.updated',
   'customer.subscription.deleted',
-  'invoice.paid',
-  'invoice.payment_failed'
 ]);
 
-export const runtime = 'nodejs'; // garante runtime node para leitura do raw body
+export const runtime = 'nodejs';
 
 async function getRawBody(req: Request): Promise<Buffer> {
     const reader = req.body?.getReader();
@@ -51,7 +49,6 @@ export async function POST(req: Request) {
       return new NextResponse('Webhook event not relevant.', { status: 200 });
   }
 
-
   const { firestore } = getFirebaseServer();
 
   try {
@@ -66,39 +63,39 @@ export async function POST(req: Request) {
             break;
         }
 
+        // Create a record in the /customers/{userId} collection
         const customerRef = doc(firestore, 'customers', userId);
-        const customerSnap = await getDoc(customerRef);
+        await setDoc(customerRef, {
+            userId: userId,
+            stripeCustomerId: customerId,
+        }, { merge: true });
         
-        if (!customerSnap.exists()) {
-             await setDoc(customerRef, {
-                userId: userId,
-                stripeCustomerId: customerId,
-             });
-        }
-        
-        console.log('Checkout session completed for user', userId);
+        console.log('Customer record created/updated for user', userId);
         break;
       }
       
       case 'customer.subscription.created':
-      case 'customer.subscription.updated':
-      case 'customer.subscription.deleted': {
+      case 'customer.subscription.updated': {
           const subscription = event.data.object as Stripe.Subscription;
           const customerId = subscription.customer as string;
-          const userIdQuery = await getDocs(query(collection(firestore, 'customers'), where('stripeCustomerId', '==', customerId)));
           
-          if(userIdQuery.empty) {
-              console.error(`Customer with stripeId ${customerId} not found in Firestore.`);
+          // Find the user by their Stripe customer ID
+          const customersRef = collection(firestore, 'customers');
+          const q = query(customersRef, where('stripeCustomerId', '==', customerId));
+          const querySnapshot = await getDocs(q);
+
+          if (querySnapshot.empty) {
+              console.error(`Customer with stripeId ${customerId} not found.`);
               break;
           }
-          const userId = userIdQuery.docs[0].id;
 
+          const userId = querySnapshot.docs[0].id;
           const priceId = subscription.items.data[0].price.id;
-          
+
           if (userId) {
               const agentRef = doc(firestore, 'agents', userId);
               
-              // Map your Stripe Price IDs to your application's plan names
+              // Map Stripe Price IDs to your application's plan names
               const plan = priceId === (process.env.NEXT_PUBLIC_STRIPE_BASIC_PRICE_ID || 'price_1SXSRf2K7btqnPDwReiW165r') 
                 ? 'corretor' 
                 : 'imobiliaria';
@@ -108,15 +105,23 @@ export async function POST(req: Request) {
           }
           break;
       }
-
-      case 'invoice.paid': {
-        // Handle successful payment
-        break;
-      }
-
-      case 'invoice.payment_failed': {
-        // Handle failed payment
-        break;
+       case 'customer.subscription.deleted': {
+          const subscription = event.data.object as Stripe.Subscription;
+          const customerId = subscription.customer as string;
+          const customersRef = collection(firestore, 'customers');
+          const q = query(customersRef, where('stripeCustomerId', '==', customerId));
+          const querySnapshot = await getDocs(q);
+           if (querySnapshot.empty) {
+              console.error(`Customer with stripeId ${customerId} not found.`);
+              break;
+          }
+           const userId = querySnapshot.docs[0].id;
+            if (userId) {
+              const agentRef = doc(firestore, 'agents', userId);
+              await updateDoc(agentRef, { plan: 'corretor', stripeSubscriptionStatus: 'canceled' });
+              console.log(`Subscription deleted for user ${userId}. Reverted to 'corretor' plan.`);
+            }
+          break;
       }
       
       default:
