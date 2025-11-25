@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from "react-hook-form";
@@ -130,6 +131,16 @@ export default function NovoImovelPage() {
       });
       setIsSubmitting(false);
       return;
+    }
+
+    if (!canAddNewProperty()) {
+        toast({
+            title: "Limite de imóveis atingido!",
+            description: `Você já tem ${limits.maxProperties} imóveis. Faça upgrade para adicionar mais.`,
+            variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
     }
 
     const newProperty = {
@@ -415,3 +426,5 @@ export default function NovoImovelPage() {
     </div>
   );
 }
+
+    

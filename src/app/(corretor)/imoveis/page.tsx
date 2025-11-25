@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -14,12 +15,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { usePlan } from '@/context/PlanContext';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { InfoCard } from '@/components/info-card';
+import { useRouter } from 'next/navigation';
 
 
 function PropertyList({ 
@@ -100,10 +104,12 @@ export default function ImoveisPage() {
     const firestore = useFirestore();
     const { user } = useUser();
     const { toast } = useToast();
+    const router = useRouter();
     const { limits, canAddNewProperty, currentPropertiesCount } = usePlan();
     const [activeTab, setActiveTab] = useState<'ativo' | 'vendido' | 'alugado'>('ativo');
     const [searchTerm, setSearchTerm] = useState('');
     const [needsRefetch, setNeedsRefetch] = useState(false);
+    const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
     // This is the core optimization. Instead of fetching all documents,
     // we create a specific query based on the active tab.
@@ -113,8 +119,6 @@ export default function ImoveisPage() {
         let q = query(collection(firestore, `agents/${user.uid}/properties`));
 
         if (activeTab === 'ativo') {
-            // Firestore queries for "not equal" are tricky. It's often easier to query for the statuses you DON'T want.
-            // But since a new property's status might be null or 'ativo', we query for what we want.
             q = query(q, where('status', 'in', ['ativo', null]));
         } else {
             q = query(q, where('status', '==', activeTab));
@@ -175,6 +179,14 @@ export default function ImoveisPage() {
         setNeedsRefetch(prev => !prev);
     }
     
+    const handleImportClick = () => {
+        if (limits.canImportCSV) {
+            router.push('/imoveis/importar');
+        } else {
+            setIsUpgradeModalOpen(true);
+        }
+    }
+
     const canAdd = canAddNewProperty();
 
     return (
@@ -194,45 +206,54 @@ export default function ImoveisPage() {
                     <p className="text-muted-foreground">Gerencie seu portfólio de imóveis.</p>
                 </div>
                  <div className="flex gap-2">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span tabIndex={0}> {/* Wrapper for Tooltip when button is disabled */}
-                            <Button asChild variant="outline" disabled={!limits.canImportCSV}>
-                               <Link href="/imoveis/importar">
-                                  <Upload className="mr-2 h-4 w-4" />
-                                  Importar CSV
-                              </Link>
+                    <Button variant="outline" onClick={handleImportClick}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Importar CSV
+                    </Button>
+                    
+                     <Dialog open={isUpgradeModalOpen} onOpenChange={setIsUpgradeModalOpen}>
+                        <DialogContent>
+                             <DialogHeader>
+                                <DialogTitle className="flex items-center gap-2 text-2xl font-bold text-primary">
+                                    <Gem /> Recurso Exclusivo AMA ULTRA
+                                </DialogTitle>
+                                <DialogDescription className="pt-2">
+                                    A importação de imóveis por planilha (CSV) é uma ferramenta poderosa para economizar seu tempo, permitindo cadastrar dezenas de imóveis de uma só vez.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <Button asChild onClick={() => setIsUpgradeModalOpen(false)}>
+                                <Link href="/meu-plano">Conhecer Planos e Fazer Upgrade</Link>
                             </Button>
-                          </span>
-                        </TooltipTrigger>
-                        {!limits.canImportCSV && (
-                          <TooltipContent>
-                            <p className="flex items-center gap-2"><Gem className="h-4 w-4 text-primary"/> Disponível no plano AMA ULTRA.</p>
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    </TooltipProvider>
+                        </DialogContent>
+                     </Dialog>
 
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                           <span tabIndex={0}>
-                             <Button asChild className="bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity" disabled={!canAdd}>
-                                <Link href="/imoveis/novo">
-                                    <PlusCircle className="mr-2 h-4 w-4" />
+                    <Button asChild className="bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity" disabled={!canAdd}>
+                        <Link href={canAdd ? "/imoveis/novo" : "#"}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Adicionar Imóvel
+                        </Link>
+                    </Button>
+                    {!canAdd && (
+                         <Dialog>
+                            <DialogTrigger asChild>
+                                <Button className="bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
+                                     <PlusCircle className="mr-2 h-4 w-4" />
                                     Adicionar Imóvel
-                                </Link>
-                            </Button>
-                           </span>
-                        </TooltipTrigger>
-                         {!canAdd && (
-                          <TooltipContent>
-                            <p>Você atingiu o limite de imóveis do seu plano.</p>
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    </TooltipProvider>
+                                </Button>
+                            </DialogTrigger>
+                             <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle className="text-2xl font-bold text-destructive">Limite de Imóveis Atingido!</DialogTitle>
+                                    <DialogDescription className="pt-2">
+                                         Você atingiu o limite de {limits.maxProperties} imóveis para o seu plano atual. Para continuar adicionando, por favor, faça o upgrade do seu plano.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <Button asChild>
+                                    <Link href="/meu-plano">Fazer Upgrade</Link>
+                                </Button>
+                            </DialogContent>
+                         </Dialog>
+                    )}
                 </div>
             </div>
             
@@ -290,3 +311,6 @@ export default function ImoveisPage() {
         </div>
     );
 }
+
+
+    
