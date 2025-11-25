@@ -22,7 +22,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import ImageUpload from '@/components/image-upload';
 import { InfoCard } from '@/components/info-card';
-import { usePlan } from '@/context/PlanContext';
 import Link from 'next/link';
 
 const faqTopics = [
@@ -240,7 +239,6 @@ function PrioritySupportCard({ whatsappNumber }: { whatsappNumber?: string }) {
 
 export default function SuportePage() {
   const { user } = useUser();
-  const { plan } = usePlan();
   const firestore = useFirestore();
   const { toast } = useToast();
 

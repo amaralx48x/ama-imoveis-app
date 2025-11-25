@@ -90,7 +90,6 @@ export default function CorretorLayout({
     { href: '/perfil', label: 'Perfil', icon: User },
     { href: '/avaliacoes', label: 'Avaliações', icon: Star, badgeCount: pendingReviewsCount, badgeClass: 'bg-yellow-500 text-black' },
     { href: '/suporte', label: 'Suporte', icon: LifeBuoy },
-    { href: '/meu-plano', label: 'Meu Plano', icon: Gem },
     { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' },
   ];
   

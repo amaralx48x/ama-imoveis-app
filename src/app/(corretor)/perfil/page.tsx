@@ -19,7 +19,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { setDoc, doc, updateDoc, arrayUnion, arrayRemove, increment } from 'firebase/firestore';
+import { setDoc, doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useEffect, useState } from 'react';
 import type { Agent } from '@/lib/data';
@@ -31,7 +31,6 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { InfoCard } from '@/components/info-card';
-import { usePlan } from '@/context/PlanContext';
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, { message: 'O nome de exibição deve ter pelo menos 2 caracteres.' }),
@@ -60,7 +59,6 @@ export default function PerfilPage() {
   const { toast } = useToast();
   const firestore = useFirestore();
   const { user } = useUser();
-  const { canUpload, isLoading: isPlanLoading } = usePlan();
   
   const agentRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, 'agents', user.uid) : null),
@@ -105,7 +103,6 @@ export default function PerfilPage() {
   }, [agentData, form]);
 
   const handleUploadComplete = (url: string) => {
-    mutate(); // Re-fetch agent data to get new storage usage
     form.setValue('photoUrl', url);
     toast({ title: 'Foto de Perfil Atualizada!' });
   };
@@ -165,7 +162,7 @@ export default function PerfilPage() {
   }
 
 
-  if (isAgentLoading || isPlanLoading) {
+  if (isAgentLoading) {
     return (
         <Card>
             <CardHeader>
@@ -224,11 +221,7 @@ export default function PerfilPage() {
                             currentImageUrl={agentData?.photoUrl}
                             agentId={user.uid}
                             propertyId="profile"
-                            disabled={!canUpload()}
                         />
-                    )}
-                     {!canUpload() && (
-                        <p className="text-xs text-destructive">Você atingiu seu limite de armazenamento de dados.</p>
                     )}
                 </div>
             </div>

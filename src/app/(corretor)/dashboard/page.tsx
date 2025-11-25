@@ -1,9 +1,9 @@
 
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Home, FileText, MoreVertical, Database } from 'lucide-react';
+import { TrendingUp, Home, FileText, MoreVertical } from 'lucide-react';
 import { useDoc, useFirestore, useUser, useMemoFirebase, useCollection } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import type { Agent, Property } from '@/lib/data';
@@ -24,9 +24,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { InfoCard } from '@/components/info-card';
-import { usePlan } from '@/context/PlanContext';
-import { Progress } from '@/components/ui/progress';
-import Link from 'next/link';
+
 
 const MotionCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <div className={`transition-all duration-500 ease-out hover:scale-105 hover:shadow-primary/20 ${className}`}>
@@ -48,7 +46,6 @@ export default function DashboardPage() {
     
     const { user } = useUser();
     const firestore = useFirestore();
-    const { limits, plan, simulatedStorageUsed } = usePlan();
 
     const agentRef = useMemoFirebase(
         () => (firestore && user ? doc(firestore, 'agents', user.uid) : null),
@@ -76,14 +73,18 @@ export default function DashboardPage() {
 
     const activePropertiesCount = properties?.filter(p => p.status !== 'vendido' && p.status !== 'alugado').length || 0;
 
-    const commissionsThisMonth = properties
+    const manualAdjustmentsThisMonth = agentData?.siteSettings?.manualCommissionAdjustments
+        ?.filter(adj => adj.createdAt && isSameMonth(adj.createdAt.toDate(), new Date()))
+        .reduce((sum, adj) => sum + adj.value, 0) || 0;
+
+    const commissionsThisMonth = (properties
         ?.filter(p => {
             if (!['vendido', 'alugado'].includes(p.status || '') || !p.soldAt) return false;
             
             const soldDate = p.soldAt.toDate();
             return isSameMonth(soldDate, new Date());
         })
-        .reduce((sum, p) => sum + (p.commissionValue || 0), 0) || 0;
+        .reduce((sum, p) => sum + (p.commissionValue || 0), 0) || 0) + manualAdjustmentsThisMonth;
     
     const dealsThisMonthCount = properties
         ?.filter(p => {
@@ -93,7 +94,6 @@ export default function DashboardPage() {
         }).length || 0;
 
     const isLoading = isAgentLoading || arePropertiesLoading;
-    const storagePercentage = (simulatedStorageUsed / (limits.maxStorageMB * 1024 * 1024)) * 100;
 
     return (
         <>
@@ -114,7 +114,7 @@ export default function DashboardPage() {
                 <p className="text-muted-foreground">Aqui está um resumo da sua atividade hoje.</p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <MotionCard>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -123,15 +123,9 @@ export default function DashboardPage() {
                         </CardHeader>
                         <CardContent>
                              {isLoading ? (
-                                <>
-                                    <Skeleton className="h-10 w-16 mb-2" />
-                                    <Skeleton className="h-3 w-24" />
-                                </>
+                                <Skeleton className="h-10 w-16" />
                             ) : (
-                                <>
-                                    <div className="text-4xl font-bold">{activePropertiesCount}</div>
-                                    <p className="text-xs text-muted-foreground">de {limits.maxProperties} imóveis do plano</p>
-                                </>
+                                <div className="text-4xl font-bold">{activePropertiesCount}</div>
                             )}
                         </CardContent>
                     </Card>
@@ -156,10 +150,7 @@ export default function DashboardPage() {
                         </CardHeader>
                         <CardContent>
                              {isLoading ? (
-                                <>
-                                    <Skeleton className="h-10 w-40 mb-2" />
-                                    <Skeleton className="h-3 w-32" />
-                                </>
+                                <Skeleton className="h-10 w-40" />
                              ) : (
                                 <>
                                     <TooltipProvider>
@@ -174,7 +165,6 @@ export default function DashboardPage() {
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
-                                    <p className="text-xs text-muted-foreground">Total de comissões no mês atual</p>
                                 </>
                              )}
                         </CardContent>
@@ -189,50 +179,13 @@ export default function DashboardPage() {
                         </CardHeader>
                         <CardContent>
                              {isLoading ? (
-                                <>
-                                    <Skeleton className="h-10 w-16 mb-2" />
-                                    <Skeleton className="h-3 w-32" />
-                                </>
+                                <Skeleton className="h-10 w-16" />
                             ) : (
-                                <>
-                                    <div className="text-4xl font-bold">
-                                        {dealsThisMonthCount}
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">Imóveis vendidos ou alugados</p>
-                                </>
+                                <div className="text-4xl font-bold">
+                                    {dealsThisMonthCount}
+                                </div>
                              )}
                         </CardContent>
-                    </Card>
-                </MotionCard>
-
-                 <MotionCard>
-                    <Card className="flex flex-col h-full">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Uso de Dados</CardTitle>
-                            <Database className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent className="flex-1 flex flex-col justify-center">
-                             {isLoading ? (
-                                <>
-                                    <Skeleton className="h-4 w-full mb-2" />
-                                    <Skeleton className="h-3 w-24" />
-                                </>
-                            ) : (
-                                <>
-                                     <Progress value={storagePercentage} className="mb-2 h-2" />
-                                    <p className="text-xs text-muted-foreground">
-                                        {(simulatedStorageUsed / (1024*1024)).toFixed(2)} MB de {limits.maxStorageMB} GB usados
-                                    </p>
-                                </>
-                            )}
-                        </CardContent>
-                        {storagePercentage > 85 && (
-                             <CardFooter className="pt-0 pb-3">
-                                <Button variant="link" asChild className="text-xs p-0 h-auto">
-                                    <Link href="/meu-plano">Fazer upgrade</Link>
-                                </Button>
-                             </CardFooter>
-                        )}
                     </Card>
                 </MotionCard>
             </div>

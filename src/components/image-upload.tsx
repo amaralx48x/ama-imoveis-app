@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -5,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, updateDoc, increment } from 'firebase/firestore';
 import { useFirebase } from '@/firebase';
 import { Loader2, Upload, X } from 'lucide-react';
 import Image from 'next/image';
@@ -36,7 +36,7 @@ export default function ImageUpload({
   const [isUploading, setIsUploading] = useState(false);
   const [internalImageUrl, setInternalImageUrl] = useState(currentImageUrl);
   const { toast } = useToast();
-  const { firestore, storage } = useFirebase();
+  const { storage } = useFirebase();
 
   useEffect(() => {
     setInternalImageUrl(currentImageUrl);
@@ -66,7 +66,7 @@ export default function ImageUpload({
       return;
     }
     
-    if (!agentId || !propertyId || !firestore || !storage) {
+    if (!agentId || !propertyId || !storage) {
         toast({ title: "Erro interno: Serviços Firebase ausentes", variant: "destructive"});
         return;
     }
@@ -106,18 +106,11 @@ export default function ImageUpload({
 
         const filePath = `${basePath}/${fileName}`;
         const fileRef = ref(storage, filePath);
-        const uploadResult = await uploadBytes(fileRef, file);
+        await uploadBytes(fileRef, file);
         let url = await getDownloadURL(fileRef);
         
         if (onUploadComplete) {
             onUploadComplete(url);
-        }
-
-        if (agentId !== 'admin' && agentId !== 'marketing') {
-            const agentRef = doc(firestore, 'agents', agentId);
-            await updateDoc(agentRef, {
-                simulatedStorageUsed: increment(uploadResult.metadata.size)
-            });
         }
       });
       
@@ -201,7 +194,7 @@ export default function ImageUpload({
                     {url.includes('.mp4') ? (
                        <video src={url} className="object-cover w-full h-full" muted loop autoPlay playsInline />
                     ) : (
-                       <Image src={url} alt={`Imagem atual ${index + 1}`} fill sizes="128px" className="object-cover" unoptimized />
+                       <Image src={url} alt={`Imagem atual ${index + 1}`} fill sizes="128px" className="object-cover" />
                     )}
                 </div>
             ))}

@@ -13,7 +13,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { usePlan } from '@/context/PlanContext';
 import {
   Tooltip,
   TooltipContent,
@@ -101,7 +100,6 @@ export default function ImoveisPage() {
     const firestore = useFirestore();
     const { user } = useUser();
     const { toast } = useToast();
-    const { limits, canAddNewProperty, currentPropertiesCount } = usePlan();
     const [activeTab, setActiveTab] = useState<'ativo' | 'vendido' | 'alugado'>('ativo');
     const [searchTerm, setSearchTerm] = useState('');
     const [needsRefetch, setNeedsRefetch] = useState(false);
@@ -176,7 +174,6 @@ export default function ImoveisPage() {
         setNeedsRefetch(prev => !prev);
     }
     
-    const canAdd = canAddNewProperty();
 
     return (
         <div className="space-y-8">
@@ -191,49 +188,32 @@ export default function ImoveisPage() {
 
             <div className="flex justify-between items-center animate-fade-in-up">
                 <div>
-                    <h1 className="text-3xl font-bold font-headline">Meus Imóveis ({currentPropertiesCount} / {limits.maxProperties === Infinity ? 'Ilimitado' : limits.maxProperties})</h1>
+                    <h1 className="text-3xl font-bold font-headline">Meus Imóveis</h1>
                     <p className="text-muted-foreground">Gerencie seu portfólio de imóveis.</p>
                 </div>
                  <div className="flex gap-2">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <span tabIndex={0}> {/* Wrapper for Tooltip when button is disabled */}
-                            <Button asChild variant="outline" disabled={!limits.canImportCSV}>
+                           <Button asChild variant="outline">
                                <Link href="/imoveis/importar">
                                   <Upload className="mr-2 h-4 w-4" />
                                   Importar CSV
                               </Link>
                             </Button>
-                          </span>
                         </TooltipTrigger>
-                        {!limits.canImportCSV && (
                           <TooltipContent>
-                            <p className="flex items-center gap-2"><Gem className="h-4 w-4 text-primary"/> Disponível no plano Imobiliária Plus.</p>
+                            <p className="flex items-center gap-2"><Gem className="h-4 w-4 text-primary"/> Importação em massa disponível nos planos pagos.</p>
                           </TooltipContent>
-                        )}
                       </Tooltip>
                     </TooltipProvider>
 
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                           <span tabIndex={0}>
-                             <Button asChild className="bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity" disabled={!canAdd}>
-                                <Link href="/imoveis/novo">
-                                    <PlusCircle className="mr-2 h-4 w-4" />
-                                    Adicionar Imóvel
-                                </Link>
-                            </Button>
-                           </span>
-                        </TooltipTrigger>
-                         {!canAdd && (
-                          <TooltipContent>
-                            <p>Você atingiu o limite de imóveis do seu plano.</p>
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    </TooltipProvider>
+                     <Button asChild className="bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
+                        <Link href="/imoveis/novo">
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Adicionar Imóvel
+                        </Link>
+                    </Button>
                 </div>
             </div>
             
