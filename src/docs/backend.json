@@ -256,7 +256,8 @@
         "section5_image1": { "type": "string", "format": "uri" },
         "section5_image2": { "type": "string", "format": "uri" },
         "section6_image": { "type": "string", "format": "uri" },
-        "supportWhatsapp": { "type": "string", "description": "WhatsApp number for priority support." }
+        "supportWhatsapp": { "type": "string", "description": "WhatsApp number for priority support." },
+        "supportEmail": { "type": "string", "description": "Email for general support." }
       }
     }
   },
@@ -318,3 +319,5 @@
     ]
   }
 }
+
+    

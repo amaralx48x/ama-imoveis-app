@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import type { MarketingContent } from "@/lib/data";
 import { defaultPrivacyPolicy, defaultTermsOfUse } from "@/lib/data";
-import { Search, Share2, Video, Check, X } from "lucide-react";
+import { Search, Share2, Video, Check, X, Mail } from "lucide-react";
 import Image from 'next/image';
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
@@ -366,9 +366,17 @@ export default function MarketingClientPage() {
           <div className="flex items-center gap-4 text-white/60">
               <PolicyDialog title="Termos de Uso" content={defaultTermsOfUse} companyName="AMA Tecnologia" />
               <PolicyDialog title="Política de Privacidade" content={defaultPrivacyPolicy} companyName="AMA Tecnologia" />
+              {content?.supportEmail && (
+                <a href={`mailto:${content.supportEmail}`} className="flex items-center gap-2 text-sm hover:text-white transition-colors">
+                  <Mail className="w-4 h-4" />
+                  {content.supportEmail}
+                </a>
+              )}
           </div>
         </div>
       </footer>
     </div>
   );
 }
+
+    
