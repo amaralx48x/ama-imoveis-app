@@ -15,7 +15,6 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      // Checa se o usuário autenticado tem o campo 'role' como 'admin' em seu próprio documento de agente.
       return isSignedIn() && get(/databases/$(database)/documents/agents/$(request.auth.uid)).data.role == 'admin';
     }
 
@@ -23,53 +22,34 @@ service cloud.firestore {
     // Coleção de Agentes/Imobiliárias
     // =========================
     match /agents/{agentId} {
-      // Leitura pública de um agente específico é permitida para exibir a página pública e para as regras do Storage.
       allow get: if true;
-      
-      // Apenas admins podem listar todos os agentes.
       allow list: if isAdmin();
-
-      // O próprio agente ou um admin podem escrever/atualizar seu perfil.
       allow write: if isOwner(agentId) || isAdmin();
 
       // --- SUBCOLEÇÕES ---
 
-      // Imóveis de um agente
       match /properties/{propertyId} {
-        // Leitura pública dos imóveis.
         allow list, get: if true;
-        // Apenas o agente dono ou um admin podem criar/editar/excluir imóveis.
         allow write: if isOwner(agentId) || isAdmin();
       }
 
-      // Contatos de um agente
       match /contacts/{contactId} {
         allow read, write: if isOwner(agentId) || isAdmin();
       }
 
-      // Avaliações de um agente
       match /reviews/{reviewId} {
-        // Qualquer pessoa pode enviar uma avaliação.
         allow create: if true;
-        // Avaliações aprovadas são públicas. O dono ou admin podem ver todas.
         allow list, get: if resource.data.approved == true || isOwner(agentId) || isAdmin();
-        // Apenas o dono ou admin podem aprovar/excluir avaliações.
         allow update, delete: if isOwner(agentId) || isAdmin();
       }
 
-      // Seções customizadas de um agente
        match /customSections/{sectionId} {
-        // Leitura pública.
         allow list, get: if true;
-        // Escrita restrita ao dono ou admin.
         allow write: if isOwner(agentId) || isAdmin();
       }
 
-      // Leads de um agente
       match /leads/{leadId} {
-        // Qualquer pessoa pode criar um lead (formulário de contato).
         allow create: if true;
-        // Apenas o dono ou admin podem ler/gerenciar os leads.
         allow read, update, delete: if isOwner(agentId) || isAdmin();
       }
     }
@@ -78,29 +58,21 @@ service cloud.firestore {
     // Mensagens de suporte
     // =========================
     match /supportMessages/{messageId} {
-      // Admins podem ler qualquer mensagem individualmente e listar todas.
-      allow get, list: if isAdmin();
+      // Admins podem fazer tudo
+      allow read, write: if isAdmin();
       
-      // Admins podem responder (update) ou excluir.
-      allow write: if isAdmin();
-
-      // Usuários autenticados podem criar tickets.
+      // O remetente pode criar um ticket
       allow create: if isSignedIn();
       
-      // O remetente pode ler seu próprio ticket individualmente.
-      allow get: if isOwner(resource.data.senderId);
-
-      // Usuários podem listar APENAS os seus próprios tickets.
-      allow list: if isSignedIn() && request.query.where.senderId == request.auth.uid;
+      // O remetente pode ler seu próprio ticket individual
+      allow get: if isSignedIn() && resource.data.senderId == request.auth.uid;
     }
 
     // =========================
     // Conteúdo da página de marketing
     // =========================
     match /marketing/content {
-      // Leitura pública.
       allow get: if true;
-      // Escrita apenas para admins.
       allow write: if isAdmin();
     }
     
@@ -108,12 +80,8 @@ service cloud.firestore {
     // SEO
     // =========================
     match /seo/{page} {
-      // Leitura pública para que o Next.js possa renderizar os metadados no servidor.
       allow get: if true;
-      // Ninguém pode listar todos os documentos de SEO.
       allow list: if false;
-      // Admins podem escrever em qualquer página de SEO.
-      // Corretores podem escrever apenas na sua própria página de SEO (`agent-<uid>`).
       allow write: if (isOwner(page.split('-')[1]) && page.startsWith('agent-')) || isAdmin();
     }
   }

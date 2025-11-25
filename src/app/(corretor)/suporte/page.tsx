@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, addDoc, serverTimestamp, query, where, onSnapshot, orderBy, doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, where, onSnapshot, orderBy, doc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, getStorage } from 'firebase/storage';
 import { useFirestore, useUser, useFirebaseApp, useMemoFirebase } from '@/firebase';
 import { Input } from '@/components/ui/input';
