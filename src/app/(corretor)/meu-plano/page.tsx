@@ -1,3 +1,4 @@
+
 'use client';
 
 import { usePlan, PlanType } from '@/context/PlanContext';
@@ -8,8 +9,6 @@ import { InfoCard } from '@/components/info-card';
 import { useUser, useDoc, useMemoFirebase, useFirestore } from '@/firebase';
 import type { Agent } from '@/lib/data';
 import { doc } from 'firebase/firestore';
-import SubscribeButton from '@/components/SubscribeButton';
-
 
 const PlanFeature = ({ children, included }: { children: React.ReactNode, included: boolean }) => (
     <li className={`flex items-start gap-3 ${!included ? 'text-muted-foreground' : ''}`}>
@@ -152,9 +151,9 @@ export default function MeuPlanoPage() {
                             Mudar para AMAPLUS (Admin)
                         </Button>
                     ) : (
-                        <SubscribeButton priceId={planDetails.corretor.priceId} email={user?.email} userId={user?.uid} variant="outline" className="w-full">
-                            Fazer Downgrade
-                        </SubscribeButton>
+                        <Button variant="outline" className="w-full">
+                           Fazer Downgrade
+                        </Button>
                     )}
                 </CardFooter>
             </Card>
@@ -180,9 +179,9 @@ export default function MeuPlanoPage() {
                              Mudar para AMA ULTRA (Admin)
                         </Button>
                     ) : (
-                        <SubscribeButton priceId={planDetails.imobiliaria.priceId} email={user?.email} userId={user?.uid} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
+                        <Button className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
                             Fazer Upgrade
-                        </SubscribeButton>
+                        </Button>
                     )}
                 </CardFooter>
             </Card>
