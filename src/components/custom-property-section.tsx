@@ -23,17 +23,14 @@ interface CustomPropertySectionProps {
 export function CustomPropertySection({ title, properties, agent, sectionId }: CustomPropertySectionProps) {
   
   const propertiesPerSection = agent.siteSettings?.propertiesPerSection || 4;
-  const visibleProperties = useMemo(() => properties.slice(0, propertiesPerSection), [properties, propertiesPerSection]);
+  const visibleProperties = useMemo(() => properties.slice(0, 8), [properties]); // Show up to 8 for correct looping
 
   const carouselItemBasis = useMemo(() => {
     switch (propertiesPerSection) {
       case 3: return "lg:basis-1/3";
       case 4: return "lg:basis-1/4";
       case 5: return "lg:basis-1/5";
-      case 6: return "lg:basis-1/6";
-      case 7: return "lg:basis-1/5"; 
-      case 8: return "lg:basis-1/6"; 
-      default: return "lg:basis-1/3";
+      default: return "lg:basis-1/4"; // Default to 4 items
     }
   }, [propertiesPerSection]);
 
@@ -64,7 +61,7 @@ export function CustomPropertySection({ title, properties, agent, sectionId }: C
         <Carousel
           opts={{
             align: "start",
-            loop: visibleProperties.length > 3,
+            loop: visibleProperties.length > propertiesPerSection,
           }}
           className="w-full"
         >
@@ -84,5 +81,3 @@ export function CustomPropertySection({ title, properties, agent, sectionId }: C
     </section>
   );
 }
-
-    

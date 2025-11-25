@@ -34,7 +34,7 @@ const appearanceFormSchema = z.object({
   theme: z.enum(['light', 'dark'], { required_error: 'Por favor, selecione um tema.' }),
   heroImageUrl: z.string().url("URL inválida").optional().or(z.literal('')),
   logoUrl: z.string().url("URL inválida").optional().or(z.literal('')),
-  propertiesPerSection: z.coerce.number().min(3).max(8).default(4),
+  propertiesPerSection: z.coerce.number().min(3).max(5).default(4),
 });
 
 function AppearanceFormSkeleton() {
@@ -285,7 +285,7 @@ export default function AparenciaPage() {
                         <FormControl>
                             <Slider
                                 min={3}
-                                max={8}
+                                max={5}
                                 step={1}
                                 value={[field.value]}
                                 onValueChange={(value) => field.onChange(value[0])}
@@ -319,5 +319,3 @@ export default function AparenciaPage() {
     </div>
   );
 }
-
-    
