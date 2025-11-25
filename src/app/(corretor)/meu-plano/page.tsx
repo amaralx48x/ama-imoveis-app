@@ -8,6 +8,7 @@ import { InfoCard } from '@/components/info-card';
 import { useUser, useDoc, useMemoFirebase, useFirestore } from '@/firebase';
 import type { Agent } from '@/lib/data';
 import { doc } from 'firebase/firestore';
+import SubscribeButton from '@/components/SubscribeButton';
 
 
 const PlanFeature = ({ children, included }: { children: React.ReactNode, included: boolean }) => (
@@ -31,15 +32,20 @@ export default function MeuPlanoPage() {
 
 
   const handlePlanChange = (newPlan: PlanType) => {
-    // A lógica de permissão já está no context, mas reforçamos aqui.
     if (isAdmin) {
       setPlan(newPlan);
     }
   };
 
   const planSettings = {
-    corretor: { maxProperties: 50 },
-    imobiliaria: { maxProperties: 300 }
+    corretor: { 
+        maxProperties: 50,
+        priceId: "price_1SXSRf2K7btqnPDwReiW165r" 
+    },
+    imobiliaria: { 
+        maxProperties: 300,
+        priceId: "price_1SXST22K7btqnPDwfWFoUhH9"
+    }
   }
 
   const planDetails = {
@@ -61,6 +67,7 @@ export default function MeuPlanoPage() {
       ],
       action: () => handlePlanChange('corretor'),
       isCurrent: plan === 'corretor',
+      priceId: planSettings.corretor.priceId,
     },
     imobiliaria: {
       name: 'AMA ULTRA',
@@ -80,6 +87,7 @@ export default function MeuPlanoPage() {
       ],
       action: () => handlePlanChange('imobiliaria'),
       isCurrent: plan === 'imobiliaria',
+      priceId: planSettings.imobiliaria.priceId,
     },
   };
   
@@ -88,7 +96,7 @@ export default function MeuPlanoPage() {
     <div className="space-y-8">
         <InfoCard cardId="meu-plano-info" title="Seu Plano e Limites">
             <p>
-                Aqui você pode visualizar os recursos do seu plano atual e seus limites de uso. Para fazer upgrade ou downgrade do seu plano, entre em contato com nosso suporte.
+                Aqui você pode visualizar os recursos do seu plano atual e seus limites de uso. Para fazer upgrade ou downgrade do seu plano, basta escolher o plano desejado e prosseguir para o pagamento.
             </p>
              {isAdmin && (
                 <p className="mt-2 text-primary font-semibold">
@@ -139,10 +147,14 @@ export default function MeuPlanoPage() {
                 <CardFooter>
                     {planDetails.corretor.isCurrent ? (
                         <Button disabled className="w-full" variant="outline">Plano Atual</Button>
-                    ) : (
-                         <Button onClick={planDetails.corretor.action} className="w-full" variant="outline" disabled={!isAdmin}>
-                            {isAdmin ? "Mudar para AMAPLUS" : "Fazer Downgrade"}
+                    ) : isAdmin ? (
+                         <Button onClick={planDetails.corretor.action} className="w-full" variant="outline">
+                            Mudar para AMAPLUS (Admin)
                         </Button>
+                    ) : (
+                        <SubscribeButton priceId={planDetails.corretor.priceId} email={user?.email} userId={user?.uid} variant="outline" className="w-full">
+                            Fazer Downgrade
+                        </SubscribeButton>
                     )}
                 </CardFooter>
             </Card>
@@ -163,10 +175,14 @@ export default function MeuPlanoPage() {
                 <CardFooter>
                      {planDetails.imobiliaria.isCurrent ? (
                         <Button disabled className="w-full" variant="outline">Plano Atual</Button>
-                    ) : (
-                        <Button onClick={planDetails.imobiliaria.action} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity" disabled={!isAdmin}>
-                             {isAdmin ? "Mudar para AMA ULTRA" : "Fazer Upgrade"}
+                    ) : isAdmin ? (
+                        <Button onClick={planDetails.imobiliaria.action} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
+                             Mudar para AMA ULTRA (Admin)
                         </Button>
+                    ) : (
+                        <SubscribeButton priceId={planDetails.imobiliaria.priceId} email={user?.email} userId={user?.uid} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
+                            Fazer Upgrade
+                        </SubscribeButton>
                     )}
                 </CardFooter>
             </Card>

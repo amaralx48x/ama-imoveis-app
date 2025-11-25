@@ -71,6 +71,18 @@ service cloud.firestore {
         allow read, update, delete: if isOwner(agentId) || isAdmin();
       }
     }
+    
+    // =========================
+    // Coleção de Clientes (Stripe)
+    // =========================
+    match /customers/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+      
+      // Assinaturas de um cliente
+      match /subscriptions/{subscriptionId} {
+          allow read, write: if isOwner(userId) || isAdmin();
+      }
+    }
 
     // =========================
     // Mensagens de suporte
