@@ -1,13 +1,12 @@
 'use client';
 // src/firebase/seo.ts
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { initializeFirebase } from "@/firebase/init";
+import { firestore } from "@/firebase";
 import { errorEmitter } from "./error-emitter";
 import { FirestorePermissionError } from "./errors";
 
 // Função para ser usada no LADO DO CLIENTE (ex: formulário de edição)
 export async function saveSEOClient(page: string, data: any) {
-  const { firestore } = initializeFirebase();
   const ref = doc(firestore, "seo", page);
   const dataToSave = { ...data, updatedAt: serverTimestamp() };
   try {

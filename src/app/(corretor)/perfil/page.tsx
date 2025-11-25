@@ -68,6 +68,8 @@ export default function PerfilPage() {
   const { data: agentData, isLoading: isAgentLoading, mutate } = useDoc<Agent>(agentRef);
 
   const [newCity, setNewCity] = useState('');
+  const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const form = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
@@ -102,9 +104,72 @@ export default function PerfilPage() {
     }
   }, [agentData, form]);
 
-  const handleUploadComplete = (url: string) => {
-    form.setValue('photoUrl', url);
-    toast({ title: 'Foto de Perfil Atualizada!' });
+  async function onSubmit(values: z.infer<typeof profileFormSchema>) {
+    if (!agentRef) {
+      toast({
+        title: 'Erro',
+        description: 'Usuário não autenticado. Não é possível salvar.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    const dataToSave = {
+        displayName: values.displayName,
+        name: values.siteName,
+        description: values.description,
+        accountType: values.accountType,
+        creci: values.creci,
+        phone: values.phone,
+        availability: {
+          days: values.availabilityDays,
+          startTime: values.availabilityStartTime,
+          endTime: values.availabilityEndTime,
+        }
+    };
+
+    try {
+        await setDoc(agentRef, dataToSave, { merge: true });
+        mutate();
+
+        toast({
+            title: 'Perfil Atualizado!',
+            description: 'Suas informações foram salvas com sucesso.',
+        });
+    } catch (error) {
+        console.error("Erro ao salvar perfil:", error);
+        toast({title: "Erro ao salvar", variant: "destructive"});
+    }
+  }
+
+  const handleSavePhoto = async () => {
+    if (!profilePhotoFile || !user || !firestore) {
+      toast({ title: 'Nenhum arquivo selecionado', variant: 'destructive' });
+      return;
+    }
+    if (!agentRef) return;
+
+    setIsUploading(true);
+    const storage = getStorage();
+    const filePath = `agents/${user.uid}/profile/${profilePhotoFile.name}`;
+    const fileRef = ref(storage, filePath);
+
+    try {
+      await uploadBytes(fileRef, profilePhotoFile);
+      const photoUrl = await getDownloadURL(fileRef);
+
+      await setDoc(agentRef, { photoUrl }, { merge: true });
+      mutate();
+
+      form.setValue('photoUrl', photoUrl);
+      setProfilePhotoFile(null); // Clear file after upload
+      toast({ title: 'Foto de Perfil Atualizada!' });
+    } catch (error) {
+      console.error(error);
+      toast({ title: 'Erro ao fazer upload', variant: 'destructive' });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
 
@@ -130,37 +195,6 @@ export default function PerfilPage() {
         toast({title: "Erro ao remover cidade", variant: "destructive"});
     }
   };
-
-  async function onSubmit(values: z.infer<typeof profileFormSchema>) {
-    if (!agentRef) {
-      toast({ title: 'Erro', description: 'Usuário não autenticado.', variant: 'destructive' });
-      return;
-    }
-    
-    const dataToSave = {
-        displayName: values.displayName,
-        name: values.siteName,
-        description: values.description,
-        accountType: values.accountType,
-        creci: values.creci,
-        phone: values.phone,
-        availability: {
-          days: values.availabilityDays,
-          startTime: values.availabilityStartTime,
-          endTime: values.availabilityEndTime,
-        }
-    };
-
-    try {
-        await setDoc(agentRef, dataToSave, { merge: true });
-        mutate();
-        toast({ title: 'Perfil Atualizado!' });
-    } catch (error) {
-        console.error("Erro ao salvar perfil:", error);
-        toast({title: "Erro ao salvar", variant: "destructive"});
-    }
-  }
-
 
   if (isAgentLoading) {
     return (
@@ -217,12 +251,15 @@ export default function PerfilPage() {
                 <div className='flex-grow space-y-2'>
                     {user && (
                         <ImageUpload 
-                            onUploadComplete={handleUploadComplete}
+                            onFileChange={setProfilePhotoFile}
                             currentImageUrl={agentData?.photoUrl}
                             agentId={user.uid}
                             propertyId="profile"
                         />
                     )}
+                     <Button onClick={handleSavePhoto} disabled={!profilePhotoFile || isUploading}>
+                        {isUploading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando...</> : "Salvar Foto"}
+                    </Button>
                 </div>
             </div>
         </div>

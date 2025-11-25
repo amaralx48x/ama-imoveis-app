@@ -1,42 +1,46 @@
+
 'use client';
-import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
-import { doc } from "firebase/firestore";
-import { useParams, notFound } from "next/navigation";
-import type { Agent } from "@/lib/data";
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import type { Agent } from '@/lib/data';
+import { defaultTermsOfUse } from '@/lib/data';
+import { notFound, useParams } from 'next/navigation';
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from '@/components/ui/skeleton';
 
-function PolicyPageSkeleton() {
-    return (
-        <div className="container mx-auto px-4 py-8 space-y-6">
-            <Skeleton className="h-10 w-1/3" />
-            <Skeleton className="h-6 w-1/2" />
-            <div className="space-y-3">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-5/6" />
-            </div>
-             <div className="space-y-3 pt-4">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-4/5" />
-            </div>
+function PolicySkeleton() {
+  return (
+    <div className="container mx-auto px-4 py-12">
+        <Skeleton className="h-10 w-2/3 mb-8" />
+        <div className="space-y-4">
+            <Skeleton className="h-6 w-1/4 mb-4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <br/>
+            <Skeleton className="h-6 w-1/3 mb-4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-4/5" />
         </div>
-    )
+    </div>
+  )
 }
 
-function PolicyContent({ content }: { content: string }) {
-    const formattedContent = content
-        .split('\n')
-        .map((line, i) => {
-            if (line.startsWith('## ')) return <h2 key={i} className="text-2xl font-bold mt-6 mb-3">{line.substring(3)}</h2>;
-            if (line.startsWith('**')) return <p key={i} className="font-bold mt-4">{line.replace(/\*\*/g, '')}</p>;
-            if (line.trim() === '') return <br key={i} />;
-            return <p key={i} className="text-muted-foreground leading-relaxed mb-2">{line}</p>;
-        });
+function PolicyContent({ content, title }: { content: string, title: string}) {
+    const formatText = (text: string) => {
+        return text
+            .split('\n')
+            .map((line, i) => {
+                const key = `${title}-${i}`;
+                if (line.startsWith('## ')) return <h2 key={key} className="text-2xl font-bold mt-6 mb-3">{line.substring(3)}</h2>;
+                if (line.startsWith('**')) return <p key={key} className="font-bold mt-4">{line.replace(/\*\*/g, '')}</p>;
+                if (line.trim() === '') return <br key={key} />;
+                return <p key={key} className="text-muted-foreground leading-relaxed mb-2">{line}</p>;
+            });
+    };
 
-    return <div className="prose dark:prose-invert max-w-none">{formattedContent}</div>;
+    return <div className="prose dark:prose-invert max-w-none">{formatText(content)}</div>;
 }
 
 
@@ -54,10 +58,10 @@ export default function TermsOfUsePage() {
 
     if (isLoading) {
         return (
-            <>
+             <>
                 <Header agentId={agentId} />
                 <main className="min-h-screen">
-                    <PolicyPageSkeleton />
+                    <PolicySkeleton />
                 </main>
                 <Footer agentId={agentId} />
             </>
@@ -68,29 +72,16 @@ export default function TermsOfUsePage() {
         return notFound();
     }
     
-    const termsContent = agent.siteSettings?.termsOfUse;
-    if (!termsContent) {
-        return (
-            <div className="text-center py-10">
-                <p>O conteúdo dos termos de uso não foi definido.</p>
-            </div>
-        )
-    }
-    
+    const termsContent = agent?.siteSettings?.termsOfUse || defaultTermsOfUse;
+
     return (
         <>
             <Header agent={agent} agentId={agentId} />
-            <main className="container mx-auto px-4 py-8">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-4xl font-headline">Termos de Uso</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <PolicyContent content={termsContent} />
-                    </CardContent>
-                </Card>
+            <main className="container mx-auto px-4 py-12">
+                <h1 className="text-4xl font-extrabold font-headline mb-8">Termos de Uso</h1>
+                <PolicyContent content={termsContent} title="terms"/>
             </main>
             <Footer agentId={agentId} />
         </>
-    )
+    );
 }

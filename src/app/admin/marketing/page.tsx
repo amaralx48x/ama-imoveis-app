@@ -22,17 +22,15 @@ import { setDoc, doc } from 'firebase/firestore';
 import { useEffect } from 'react';
 import type { MarketingContent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MonitorPlay, Loader2, MessageCircle } from 'lucide-react';
+import { MonitorPlay, Loader2 } from 'lucide-react';
 import ImageUpload from '@/components/image-upload';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Separator } from '@/components/ui/separator';
 
 const marketingFormSchema = z.object({
   hero_media_url: z.string().url('URL inválida').optional().or(z.literal('')),
   hero_media_type: z.enum(['image', 'video']).optional(),
   feature_video_url: z.string().url('URL inválida').optional().or(z.literal('')),
   feature_video_title: z.string().optional(),
-  ctaImageUrl: z.string().url('URL inválida').optional().or(z.literal('')),
   section2_image: z.string().url('URL inválida').optional().or(z.literal('')),
   section3_image: z.string().url('URL inválida').optional().or(z.literal('')),
   section4_image1: z.string().url('URL inválida').optional().or(z.literal('')),
@@ -40,12 +38,11 @@ const marketingFormSchema = z.object({
   section5_image1: z.string().url('URL inválida').optional().or(z.literal('')),
   section5_image2: z.string().url('URL inválida').optional().or(z.literal('')),
   section6_image: z.string().url('URL inválida').optional().or(z.literal('')),
-  supportWhatsapp: z.string().optional(),
 });
 
 
 type ImageField = {
-    name: keyof z.infer<typeof marketingFormSchema>;
+    name: keyof Omit<MarketingContent, 'hero_media_url' | 'hero_media_type' | 'feature_video_url' | 'feature_video_title'>;
     label: string;
     description: string;
 }
@@ -103,11 +100,15 @@ export default function MarketingAdminPage() {
 
     useEffect(() => {
         if (marketingData) {
-            form.reset(marketingData);
+            form.reset({
+                ...marketingData,
+                hero_media_type: marketingData.hero_media_type || 'image',
+                feature_video_title: marketingData.feature_video_title || 'Veja a Plataforma em Ação',
+            });
         }
     }, [marketingData, form]);
     
-    const handleUploadComplete = (fieldName: keyof z.infer<typeof marketingFormSchema>) => (url: string) => {
+    const handleUploadComplete = (fieldName: keyof MarketingContent) => (url: string) => {
         form.setValue(fieldName, url, { shouldDirty: true });
     };
 
@@ -139,28 +140,6 @@ export default function MarketingAdminPage() {
             {isLoading ? <MarketingFormSkeleton /> : (
                 <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                     <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><MessageCircle /> Suporte Prioritário</CardTitle>
-                            <CardDescription>Configure o número de WhatsApp para o suporte prioritário do plano AMA ULTRA.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                             <FormField
-                                control={form.control}
-                                name="supportWhatsapp"
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Número de WhatsApp para Suporte</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="5511999999999" {...field} />
-                                    </FormControl>
-                                    <FormDescription>Insira apenas números, incluindo o código do país (ex: 55 para o Brasil).</FormDescription>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </CardContent>
-                    </Card>
                     <Card>
                         <CardHeader>
                             <CardTitle>Seção de Herói</CardTitle>
@@ -215,35 +194,6 @@ export default function MarketingAdminPage() {
                         </CardContent>
                     </Card>
 
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Seção "Call to Action"</CardTitle>
-                            <CardDescription>Imagem que aparece ao lado do botão "Clique aqui".</CardDescription>
-                        </CardHeader>
-                        <CardContent className="pt-6">
-                            <FormField
-                                name="ctaImageUrl"
-                                control={form.control}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Upload da Imagem</FormLabel>
-                                        <FormDescription>Envie uma imagem com fundo transparente (.png) para melhor resultado. Tamanho recomendado: 300x300</FormDescription>
-                                        <FormControl>
-                                            <ImageUpload
-                                                onUploadComplete={handleUploadComplete('ctaImageUrl')}
-                                                currentImageUrl={field.value}
-                                                agentId="marketing"
-                                                propertyId="cta_image"
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                             />
-                        </CardContent>
-                    </Card>
-
-
                     <Card>
                         <CardHeader>
                             <CardTitle>Seção de Vídeo de Features</CardTitle>
@@ -296,7 +246,7 @@ export default function MarketingAdminPage() {
                                 <FormField
                                     key={fieldInfo.name}
                                     control={form.control}
-                                    name={fieldInfo.name}
+                                    name={fieldInfo.name as any}
                                     render={({ field }) => (
                                     <FormItem className="p-4 border rounded-lg space-y-4">
                                         <div>
@@ -305,7 +255,7 @@ export default function MarketingAdminPage() {
                                         </div>
                                         <FormControl>
                                         <ImageUpload
-                                                onUploadComplete={handleUploadComplete(fieldInfo.name)}
+                                                onUploadComplete={handleUploadComplete(fieldInfo.name as any)}
                                                 currentImageUrl={field.value}
                                                 agentId="marketing" // Use a dedicated folder
                                                 propertyId={fieldInfo.name} // Use field name for uniqueness

@@ -1,23 +1,18 @@
-
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type { Agent, Property, Review, CustomSection } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Hero } from "@/components/hero";
-import { AgentProfile } from "@/components/agent-profile";
-import { ClientReviews } from "@/components/client-reviews";
-import { FloatingContactButton } from "@/components/floating-contact-button";
-import { FeaturedProperties } from "@/components/featured-properties";
-import { CustomPropertySection } from "@/components/custom-property-section";
+import { FeaturedProperties } from '@/components/featured-properties';
+import { CustomPropertySection } from '@/components/custom-property-section';
+import { AgentProfile } from '@/components/agent-profile';
+import { ClientReviews } from '@/components/client-reviews';
+import { FloatingContactButton } from '@/components/floating-contact-button';
 import PropertyFilters from '@/components/property-filters';
 import { getPropertyTypes } from '@/lib/data';
-import { filterProperties, type Filters } from '@/lib/filter-logic';
-import { PropertyCard } from '@/components/property-card';
-import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
 
 
 export default function AgentPageClient({
@@ -31,81 +26,41 @@ export default function AgentPageClient({
   customSections: CustomSection[];
   reviews: Review[];
 }) {
-  const [filteredProperties, setFilteredProperties] = useState<Property[] | null>(null);
+
+  const citiesForFilter = useMemo(() => {
+    if (!agent) return [];
+    const agentCities = agent.cities || [];
+    const propertyCities = allProperties.map(p => p.city).filter(Boolean);
+    return [...new Set([...agentCities, ...propertyCities])].sort();
+  }, [agent, allProperties]);
 
   if (!agent) {
+    // Though we check in the server component, this is a safeguard.
     return notFound();
   }
 
   const heroImageUrl = agent.siteSettings?.heroImageUrl;
+  const featuredProperties = allProperties.filter(p => (p.sectionIds || []).includes('featured') && p.status === 'ativo');
+  const propertyTypes = getPropertyTypes();
   const showReviews = agent.siteSettings?.showReviews ?? true;
   const whatsAppLink = agent.siteSettings?.socialLinks?.find(link => link.icon === 'whatsapp');
-
-  const featuredProperties = useMemo(() => {
-    return allProperties.filter(p => (p.sectionIds || []).includes('featured'));
-  }, [allProperties]);
-
-  const handleFilter = (filters: Filters) => {
-    const result = filterProperties(allProperties, filters);
-    setFilteredProperties(result);
-    // Smooth scroll to results
-    const resultsElement = document.getElementById('search-results-section');
-    if (resultsElement) {
-        resultsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
-  const handleClearFilter = () => {
-    setFilteredProperties(null);
-  };
-  
-  const propertyTypes = getPropertyTypes();
-  const cities = agent.cities || [];
 
   return (
     <>
       <Header agent={agent} agentId={agent.id} />
       <main className="min-h-screen">
         <div className="relative mb-24 md:mb-36">
-           <Hero heroImageUrl={heroImageUrl}>
-            <PropertyFilters onFilter={handleFilter} agent={{...agent, cities}} propertyTypes={propertyTypes} />
+          <Hero heroImageUrl={heroImageUrl}>
+            <PropertyFilters agent={{...agent, cities: citiesForFilter}} propertyTypes={propertyTypes} />
           </Hero>
         </div>
 
-        {/* --- Render Search Results --- */}
-        {filteredProperties !== null && (
-            <section id="search-results-section" className="py-16 sm:py-24 bg-background">
-                <div className="container mx-auto px-4">
-                     <div className="text-center mb-12">
-                        <h2 className="text-4xl md:text-5xl font-extrabold font-headline">
-                            Resultados da <span className="text-gradient">Busca</span> ({filteredProperties.length})
-                        </h2>
-                        <Button variant="ghost" onClick={handleClearFilter} className="mt-4">
-                            <X className="mr-2 h-4 w-4" />
-                            Limpar Busca e ver destaques
-                        </Button>
-                    </div>
-                     {filteredProperties.length > 0 ? (
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            {filteredProperties.map((property) => (
-                                <PropertyCard key={property.id} property={property} />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-16 rounded-lg border-2 border-dashed">
-                            <h2 className="text-2xl font-bold mb-2">Nenhum imóvel encontrado</h2>
-                            <p className="text-muted-foreground">Tente ajustar seus filtros ou limpar a busca.</p>
-                        </div>
-                    )}
-                </div>
-            </section>
+        {featuredProperties.length > 0 && (
+          <FeaturedProperties properties={featuredProperties} agentId={agent.id} />
         )}
 
-        {/* --- Render Default Sections --- */}
-        <FeaturedProperties properties={featuredProperties} agentId={agent.id} />
-        
         {customSections.map(section => {
-          const sectionProperties = allProperties.filter(p => (p.sectionIds || []).includes(section.id));
+          const sectionProperties = allProperties.filter(p => (p.sectionIds || []).includes(section.id) && p.status === 'ativo');
           if (sectionProperties.length === 0) return null;
           return (
             <CustomPropertySection

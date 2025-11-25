@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, addDoc, serverTimestamp, query, where, onSnapshot, orderBy, doc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, getStorage } from 'firebase/storage';
 import { useFirestore, useUser, useFirebaseApp, useMemoFirebase } from '@/firebase';
 import { Input } from '@/components/ui/input';
@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LifeBuoy, Loader2, Upload, X, MessageSquare, AlertTriangle, Briefcase, Users, Gem, Settings } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { v4 as uuidv4 } from 'uuid';
-import type { SupportMessage, MarketingContent } from '@/lib/data';
+import type { SupportMessage } from '@/lib/data';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import Image from 'next/image';
@@ -22,7 +22,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import ImageUpload from '@/components/image-upload';
 import { InfoCard } from '@/components/info-card';
-import Link from 'next/link';
 
 const faqTopics = [
   {
@@ -212,53 +211,16 @@ function MessagesHistory() {
     )
 }
 
-function PrioritySupportCard({ whatsappNumber }: { whatsappNumber?: string }) {
-    if (!whatsappNumber) return null;
-
-    const whatsappLink = `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent('Olá! Preciso de suporte prioritário.')}`;
-    
-    return (
-        <Card className="bg-primary/10 border-primary/30">
-            <CardHeader>
-                <CardTitle className="text-primary flex items-center gap-2"><Gem/> Atendimento Prioritário AMA ULTRA</CardTitle>
-                <CardDescription className="text-primary/80">
-                    Como membro AMA ULTRA, você tem acesso direto ao nosso suporte via WhatsApp para resoluções mais rápidas.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Button asChild className="w-full bg-green-500 hover:bg-green-600">
-                    <Link href={whatsappLink} target="_blank" rel="noopener noreferrer">
-                        <MessageSquare className="mr-2 h-4 w-4"/> Falar no WhatsApp
-                    </Link>
-                </Button>
-            </CardContent>
-        </Card>
-    )
-}
-
-
 export default function SuportePage() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const firebaseApp = useFirebaseApp();
   const { toast } = useToast();
 
   const [message, setMessage] = useState('');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [messageId] = useState(uuidv4()); // Stable ID for the message being composed
-  const [marketingContent, setMarketingContent] = useState<MarketingContent | null>(null);
-
-   useEffect(() => {
-    if (!firestore) return;
-    const contentRef = doc(firestore, 'marketing', 'content');
-    const unsub = onSnapshot(contentRef, (doc) => {
-        if (doc.exists()) {
-            setMarketingContent(doc.data() as MarketingContent);
-        }
-    });
-    return () => unsub();
-   }, [firestore]);
-
 
   const handleUploadComplete = (url: string) => {
     setImageUrls(prev => [...prev, url]);
@@ -315,7 +277,6 @@ export default function SuportePage() {
           </CardDescription>
         </CardHeader>
       </Card>
-      
 
       <Card>
         <CardHeader>

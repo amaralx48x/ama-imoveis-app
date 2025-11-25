@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useState, useEffect } from "react";
 import { createContact, updateContact } from "@/firebase/contacts";
@@ -11,7 +10,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import type { Contact } from "@/lib/data";
 import { Loader2 } from "lucide-react";
-import { useFirestore } from "@/firebase";
 
 interface ContactFormModalProps {
     open: boolean;
@@ -28,7 +26,6 @@ export default function ContactFormModal({ open, onClose, agentId, initialData=n
   const [form, setForm] = useState(defaultFormState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const firestore = useFirestore(); // Get the single firestore instance
 
   useEffect(() => {
     if (initialData) {
@@ -55,17 +52,17 @@ export default function ContactFormModal({ open, onClose, agentId, initialData=n
   };
 
   const save = async () => {
-    if (!agentId || !firestore) return toast({title: "Erro de autenticação", variant: "destructive"});
+    if (!agentId) return toast({title: "Erro de autenticação", variant: "destructive"});
     if (!form.name) return toast({title: "O nome é obrigatório", variant: "destructive"});
     
     setIsSubmitting(true);
     const payload = { ...form, age: Number(form.age) || null };
     try {
         if (initialData?.id) {
-            await updateContact(firestore, agentId, initialData.id, payload);
+            await updateContact(agentId, initialData.id, payload);
              toast({ title: "Contato atualizado!" });
         } else {
-            await createContact(firestore, agentId, payload);
+            await createContact(agentId, payload);
             toast({ title: "Contato criado com sucesso!" });
         }
         onClose();

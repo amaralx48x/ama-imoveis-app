@@ -49,15 +49,14 @@ function LoadingSkeleton() {
 }
 
 export default function MarketingClientPage() {
-  const firestore = useFirestore(); // Use the hook to get the singleton instance
-
+  const firestore = useFirestore();
   const marketingRef = useMemoFirebase(
     () => (firestore ? doc(firestore, 'marketing', 'content') : null),
     [firestore]
   );
   const { data: content, isLoading } = useDoc<MarketingContent>(marketingRef);
   
-  const getImage = (field: keyof Omit<MarketingContent, 'hero_media_type' | 'hero_media_url' | 'feature_video_url' | 'feature_video_title' | 'supportWhatsapp'>, defaultSeed: string) => {
+  const getImage = (field: keyof Omit<MarketingContent, 'hero_media_type' | 'hero_media_url' | 'feature_video_url' | 'feature_video_title'>, defaultSeed: string) => {
     // @ts-ignore
     const url = content?.[field];
     if (url) return url;
@@ -69,30 +68,6 @@ export default function MarketingClientPage() {
     return <LoadingSkeleton />;
   }
 
-  const commonFeatures = [
-    "Site profissional personalizável",
-    "Painel de controle",
-    "CRM completo",
-    "SEO (Otimização para Google)",
-    "Lista de captação de leads",
-  ];
-
-  const amaplusFeatures = [
-    { text: "Até 50 imóveis simultâneos", included: true },
-    { text: "5 GB de dados por mês", included: true },
-    { text: "Domínio pago à parte (R$ 40/anual)", included: true },
-    { text: "Importar lista de imóveis por CSV", included: false },
-    { text: "Atendimento prioritário técnico", included: false },
-  ];
-
-  const ultraplusFeatures = [
-    { text: "Até 300 imóveis cadastrados", included: true },
-    { text: "10 GB de dados por mês", included: true },
-    { text: "Importar lista de imóveis por CSV", included: true },
-    { text: "Domínio personalizado de graça", included: true },
-    { text: "Atendimento prioritário técnico", included: true },
-  ];
-
   return (
     <div className="min-h-screen text-white bg-black">
       {/* NAV */}
@@ -103,7 +78,7 @@ export default function MarketingClientPage() {
               <span className="font-bold">AMA</span>
             </div>
             <div>
-              <h1 className="text-xl font-extrabold">AMA Imóveis</h1>
+              <h1 className="text-xl font-extrabold">AMA Imobi</h1>
               <div className="text-xs text-white/50">por AMA Tecnologia</div>
             </div>
           </div>
@@ -125,37 +100,18 @@ export default function MarketingClientPage() {
           <div className="container mx-auto px-6 py-20">
             {/* Call to Action Section */}
             <section className="py-10 text-center">
-                <motion.div 
-                    initial="hidden" 
-                    whileInView="show" 
-                    viewport={{ once: true }} 
-                    variants={fadeUpContainer}
-                    className="flex flex-col md:flex-row items-center justify-center gap-8"
-                >
-                    <div className="text-center md:text-left">
-                        <motion.h3 variants={fadeUpItem} className="text-2xl font-semibold text-white/90">
-                           Um click diz mais que mil palavras
-                        </motion.h3>
-                        <motion.div variants={fadeUpItem} className="mt-4">
+                <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUpContainer}>
+                    <motion.h3 variants={fadeUpItem} className="text-2xl font-semibold text-white/90">
+                        Um click fala mais que mil palavras
+                    </motion.h3>
+                    <motion.div variants={fadeUpItem} className="mt-4">
                         <a href="https://studio--ama-imveis-041125-945215-63275.us-central1.hosted.app/corretor/4vEISo4pEORjFhv6RzD7eC42cgm2" className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white text-lg shadow-lg hover:scale-105 transition-transform`}>
                             Clique aqui
                         </a>
-                        </motion.div>
-                        <motion.p variants={fadeUpItem} className="mt-3 text-white/70">
-                        Seu site ficara assim!
-                        </motion.p>
-                    </div>
-                     {content?.ctaImageUrl && (
-                        <motion.div variants={fadeUpItem} className="flex-shrink-0">
-                          <Image
-                            src={content.ctaImageUrl}
-                            alt="Ilustração da plataforma"
-                            width={250}
-                            height={250}
-                            className="object-contain"
-                          />
-                        </motion.div>
-                     )}
+                    </motion.div>
+                    <motion.p variants={fadeUpItem} className="mt-3 text-white/70">
+                        veja um site simples e profissional
+                    </motion.p>
                 </motion.div>
             </section>
 
@@ -178,23 +134,6 @@ export default function MarketingClientPage() {
                   ))}
                 </div>
               </motion.div>
-            </section>
-
-            {/* New Differentiation Section */}
-            <section className="mt-20 py-10">
-              <div className="mx-auto max-w-4xl text-center">
-                <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUpContainer}>
-                  <motion.h3 variants={fadeUpItem} className="text-3xl font-extrabold">
-                    A <span className="text-gradient">Receita Certa</span> para o seu Sucesso
-                  </motion.h3>
-                  <motion.p variants={fadeUpItem} className="mt-4 text-lg text-white/70">
-                    Com o melhor preço do Brasil, nossa plataforma é uma das mais completas e intuitivas do mercado. Pense nela como a base de um bolo perfeito: nós fornecemos a estrutura validada e otimizada. Você só precisa adicionar seu toque único — o recheio e os confeitos.
-                  </motion.p>
-                  <motion.p variants={fadeUpItem} className="mt-4 text-white/70">
-                    Em vez de perder horas com modelos complicados, foque no que importa: sua marca, seus imóveis e seus clientes. Com uma interface simples e um atendimento humano e atencioso, estamos aqui para cuidar de cada detalhe técnico e apoiar suas particularidades.
-                  </motion.p>
-                </motion.div>
-              </div>
             </section>
 
             {/* Image gallery + social proof */}
@@ -298,62 +237,58 @@ export default function MarketingClientPage() {
 
             {/* Plans & CTA */}
             <section id="plans" className="mt-20 py-10">
-                <motion.h3 variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-3xl font-extrabold text-center">Planos</motion.h3>
-                <p className="mt-2 text-white/70 text-center">Teste 7 dias grátis. Depois, escolha seu plano.</p>
+              <motion.h3 variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-3xl font-extrabold text-center">Planos</motion.h3>
+              <p className="mt-2 text-white/70 text-center">Teste 7 dias grátis. Depois, escolha seu plano.</p>
 
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-                    {/* AMAPLUS Plan */}
-                    <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="p-6 rounded-2xl border border-white/10 bg-white/5 shadow-lg flex flex-col">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <div className="font-semibold text-lg">AMAPLUS</div>
-                                <div className="text-xs text-white/60">Para corretores individuais</div>
-                            </div>
-                            <div className="text-right">
-                                <div className="text-2xl font-extrabold">R$ 39,90</div>
-                                <div className="text-xs text-white/60">por mês</div>
-                            </div>
-                        </div>
-                        <ul className="mt-4 text-sm text-white/70 space-y-2 flex-grow">
-                            {commonFeatures.map(f => <li key={f}>✅ {f}</li>)}
-                            {amaplusFeatures.map((f) => (
-                              <li key={f.text} className={!f.included ? 'text-white/40' : ''}>
-                                {f.included ? '✅' : '❌'} {f.text}
-                              </li>
-                            ))}
-                        </ul>
-                        <div className="mt-6">
-                            <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary/80 to-accent/80 text-white px-4 py-2 rounded-md font-medium w-full justify-center`}>Iniciar 7 dias</Link>
-                        </div>
-                    </motion.div>
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="p-6 rounded-2xl border border-white/10 bg-white/5 shadow-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold text-lg">Corretor Plus</div>
+                      <div className="text-xs text-white/60">Para profissionais solo</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-extrabold">R$ 59,90</div>
+                      <div className="text-xs text-white/60">por mês</div>
+                    </div>
+                  </div>
+                  <ul className="mt-4 text-sm text-white/70 space-y-2">
+                    <li>✅ Gestão de imóveis</li>
+                    <li>✅ CRM e leads</li>
+                    <li>❌ Import CSV (restrito)</li>
+                  </ul>
+                  <div className="mt-6">
+                    <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-4 py-2 rounded-md font-medium`}>Iniciar 7 dias</Link>
+                  </div>
+                </motion.div>
 
-                    {/* AMA ULTRA Plan */}
-                    <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="p-6 rounded-2xl border border-primary bg-primary/10 shadow-lg flex flex-col">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <div className="font-semibold text-lg">AMA ULTRA</div>
-                                <div className="text-xs text-white/60">Para equipes e imobiliárias</div>
-                            </div>
-                            <div className="text-right">
-                                <div className="text-2xl font-extrabold">R$ 59,90</div>
-                                <div className="text-xs text-white/60">por mês</div>
-                            </div>
-                        </div>
-                         <ul className="mt-4 text-sm text-white/70 space-y-2 flex-grow">
-                            {commonFeatures.map(f => <li key={f}>✅ {f}</li>)}
-                            {ultraplusFeatures.map(f => <li key={f.text}>✅ {f.text}</li>)}
-                        </ul>
-                        <div className="mt-6">
-                            <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-4 py-2 rounded-md font-medium w-full justify-center`}>Iniciar 7 dias</Link>
-                        </div>
-                    </motion.div>
-                </div>
+                <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="p-6 rounded-2xl border border-primary bg-primary/10 shadow-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold text-lg">Imobiliária Plus</div>
+                      <div className="text-xs text-white/60">Para equipes e imobiliárias</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-extrabold">R$ 89,90</div>
+                      <div className="text-xs text-white/60">por mês</div>
+                    </div>
+                  </div>
+                  <ul className="mt-4 text-sm text-white/70 space-y-2">
+                    <li>✅ Import CSV</li>
+                    <li>✅ Limite maior de anúncios</li>
+                    <li>✅ Controle multiusuário</li>
+                  </ul>
+                  <div className="mt-6">
+                    <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-4 py-2 rounded-md font-medium`}>Iniciar 7 dias</Link>
+                  </div>
+                </motion.div>
+              </div>
             </section>
-            
+
             {/* Final CTA */}
             <section className="mt-20 mb-24 text-center">
               <div className="mx-auto max-w-2xl p-8 rounded-2xl border border-white/10 bg-gradient-to-b from-black/40 to-black/20">
-                <h3 className="text-2xl font-bold">Teste AMA Imóveis por 7 dias — grátis</h3>
+                <h3 className="text-2xl font-bold">Teste AMA Imobi por 7 dias — grátis</h3>
                 <p className="mt-2 text-white/70">Sem cartão no teste — experimente e veja o impacto nas suas vendas.</p>
                 <div className="mt-6 flex justify-center gap-4">
                   <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-6 py-3 rounded-lg font-semibold`}>Começar 7 dias grátis</Link>
@@ -368,7 +303,7 @@ export default function MarketingClientPage() {
       {/* FOOTER */}
       <footer className="border-t border-white/10 py-8">
         <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-white/60">© {new Date().getFullYear()} AMA Tecnologia. Todos os direitos reservados.</div>
+          <div className="text-sm text-white/60">© {new Date().getFullYear()} AMA Tecnologia — AMA Imobi</div>
           <div className="flex items-center gap-3 text-white/60">
             <a href="#" className="text-sm hover:text-white">Termos</a>
             <a href="#" className="text-sm hover:text-white">Privacidade</a>

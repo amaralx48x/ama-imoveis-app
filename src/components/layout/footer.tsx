@@ -114,7 +114,6 @@ export function Footer({ agentId }: { agentId?: string }) {
   const socialLinks = agent?.siteSettings?.socialLinks?.filter(l => l.icon !== 'map-pin' && l.icon !== 'phone') || [];
   const locationLink = agent?.siteSettings?.socialLinks?.find(l => l.icon === 'map-pin');
   const phoneLink = agent?.siteSettings?.socialLinks?.find(l => l.icon === 'phone');
-  const siteName = agent?.name || "Portal Imobiliário";
 
 
   return (
@@ -190,7 +189,7 @@ export function Footer({ agentId }: { agentId?: string }) {
         <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left border-t border-border pt-6">
            <div className="mb-4 md:mb-0">
              <p className="text-muted-foreground text-sm">
-              © {new Date().getFullYear()} {siteName}. Todos os direitos reservados.
+              © {new Date().getFullYear()} AMA Tecnologia. Todos os direitos reservados.
             </p>
           </div>
           <div className="text-muted-foreground text-xs space-x-2">

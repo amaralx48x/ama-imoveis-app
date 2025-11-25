@@ -74,6 +74,7 @@ export default function AdminSupportPage() {
         };
 
         try {
+            // Use setDoc com merge: true para criar/atualizar o documento.
             await setDoc(docRef, responseData, { merge: true });
             toast({ title: "Resposta enviada com sucesso!" });
             setResponse(prev => ({...prev, [id]: ''}));

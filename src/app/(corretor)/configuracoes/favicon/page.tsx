@@ -17,7 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { Agent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, Image as ImageIcon } from 'lucide-react';
@@ -80,11 +80,7 @@ export default function FaviconPage() {
     if (!agentRef) return;
     
     try {
-        const newSettings = {
-            ...agentData?.siteSettings,
-            ...values,
-        };
-        await setDoc(agentRef, { siteSettings: newSettings }, { merge: true });
+        await setDoc(agentRef, { siteSettings: { faviconUrl: values.faviconUrl } }, { merge: true });
         mutate();
 
         toast({

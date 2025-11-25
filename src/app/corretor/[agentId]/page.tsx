@@ -1,24 +1,46 @@
+
 'use client';
 import type { Metadata } from "next";
+import { useState, useEffect } from "react";
 import AgentPageClient from "@/app/corretor/[agentId]/agent-page-client";
-import { useDoc, useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { doc, getDoc, collection, getDocs, query, where, orderBy, limit } from "firebase/firestore";
+import { useFirestore, useDoc, useCollection, useMemoFirebase } from "@/firebase";
+import { doc, collection, query, where, orderBy, limit } from "firebase/firestore";
 import type { Agent, Property, Review, CustomSection } from "@/lib/data";
 import { notFound, useParams } from "next/navigation";
 import { getReviews as getStaticReviews, getProperties as getStaticProperties } from '@/lib/data';
-import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 
-function AgentPublicPageSkeleton() {
+function AgentPageSkeleton() {
   return (
-    <div className="space-y-8">
-        <Skeleton className="h-[70vh] w-full" />
-        <div className="container space-y-12">
-            <Skeleton className="h-40 w-full" />
-            <Skeleton className="h-64 w-full" />
-            <Skeleton className="h-64 w-full" />
+    <div className="w-full">
+      <header className="sticky top-0 z-50 h-14 border-b bg-background/95">
+        <div className="container flex items-center justify-between h-full">
+          <Skeleton className="h-6 w-32" />
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-6 w-20" />
+            <Skeleton className="h-6 w-20" />
+            <Skeleton className="h-10 w-24" />
+          </div>
         </div>
+      </header>
+      <main>
+        <div className="relative h-[70vh]">
+          <Skeleton className="h-full w-full" />
+          <div className='absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-full max-w-5xl px-4 z-20'>
+            <Skeleton className="h-48 w-full rounded-lg" />
+          </div>
+        </div>
+        <div className="pt-32 pb-16">
+          <div className="container">
+            <Skeleton className="h-8 w-1/3 mb-4" />
+            <Skeleton className="h-4 w-1/2 mb-8" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-96 w-full" />)}
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   )
 }
@@ -28,47 +50,103 @@ export default function AgentPublicPage() {
   const params = useParams();
   const agentId = params.agentId as string;
   const firestore = useFirestore();
-
-  const [isLoading, setIsLoading] = useState(true);
   
-  // Real-time listeners for all data
-  const agentRef = useMemoFirebase(() => firestore && agentId ? doc(firestore, 'agents', agentId) : null, [firestore, agentId]);
-  const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
-
-  const propertiesQuery = useMemoFirebase(() => firestore && agentId ? query(collection(firestore, `agents/${agentId}/properties`), where('status', '==', 'ativo')) : null, [firestore, agentId]);
-  const { data: propertiesData, isLoading: arePropertiesLoading } = useCollection<Property>(propertiesQuery);
-
-  const sectionsQuery = useMemoFirebase(() => firestore && agentId ? query(collection(firestore, `agents/${agentId}/customSections`), orderBy('order', 'asc')) : null, [firestore, agentId]);
-  const { data: sectionsData, isLoading: areSectionsLoading } = useCollection<CustomSection>(sectionsQuery);
+  const isExample = agentId === 'exemplo';
   
-  const reviewsQuery = useMemoFirebase(() => firestore && agentId ? query(collection(firestore, `agents/${agentId}/reviews`), where('approved', '==', true), limit(10)) : null, [firestore, agentId]);
-  const { data: reviewsData, isLoading: areReviewsLoading } = useCollection<Review>(reviewsQuery);
+  const agentRef = useMemoFirebase(() => {
+      if (isExample || !firestore || !agentId) return null;
+      return doc(firestore, 'agents', agentId);
+  }, [firestore, agentId, isExample]);
+
+  const propertiesQuery = useMemoFirebase(() => {
+      if (isExample || !firestore || !agentId) return null;
+      return query(collection(firestore, `agents/${agentId}/properties`), where('status', '==', 'ativo'));
+  }, [firestore, agentId, isExample]);
+  
+  const sectionsQuery = useMemoFirebase(() => {
+      if (isExample || !firestore || !agentId) return null;
+      return query(collection(firestore, `agents/${agentId}/customSections`), orderBy('order', 'asc'));
+  }, [firestore, agentId, isExample]);
+  
+  const reviewsQuery = useMemoFirebase(() => {
+      if (isExample || !firestore || !agentId) return null;
+      return query(collection(firestore, `agents/${agentId}/reviews`), where('approved', '==', true), limit(10));
+  }, [firestore, agentId, isExample]);
 
 
+  const { data: agent, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
+  const { data: allProperties, isLoading: arePropertiesLoading } = useCollection<Property>(propertiesQuery);
+  const { data: customSections, isLoading: areSectionsLoading } = useCollection<CustomSection>(sectionsQuery);
+  const { data: reviews, isLoading: areReviewsLoading } = useCollection<Review>(reviewsQuery);
+  
+  const [clientData, setClientData] = useState<any>(null);
+  
   useEffect(() => {
-    const totalLoading = isAgentLoading || arePropertiesLoading || areSectionsLoading || areReviewsLoading;
-    setIsLoading(totalLoading);
-  }, [isAgentLoading, arePropertiesLoading, areSectionsLoading, areReviewsLoading]);
+    if (isExample) {
+        const exampleAgent: Agent = {
+          id: 'exemplo',
+          displayName: 'Corretor Exemplo',
+          name: 'Imóveis Exemplo',
+          accountType: 'corretor',
+          description: 'Este é um perfil de demonstração para mostrar como seu site público pode parecer. Todas as informações e imóveis aqui são fictícios.',
+          email: 'contato@exemplo.com',
+          creci: '000000-F',
+          photoUrl: 'https://images.unsplash.com/photo-1581065178047-8ee15951ede6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjE5NTYzOTR8MA&ixlib=rb-4.1.0&q=80&w=1080',
+          siteSettings: {
+              showReviews: true,
+              socialLinks: [
+                  { id: '1', label: 'WhatsApp', url: '5511999999999', icon: 'whatsapp' },
+                  { id: '2', label: 'Instagram', url: 'seu_usuario', icon: 'instagram' },
+              ]
+          }
+        };
+        setClientData({
+            agent: exampleAgent,
+            allProperties: getStaticProperties().map(p => ({...p, agentId: 'exemplo'})),
+            customSections: [],
+            reviews: getStaticReviews(),
+        });
+    } else if (!isAgentLoading && agent) {
+        let finalProperties = allProperties;
+        if (allProperties && allProperties.length === 0) {
+            finalProperties = getStaticProperties().map(p => ({...p, agentId}));
+        }
 
+        let finalReviews = reviews;
+        if (reviews && reviews.length === 0) {
+            finalReviews = getStaticReviews();
+        }
 
-  if (!isAgentLoading && (!agentData || agentData.siteSettings?.siteStatus === false)) {
+        setClientData({
+            agent,
+            allProperties: finalProperties,
+            customSections,
+            reviews: finalReviews,
+        });
+    } else if (!isAgentLoading && !agent) {
+        setClientData({notFound: true});
+    }
+  }, [
+    isExample, 
+    agent, 
+    allProperties, 
+    customSections, 
+    reviews, 
+    isAgentLoading,
+    agentId
+  ]);
+  
+  const isLoading = isAgentLoading || arePropertiesLoading || areSectionsLoading || areReviewsLoading;
+  
+  // Handle not found case after loading is complete
+  if (clientData?.notFound) {
     return notFound();
   }
 
-  // Use static fallback data ONLY if the agent has none of their own.
-  const allProperties = propertiesData && propertiesData.length > 0 ? propertiesData : getStaticProperties().map(p => ({...p, agentId}));
-  const reviews = reviewsData && reviewsData.length > 0 ? reviewsData : getStaticReviews();
-  const customSections = sectionsData || [];
-
-
-  if (isLoading && agentId !== 'exemplo') { // Don't show skeleton for the static example page
-      return <AgentPublicPageSkeleton />;
+  // Show loading skeleton while fetching data
+  if (isLoading || !clientData) {
+    return <AgentPageSkeleton />;
   }
-
-  return <AgentPageClient 
-            agent={agentData}
-            allProperties={allProperties}
-            customSections={customSections}
-            reviews={reviews}
-         />;
+  
+  return <AgentPageClient {...clientData} />;
 }

@@ -1,7 +1,7 @@
 
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Home, FileText, MoreVertical } from 'lucide-react';
 import { useDoc, useFirestore, useUser, useMemoFirebase, useCollection } from '@/firebase';
@@ -24,7 +24,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { InfoCard } from '@/components/info-card';
-
 
 const MotionCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <div className={`transition-all duration-500 ease-out hover:scale-105 hover:shadow-primary/20 ${className}`}>
@@ -73,18 +72,14 @@ export default function DashboardPage() {
 
     const activePropertiesCount = properties?.filter(p => p.status !== 'vendido' && p.status !== 'alugado').length || 0;
 
-    const manualAdjustmentsThisMonth = agentData?.siteSettings?.manualCommissionAdjustments
-        ?.filter(adj => adj.createdAt && isSameMonth(adj.createdAt.toDate(), new Date()))
-        .reduce((sum, adj) => sum + adj.value, 0) || 0;
-
-    const commissionsThisMonth = (properties
+    const commissionsThisMonth = properties
         ?.filter(p => {
             if (!['vendido', 'alugado'].includes(p.status || '') || !p.soldAt) return false;
             
             const soldDate = p.soldAt.toDate();
             return isSameMonth(soldDate, new Date());
         })
-        .reduce((sum, p) => sum + (p.commissionValue || 0), 0) || 0) + manualAdjustmentsThisMonth;
+        .reduce((sum, p) => sum + (p.commissionValue || 0), 0) || 0;
     
     const dealsThisMonthCount = properties
         ?.filter(p => {
@@ -123,9 +118,15 @@ export default function DashboardPage() {
                         </CardHeader>
                         <CardContent>
                              {isLoading ? (
-                                <Skeleton className="h-10 w-16" />
+                                <>
+                                    <Skeleton className="h-10 w-16 mb-2" />
+                                    <Skeleton className="h-3 w-24" />
+                                </>
                             ) : (
-                                <div className="text-4xl font-bold">{activePropertiesCount}</div>
+                                <>
+                                    <div className="text-4xl font-bold">{activePropertiesCount}</div>
+                                    <p className="text-xs text-muted-foreground">Imóveis disponíveis para negócio</p>
+                                </>
                             )}
                         </CardContent>
                     </Card>
@@ -150,7 +151,10 @@ export default function DashboardPage() {
                         </CardHeader>
                         <CardContent>
                              {isLoading ? (
-                                <Skeleton className="h-10 w-40" />
+                                <>
+                                    <Skeleton className="h-10 w-40 mb-2" />
+                                    <Skeleton className="h-3 w-32" />
+                                </>
                              ) : (
                                 <>
                                     <TooltipProvider>
@@ -165,6 +169,7 @@ export default function DashboardPage() {
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
+                                    <p className="text-xs text-muted-foreground">Total de comissões no mês atual</p>
                                 </>
                              )}
                         </CardContent>
@@ -179,11 +184,17 @@ export default function DashboardPage() {
                         </CardHeader>
                         <CardContent>
                              {isLoading ? (
-                                <Skeleton className="h-10 w-16" />
+                                <>
+                                    <Skeleton className="h-10 w-16 mb-2" />
+                                    <Skeleton className="h-3 w-32" />
+                                </>
                             ) : (
-                                <div className="text-4xl font-bold">
-                                    {dealsThisMonthCount}
-                                </div>
+                                <>
+                                    <div className="text-4xl font-bold">
+                                        {dealsThisMonthCount}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">Imóveis vendidos ou alugados</p>
+                                </>
                              )}
                         </CardContent>
                     </Card>

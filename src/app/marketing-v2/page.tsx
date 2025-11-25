@@ -62,7 +62,7 @@ export default async function MarketingV2Page() {
           <p className="text-white/70 mt-2">Esta é uma página de marketing limpa e funcional.</p>
         </div>
       </main>
-      <Footer agentName="AMA Imóveis" />
+      <Footer />
     </div>
   );
 }

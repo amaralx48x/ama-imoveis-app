@@ -27,10 +27,11 @@ import { Label } from '@/components/ui/label';
 import { InfoCard } from '@/components/info-card';
 import ImageUpload from '@/components/image-upload';
 import { Separator } from '@/components/ui/separator';
+import Image from 'next/image';
 
 const appearanceFormSchema = z.object({
   theme: z.enum(['light', 'dark'], { required_error: 'Por favor, selecione um tema.' }),
-  heroImageUrl: z.string().url("URL da imagem inválida.").or(z.literal('')),
+  heroImageUrl: z.string().url("URL inválida").optional().or(z.literal('')),
 });
 
 function AppearanceFormSkeleton() {
@@ -38,14 +39,15 @@ function AppearanceFormSkeleton() {
         <div className="space-y-8">
             <div className="space-y-4">
                 <Skeleton className="h-5 w-1/4" />
-                <Skeleton className="h-24 w-full rounded-md" />
-            </div>
-             <div className="space-y-4">
-                <Skeleton className="h-5 w-1/4" />
                 <div className="flex gap-4">
                     <Skeleton className="h-24 w-32 rounded-md" />
                     <Skeleton className="h-24 w-32 rounded-md" />
                 </div>
+            </div>
+            <Separator />
+            <div className="space-y-4">
+                <Skeleton className="h-5 w-1/3" />
+                <Skeleton className="h-24 w-full rounded-md" />
             </div>
             <Skeleton className="h-12 w-full" />
         </div>
@@ -82,30 +84,35 @@ export default function AparenciaPage() {
   }, [agentData, form]);
 
   const handleThemeChange = (theme: 'light' | 'dark') => {
-    form.setValue('theme', theme, { shouldDirty: true });
+    // Atualiza o formulário
+    form.setValue('theme', theme);
+    // Aplica o tema imediatamente ao painel
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(theme);
   };
   
   const handleUploadComplete = (url: string) => {
     form.setValue('heroImageUrl', url, { shouldDirty: true });
-  };
+  }
 
 
   async function onSubmit(values: z.infer<typeof appearanceFormSchema>) {
     if (!agentRef) return;
+
+    const currentSettings = agentData?.siteSettings || {};
+    
+    const newSettings = {
+        ...currentSettings,
+        ...values,
+    };
     
     try {
-        const newSettings = {
-            ...agentData?.siteSettings, // Preserva os valores antigos
-            ...values, // Sobrescreve com os valores novos do formulário
-        };
         await setDoc(agentRef, { siteSettings: newSettings }, { merge: true });
         mutate();
 
         toast({
             title: 'Aparência Salva!',
-            description: 'A aparência do seu site público foi atualizada.',
+            description: 'A aparência do seu site público foi atualizada com sucesso.',
         });
     } catch (error) {
         console.error("Erro ao salvar a aparência:", error);
@@ -116,12 +123,17 @@ export default function AparenciaPage() {
         });
     }
   }
+  
+  const currentHeroImage = form.watch('heroImageUrl');
 
   return (
     <div className="space-y-6">
         <InfoCard cardId="aparencia-info" title="Personalize a Aparência">
             <p>
-                Escolha um tema de cores, envie uma imagem de capa para o topo do seu site e personalize a experiência visual dos seus clientes.
+                Escolha o tema de cores e a imagem de fundo principal para o seu site. Sua seleção de tema é aplicada instantaneamente neste painel para você ter uma pré-visualização.
+            </p>
+            <p>
+                Ao clicar em "Salvar", as mudanças serão aplicadas também no seu site público, garantindo uma experiência visual consistente para seus clientes.
             </p>
         </InfoCard>
         <Card>
@@ -130,42 +142,19 @@ export default function AparenciaPage() {
             <Palette /> Aparência
             </CardTitle>
             <CardDescription>
-            Personalize a imagem de capa e o tema de cores do seu site público e do painel de controle.
+            Personalize a aparência do seu site público e do painel de controle.
             </CardDescription>
         </CardHeader>
         <CardContent>
             {isAgentLoading ? <AppearanceFormSkeleton /> : (
             <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                 <FormField
-                    control={form.control}
-                    name="heroImageUrl"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel className="text-lg font-semibold flex items-center gap-2"><ImageIcon/> Imagem de Capa (Hero)</FormLabel>
-                        <FormDescription>Esta é a imagem principal que aparece no topo do seu site. Tamanho recomendado: 1920x1080px.</FormDescription>
-                        <FormControl>
-                            <ImageUpload
-                            onUploadComplete={handleUploadComplete}
-                            currentImageUrl={field.value}
-                            agentId={user?.uid || 'unknown'}
-                            propertyId="hero-image"
-                            />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <Separator />
-
                 <FormField
                 control={form.control}
                 name="theme"
                 render={({ field }) => (
                     <FormItem className="space-y-3">
                     <FormLabel className="text-lg font-semibold">Tema de Cores</FormLabel>
-                     <FormDescription>Selecione o tema para pré-visualizar. A alteração é aplicada instantaneamente neste painel.</FormDescription>
                     <FormControl>
                         <RadioGroup
                         onValueChange={(value: 'light' | 'dark') => handleThemeChange(value)}
@@ -194,10 +183,45 @@ export default function AparenciaPage() {
                         </FormItem>
                         </RadioGroup>
                     </FormControl>
+                    <FormDescription>Selecione o tema para pré-visualizar. Clique em salvar para aplicar no site público.</FormDescription>
                     <FormMessage />
                     </FormItem>
                 )}
                 />
+                
+                <Separator />
+                
+                <FormField
+                  control={form.control}
+                  name="heroImageUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-lg font-semibold flex items-center gap-2">
+                        <ImageIcon /> Imagem de Fundo (Hero)
+                      </FormLabel>
+                      <FormControl>
+                          <ImageUpload
+                            onUploadComplete={handleUploadComplete}
+                            currentImageUrl={field.value}
+                            agentId={user?.uid || 'unknown'}
+                            propertyId="hero-image"
+                          />
+                      </FormControl>
+                       <FormDescription>Esta é a imagem principal que aparece no topo do seu site. Tamanho recomendado: 1920x1080 pixels.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {currentHeroImage && (
+                    <div className="space-y-2">
+                        <p className="text-sm font-medium">Pré-visualização da Imagem:</p>
+                        <div className="relative aspect-video rounded-md overflow-hidden border">
+                            <Image src={currentHeroImage} alt="Preview da Imagem Hero" layout="fill" objectFit="cover" />
+                        </div>
+                    </div>
+                )}
+
 
                 <Button type="submit" size="lg" disabled={form.formState.isSubmitting || !form.formState.isDirty} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
                 {form.formState.isSubmitting ? (

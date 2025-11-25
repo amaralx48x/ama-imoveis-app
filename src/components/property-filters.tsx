@@ -11,18 +11,17 @@ import { Search, MapPin, Home, DollarSign, BedDouble, Car, Filter } from "lucide
 import type { Agent } from '@/lib/data';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
-import { Filters } from "@/lib/filter-logic";
 
 type PropertyFiltersProps = {
     agent?: Agent | null;
     propertyTypes?: string[];
-    onFilter: (filters: Filters) => void;
 }
 
-export default function PropertyFilters({ agent, propertyTypes = [], onFilter }: PropertyFiltersProps) {
+export default function PropertyFilters({ agent, propertyTypes = [] }: PropertyFiltersProps) {
+  const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [operation, setOperation] = useState(searchParams.get('operation') || 'Venda');
+  const [operation, setOperation] = useState(searchParams.get('operation') || '');
   const [city, setCity] = useState(searchParams.get('city') || '');
   const [type, setType] = useState(searchParams.get('type') || '');
   const [bedrooms, setBedrooms] = useState(searchParams.get('bedrooms') || '');
@@ -33,24 +32,28 @@ export default function PropertyFilters({ agent, propertyTypes = [], onFilter }:
   const [showMoreFilters, setShowMoreFilters] = useState(false);
 
   useEffect(() => {
+    // Expand advanced filters if any of them have a value on page load
     if (minPrice || maxPrice || bedrooms || garage) {
       setShowMoreFilters(true);
     }
   }, [minPrice, maxPrice, bedrooms, garage]);
 
-  const handleSearch = () => {
-    const filters: Filters = {};
-    if (operation) filters.operation = operation;
-    if (city && city !== 'outras') filters.city = city;
-    if (type) filters.type = type;
-    if (bedrooms) filters.bedrooms = bedrooms;
-    if (garage) filters.garage = garage;
-    if (keyword) filters.keyword = keyword;
-    if (minPrice) filters.minPrice = minPrice.replace(/\D/g, '');
-    if (maxPrice) filters.maxPrice = maxPrice.replace(/\D/g, '');
 
-    // Instead of navigating, call the onFilter callback
-    onFilter(filters);
+  const handleSearch = () => {
+    const query = new URLSearchParams();
+    if (operation) query.set('operation', operation);
+    if (city && city !== 'outras') query.set('city', city);
+    if (type) query.set('type', type);
+    if (bedrooms) query.set('bedrooms', bedrooms);
+    if (garage) query.set('garage', garage);
+    if (keyword) query.set('keyword', keyword);
+    if (minPrice) query.set('minPrice', minPrice.replace(/\D/g, ''));
+    if (maxPrice) query.set('maxPrice', maxPrice.replace(/\D/g, ''));
+
+    if (agent?.id && agent.id !== 'global') {
+        query.set('agentId', agent.id);
+    }
+    router.push(`/search-results?${query.toString()}`);
   };
 
   const handlePriceInputChange = (setter: (value: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,6 +73,7 @@ export default function PropertyFilters({ agent, propertyTypes = [], onFilter }:
   return (
     <Card className="shadow-2xl shadow-primary/10 border-border/10">
         <CardContent className="p-4 space-y-4">
+            {/* Linha de Busca Principal */}
             <div className="w-full">
                  <Label htmlFor="keyword-search" className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-2"><Search className="w-4 h-4"/> Título, Bairro ou Descrição</Label>
                 <Input
@@ -81,14 +85,15 @@ export default function PropertyFilters({ agent, propertyTypes = [], onFilter }:
                 />
             </div>
 
+            {/* Filtros Principais */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                 <Select value={operation} onValueChange={setOperation}>
                     <SelectTrigger>
                         <SelectValue placeholder="Comprar ou Alugar" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="Venda">Venda</SelectItem>
-                        <SelectItem value="Aluguel">Aluguel</SelectItem>
+                        <SelectItem value="Comprar">Comprar</SelectItem>
+                        <SelectItem value="Alugar">Alugar</SelectItem>
                     </SelectContent>
                 </Select>
 
@@ -118,6 +123,7 @@ export default function PropertyFilters({ agent, propertyTypes = [], onFilter }:
                 </Select>
             </div>
                  
+            {/* Filtros Colapsáveis */}
             <Collapsible open={showMoreFilters} onOpenChange={setShowMoreFilters}>
                 <CollapsibleContent className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 animate-accordion-down">
                     <div className="space-y-2">
