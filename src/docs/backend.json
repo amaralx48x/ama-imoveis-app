@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Property": {
@@ -246,6 +247,7 @@
       "properties": {
         "hero_media_url": { "type": "string", "format": "uri", "description": "URL for the main hero media (video or image)." },
         "hero_media_type": { "type": "string", "enum": ["image", "video"], "description": "Type of the hero media." },
+        "theme": { "type": "string", "enum": ["light", "dark"], "description": "The color theme for the marketing page.", "default": "dark" },
         "feature_video_url": { "type": "string", "format": "uri", "description": "URL for the feature video section." },
         "feature_video_title": { "type": "string", "description": "Title to be displayed over the feature video." },
         "ctaImageUrl": { "type": "string", "format": "uri", "description": "URL for the image next to the CTA button." },
@@ -319,5 +321,3 @@
     ]
   }
 }
-
-    

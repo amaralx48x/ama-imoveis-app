@@ -1,7 +1,7 @@
 
 'use client'
 
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import type { MarketingContent } from "@/lib/data";
@@ -99,7 +99,22 @@ export default function MarketingClientPage() {
   );
   const { data: content, isLoading } = useDoc<MarketingContent>(marketingRef);
   
-  const getImage = (field: keyof Omit<MarketingContent, 'hero_media_type' | 'hero_media_url' | 'feature_video_url' | 'feature_video_title' | 'ctaImageUrl' | 'supportWhatsapp'>, defaultSeed: string) => {
+  useEffect(() => {
+    // Theme logic
+    if (content?.theme) {
+        const theme = content.theme;
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(theme);
+    } else {
+        // Fallback to dark theme if not set
+        if (!document.documentElement.classList.contains('dark')) {
+             document.documentElement.classList.remove('light');
+             document.documentElement.classList.add('dark');
+        }
+    }
+  }, [content]);
+
+  const getImage = (field: keyof Omit<MarketingContent, 'hero_media_type' | 'hero_media_url' | 'feature_video_url' | 'feature_video_title' | 'ctaImageUrl' | 'supportWhatsapp' | 'theme'>, defaultSeed: string) => {
     // @ts-ignore
     const url = content?.[field];
     if (url) return url;
@@ -112,21 +127,21 @@ export default function MarketingClientPage() {
   }
 
   return (
-    <div className="min-h-screen text-white bg-black">
+    <div className="min-h-screen text-foreground bg-background">
       {/* NAV */}
       <header className="fixed top-0 z-50 w-full bg-transparent">
         <div className="container mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm bg-primary">
-              <span className="font-bold">AMA</span>
+              <span className="font-bold text-primary-foreground">AMA</span>
             </div>
             <div>
-              <h1 className="text-xl font-extrabold">AMA Imobi</h1>
+              <h1 className="text-xl font-extrabold text-white">AMA Imobi</h1>
               <div className="text-xs text-white/50">por AMA Tecnologia</div>
             </div>
           </div>
 
-          <nav className="flex items-center gap-4">
+          <nav className="flex items-center gap-4 text-white">
             <a href="#features" className="text-sm hover:text-white/90">Recursos</a>
             <a href="#plans" className="text-sm hover:text-white/90">Planos</a>
             <Link href="/login" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium border border-white/10 hover:scale-105 transition">
@@ -139,12 +154,12 @@ export default function MarketingClientPage() {
       <main className="relative">
         <MarketingHero content={content} />
       
-        <div className="relative bg-black z-10">
+        <div className="relative bg-background z-10">
           <div className="container mx-auto px-6 py-20">
             {/* Call to Action Section */}
             <section className="py-10 text-center">
                 <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUpContainer}>
-                    <motion.h3 variants={fadeUpItem} className="text-2xl font-semibold text-white/90">
+                    <motion.h3 variants={fadeUpItem} className="text-2xl font-semibold text-foreground/90">
                         Um click fala mais que mil palavras
                     </motion.h3>
                     <motion.div variants={fadeUpItem} className="mt-4">
@@ -152,7 +167,7 @@ export default function MarketingClientPage() {
                             Clique aqui
                         </a>
                     </motion.div>
-                    <motion.p variants={fadeUpItem} className="mt-3 text-white/70">
+                    <motion.p variants={fadeUpItem} className="mt-3 text-foreground/70">
                         veja um site simples e profissional
                     </motion.p>
                 </motion.div>
@@ -162,7 +177,7 @@ export default function MarketingClientPage() {
             <section id="features" className="py-10">
               <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUpContainer}>
                 <motion.h3 variants={fadeUpItem} className="text-3xl font-extrabold text-center">Recursos que fazem a diferença</motion.h3>
-                <motion.p variants={fadeUpItem} className="mt-3 text-white/70 max-w-2xl mx-auto text-center">Tudo que um corretor precisa para anunciar, vender e fidelizar clientes — com simplicidade.</motion.p>
+                <motion.p variants={fadeUpItem} className="mt-3 text-foreground/70 max-w-2xl mx-auto text-center">Tudo que um corretor precisa para anunciar, vender e fidelizar clientes — com simplicidade.</motion.p>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                   {[
@@ -170,9 +185,9 @@ export default function MarketingClientPage() {
                     { t: "CRM integrado", d: "Leads, marcação de visitas, etiquetagem e exportação CSV." },
                     { t: "Painel de métricas", d: "Comissões, visitas, vendas — gráficos por mês." },
                   ].map((f, i) => (
-                    <motion.div variants={fadeUpItem} key={i} className="p-6 rounded-lg bg-white/5 border border-white/10">
+                    <motion.div variants={fadeUpItem} key={i} className="p-6 rounded-lg bg-card/50 border border-border/10">
                       <div className="font-semibold text-lg">{f.t}</div>
-                      <p className="mt-2 text-sm text-white/70">{f.d}</p>
+                      <p className="mt-2 text-sm text-foreground/70">{f.d}</p>
                     </motion.div>
                   ))}
                 </div>
@@ -182,16 +197,16 @@ export default function MarketingClientPage() {
             {/* Image gallery + social proof */}
             <section className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center py-10">
                <div className="relative h-80 lg:h-96">
-                  <motion.div initial={{ opacity: 0, x: -20, rotate: -5 }} whileInView={{ opacity: 1, x: 0, rotate: -8 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }} className="absolute top-0 left-0 w-3/4 rounded-lg overflow-hidden shadow-lg border border-white/10">
+                  <motion.div initial={{ opacity: 0, x: -20, rotate: -5 }} whileInView={{ opacity: 1, x: 0, rotate: -8 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }} className="absolute top-0 left-0 w-3/4 rounded-lg overflow-hidden shadow-lg border border-border/10">
                     <Image src={getImage('section2_image', "property-1-2")} alt="Visão do painel" width={1200} height={800} className="object-cover" />
                   </motion.div>
-                  <motion.div initial={{ opacity: 0, x: 20, rotate: 5 }} whileInView={{ opacity: 1, x: 0, rotate: 2 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }} className="absolute bottom-0 right-0 w-3/4 rounded-lg overflow-hidden shadow-2xl border border-white/10">
+                  <motion.div initial={{ opacity: 0, x: 20, rotate: 5 }} whileInView={{ opacity: 1, x: 0, rotate: 2 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }} className="absolute bottom-0 right-0 w-3/4 rounded-lg overflow-hidden shadow-2xl border border-border/10">
                     <Image src={getImage('section4_image1', "property-2-2")} alt="Detalhe do painel" width={600} height={400} className="object-cover" />
                   </motion.div>
               </div>
-              <div className="p-6 rounded-xl bg-white/5 border border-white/10 h-full flex flex-col justify-center">
+              <div className="p-6 rounded-xl bg-card/50 border border-border/10 h-full flex flex-col justify-center">
                 <h4 className="font-bold text-lg">Seu Centro de Comando para o Sucesso</h4>
-                <p className="mt-4 text-sm text-white/70">
+                <p className="mt-4 text-sm text-foreground/70">
                   Nosso painel de controle é mais do que uma ferramenta — é o seu assistente pessoal. Criado com um design limpo e intuitivo, ele elimina a complexidade e permite que você se concentre no que realmente importa: vender imóveis e encantar clientes. Gerencie seu portfólio completo, responda a leads com agilidade, agende visitas e acompanhe seu desempenho financeiro com gráficos claros, tudo em um só lugar. Menos tempo com planilhas, mais tempo fechando negócios.
                 </p>
               </div>
@@ -199,9 +214,9 @@ export default function MarketingClientPage() {
 
             {/* Duplicated and Inverted Section */}
             <section className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center py-10">
-              <div className="p-6 rounded-xl bg-white/5 border border-white/10 h-full flex flex-col justify-center lg:order-last">
+              <div className="p-6 rounded-xl bg-card/50 border border-border/10 h-full flex flex-col justify-center lg:order-last">
                 <h4 className="font-bold text-lg">Sua Vitrine Online, Pronta em Minutos</h4>
-                <p className="mt-4 text-sm text-white/70">
+                <p className="mt-4 text-sm text-foreground/70">
                   Cada corretor recebe um site público, elegante e otimizado para dispositivos móveis, sem custo adicional. Apresente seus imóveis em destaque, compartilhe suas informações de contato e receba avaliações de clientes. É a sua marca pessoal na internet, pronta para capturar leads e construir sua reputação online, 24 horas por dia, 7 dias por semana.
                 </p>
               </div>
@@ -219,16 +234,16 @@ export default function MarketingClientPage() {
             <section className="mt-20 py-10">
               <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUpContainer}>
                 <motion.h3 variants={fadeUpItem} className="text-3xl font-extrabold text-center">Recursos Adicionais Poderosos</motion.h3>
-                <motion.p variants={fadeUpItem} className="mt-3 text-white/70 max-w-2xl mx-auto text-center">Ferramentas pensadas para agilizar seu trabalho e ampliar seu alcance.</motion.p>
+                <motion.p variants={fadeUpItem} className="mt-3 text-foreground/70 max-w-2xl mx-auto text-center">Ferramentas pensadas para agilizar seu trabalho e ampliar seu alcance.</motion.p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                   {[
                     { t: "Importação em Massa", d: "Suba dezenas de imóveis de uma vez com nossa importação de arquivos CSV." },
                     { t: "Controle de Seções", d: "Crie e organize seções personalizadas, como 'Oportunidades' ou 'Alto Padrão'." },
                     { t: "Agendamento de Visitas", d: "Receba solicitações de visita com data e horário direto no seu painel de leads." },
                   ].map((f, i) => (
-                    <motion.div variants={fadeUpItem} key={i} className="p-6 rounded-lg bg-white/5 border border-white/10">
+                    <motion.div variants={fadeUpItem} key={i} className="p-6 rounded-lg bg-card/50 border border-border/10">
                       <div className="font-semibold text-lg">{f.t}</div>
-                      <p className="mt-2 text-sm text-white/70">{f.d}</p>
+                      <p className="mt-2 text-sm text-foreground/70">{f.d}</p>
                     </motion.div>
                   ))}
                 </div>
@@ -237,7 +252,7 @@ export default function MarketingClientPage() {
             
             {/* Video Section */}
             <section className="mt-16 py-10">
-                <div className="relative rounded-xl border border-white/10 aspect-video overflow-hidden shadow-lg h-full flex items-center justify-center">
+                <div className="relative rounded-xl border border-border/10 aspect-video overflow-hidden shadow-lg h-full flex items-center justify-center">
                     {content?.feature_video_url ? (
                         <video 
                             src={content.feature_video_url} 
@@ -248,7 +263,7 @@ export default function MarketingClientPage() {
                             className="absolute inset-0 w-full h-full object-cover" 
                         />
                     ) : (
-                        <div className="text-center text-white/50 flex flex-col items-center gap-2">
+                        <div className="text-center text-foreground/50 flex flex-col items-center gap-2">
                            <Video className="w-10 h-10"/>
                            <span>Vídeo de Demonstração</span>
                         </div>
@@ -261,9 +276,9 @@ export default function MarketingClientPage() {
 
             {/* SEO Section */}
             <section className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center py-10">
-                <div className="p-6 rounded-xl bg-white/5 border border-white/10 h-full flex flex-col justify-center">
+                <div className="p-6 rounded-xl bg-card/50 border border-border/10 h-full flex flex-col justify-center">
                     <h4 className="font-bold text-lg flex items-center gap-2"><Search className="text-primary w-5 h-5"/> Visibilidade no Google e Redes Sociais</h4>
-                    <p className="mt-4 text-sm text-white/70">
+                    <p className="mt-4 text-sm text-foreground/70">
                         Sua página pública é automaticamente otimizada para os motores de busca. Com nosso painel de SEO, você controla o título, descrição e imagem que aparecem no Google e ao compartilhar seu link. Garanta uma apresentação profissional e atraia mais clientes.
                     </p>
                 </div>
@@ -281,17 +296,17 @@ export default function MarketingClientPage() {
             {/* Plans & CTA */}
             <section id="plans" className="mt-20 py-10">
               <motion.h3 variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-3xl font-extrabold text-center">Planos</motion.h3>
-              <p className="mt-2 text-white/70 text-center">Teste 7 dias grátis. Depois, escolha seu plano.</p>
+              <p className="mt-2 text-foreground/70 text-center">Teste 7 dias grátis. Depois, escolha seu plano.</p>
 
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
                     {/* AMAPLUS Plan */}
-                    <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex flex-col p-6 rounded-2xl border border-white/10 bg-white/5 shadow-lg">
+                    <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex flex-col p-6 rounded-2xl border border-border/10 bg-card/50 shadow-lg">
                         <div className="flex-grow">
                             <h4 className="text-lg font-bold">AMAPLUS</h4>
-                            <p className="text-sm text-white/60 mb-4">Para corretores individuais</p>
+                            <p className="text-sm text-foreground/60 mb-4">Para corretores individuais</p>
                             <div className="mb-6">
                                 <span className="text-4xl font-extrabold">R$ 39,90</span>
-                                <span className="text-sm text-white/60">/mês</span>
+                                <span className="text-sm text-foreground/60">/mês</span>
                             </div>
                             <ul className="space-y-3 text-sm">
                                 <PlanFeature included={true}>Site profissional personalizável</PlanFeature>
@@ -317,10 +332,10 @@ export default function MarketingClientPage() {
                     <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex flex-col p-6 rounded-2xl border-2 border-primary bg-primary/10 shadow-lg">
                          <div className="flex-grow">
                             <h4 className="text-lg font-bold">AMA ULTRA</h4>
-                            <p className="text-sm text-white/60 mb-4">Para equipes e imobiliárias</p>
+                            <p className="text-sm text-foreground/60 mb-4">Para equipes e imobiliárias</p>
                             <div className="mb-6">
                                 <span className="text-4xl font-extrabold">R$ 59,90</span>
-                                <span className="text-sm text-white/60">/mês</span>
+                                <span className="text-sm text-foreground/60">/mês</span>
                             </div>
                             <ul className="space-y-3 text-sm">
                                 <PlanFeature included={true}>Site profissional personalizável</PlanFeature>
@@ -346,12 +361,12 @@ export default function MarketingClientPage() {
 
             {/* Final CTA */}
             <section className="mt-20 mb-24 text-center">
-              <div className="mx-auto max-w-2xl p-8 rounded-2xl border border-white/10 bg-gradient-to-b from-black/40 to-black/20">
+              <div className="mx-auto max-w-2xl p-8 rounded-2xl border border-border/10 bg-gradient-to-b from-card/40 to-card/20">
                 <h3 className="text-2xl font-bold">Teste AMA Imobi por 7 dias — grátis</h3>
-                <p className="mt-2 text-white/70">Sem cartão no teste — experimente e veja o impacto nas suas vendas.</p>
+                <p className="mt-2 text-foreground/70">Sem cartão no teste — experimente e veja o impacto nas suas vendas.</p>
                 <div className="mt-6 flex justify-center gap-4">
                   <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-6 py-3 rounded-lg font-semibold`}>Começar 7 dias grátis</Link>
-                  <Link href="#plans" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-white/10">Ver planos</Link>
+                  <Link href="#plans" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-border/10">Ver planos</Link>
                 </div>
               </div>
             </section>
@@ -360,10 +375,10 @@ export default function MarketingClientPage() {
       </main>
 
       {/* FOOTER */}
-      <footer className="border-t border-white/10 py-8">
+      <footer className="border-t border-border/10 py-8">
         <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-white/60">© {new Date().getFullYear()} AMA Tecnologia — AMA Imobi</div>
-          <div className="flex items-center gap-4 text-white/60">
+          <div className="text-sm text-foreground/60">© {new Date().getFullYear()} AMA Tecnologia — AMA Imobi</div>
+          <div className="flex items-center gap-4 text-foreground/60">
               <PolicyDialog title="Termos de Uso" content={defaultTermsOfUse} companyName="AMA Tecnologia" />
               <PolicyDialog title="Política de Privacidade" content={defaultPrivacyPolicy} companyName="AMA Tecnologia" />
               {content?.supportEmail && (
@@ -378,5 +393,3 @@ export default function MarketingClientPage() {
     </div>
   );
 }
-
-    
