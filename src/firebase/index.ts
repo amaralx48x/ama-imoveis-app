@@ -1,4 +1,3 @@
-
 'use client';
 
 // Barrel file para facilitar as importações.
