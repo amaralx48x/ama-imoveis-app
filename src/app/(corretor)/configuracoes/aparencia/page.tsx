@@ -96,12 +96,11 @@ export default function AparenciaPage() {
     if (!agentRef) return;
     
     try {
-        await setDoc(agentRef, { 
-            siteSettings: { 
-                theme: values.theme,
-                heroImageUrl: values.heroImageUrl,
-            } 
-        }, { merge: true });
+        const newSettings = {
+            ...agentData?.siteSettings, // Preserva os valores antigos
+            ...values, // Sobrescreve com os valores novos do formulário
+        };
+        await setDoc(agentRef, { siteSettings: newSettings }, { merge: true });
         mutate();
 
         toast({

@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -72,8 +71,8 @@ export default function MetricasPage() {
   useEffect(() => {
     if (agentData?.siteSettings) {
       form.reset({
-        defaultSaleCommission: agentData.siteSettings.defaultSaleCommission || 5,
-        defaultRentCommission: agentData.siteSettings.defaultRentCommission || 100,
+        defaultSaleCommission: agentData.siteSettings.defaultSaleCommission ?? 5,
+        defaultRentCommission: agentData.siteSettings.defaultRentCommission ?? 100,
       });
     }
   }, [agentData, form]);
@@ -81,15 +80,12 @@ export default function MetricasPage() {
   async function onSubmit(values: z.infer<typeof metricsFormSchema>) {
     if (!agentRef) return;
     
-    const settingsToUpdate = {
-        siteSettings: {
-            defaultSaleCommission: values.defaultSaleCommission,
-            defaultRentCommission: values.defaultRentCommission,
-        }
-    };
-    
     try {
-        await setDoc(agentRef, settingsToUpdate, { merge: true });
+        const newSettings = {
+            ...agentData?.siteSettings,
+            ...values,
+        };
+        await setDoc(agentRef, { siteSettings: newSettings }, { merge: true });
         mutate();
 
         toast({

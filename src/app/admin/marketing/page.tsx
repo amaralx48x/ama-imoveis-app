@@ -45,7 +45,7 @@ const marketingFormSchema = z.object({
 
 
 type ImageField = {
-    name: keyof Omit<MarketingContent, 'hero_media_url' | 'hero_media_type' | 'feature_video_url' | 'feature_video_title' | 'ctaImageUrl' | 'supportWhatsapp'>;
+    name: keyof z.infer<typeof marketingFormSchema>;
     label: string;
     description: string;
 }
@@ -103,17 +103,12 @@ export default function MarketingAdminPage() {
 
     useEffect(() => {
         if (marketingData) {
-            form.reset({
-                ...marketingData,
-                hero_media_type: marketingData.hero_media_type || 'image',
-                feature_video_title: marketingData.feature_video_title || 'Veja a Plataforma em Ação',
-                supportWhatsapp: marketingData.supportWhatsapp || '',
-            });
+            form.reset(marketingData);
         }
     }, [marketingData, form]);
     
-    const handleUploadComplete = (fieldName: keyof MarketingContent) => (url: string) => {
-        form.setValue(fieldName as any, url, { shouldDirty: true });
+    const handleUploadComplete = (fieldName: keyof z.infer<typeof marketingFormSchema>) => (url: string) => {
+        form.setValue(fieldName, url, { shouldDirty: true });
     };
 
     async function onSubmit(values: z.infer<typeof marketingFormSchema>) {
@@ -301,7 +296,7 @@ export default function MarketingAdminPage() {
                                 <FormField
                                     key={fieldInfo.name}
                                     control={form.control}
-                                    name={fieldInfo.name as any}
+                                    name={fieldInfo.name}
                                     render={({ field }) => (
                                     <FormItem className="p-4 border rounded-lg space-y-4">
                                         <div>
@@ -310,7 +305,7 @@ export default function MarketingAdminPage() {
                                         </div>
                                         <FormControl>
                                         <ImageUpload
-                                                onUploadComplete={handleUploadComplete(fieldInfo.name as any)}
+                                                onUploadComplete={handleUploadComplete(fieldInfo.name)}
                                                 currentImageUrl={field.value}
                                                 agentId="marketing" // Use a dedicated folder
                                                 propertyId={fieldInfo.name} // Use field name for uniqueness

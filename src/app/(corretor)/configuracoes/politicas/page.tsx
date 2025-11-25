@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -83,15 +82,12 @@ export default function PoliticasPage() {
   async function onSubmit(values: z.infer<typeof policiesFormSchema>) {
     if (!agentRef) return;
     
-    const settingsToUpdate = {
-        siteSettings: {
-            privacyPolicy: values.privacyPolicy,
-            termsOfUse: values.termsOfUse,
-        }
-    };
-
     try {
-        await setDoc(agentRef, settingsToUpdate, { merge: true });
+        const newSettings = {
+            ...agentData?.siteSettings,
+            ...values,
+        };
+        await setDoc(agentRef, { siteSettings: newSettings }, { merge: true });
         mutate();
 
         toast({
@@ -143,7 +139,6 @@ export default function PoliticasPage() {
                             <FormControl>
                                 <Textarea className="min-h-[400px] font-mono text-xs" {...field} />
                             </FormControl>
-                            <FormDescription>Modelo baseado na Lei Geral de Proteção de Dados (LGPD) do Brasil.</FormDescription>
                             <FormMessage />
                             </FormItem>
                         )}
@@ -159,7 +154,6 @@ export default function PoliticasPage() {
                             <FormControl>
                                 <Textarea className="min-h-[400px] font-mono text-xs" {...field} />
                             </FormControl>
-                            <FormDescription>Modelo padrão para sites de prestação de serviço.</FormDescription>
                             <FormMessage />
                             </FormItem>
                         )}
