@@ -1,4 +1,3 @@
-
 'use client';
 
 import { usePlan, PlanType } from '@/context/PlanContext';
@@ -8,7 +7,9 @@ import { Check, Gem, X, Loader2 } from 'lucide-react';
 import { InfoCard } from '@/components/info-card';
 import { useUser, useDoc, useMemoFirebase, useFirestore } from '@/firebase';
 import type { Agent } from '@/lib/data';
-import { doc } from 'firebase/firestore';
+import { doc, addDoc, collection, onSnapshot } from 'firebase/firestore';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 const PlanFeature = ({ children, included }: { children: React.ReactNode, included: boolean }) => (
     <li className={`flex items-start gap-3 ${!included ? 'text-muted-foreground' : ''}`}>
@@ -16,6 +17,66 @@ const PlanFeature = ({ children, included }: { children: React.ReactNode, includ
         <span>{children}</span>
     </li>
 );
+
+function SubscribeButton({ planName, priceId, isCurrent, isAdmin, onAdminChange, children }: { planName: string, priceId: string, isCurrent: boolean, isAdmin: boolean, onAdminChange: () => void, children: React.ReactNode }) {
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSubscribe = async () => {
+        if (isAdmin) {
+            onAdminChange();
+            return;
+        }
+
+        if (!user || !firestore) {
+            toast({ title: "Usuário não autenticado", variant: "destructive" });
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            const checkoutSessionRef = collection(firestore, `customers/${user.uid}/checkout_sessions`);
+            const docRef = await addDoc(checkoutSessionRef, {
+                price: priceId,
+                success_url: `${window.location.origin}/assinatura/sucesso`,
+                cancel_url: `${window.location.origin}/assinatura/cancelado`,
+            });
+            
+            // Ouve as alterações no documento da sessão de checkout
+            onSnapshot(docRef, (snap) => {
+                const { error, url } = snap.data() || {};
+                if (error) {
+                    console.error(`Stripe Checkout Error: ${error.message}`);
+                    toast({ title: "Erro no Pagamento", description: error.message, variant: "destructive" });
+                    setIsLoading(false);
+                }
+                if (url) {
+                    // Redireciona para o checkout do Stripe
+                    window.location.assign(url);
+                }
+            });
+
+        } catch (error) {
+            console.error("Erro ao criar sessão de checkout no Firestore:", error);
+            toast({ title: "Erro ao iniciar pagamento", variant: "destructive" });
+            setIsLoading(false);
+        }
+    };
+    
+    if (isCurrent) {
+      return <Button disabled className="w-full" variant="outline">Plano Atual</Button>;
+    }
+
+    return (
+        <Button onClick={handleSubscribe} disabled={isLoading} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            {children}
+        </Button>
+    )
+}
 
 export default function MeuPlanoPage() {
   const { user } = useUser();
@@ -144,17 +205,15 @@ export default function MeuPlanoPage() {
                     </ul>
                 </CardContent>
                 <CardFooter>
-                    {planDetails.corretor.isCurrent ? (
-                        <Button disabled className="w-full" variant="outline">Plano Atual</Button>
-                    ) : isAdmin ? (
-                         <Button onClick={planDetails.corretor.action} className="w-full" variant="outline">
-                            Mudar para AMAPLUS (Admin)
-                        </Button>
-                    ) : (
-                        <Button variant="outline" className="w-full">
-                           Fazer Downgrade
-                        </Button>
-                    )}
+                    <SubscribeButton
+                        planName="AMAPLUS"
+                        priceId={planDetails.corretor.priceId}
+                        isCurrent={planDetails.corretor.isCurrent}
+                        isAdmin={isAdmin}
+                        onAdminChange={planDetails.corretor.action}
+                    >
+                         {isAdmin ? "Mudar para AMAPLUS (Admin)" : "Fazer Downgrade"}
+                    </SubscribeButton>
                 </CardFooter>
             </Card>
 
@@ -172,17 +231,15 @@ export default function MeuPlanoPage() {
                     </ul>
                 </CardContent>
                 <CardFooter>
-                     {planDetails.imobiliaria.isCurrent ? (
-                        <Button disabled className="w-full" variant="outline">Plano Atual</Button>
-                    ) : isAdmin ? (
-                        <Button onClick={planDetails.imobiliaria.action} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
-                             Mudar para AMA ULTRA (Admin)
-                        </Button>
-                    ) : (
-                        <Button className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
-                            Fazer Upgrade
-                        </Button>
-                    )}
+                    <SubscribeButton
+                        planName="AMA ULTRA"
+                        priceId={planDetails.imobiliaria.priceId}
+                        isCurrent={planDetails.imobiliaria.isCurrent}
+                        isAdmin={isAdmin}
+                        onAdminChange={planDetails.imobiliaria.action}
+                    >
+                         {isAdmin ? "Mudar para AMA ULTRA (Admin)" : "Fazer Upgrade"}
+                    </SubscribeButton>
                 </CardFooter>
             </Card>
         </div>

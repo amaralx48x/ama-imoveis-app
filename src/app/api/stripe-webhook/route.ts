@@ -1,8 +1,8 @@
-// src/app/api/stripe-webhook/route.ts
+
 import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
 import { getFirebaseServer } from '@/firebase/server-init';
-import { doc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, collection, addDoc, getDoc } from 'firebase/firestore';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
 
@@ -42,33 +42,29 @@ export async function POST(req: Request) {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.metadata?.userId;
         const customerId = session.customer;
-        const subscriptionId = session.subscription;
         
-        if (userId && customerId && subscriptionId) {
+        if (userId && customerId) {
             const customerRef = doc(firestore, 'customers', userId);
-            await setDoc(customerRef, {
-                userId: userId,
-                stripeCustomerId: customerId,
-            }, { merge: true });
-
-            const subscriptionRef = doc(customerRef, 'subscriptions', subscriptionId as string);
-            await setDoc(subscriptionRef, {
-                userId: userId,
-                status: 'active', // Ou o status vindo da assinatura
-                stripeSubscriptionId: subscriptionId,
-                priceId: session.line_items?.data[0].price?.id,
-                // ... mais detalhes da assinatura
-            }, { merge: true });
-
-            // Atualizar o plano do usuário no 'agents'
-            const priceId = session.line_items?.data[0].price?.id;
-            const newPlan = priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PLUS ? 'corretor' : 'imobiliaria';
-            const agentRef = doc(firestore, 'agents', userId);
-            await updateDoc(agentRef, { plan: newPlan });
-
+            // Sync Stripe customer ID with Firestore customer doc
+             await updateDoc(customerRef, { stripeId: customerId });
         }
-        console.log('checkout.session.completed for user', userId);
+        console.log('Checkout session completed for user', userId);
         break;
+      }
+      
+      case 'customer.subscription.created':
+      case 'customer.subscription.updated':
+      case 'customer.subscription.deleted': {
+          const subscription = event.data.object as Stripe.Subscription;
+          const userId = subscription.metadata.userId;
+          const priceId = subscription.items.data[0].price.id;
+          
+          if (userId) {
+              const agentRef = doc(firestore, 'agents', userId);
+              const plan = priceId === 'price_1SXSRf2K7btqnPDwReiW165r' ? 'corretor' : 'imobiliaria';
+              await updateDoc(agentRef, { plan });
+          }
+          break;
       }
 
       case 'invoice.paid': {
@@ -85,14 +81,7 @@ export async function POST(req: Request) {
         // notificações, suspender acesso, etc.
         break;
       }
-
-      case 'customer.subscription.deleted':
-      case 'customer.subscription.updated': {
-        const subscription = event.data.object as Stripe.Subscription;
-        // atualize status no seu DB
-        break;
-      }
-
+      
       default:
         console.log(`Unhandled event type ${event.type}`);
     }
