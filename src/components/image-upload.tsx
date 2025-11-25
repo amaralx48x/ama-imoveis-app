@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -37,9 +37,16 @@ export default function ImageUpload({
   const [internalImageUrl, setInternalImageUrl] = useState(currentImageUrl);
   const { toast } = useToast();
   const { firestore, storage } = useFirebase();
-  
+  const lastUploadedUrl = useRef<string | null>(null);
+
   useEffect(() => {
     setInternalImageUrl(currentImageUrl);
+
+    // Verification logic
+    if (lastUploadedUrl.current && lastUploadedUrl.current !== currentImageUrl) {
+        // The URL has been successfully updated, clear the ref.
+        lastUploadedUrl.current = null;
+    }
   }, [currentImageUrl]);
 
 
@@ -111,6 +118,7 @@ export default function ImageUpload({
 
         // Add a timestamp query parameter to bust browser cache
         url = `${url}&t=${new Date().getTime()}`;
+        lastUploadedUrl.current = url; // Store the most recently uploaded URL
         
         if (onUploadComplete) {
             onUploadComplete(url);
@@ -128,6 +136,21 @@ export default function ImageUpload({
       
       toast({ title: `Sucesso! ${files.length} arquivo(s) enviado(s).` });
       setFiles([]);
+
+      // Start verification timer
+      setTimeout(() => {
+        if(lastUploadedUrl.current) {
+             toast({
+                title: "A imagem não foi atualizada?",
+                description: "Se a nova imagem não apareceu, pode ser um problema de cache. Tente recarregar a página (Ctrl/Cmd + R).",
+                variant: "default",
+                duration: 8000,
+             })
+             lastUploadedUrl.current = null; // Clear after showing the toast
+        }
+      }, 2500);
+
+
     } catch (err) {
       console.error(err);
       toast({ title: "Erro no upload", description: "Verifique as permissões de CORS e Storage.", variant: "destructive" });
