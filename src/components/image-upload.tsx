@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -34,8 +34,14 @@ export default function ImageUpload({
 }: Props) {
   const [files, setFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [internalImageUrl, setInternalImageUrl] = useState(currentImageUrl);
   const { toast } = useToast();
   const { firestore, storage } = useFirebase();
+  
+  useEffect(() => {
+    setInternalImageUrl(currentImageUrl);
+  }, [currentImageUrl]);
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -75,10 +81,8 @@ export default function ImageUpload({
 
         if (propertyId === 'profile' || propertyId === 'favicon' || propertyId === 'hero-image') {
             basePath = `agents/${agentId}/site-assets`;
-            // Use a unique name for hero-image to bust cache, but a stable name for others
-            fileName = propertyId === 'hero-image' 
-              ? `${propertyId}-${Date.now()}.${fileExtension}`
-              : `${propertyId}.${fileExtension}`;
+            const uniqueName = `${propertyId}-${Date.now()}.${fileExtension}`;
+            fileName = uniqueName;
         } else if (propertyId.startsWith('support-ticket-')) {
             basePath = `support-images/${agentId}`;
             fileName = `${Date.now()}_${uuidv4()}.${fileExtension}`;
@@ -140,7 +144,7 @@ export default function ImageUpload({
     }
   };
   
-  const displayImages = Array.isArray(currentImageUrl) ? currentImageUrl : (currentImageUrl ? [currentImageUrl] : []);
+  const displayImages = Array.isArray(internalImageUrl) ? internalImageUrl : (internalImageUrl ? [internalImageUrl] : []);
   const inputId = id || `file-upload-${propertyId}`;
   
   const hasOnFileSelected = !!onFileChange;
