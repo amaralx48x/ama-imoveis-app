@@ -1,12 +1,19 @@
-
 'use client';
 
 import { usePlan, PlanType } from '@/context/PlanContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Gem } from 'lucide-react';
+import { Check, Gem, X } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { InfoCard } from '@/components/info-card';
+
+
+const PlanFeature = ({ children, included }: { children: React.ReactNode, included: boolean }) => (
+    <li className={`flex items-start gap-3 ${!included ? 'text-muted-foreground' : ''}`}>
+        {included ? <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" /> : <X className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />}
+        <span>{children}</span>
+    </li>
+);
 
 export default function MeuPlanoPage() {
   const { plan, setPlan, limits, currentPropertiesCount, isLoading } = usePlan();
@@ -17,27 +24,41 @@ export default function MeuPlanoPage() {
 
   const planDetails = {
     corretor: {
-      name: 'Corretor Plus',
-      price: '59,90',
+      name: 'AMAPLUS',
+      price: '39,90',
+      description: 'Para corretores individuais',
       features: [
-        `Limite de ${limits.maxProperties} imóveis`,
-        'Gerenciamento de Leads',
-        'Site Pessoal Otimizado',
-        'Suporte por E-mail',
+        { text: 'Site profissional personalizável', included: true },
+        { text: 'Painel de controle', included: true },
+        { text: 'CRM completo', included: true },
+        { text: 'SEO (Otimização para Google)', included: true },
+        { text: 'Lista de captação de leads', included: true },
+        { text: `Até ${limits.maxProperties} imóveis simultâneos`, included: true },
+        { text: '5 GB de dados por mês', included: true },
+        { text: 'Domínio pago à parte (R$ 40/anual)', included: true },
+        { text: 'Importar lista de imóveis por CSV', included: false },
+        { text: 'Atendimento prioritário técnico', included: false },
       ],
-      upgradeAction: () => handlePlanChange('imobiliaria'),
+      action: () => handlePlanChange('imobiliaria'),
       isCurrent: plan === 'corretor',
     },
     imobiliaria: {
-      name: 'Imobiliária Plus',
-      price: '89,90',
+      name: 'AMA ULTRA',
+      price: '59,90',
+      description: 'Para equipes e imobiliárias',
       features: [
-        'Imóveis Ilimitados',
-        'Importação de imóveis via CSV',
-        'Métricas Avançadas (Em breve)',
-        'Suporte Prioritário',
+        { text: 'Site profissional personalizável', included: true },
+        { text: 'Painel de controle', included: true },
+        { text: 'CRM completo', included: true },
+        { text: 'SEO (Otimização para Google)', included: true },
+        { text: 'Lista de captação de leads', included: true },
+        { text: 'Até 300 imóveis cadastrados', included: true },
+        { text: '10 GB de dados por mês', included: true },
+        { text: 'Importar lista de imóveis por CSV', included: true },
+        { text: 'Domínio personalizado de graça', included: true },
+        { text: 'Atendimento prioritário técnico', included: true },
       ],
-      downgradeAction: () => handlePlanChange('corretor'),
+      action: () => handlePlanChange('corretor'),
       isCurrent: plan === 'imobiliaria',
     },
   };
@@ -49,7 +70,7 @@ export default function MeuPlanoPage() {
                 Aqui você pode visualizar os recursos do seu plano atual e o que cada um oferece. A troca de planos é simulada para que você possa entender as vantagens de cada um.
             </p>
             <p>
-                O plano <strong>Corretor Plus</strong> é ideal para começar, enquanto o <strong>Imobiliária Plus</strong> oferece recursos avançados como imóveis ilimitados e importação de dados, perfeito para quem tem um portfólio maior.
+                O plano <strong>AMAPLUS</strong> é ideal para começar, enquanto o <strong>AMA ULTRA</strong> oferece recursos avançados como mais imóveis e importação de dados, perfeito para quem tem um portfólio maior.
             </p>
         </InfoCard>
 
@@ -76,52 +97,46 @@ export default function MeuPlanoPage() {
         </Card>
 
          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className={`flex flex-col ${plan === 'corretor' ? 'border-primary ring-2 ring-primary' : ''}`}>
+            <Card className={`flex flex-col ${planDetails.corretor.isCurrent ? 'border-primary ring-2 ring-primary' : ''}`}>
                 <CardHeader>
                     <CardTitle className="text-2xl">{planDetails.corretor.name}</CardTitle>
-                    <CardDescription>Ideal para corretores autônomos e iniciantes.</CardDescription>
+                    <CardDescription>{planDetails.corretor.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-4">
                     <p className="text-4xl font-bold">R$ {planDetails.corretor.price}<span className="text-lg font-normal text-muted-foreground">/mês</span></p>
-                    <ul className="space-y-2">
+                    <ul className="space-y-2 text-sm">
                         {planDetails.corretor.features.map(feat => (
-                            <li key={feat} className="flex items-center gap-2">
-                                <CheckCircle className="h-5 w-5 text-green-500" />
-                                <span className="text-muted-foreground">{feat}</span>
-                            </li>
+                            <PlanFeature key={feat.text} included={feat.included}>{feat.text}</PlanFeature>
                         ))}
                     </ul>
                 </CardContent>
                 <CardFooter>
-                    {plan === 'corretor' ? (
+                    {planDetails.corretor.isCurrent ? (
                         <Button disabled className="w-full" variant="outline">Plano Atual</Button>
                     ) : (
-                        <Button onClick={planDetails.imobiliaria.downgradeAction} className="w-full" variant="outline">Fazer Downgrade</Button>
+                        <Button onClick={planDetails.imobiliaria.action} className="w-full" variant="outline">Fazer Downgrade</Button>
                     )}
                 </CardFooter>
             </Card>
 
-             <Card className={`flex flex-col ${plan === 'imobiliaria' ? 'border-primary ring-2 ring-primary' : ''}`}>
+             <Card className={`flex flex-col ${planDetails.imobiliaria.isCurrent ? 'border-primary ring-2 ring-primary' : ''}`}>
                 <CardHeader>
                     <CardTitle className="text-2xl">{planDetails.imobiliaria.name}</CardTitle>
-                    <CardDescription>Perfeito para imobiliárias e corretores experientes.</CardDescription>
+                    <CardDescription>{planDetails.imobiliaria.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-4">
                      <p className="text-4xl font-bold">R$ {planDetails.imobiliaria.price}<span className="text-lg font-normal text-muted-foreground">/mês</span></p>
-                     <ul className="space-y-2">
+                     <ul className="space-y-2 text-sm">
                         {planDetails.imobiliaria.features.map(feat => (
-                            <li key={feat} className="flex items-center gap-2">
-                                <CheckCircle className="h-5 w-5 text-green-500" />
-                                <span className="text-muted-foreground">{feat}</span>
-                            </li>
+                             <PlanFeature key={feat.text} included={feat.included}>{feat.text}</PlanFeature>
                         ))}
                     </ul>
                 </CardContent>
                 <CardFooter>
-                     {plan === 'imobiliaria' ? (
+                     {planDetails.imobiliaria.isCurrent ? (
                         <Button disabled className="w-full" variant="outline">Plano Atual</Button>
                     ) : (
-                        <Button onClick={planDetails.corretor.upgradeAction} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">Fazer Upgrade</Button>
+                        <Button onClick={planDetails.corretor.action} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">Fazer Upgrade</Button>
                     )}
                 </CardFooter>
             </Card>
@@ -136,3 +151,5 @@ export default function MeuPlanoPage() {
     </div>
   );
 }
+
+    

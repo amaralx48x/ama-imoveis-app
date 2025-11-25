@@ -1,4 +1,3 @@
-
 'use client';
 
 import { collection, onSnapshot } from 'firebase/firestore';
@@ -14,31 +13,38 @@ import { useFirestore, useUser } from '@/firebase';
 
 export type PlanType = 'corretor' | 'imobiliaria';
 
+interface PlanLimits {
+    maxProperties: number;
+    canImportCSV: boolean;
+    storageGB: number;
+}
+
 interface PlanContextProps {
   plan: PlanType;
   setPlan: (plan: PlanType) => void;
-  limits: {
-    maxProperties: number;
-    canImportCSV: boolean;
-    canAddCNPJ: boolean; // This is a placeholder, as the field doesn't exist yet
-    canAddAddress: boolean; // This is a placeholder
-    canAddPrice: boolean; // This is a placeholder
-  };
+  limits: PlanLimits;
   currentPropertiesCount: number;
   isLoading: boolean;
   canAddNewProperty: () => boolean;
 }
 
+const planSettings: Record<PlanType, PlanLimits> = {
+    'corretor': {
+        maxProperties: 50,
+        canImportCSV: false,
+        storageGB: 5,
+    },
+    'imobiliaria': {
+        maxProperties: 300,
+        canImportCSV: true,
+        storageGB: 10,
+    }
+}
+
 const defaultPlan: PlanContextProps = {
   plan: 'corretor',
   setPlan: () => {},
-  limits: {
-    maxProperties: 30,
-    canImportCSV: false,
-    canAddCNPJ: false,
-    canAddAddress: true, // Address is a core feature
-    canAddPrice: true, // Price is a core feature
-  },
+  limits: planSettings.corretor,
   currentPropertiesCount: 0,
   isLoading: true,
   canAddNewProperty: () => true,
@@ -84,21 +90,7 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
   const setPlan = (newPlan: PlanType) => setPlanState(newPlan);
 
   const limits = useMemo(() => {
-    return plan === 'imobiliaria'
-      ? {
-          maxProperties: Infinity,
-          canImportCSV: true,
-          canAddCNPJ: true, // Placeholder
-          canAddAddress: true, // Placeholder
-          canAddPrice: true, // Placeholder
-        }
-      : {
-          maxProperties: 30,
-          canImportCSV: false,
-          canAddCNPJ: false, // Placeholder
-          canAddAddress: true, // Placeholder
-          canAddPrice: true, // Placeholder
-        };
+    return planSettings[plan];
   }, [plan]);
 
   const canAddNewProperty = () => {
@@ -119,3 +111,5 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const usePlan = () => useContext(PlanContext);
+
+    

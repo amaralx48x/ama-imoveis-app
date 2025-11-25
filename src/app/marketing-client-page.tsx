@@ -1,11 +1,10 @@
-
 'use client'
 
 import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import type { MarketingContent } from "@/lib/data";
-import { Search, Share2, Video } from "lucide-react";
+import { Search, Share2, Video, Check, X } from "lucide-react";
 import Image from 'next/image';
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
@@ -48,6 +47,13 @@ function LoadingSkeleton() {
   )
 }
 
+const PlanFeature = ({ children, included }: { children: React.ReactNode, included: boolean }) => (
+    <li className={`flex items-start gap-3 ${!included ? 'text-white/50' : ''}`}>
+        {included ? <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" /> : <X className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />}
+        <span>{children}</span>
+    </li>
+);
+
 export default function MarketingClientPage() {
   const firestore = useFirestore();
   const marketingRef = useMemoFirebase(
@@ -56,7 +62,7 @@ export default function MarketingClientPage() {
   );
   const { data: content, isLoading } = useDoc<MarketingContent>(marketingRef);
   
-  const getImage = (field: keyof Omit<MarketingContent, 'hero_media_type' | 'hero_media_url' | 'feature_video_url' | 'feature_video_title'>, defaultSeed: string) => {
+  const getImage = (field: keyof Omit<MarketingContent, 'hero_media_type' | 'hero_media_url' | 'feature_video_url' | 'feature_video_title' | 'ctaImageUrl' | 'supportWhatsapp'>, defaultSeed: string) => {
     // @ts-ignore
     const url = content?.[field];
     if (url) return url;
@@ -240,49 +246,65 @@ export default function MarketingClientPage() {
               <motion.h3 variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-3xl font-extrabold text-center">Planos</motion.h3>
               <p className="mt-2 text-white/70 text-center">Teste 7 dias grátis. Depois, escolha seu plano.</p>
 
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="p-6 rounded-2xl border border-white/10 bg-white/5 shadow-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-semibold text-lg">Corretor Plus</div>
-                      <div className="text-xs text-white/60">Para profissionais solo</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-extrabold">R$ 59,90</div>
-                      <div className="text-xs text-white/60">por mês</div>
-                    </div>
-                  </div>
-                  <ul className="mt-4 text-sm text-white/70 space-y-2">
-                    <li>✅ Gestão de imóveis</li>
-                    <li>✅ CRM e leads</li>
-                    <li>❌ Import CSV (restrito)</li>
-                  </ul>
-                  <div className="mt-6">
-                    <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-4 py-2 rounded-md font-medium`}>Iniciar 7 dias</Link>
-                  </div>
-                </motion.div>
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                    {/* AMAPLUS Plan */}
+                    <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex flex-col p-6 rounded-2xl border border-white/10 bg-white/5 shadow-lg">
+                        <div className="flex-grow">
+                            <h4 className="text-lg font-bold">AMAPLUS</h4>
+                            <p className="text-sm text-white/60 mb-4">Para corretores individuais</p>
+                            <div className="mb-6">
+                                <span className="text-4xl font-extrabold">R$ 39,90</span>
+                                <span className="text-sm text-white/60">/mês</span>
+                            </div>
+                            <ul className="space-y-3 text-sm">
+                                <PlanFeature included={true}>Site profissional personalizável</PlanFeature>
+                                <PlanFeature included={true}>Painel de controle</PlanFeature>
+                                <PlanFeature included={true}>CRM completo</PlanFeature>
+                                <PlanFeature included={true}>SEO (Otimização para Google)</PlanFeature>
+                                <PlanFeature included={true}>Lista de captação de leads</PlanFeature>
+                                <PlanFeature included={true}>Até 50 imóveis simultâneos</PlanFeature>
+                                <PlanFeature included={true}>5 GB de dados por mês</PlanFeature>
+                                <PlanFeature included={true}>Domínio pago à parte (R$ 40/anual)</PlanFeature>
+                                <PlanFeature included={false}>Importar lista de imóveis por CSV</PlanFeature>
+                                <PlanFeature included={false}>Atendimento prioritário técnico</PlanFeature>
+                            </ul>
+                        </div>
+                        <div className="mt-8">
+                            <Link href="/login" className="inline-flex items-center justify-center w-full bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-4 py-3 rounded-md font-semibold hover:opacity-90 transition-opacity">
+                                Iniciar 7 dias
+                            </Link>
+                        </div>
+                    </motion.div>
 
-                <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="p-6 rounded-2xl border border-primary bg-primary/10 shadow-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-semibold text-lg">Imobiliária Plus</div>
-                      <div className="text-xs text-white/60">Para equipes e imobiliárias</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-extrabold">R$ 89,90</div>
-                      <div className="text-xs text-white/60">por mês</div>
-                    </div>
-                  </div>
-                  <ul className="mt-4 text-sm text-white/70 space-y-2">
-                    <li>✅ Import CSV</li>
-                    <li>✅ Limite maior de anúncios</li>
-                    <li>✅ Controle multiusuário</li>
-                  </ul>
-                  <div className="mt-6">
-                    <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-4 py-2 rounded-md font-medium`}>Iniciar 7 dias</Link>
-                  </div>
-                </motion.div>
-              </div>
+                    {/* AMA ULTRA Plan */}
+                    <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex flex-col p-6 rounded-2xl border-2 border-primary bg-primary/10 shadow-lg">
+                         <div className="flex-grow">
+                            <h4 className="text-lg font-bold">AMA ULTRA</h4>
+                            <p className="text-sm text-white/60 mb-4">Para equipes e imobiliárias</p>
+                            <div className="mb-6">
+                                <span className="text-4xl font-extrabold">R$ 59,90</span>
+                                <span className="text-sm text-white/60">/mês</span>
+                            </div>
+                            <ul className="space-y-3 text-sm">
+                                <PlanFeature included={true}>Site profissional personalizável</PlanFeature>
+                                <PlanFeature included={true}>Painel de controle</PlanFeature>
+                                <PlanFeature included={true}>CRM completo</PlanFeature>
+                                <PlanFeature included={true}>SEO (Otimização para Google)</PlanFeature>
+                                <PlanFeature included={true}>Lista de captação de leads</PlanFeature>
+                                <PlanFeature included={true}>Até 300 imóveis cadastrados</PlanFeature>
+                                <PlanFeature included={true}>10 GB de dados por mês</PlanFeature>
+                                <PlanFeature included={true}>Importar lista de imóveis por CSV</PlanFeature>
+                                <PlanFeature included={true}>Domínio personalizado de graça</PlanFeature>
+                                <PlanFeature included={true}>Atendimento prioritário técnico</PlanFeature>
+                            </ul>
+                        </div>
+                        <div className="mt-8">
+                            <Link href="/login" className="inline-flex items-center justify-center w-full bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-4 py-3 rounded-md font-semibold hover:opacity-90 transition-opacity">
+                                Iniciar 7 dias
+                            </Link>
+                        </div>
+                    </motion.div>
+                </div>
             </section>
 
             {/* Final CTA */}
@@ -313,3 +335,5 @@ export default function MarketingClientPage() {
     </div>
   );
 }
+
+    
