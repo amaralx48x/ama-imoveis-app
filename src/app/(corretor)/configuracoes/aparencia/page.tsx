@@ -33,6 +33,7 @@ import { Slider } from '@/components/ui/slider';
 const appearanceFormSchema = z.object({
   theme: z.enum(['light', 'dark'], { required_error: 'Por favor, selecione um tema.' }),
   heroImageUrl: z.string().url("URL inválida").optional().or(z.literal('')),
+  logoUrl: z.string().url("URL inválida").optional().or(z.literal('')),
   propertiesPerSection: z.coerce.number().min(3).max(8).default(4),
 });
 
@@ -78,6 +79,7 @@ export default function AparenciaPage() {
     defaultValues: {
       theme: 'dark',
       heroImageUrl: '',
+      logoUrl: '',
       propertiesPerSection: 4,
     },
   });
@@ -87,6 +89,7 @@ export default function AparenciaPage() {
       form.reset({
         theme: agentData.siteSettings.theme || 'dark',
         heroImageUrl: agentData.siteSettings.heroImageUrl || '',
+        logoUrl: agentData.siteSettings.logoUrl || '',
         propertiesPerSection: agentData.siteSettings.propertiesPerSection || 4,
       });
     }
@@ -98,10 +101,13 @@ export default function AparenciaPage() {
     document.documentElement.classList.add(theme);
   };
   
-  const handleUploadComplete = (url: string) => {
+  const handleHeroUploadComplete = (url: string) => {
     form.setValue('heroImageUrl', url, { shouldDirty: true });
   }
-
+  
+  const handleLogoUploadComplete = (url: string) => {
+    form.setValue('logoUrl', url, { shouldDirty: true });
+  }
 
   async function onSubmit(values: z.infer<typeof appearanceFormSchema>) {
     if (!agentRef) return;
@@ -132,6 +138,7 @@ export default function AparenciaPage() {
   }
   
   const currentHeroImage = form.watch('heroImageUrl');
+  const currentLogo = form.watch('logoUrl');
   const propertiesPerSection = form.watch('propertiesPerSection');
 
   return (
@@ -198,6 +205,40 @@ export default function AparenciaPage() {
                 />
                 
                 <Separator />
+
+                <FormField
+                  control={form.control}
+                  name="logoUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-lg font-semibold flex items-center gap-2">
+                        <ImageIcon /> Logotipo do Site
+                      </FormLabel>
+                      <FormControl>
+                          <ImageUpload
+                            onUploadComplete={handleLogoUploadComplete}
+                            currentImageUrl={field.value}
+                            agentId={user?.uid || 'unknown'}
+                            propertyId="logo"
+                          />
+                      </FormControl>
+                       <FormDescription>Este é o logotipo que aparece no cabeçalho do site. Tamanho recomendado: 128x128 pixels. Use um formato com fundo transparente, como .png.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {currentLogo && (
+                    <div className="space-y-2">
+                        <p className="text-sm font-medium">Pré-visualização do Logotipo:</p>
+                        <div className="flex items-center gap-4 p-4 border rounded-md bg-muted/50">
+                            <Image src={currentLogo} alt="Preview do Logotipo" width={48} height={48} className="rounded-md"/>
+                            <span className="font-bold text-lg">{agentData?.name || "Nome do Site"}</span>
+                        </div>
+                    </div>
+                )}
+                
+                <Separator />
                 
                 <FormField
                   control={form.control}
@@ -209,7 +250,7 @@ export default function AparenciaPage() {
                       </FormLabel>
                       <FormControl>
                           <ImageUpload
-                            onUploadComplete={handleUploadComplete}
+                            onUploadComplete={handleHeroUploadComplete}
                             currentImageUrl={field.value}
                             agentId={user?.uid || 'unknown'}
                             propertyId="hero-image"
@@ -223,7 +264,7 @@ export default function AparenciaPage() {
 
                 {currentHeroImage && (
                     <div className="space-y-2">
-                        <p className="text-sm font-medium">Pré-visualização da Imagem:</p>
+                        <p className="text-sm font-medium">Pré-visualização da Imagem Hero:</p>
                         <div className="relative aspect-video rounded-md overflow-hidden border">
                             <Image src={currentHeroImage} alt="Preview da Imagem Hero" layout="fill" objectFit="cover" />
                         </div>

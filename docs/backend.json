@@ -119,6 +119,7 @@
           "description": "Settings to control the visibility of sections on the public site.",
           "properties": {
             "heroImageUrl": { "type": "string", "format": "uri", "description": "URL for the agent's custom hero image." },
+            "logoUrl": { "type": "string", "format": "uri", "description": "URL for the agent's site logo." },
             "theme": { "type": "string", "enum": ["light", "dark"], "description": "The color theme for the site and dashboard.", "default": "dark" },
             "siteStatus": { "type": "boolean", "description": "Controls the public visibility of the agent's site.", "default": true },
             "showFinancing": { "type": "boolean", "description": "Show or hide the financing simulation button." },

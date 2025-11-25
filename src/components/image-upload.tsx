@@ -64,7 +64,7 @@ export default function ImageUpload({ onUploadComplete, onFileChange, multiple, 
         const fileExtension = file.name.split('.').pop() || 'jpg';
         const timestamp = Date.now(); // Cache-busting timestamp
 
-        if (propertyId === 'profile' || propertyId === 'favicon' || propertyId === 'hero-image') {
+        if (propertyId === 'profile' || propertyId === 'favicon' || propertyId === 'hero-image' || propertyId === 'logo') {
             basePath = `agents/${agentId}/site-assets`;
             fileName = `${propertyId}.${fileExtension}`;
         } else if (propertyId.startsWith('support-ticket-')) {

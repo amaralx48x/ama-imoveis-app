@@ -1,6 +1,7 @@
 
 'use client';
 import Link from "next/link";
+import Image from "next/image";
 import { Building2 } from "lucide-react";
 import { Button } from "../ui/button";
 import type { Agent } from '@/lib/data';
@@ -18,6 +19,7 @@ interface HeaderProps {
 export function Header({ agentName, agentId, agent }: HeaderProps) {
   
   const siteName = agent?.name || agentName || "AMA Imóveis";
+  const logoUrl = agent?.siteSettings?.logoUrl;
   const [isProprietarioFormOpen, setIsProprietarioFormOpen] = useState(false);
   
   const agentBaseUrl = agentId ? `/corretor/${agentId}` : '#';
@@ -36,9 +38,13 @@ export function Header({ agentName, agentId, agent }: HeaderProps) {
       <div className="container flex h-14 max-w-screen-2xl items-center">
         <div className="mr-4 hidden md:flex">
           <Link href={agentBaseUrl} className="mr-6 flex items-center space-x-2">
-            <span className="text-gradient">
-              <Building2 className="h-6 w-6" />
-            </span>
+            {logoUrl ? (
+              <Image src={logoUrl} alt={`Logotipo de ${siteName}`} width={32} height={32} className="rounded-md" />
+            ) : (
+              <span className="text-gradient">
+                <Building2 className="h-6 w-6" />
+              </span>
+            )}
             <span className="font-bold font-headline text-lg">{siteName}</span>
           </Link>
           <nav className="flex items-center gap-6 text-sm">
