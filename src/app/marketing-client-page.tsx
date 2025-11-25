@@ -1,9 +1,11 @@
+
 'use client'
 
 import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import type { MarketingContent } from "@/lib/data";
+import { defaultPrivacyPolicy, defaultTermsOfUse } from "@/lib/data";
 import { Search, Share2, Video, Check, X } from "lucide-react";
 import Image from 'next/image';
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -11,6 +13,9 @@ import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import MarketingHero from '@/components/MarketingHero';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
 
 const fadeUpContainer = {
   hidden: { opacity: 0 },
@@ -53,6 +58,38 @@ const PlanFeature = ({ children, included }: { children: React.ReactNode, includ
         <span>{children}</span>
     </li>
 );
+
+function PolicyDialog({ title, content, companyName }: { title: string, content: string, companyName: string }) {
+    const formattedContent = content.replace(/\[Nome do Site\/Corretor\]/g, companyName);
+    
+    const formatText = (text: string) => {
+        return text
+            .split('\n')
+            .map((line, i) => {
+                if (line.startsWith('## ')) return `<h2 key=${i} class="text-2xl font-bold mt-6 mb-3">${line.substring(3)}</h2>`;
+                if (line.startsWith('**')) return `<p key=${i} class="font-bold mt-4">${line.replace(/\*\*/g, '')}</p>`;
+                if (line.trim() === '') return '<br />';
+                return `<p key=${i} class="text-muted-foreground leading-relaxed mb-2">${line}</p>`;
+            })
+            .join('');
+    };
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                 <button className="text-sm hover:text-white transition-colors">{title}</button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl h-[80vh] text-white bg-black border-white/20">
+                 <DialogHeader>
+                    <DialogTitle className="text-3xl font-headline">{title}</DialogTitle>
+                </DialogHeader>
+                <ScrollArea className="h-full pr-6">
+                    <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: formatText(formattedContent) }} />
+                </ScrollArea>
+            </DialogContent>
+        </Dialog>
+    )
+}
 
 export default function MarketingClientPage() {
   const firestore = useFirestore();
@@ -326,14 +363,12 @@ export default function MarketingClientPage() {
       <footer className="border-t border-white/10 py-8">
         <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-sm text-white/60">© {new Date().getFullYear()} AMA Tecnologia — AMA Imobi</div>
-          <div className="flex items-center gap-3 text-white/60">
-            <a href="#" className="text-sm hover:text-white">Termos</a>
-            <a href="#" className="text-sm hover:text-white">Privacidade</a>
+          <div className="flex items-center gap-4 text-white/60">
+              <PolicyDialog title="Termos de Uso" content={defaultTermsOfUse} companyName="AMA Tecnologia" />
+              <PolicyDialog title="Política de Privacidade" content={defaultPrivacyPolicy} companyName="AMA Tecnologia" />
           </div>
         </div>
       </footer>
     </div>
   );
 }
-
-    
