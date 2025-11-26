@@ -2,7 +2,7 @@
 import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
 import { getFirebaseServer } from '@/firebase/server-init';
-import { doc, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -13,13 +13,25 @@ if (!stripeSecretKey || !webhookSecret) {
 
 const stripe = new Stripe(stripeSecretKey!, { apiVersion: '2024-06-20' });
 
+// --- CORREÇÃO: Desabilita o bodyParser padrão do Next.js para esta rota ---
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+// --- FIM DA CORREÇÃO ---
+
+// --- CORREÇÃO: Define o runtime como nodejs para maior compatibilidade ---
+export const runtime = 'nodejs';
+// --- FIM DA CORREÇÃO ---
+
+
 const relevantEvents = new Set([
   'checkout.session.completed',
   'customer.subscription.deleted',
   'customer.subscription.updated',
 ]);
 
-export const runtime = 'nodejs';
 
 async function getRawBody(req: Request): Promise<Buffer> {
     const reader = req.body?.getReader();
@@ -35,33 +47,36 @@ async function getRawBody(req: Request): Promise<Buffer> {
     return Buffer.concat(chunks);
 }
 
-const manageSubscriptionChange = async (subscriptionId: string) => {
+const manageSubscriptionChange = async (subscriptionId: string, customerId: string) => {
     const { firestore } = getFirebaseServer();
     
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
-        expand: ['customer']
-    });
-
-    const customer = subscription.customer as Stripe.Customer;
-    const customerDocSnap = await getDoc(doc(firestore, 'customers', customer.id));
-
+    // Encontra o userId usando o customerId
+    const customerDocSnap = await getDoc(doc(firestore, 'customers', customerId));
     if (!customerDocSnap.exists()) {
-        console.error(`Customer document not found for Stripe customer ID: ${customer.id}`);
-        return;
-    }
-
-    const userId = customerDocSnap.data().userId;
-    if (!userId) {
-        console.error(`userId not found in customer document for Stripe customer ID: ${customer.id}`);
+        console.error(`Webhook Error: Customer document not found for Stripe customer ID: ${customerId}`);
         return;
     }
     
+    const userId = customerDocSnap.data().userId;
+    if (!userId) {
+        console.error(`Webhook Error: userId not found in customer document for Stripe customer ID: ${customerId}`);
+        return;
+    }
+    
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     const agentRef = doc(firestore, 'agents', userId);
 
     const priceId = subscription.items.data[0].price.id;
-    const plan = priceId === (process.env.NEXT_PUBLIC_STRIPE_BASIC_PRICE_ID) 
-        ? 'corretor' 
-        : 'imobiliaria';
+    
+    let plan: 'corretor' | 'imobiliaria' = 'corretor'; // Default to basic plan
+    if (priceId === process.env.NEXT_PUBLIC_STRIPE_BASIC_PRICE_ID) {
+        plan = 'corretor';
+    } else if (priceId === process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID) {
+        plan = 'imobiliaria';
+    } else {
+        console.error(`Webhook Error: Unrecognized priceId ${priceId} for userId ${userId}`);
+        return; // Don't update if the priceId is unknown
+    }
     
     const subscriptionData = {
         plan: plan,
@@ -72,13 +87,13 @@ const manageSubscriptionChange = async (subscriptionId: string) => {
     };
 
     await updateDoc(agentRef, subscriptionData);
-    console.log(`Updated plan for user ${userId} to ${plan} with status ${subscription.status}`);
+    console.log(`✅ Webhook: Updated plan for user ${userId} to ${plan} with status ${subscription.status}`);
 };
 
 
 export async function POST(req: Request) {
   if (!stripeSecretKey || !webhookSecret) {
-    return new NextResponse('Stripe keys not configured.', { status: 500 });
+    return new NextResponse('Stripe keys not configured on the server.', { status: 500 });
   }
 
   const sig = req.headers.get('stripe-signature')!;
@@ -88,7 +103,7 @@ export async function POST(req: Request) {
   try {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
   } catch (err: any) {
-    console.error('Webhook signature verification failed.', err.message);
+    console.error('❌ Webhook signature verification failed.', err.message);
     return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
   }
   
@@ -96,45 +111,46 @@ export async function POST(req: Request) {
       return new NextResponse('Webhook event not relevant.', { status: 200 });
   }
 
-  const { firestore } = getFirebaseServer();
-
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.metadata?.userId;
+        const customerId = session.customer as string;
+        const subscriptionId = session.subscription as string;
         
-        if (!userId || !session.customer || !session.subscription) {
-            console.error('Missing userId, customerId or subscriptionId in checkout session');
+        if (!userId || !customerId || !subscriptionId) {
+            console.error('❌ Webhook Error: Missing userId, customerId, or subscriptionId in checkout session.', { metadata: session.metadata });
             break;
         }
 
-        // Store customer mapping right away
-        const customerRef = doc(firestore, 'customers', session.customer as string);
+        // Primeiro, mapeia o cliente
+        const customerRef = doc(getFirebaseServer().firestore, 'customers', customerId);
         await setDoc(customerRef, {
             userId: userId,
-            stripeCustomerId: session.customer,
+            stripeCustomerId: customerId,
         }, { merge: true });
-        console.log(`Customer mapping created for userId ${userId}`);
+        console.log(`✅ Webhook: Customer mapping created for userId ${userId}`);
 
-        // Handle subscription and update user plan
-        await manageSubscriptionChange(session.subscription as string);
+        // Em seguida, gerencia a mudança de assinatura
+        await manageSubscriptionChange(subscriptionId, customerId);
         break;
       }
       
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted': {
           const subscription = event.data.object as Stripe.Subscription;
-          await manageSubscriptionChange(subscription.id);
+          const customerId = subscription.customer as string;
+          await manageSubscriptionChange(subscription.id, customerId);
           break;
       }
       
       default:
-        console.log(`Unhandled relevant event type ${event.type}`);
+        console.log(`ℹ️ Unhandled relevant event type ${event.type}`);
     }
   } catch (err: any) {
-    console.error('Error processing webhook:', err.message, err.stack);
-    return new NextResponse('Webhook handler failed. See logs.', { status: 500 });
+    console.error('❌ Error processing webhook:', err.message, err.stack);
+    return new NextResponse('Webhook handler failed. See server logs.', { status: 500 });
   }
 
   return new NextResponse('ok', { status: 200 });
