@@ -1,3 +1,4 @@
+
 import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
 
@@ -26,13 +27,16 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'userId é obrigatório' }, { status: 400 });
     }
 
+    // Hard-coded production URL as a workaround for environment variable issues.
+    const productionUrl = 'https://studio--ama-imveis-041125-945215-63275.us-central1.hosted.app';
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
       customer_email: customerEmail,
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/assinatura/sucesso?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/assinatura/cancelado`,
+      success_url: `${productionUrl}/assinatura/sucesso?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${productionUrl}/assinatura/cancelado`,
       metadata: { 
           userId: userId // Pass the userId to the webhook
       }, 
