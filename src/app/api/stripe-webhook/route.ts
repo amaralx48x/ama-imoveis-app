@@ -50,11 +50,13 @@ async function getRawBody(req: Request): Promise<Buffer> {
 const manageSubscriptionChange = async (subscriptionId: string, customerId: string) => {
     const { firestore } = getFirebaseServer();
     
-    // Encontra o userId usando o customerId
-    const customerDocSnap = await getDoc(doc(firestore, 'customers', customerId));
+    // O customerId do Stripe é usado para encontrar o nosso customer document, que contém o userId
+    const customerDocRef = doc(firestore, 'customers', customerId);
+    const customerDocSnap = await getDoc(customerDocRef);
+    
     if (!customerDocSnap.exists()) {
         console.error(`Webhook Error: Customer document not found for Stripe customer ID: ${customerId}`);
-        return;
+        return; // Early exit if we can't find the user
     }
     
     const userId = customerDocSnap.data().userId;
@@ -63,11 +65,11 @@ const manageSubscriptionChange = async (subscriptionId: string, customerId: stri
         return;
     }
     
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    // Com o userId, podemos atualizar o documento do agente
     const agentRef = doc(firestore, 'agents', userId);
-
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     const priceId = subscription.items.data[0].price.id;
-    
+
     let plan: 'corretor' | 'imobiliaria' = 'corretor'; // Default to basic plan
     if (priceId === process.env.NEXT_PUBLIC_STRIPE_BASIC_PRICE_ID) {
         plan = 'corretor';
@@ -75,7 +77,8 @@ const manageSubscriptionChange = async (subscriptionId: string, customerId: stri
         plan = 'imobiliaria';
     } else {
         console.error(`Webhook Error: Unrecognized priceId ${priceId} for userId ${userId}`);
-        return; // Don't update if the priceId is unknown
+        // Não atualiza se o ID do preço for desconhecido
+        return; 
     }
     
     const subscriptionData = {
@@ -121,10 +124,10 @@ export async function POST(req: Request) {
         
         if (!userId || !customerId || !subscriptionId) {
             console.error('❌ Webhook Error: Missing userId, customerId, or subscriptionId in checkout session.', { metadata: session.metadata });
-            break;
+            break; // Stop processing this event
         }
 
-        // Primeiro, mapeia o cliente
+        // Criar o mapeamento customerId -> userId no Firestore
         const customerRef = doc(getFirebaseServer().firestore, 'customers', customerId);
         await setDoc(customerRef, {
             userId: userId,
@@ -132,7 +135,7 @@ export async function POST(req: Request) {
         }, { merge: true });
         console.log(`✅ Webhook: Customer mapping created for userId ${userId}`);
 
-        // Em seguida, gerencia a mudança de assinatura
+        // Chamar a função que gerencia a mudança de assinatura
         await manageSubscriptionChange(subscriptionId, customerId);
         break;
       }
@@ -141,6 +144,7 @@ export async function POST(req: Request) {
       case 'customer.subscription.deleted': {
           const subscription = event.data.object as Stripe.Subscription;
           const customerId = subscription.customer as string;
+          // Usa o customerId para encontrar o userId e atualizar o plano
           await manageSubscriptionChange(subscription.id, customerId);
           break;
       }
