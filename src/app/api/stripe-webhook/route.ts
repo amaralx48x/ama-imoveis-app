@@ -4,11 +4,19 @@ import { NextResponse } from 'next/server';
 import { getFirebaseServer } from '@/firebase/server-init';
 import { doc, updateDoc, setDoc } from 'firebase/firestore';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+if (!stripeSecretKey || !webhookSecret) {
+  console.error("CRITICAL: Stripe keys are not configured.");
+}
+
+const stripe = new Stripe(stripeSecretKey!, { apiVersion: '2024-06-20' });
 
 const relevantEvents = new Set([
   'checkout.session.completed',
   'customer.subscription.deleted',
+  'customer.subscription.updated',
 ]);
 
 export const runtime = 'nodejs';
@@ -27,13 +35,28 @@ async function getRawBody(req: Request): Promise<Buffer> {
     return Buffer.concat(chunks);
 }
 
-const manageSubscriptionStatusChange = async (subscriptionId: string, userId: string) => {
+const manageSubscriptionChange = async (subscriptionId: string) => {
     const { firestore } = getFirebaseServer();
-    const agentRef = doc(firestore, 'agents', userId);
     
     const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
-        expand: ['items.data.price.product']
+        expand: ['customer']
     });
+
+    const customer = subscription.customer as Stripe.Customer;
+    const customerDocSnap = await getDoc(doc(firestore, 'customers', customer.id));
+
+    if (!customerDocSnap.exists()) {
+        console.error(`Customer document not found for Stripe customer ID: ${customer.id}`);
+        return;
+    }
+
+    const userId = customerDocSnap.data().userId;
+    if (!userId) {
+        console.error(`userId not found in customer document for Stripe customer ID: ${customer.id}`);
+        return;
+    }
+    
+    const agentRef = doc(firestore, 'agents', userId);
 
     const priceId = subscription.items.data[0].price.id;
     const plan = priceId === (process.env.NEXT_PUBLIC_STRIPE_BASIC_PRICE_ID) 
@@ -41,14 +64,11 @@ const manageSubscriptionStatusChange = async (subscriptionId: string, userId: st
         : 'imobiliaria';
     
     const subscriptionData = {
+        plan: plan,
         stripeSubscriptionId: subscription.id,
         stripeCustomerId: subscription.customer,
-        status: subscription.status,
-        plan: plan,
         stripePriceId: priceId,
-        currentPeriodStart: new Date(subscription.current_period_start * 1000).toISOString(),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
-        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        stripeSubscriptionStatus: subscription.status,
     };
 
     await updateDoc(agentRef, subscriptionData);
@@ -57,16 +77,15 @@ const manageSubscriptionStatusChange = async (subscriptionId: string, userId: st
 
 
 export async function POST(req: Request) {
+  if (!stripeSecretKey || !webhookSecret) {
+    return new NextResponse('Stripe keys not configured.', { status: 500 });
+  }
+
   const sig = req.headers.get('stripe-signature')!;
   const body = await getRawBody(req);
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
   let event: Stripe.Event;
   try {
-    if (!sig || !webhookSecret) {
-        console.error('Webhook secret or signature not found.');
-        return new NextResponse('Webhook secret not configured.', { status: 400 });
-    }
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
   } catch (err: any) {
     console.error('Webhook signature verification failed.', err.message);
@@ -84,40 +103,37 @@ export async function POST(req: Request) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.metadata?.userId;
-        const subscriptionId = session.subscription;
         
-        if (!userId || !subscriptionId) {
-            console.error('Missing userId or subscriptionId in checkout session');
+        if (!userId || !session.customer || !session.subscription) {
+            console.error('Missing userId, customerId or subscriptionId in checkout session');
             break;
         }
 
-        // Store customer mapping
-        const customerId = session.customer as string;
-        const customerRef = doc(firestore, 'customers', userId);
+        // Store customer mapping right away
+        const customerRef = doc(firestore, 'customers', session.customer as string);
         await setDoc(customerRef, {
             userId: userId,
-            stripeCustomerId: customerId,
+            stripeCustomerId: session.customer,
         }, { merge: true });
+        console.log(`Customer mapping created for userId ${userId}`);
 
         // Handle subscription and update user plan
-        await manageSubscriptionStatusChange(subscriptionId as string, userId);
+        await manageSubscriptionChange(session.subscription as string);
         break;
       }
       
-       case 'customer.subscription.deleted': {
+      case 'customer.subscription.updated':
+      case 'customer.subscription.deleted': {
           const subscription = event.data.object as Stripe.Subscription;
-          const { firestore } = getFirebaseServer();
-          const agentRef = doc(firestore, 'agents', subscription.metadata.userId);
-          await updateDoc(agentRef, { plan: 'corretor', stripeSubscriptionStatus: 'canceled' });
-          console.log(`Subscription deleted for user ${subscription.metadata.userId}. Reverted to 'corretor' plan.`);
+          await manageSubscriptionChange(subscription.id);
           break;
       }
       
       default:
         console.log(`Unhandled relevant event type ${event.type}`);
     }
-  } catch (err) {
-    console.error('Error processing webhook', err);
+  } catch (err: any) {
+    console.error('Error processing webhook:', err.message, err.stack);
     return new NextResponse('Webhook handler failed. See logs.', { status: 500 });
   }
 
