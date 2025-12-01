@@ -27,9 +27,8 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'userId é obrigatório' }, { status: 400 });
     }
 
-    // Use a placeholder production URL. This MUST be replaced with the real production domain
-    // in the environment variables once the site is live with a custom domain.
-    const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.seu-dominio-aqui.com';
+    // Use o domínio de produção real agora que ele está sendo configurado.
+    const productionUrl = 'https://amaimobi.com.br';
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
