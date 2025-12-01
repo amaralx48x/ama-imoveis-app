@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useUser, useAuth } from '@/firebase';
 import { useRouter, usePathname } from 'next/navigation';
-import { LogOut, ShieldCheck, User, LayoutDashboard, LifeBuoy, MonitorPlay, Search, Settings } from 'lucide-react';
+import { LogOut, ShieldCheck, User, LayoutDashboard, LifeBuoy, MonitorPlay, Search, Settings, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -45,6 +45,7 @@ export default function AdminLayout({
       { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/admin/marketing', label: 'Página de Marketing', icon: MonitorPlay },
       { href: '/admin/seo', label: 'SEO da Página', icon: Search },
+      { href: '/admin/dominio', label: 'Domínio', icon: LinkIcon },
       { href: '/admin/support', label: 'Suporte', icon: LifeBuoy },
       { href: '/admin/configuracoes', label: 'Configurações', icon: Settings },
       { href: '/dashboard', label: 'Visão do Corretor', icon: User },
@@ -93,5 +94,3 @@ export default function AdminLayout({
     </SidebarProvider>
   );
 }
-
-    
