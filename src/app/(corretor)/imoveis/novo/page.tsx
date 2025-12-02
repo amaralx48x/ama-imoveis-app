@@ -35,6 +35,7 @@ import { usePlan } from "@/context/PlanContext";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { generatePropertyDescription } from '@/ai/flows/generate-property-description-flow';
 
 
 const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
@@ -77,6 +78,7 @@ export default function NovoImovelPage() {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCompleteForm, setShowCompleteForm] = useState(false);
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const propertyId = useMemo(() => uuidv4(), []);
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -99,6 +101,43 @@ export default function NovoImovelPage() {
       yearlyTax: 0
     },
   });
+
+  const handleGenerateDescription = async () => {
+    const values = form.getValues();
+    if (!values.type || !values.city || !values.neighborhood || !values.bedrooms) {
+        toast({
+            title: "Informações insuficientes",
+            description: "Preencha pelo menos o tipo, cidade, bairro e número de quartos para gerar uma descrição.",
+            variant: "destructive"
+        });
+        return;
+    }
+    setIsGeneratingDescription(true);
+    try {
+        const result = await generatePropertyDescription({
+            type: values.type,
+            operation: values.operation,
+            city: values.city,
+            neighborhood: values.neighborhood,
+            bedrooms: values.bedrooms,
+            bathrooms: values.bathrooms,
+            garage: values.garage,
+            builtArea: values.builtArea
+        });
+        if (result?.description) {
+            form.setValue('description', result.description, { shouldValidate: true, shouldDirty: true });
+            toast({ title: "Descrição gerada com sucesso!" });
+        } else {
+            throw new Error("A descrição retornou vazia.");
+        }
+    } catch (error) {
+        console.error("Erro ao gerar descrição:", error);
+        toast({ title: "Erro na IA", description: "Não foi possível gerar a descrição.", variant: "destructive" });
+    } finally {
+        setIsGeneratingDescription(false);
+    }
+  };
+
 
   const handleUploadComplete = (url: string) => {
     setImageUrls(prev => [...prev, url]);
@@ -429,7 +468,13 @@ export default function NovoImovelPage() {
                 name="description"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Descrição Completa</FormLabel>
+                    <div className="flex justify-between items-center">
+                      <FormLabel>Descrição Completa</FormLabel>
+                      <Button type="button" variant="outline" size="sm" onClick={handleGenerateDescription} disabled={isGeneratingDescription}>
+                          {isGeneratingDescription ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Gem className="mr-2 h-4 w-4" />}
+                          Gerar com IA
+                      </Button>
+                    </div>
                     <FormControl>
                         <Textarea placeholder="Descreva os detalhes do imóvel..." className="min-h-[150px]" {...field} />
                     </FormControl>
