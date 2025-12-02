@@ -1,45 +1,19 @@
 
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, collection, query, where, getDocs } from 'firebase/firestore';
+import React, { useRef, useEffect, useState } from 'react';
+import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import type { Contact, Property } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, User, Building, Mail, Phone, Calendar, Hash, StickyNote, FileDown, Home } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { User, Mail, Phone, Calendar, Hash, StickyNote, FileDown, Home } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useReactToPrint } from 'react-to-print';
-import React, { useRef, useEffect, useState } from 'react';
-
-function ContactDetailSkeleton() {
-    return (
-        <div className="space-y-6">
-            <Skeleton className="h-10 w-36" />
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center gap-4">
-                        <Skeleton className="h-16 w-16 rounded-full" />
-                        <div className="space-y-2">
-                            <Skeleton className="h-7 w-48" />
-                            <Skeleton className="h-5 w-32" />
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                    </div>
-                    <Skeleton className="h-20 w-full" />
-                </CardContent>
-            </Card>
-        </div>
-    )
-}
+import { Skeleton } from '../ui/skeleton';
 
 function DetailItem({ icon, label, value }: { icon: React.ReactNode, label: string, value?: string | number | null }) {
     if (!value) return null;
@@ -54,23 +28,23 @@ function DetailItem({ icon, label, value }: { icon: React.ReactNode, label: stri
     )
 }
 
-export default function ContactDetailPage() {
-    const params = useParams();
-    const router = useRouter();
-    const contactId = params.contactId as string;
+interface ContactDetailModalProps {
+    contact: Contact;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+}
+
+export function ContactDetailModal({ contact, open, onOpenChange }: ContactDetailModalProps) {
     const { user } = useUser();
     const firestore = useFirestore();
     const printRef = useRef<HTMLDivElement>(null);
 
-    const contactRef = useMemoFirebase(
-        () => (user && firestore && contactId ? doc(firestore, `agents/${user.uid}/contacts`, contactId) : null),
-        [user, firestore, contactId]
-    );
-
-    const { data: contact, isLoading: isContactLoading } = useDoc<Contact>(contactRef);
     const [linkedProperties, setLinkedProperties] = useState<Property[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (!open) return;
+        setLoading(true);
         if (contact?.linkedPropertyIds && contact.linkedPropertyIds.length > 0 && firestore && user) {
             const fetchProperties = async () => {
                 const propsRef = collection(firestore, `agents/${user.uid}/properties`);
@@ -78,12 +52,14 @@ export default function ContactDetailPage() {
                 const snapshot = await getDocs(q);
                 const props = snapshot.docs.map(d => d.data() as Property);
                 setLinkedProperties(props);
+                 setLoading(false);
             }
             fetchProperties();
         } else {
             setLinkedProperties([]);
+            setLoading(false);
         }
-    }, [contact, firestore, user]);
+    }, [contact, firestore, user, open]);
 
     const handlePrint = useReactToPrint({
         content: () => printRef.current,
@@ -95,24 +71,20 @@ export default function ContactDetailPage() {
         : { label: 'Inquilino', variant: 'secondary' };
 
     return (
-        <div className="space-y-6 max-w-3xl mx-auto">
-            <div className="flex justify-between items-center">
-                <Button variant="outline" onClick={() => router.back()}>
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Voltar para Contatos
-                </Button>
-                <Button onClick={handlePrint} variant="ghost" size="icon">
-                    <FileDown className="h-5 w-5" />
-                    <span className="sr-only">Exportar para PDF</span>
-                </Button>
-            </div>
-             {isContactLoading ? <ContactDetailSkeleton /> : !contact ? (
-                <Card className="text-center p-8">
-                    <p>Contato não encontrado.</p>
-                </Card>
-            ) : (
-                <div ref={printRef}>
-                    <Card id="contact-sheet">
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-2xl">
+                 <DialogHeader>
+                    <DialogTitle className="flex justify-between items-center">
+                        <span className="text-2xl font-bold">Ficha de Contato</span>
+                        <Button onClick={handlePrint} variant="ghost" size="icon">
+                            <FileDown className="h-5 w-5" />
+                            <span className="sr-only">Exportar para PDF</span>
+                        </Button>
+                    </DialogTitle>
+                </DialogHeader>
+
+                <div ref={printRef} className="printable-content p-1">
+                    <Card id="contact-sheet" className="shadow-none border-none">
                         <CardHeader>
                             <div className="flex items-center gap-4">
                                 <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center text-primary text-2xl font-bold">
@@ -140,12 +112,17 @@ export default function ContactDetailPage() {
                             <Separator />
                              <DetailItem icon={<StickyNote className="w-4 h-4"/>} label="Anotações" value={contact.notes} />
                             
-                            {linkedProperties.length > 0 && (
+                            {loading ? (
+                                <div className="space-y-2">
+                                    <Skeleton className="h-4 w-1/3" />
+                                    <Skeleton className="h-16 w-full" />
+                                </div>
+                            ) : linkedProperties.length > 0 && (
                                 <>
                                     <Separator />
                                     <div>
                                         <h4 className="text-sm text-muted-foreground mb-2 flex items-center gap-2"><Home className="w-4 h-4"/>Imóveis Vinculados</h4>
-                                        <div className="space-y-2">
+                                        <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
                                             {linkedProperties.map(prop => (
                                                 <Link key={prop.id} href={`/imoveis/editar-imovel/${prop.id}`}>
                                                    <div className="p-3 border rounded-md hover:bg-muted/50 transition-colors">
@@ -161,7 +138,7 @@ export default function ContactDetailPage() {
                         </CardContent>
                     </Card>
                 </div>
-            )}
-        </div>
-    )
+            </DialogContent>
+        </Dialog>
+    );
 }

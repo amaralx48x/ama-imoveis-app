@@ -12,6 +12,7 @@ import ContactFormModal from "@/components/contacts/ContactFormModal";
 import type { Contact } from "@/lib/data";
 import { InfoCard } from '@/components/info-card';
 import { Skeleton } from "@/components/ui/skeleton";
+import { ContactDetailModal } from "@/components/contacts/ContactDetailModal";
 
 function ContactsPageSkeleton() {
     return (
@@ -33,17 +34,23 @@ function ContactsPageSkeleton() {
 export default function ContactsPage() {
   const { user } = useUser();
   const { contacts, loading, error } = useContacts(user?.uid || null);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [formModalOpen, setFormModalOpen] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
   const handleEdit = (contact: Contact) => {
     setSelectedContact(contact);
-    setModalOpen(true);
+    setFormModalOpen(true);
   };
+
+  const handleViewDetails = (contact: Contact) => {
+    setSelectedContact(contact);
+    setDetailModalOpen(true);
+  }
   
   const handleAddNew = () => {
       setSelectedContact(null);
-      setModalOpen(true);
+      setFormModalOpen(true);
   }
 
   return (
@@ -91,6 +98,7 @@ export default function ContactsPage() {
                         key={contact.id}
                         contact={contact}
                         onEdit={() => handleEdit(contact)}
+                        onViewDetails={() => handleViewDetails(contact)}
                         agentId={user?.uid || ""}
                     />
                 ))}
@@ -99,11 +107,18 @@ export default function ContactsPage() {
         </CardContent>
       </Card>
       <ContactFormModal 
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        open={formModalOpen}
+        onClose={() => setFormModalOpen(false)}
         agentId={user?.uid || null}
         initialData={selectedContact}
       />
+      {selectedContact && (
+        <ContactDetailModal
+            contact={selectedContact}
+            open={detailModalOpen}
+            onOpenChange={setDetailModalOpen}
+        />
+      )}
     </div>
   );
 }

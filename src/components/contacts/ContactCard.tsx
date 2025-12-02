@@ -4,16 +4,16 @@ import React from "react";
 import { deleteContact } from "@/firebase/contacts";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { MoreVertical, Edit, Trash2, User, Building } from "lucide-react";
+import { MoreVertical, Edit, Trash2, User, Building, Eye } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Contact } from "@/lib/data";
 import { Badge } from "../ui/badge";
 import { useFirestore } from "@/firebase";
-import Link from "next/link";
 
 interface ContactCardProps {
     contact: Contact;
     onEdit: () => void;
+    onViewDetails: () => void;
     agentId: string;
 }
 
@@ -30,7 +30,7 @@ const getBadgeInfo = (type: Contact['type']) => {
     }
 }
 
-export default function ContactCard({ contact, onEdit, agentId }: ContactCardProps) {
+export default function ContactCard({ contact, onEdit, onViewDetails, agentId }: ContactCardProps) {
   const { toast } = useToast();
   const firestore = useFirestore();
   const badgeInfo = getBadgeInfo(contact.type);
@@ -49,7 +49,7 @@ export default function ContactCard({ contact, onEdit, agentId }: ContactCardPro
 
   return (
     <div className="p-4 border rounded-lg flex justify-between items-center bg-card hover:bg-muted/50 transition-colors group">
-      <Link href={`/contatos/${contact.id}`} className="flex-grow space-y-1 cursor-pointer">
+      <div onClick={onViewDetails} className="flex-grow space-y-1 cursor-pointer">
         <div className="flex items-center gap-2">
             <h4 className="font-bold text-base group-hover:text-primary transition-colors">{contact.name}</h4>
             <Badge variant={badgeInfo.variant}>
@@ -59,7 +59,7 @@ export default function ContactCard({ contact, onEdit, agentId }: ContactCardPro
         </div>
         <div className="text-sm text-muted-foreground">{contact.phone} {contact.phone && contact.email && '•'} {contact.email}</div>
         <div className="text-xs text-muted-foreground">Propriedades vinculadas: {contact.linkedPropertyIds?.length || 0}</div>
-      </Link>
+      </div>
       <div className="flex gap-2">
          <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -68,6 +68,10 @@ export default function ContactCard({ contact, onEdit, agentId }: ContactCardPro
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+                 <DropdownMenuItem onClick={onViewDetails}>
+                    <Eye className="mr-2 h-4 w-4"/>
+                    Ver Ficha
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={onEdit}>
                     <Edit className="mr-2 h-4 w-4"/>
                     Editar
