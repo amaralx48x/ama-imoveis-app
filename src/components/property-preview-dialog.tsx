@@ -24,8 +24,6 @@ export function PropertyPreviewDialog({ property, open, onOpenChange }: Property
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
     documentTitle: `Ficha - ${property.title}`,
-    // Remove o botão de impressão da versão impressa
-    removeAfterPrint: false,
   });
 
   const isValidUrl = (url: string | undefined): boolean => {
@@ -71,8 +69,8 @@ export function PropertyPreviewDialog({ property, open, onOpenChange }: Property
                         </CarouselContent>
                         {images.length > 1 && (
                             <>
-                                <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex" />
-                                <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex" />
+                                <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex print:hidden" />
+                                <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex print:hidden" />
                             </>
                         )}
                     </Carousel>
@@ -133,11 +131,13 @@ export function PropertyPreviewDialog({ property, open, onOpenChange }: Property
                 </div>
             </div>
         </ScrollArea>
-        <DialogFooter className="flex-shrink-0 pt-4 border-t">
-            <Button onClick={handlePrint}>
-                <Printer className="mr-2 h-4 w-4" />
-                Imprimir
-            </Button>
+        <DialogFooter className="flex-shrink-0 pt-4 border-t print:hidden">
+            <div onClick={handlePrint} className="cursor-pointer">
+                <Button>
+                    <Printer className="mr-2 h-4 w-4" />
+                    Imprimir
+                </Button>
+            </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
