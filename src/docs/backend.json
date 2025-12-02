@@ -44,6 +44,30 @@
             "chavesnamao": { "type": "boolean", "default": false },
             "tecimob": { "type": "boolean", "default": false }
           }
+        },
+        "rentalDetails": {
+          "type": "object",
+          "description": "Details specific to a rental contract.",
+          "properties": {
+            "contractUrl": { "type": "string", "format": "uri", "description": "URL to the signed rental contract PDF." },
+            "startDate": { "type": "string", "format": "date-time", "description": "Start date of the rental contract." },
+            "endDate": { "type": "string", "format": "date-time", "description": "End date of the rental contract." },
+            "rentValue": { "type": "number", "description": "The monthly rent value." },
+            "igpmAdjustmentMonth": { "type": "string", "description": "The month when the IGPM adjustment is applied (e.g., 'Janeiro')." },
+            "paymentHistory": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "dueDate": { "type": "string", "format": "date-time" },
+                  "paidDate": { "type": "string", "format": "date-time" },
+                  "value": { "type": "number" },
+                  "status": { "type": "string", "enum": ["pago", "pendente", "atrasado"] }
+                },
+                "required": ["dueDate", "value", "status"]
+              }
+            }
+          }
         }
       },
       "required": [
@@ -337,5 +361,3 @@
   }
 }
   
-
-    

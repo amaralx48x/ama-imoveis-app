@@ -4,7 +4,7 @@
 import type { Property, Agent } from "@/lib/data";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
-import { BedDouble, Bath, Ruler, MapPin, MoreVertical, Pencil, Trash2, FolderSymlink, CheckCircle, Link2, Share, Printer, Sparkles } from "lucide-react";
+import { BedDouble, Bath, Ruler, MapPin, MoreVertical, Pencil, Trash2, FolderSymlink, CheckCircle, Link2, Share, Printer, Sparkles, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
 import Link from "next/link";
@@ -16,6 +16,8 @@ import { MarkAsSoldDialog } from "./mark-as-sold-dialog";
 import { useDoc, useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { SocialCardGeneratorDialog } from './social-card-generator';
+import { PropertyPreviewDialog } from "./property-preview-dialog";
+import { useContacts } from "@/firebase/hooks/useContacts";
 
 const portals = [
   { id: 'zap', name: 'ZAP+' },
@@ -39,10 +41,16 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
   
   const [isSoldDialogOpen, setIsSoldDialogOpen] = useState(false);
   const [isSocialCardDialogOpen, setIsSocialCardDialogOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   
   const agentRef = useMemoFirebase(() => (
     firestore && user ? doc(firestore, `agents/${user.uid}`) : null
   ), [firestore, user]);
+
+  const { contacts } = useContacts(user?.uid || null);
+
+  const owner = contacts.find(c => c.id === property.ownerContactId);
+  const tenant = contacts.find(c => c.id === property.tenantContactId);
   
   const { data: agentData } = useDoc<Agent>(agentRef);
 
@@ -99,7 +107,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
     <>
     <Card className="w-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 flex flex-col h-full bg-card">
       <CardHeader className="p-0 relative">
-        <Link href={detailUrl} className="block cursor-pointer">
+        <div onClick={() => isDashboard && setIsPreviewOpen(true)} className="block cursor-pointer">
             <div className="relative w-full h-56">
               <Image
                 src={imageUrl}
@@ -110,7 +118,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
             </div>
-        </Link>
+        </div>
         <div className="absolute top-3 flex justify-between w-full px-3">
           <Badge className="bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] text-primary-foreground border-none">
             {property.operation}
@@ -123,6 +131,10 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                 <DropdownMenuItem onClick={() => setIsPreviewOpen(true)}>
+                    <Eye className="mr-2 h-4 w-4" />
+                    Ver Ficha Rápida
+                 </DropdownMenuItem>
                  {property.status !== 'vendido' && property.status !== 'alugado' && (
                   <DropdownMenuItem onClick={() => setIsSoldDialogOpen(true)}>
                     <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
@@ -135,7 +147,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
                 </DropdownMenuItem>
                  <DropdownMenuItem onClick={() => setIsSocialCardDialogOpen(true)}>
                     <Sparkles className="mr-2 h-4 w-4" />
-                    Gerar Card Social
+                    Gerar Post para Redes Sociais
                 </DropdownMenuItem>
                  <DropdownMenuItem onClick={handleAssociate}>
                   <FolderSymlink className="mr-2 h-4 w-4" />
@@ -149,7 +161,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handlePrint}>
                     <Printer className="mr-2 h-4 w-4" />
-                    Imprimir Ficha
+                    Imprimir Ficha Completa
                 </DropdownMenuItem>
                  <DropdownMenuSub>
                     <DropdownMenuSubTrigger>
@@ -177,7 +189,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
            )}
         </div>
       </CardHeader>
-      <CardContentTrigger href={detailUrl} className="p-4 flex-grow cursor-pointer">
+      <div onClick={() => isDashboard && setIsPreviewOpen(true)} className="p-4 flex-grow cursor-pointer">
             <h3 className="font-headline font-bold text-lg truncate hover:text-primary transition-colors">{property.title}</h3>
             <div className="flex items-center text-muted-foreground text-sm mt-1">
               <MapPin className="w-4 h-4 mr-1.5" />
@@ -200,7 +212,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
                 <span>{property.builtArea} m²</span>
               </div>
             </div>
-      </CardContentTrigger>
+      </div>
       <CardFooter className="p-4 pt-0">
         <Button asChild className="w-full" variant="outline">
           <Link href={detailUrl}>
@@ -227,6 +239,16 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
         property={property}
         agent={agentData}
       />
+    )}
+    {agentData && (
+        <PropertyPreviewDialog 
+            property={property}
+            agent={agentData}
+            owner={owner}
+            tenant={tenant}
+            open={isPreviewOpen}
+            onOpenChange={setIsPreviewOpen}
+        />
     )}
     </>
   );

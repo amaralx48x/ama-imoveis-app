@@ -42,6 +42,19 @@ export type Property = {
     casamineira?: boolean;
     chavesnamao?: boolean;
     tecimob?: boolean;
+  },
+  rentalDetails?: {
+    contractUrl?: string;
+    startDate?: any;
+    endDate?: any;
+    rentValue?: number;
+    igpmAdjustmentMonth?: string;
+    paymentHistory?: {
+      dueDate: any;
+      paidDate?: any;
+      value: number;
+      status: 'pago' | 'pendente' | 'atrasado';
+    }[];
   }
 };
 
