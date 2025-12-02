@@ -1,11 +1,11 @@
 // src/app/api/feed/tecimob/route.ts
 import { getFirebaseServer } from '@/firebase/server-init';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { NextResponse } from 'next/server';
 import type { Property } from '@/lib/data';
 
 function escapeXml(unsafe: string): string {
-    if (!unsafe) return '';
+    if (typeof unsafe !== 'string' || !unsafe) return '';
     return unsafe.replace(/[<>&'"]/g, (c) => {
         switch (c) {
             case '<': return '&lt;';
@@ -51,6 +51,7 @@ export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const agentId = searchParams.get('agentId');
+        const propertyId = searchParams.get('propertyId');
 
         if (!agentId) {
             return new NextResponse("agentId é um parâmetro obrigatório", { status: 400 });
@@ -58,12 +59,21 @@ export async function GET(request: Request) {
         
         const { firestore } = getFirebaseServer();
         const propertiesRef = collection(firestore, 'agents', agentId, 'properties');
-        const q = query(propertiesRef, where('portalPublish.tecimob', '==', true), where('status', '==', 'ativo'));
         
-        const snapshot = await getDocs(q);
+        let properties: Property[] = [];
 
-        const properties: Property[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Property));
-        
+        if (propertyId) {
+            const docRef = doc(firestore, `agents/${agentId}/properties`, propertyId);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists() && docSnap.data().portalPublish?.tecimob && docSnap.data().status === 'ativo') {
+                properties.push({ id: docSnap.id, ...docSnap.data() } as Property);
+            }
+        } else {
+            const q = query(propertiesRef, where('portalPublish.tecimob', '==', true), where('status', '==', 'ativo'));
+            const snapshot = await getDocs(q);
+            properties = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Property));
+        }
+
         const xml = generateTecimobXml(properties);
 
         return new NextResponse(xml, {
@@ -75,5 +85,3 @@ export async function GET(request: Request) {
         return new NextResponse("Erro interno ao gerar feed XML", { status: 500 });
     }
 }
-
-  

@@ -1,17 +1,26 @@
-
 'use client';
 
 import type { Property } from "@/lib/data";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
-import { BedDouble, Bath, Ruler, MapPin, MoreVertical, Pencil, Trash2, FolderSymlink, CheckCircle, Link2 } from "lucide-react";
+import { BedDouble, Bath, Ruler, MapPin, MoreVertical, Pencil, Trash2, FolderSymlink, CheckCircle, Link2, Share } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
 import Link from "next/link";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from "./ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { MarkAsSoldDialog } from "./mark-as-sold-dialog";
+
+
+const portals = [
+  { id: 'zap', name: 'ZAP+' },
+  { id: 'imovelweb', name: 'Imovelweb' },
+  { id: 'casamineira', name: 'Casa Mineira' },
+  { id: 'chavesnamao', name: 'Chaves na Mão' },
+  { id: 'tecimob', name: 'Tecimob' },
+];
 
 
 interface PropertyCardProps {
@@ -22,6 +31,7 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCardProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [isSoldDialogOpen, setIsSoldDialogOpen] = useState(false);
 
   const formattedPrice = new Intl.NumberFormat('pt-BR', {
@@ -55,6 +65,14 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
       onDelete(property.id);
     }
   };
+  
+  const handleCopyToClipboard = (url: string, portalName: string) => {
+    navigator.clipboard.writeText(url);
+    toast({
+        title: "Link Copiado!",
+        description: `O link do imóvel para o portal ${portalName} foi copiado.`,
+    });
+  }
 
   const isDashboard = !!onDelete;
   const isForSale = property.operation === 'Comprar';
@@ -109,6 +127,22 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
                     Ver Página Pública
                   </Link>
                 </DropdownMenuItem>
+                 <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                        <Share className="mr-2 h-4 w-4" />
+                        <span>Integração</span>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                         {portals.map(portal => {
+                            const feedUrl = `${window.location.origin}/api/feed/${portal.id}?agentId=${property.agentId}&propertyId=${property.id}`;
+                            return (
+                                <DropdownMenuItem key={portal.id} onClick={() => handleCopyToClipboard(feedUrl, portal.name)}>
+                                    Copiar link para {portal.name}
+                                </DropdownMenuItem>
+                            )
+                        })}
+                    </DropdownMenuSubContent>
+                </DropdownMenuSub>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleDelete} className="text-destructive">
                   <Trash2 className="mr-2 h-4 w-4" />
@@ -126,7 +160,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
               <span>{property.neighborhood}, {property.city}</span>
             </div>
             <p className="text-2xl font-bold text-primary my-4">
-              {property.operation === 'Comprar' ? formattedPrice : `${formattedPrice} /mês`}
+              {property.operation === 'Venda' ? formattedPrice : `${formattedPrice} /mês`}
             </p>
             <div className="flex justify-around text-muted-foreground border-t border-b border-border py-3 text-sm">
               <div className="flex items-center gap-2">
