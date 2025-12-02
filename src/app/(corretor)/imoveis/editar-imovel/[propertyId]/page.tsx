@@ -188,12 +188,18 @@ export default function EditarImovelPage() {
       return;
     }
 
+    const portalPublishData = portals.reduce((acc, portal) => {
+        acc[portal.id as keyof typeof acc] = values.portalPublish?.[portal.id as keyof typeof values.portalPublish] || false;
+        return acc;
+    }, {} as Record<string, boolean>);
+
+
     const updatedProperty = {
       ...propertyData,
       ...values,
       imageUrls: imageUrls,
       ownerContactId: values.ownerContactId === 'none' ? null : values.ownerContactId,
-      portalPublish: values.portalPublish || {},
+      portalPublish: portalPublishData,
     };
     
     try {
@@ -480,3 +486,5 @@ export default function EditarImovelPage() {
     </div>
   );
 }
+
+    
