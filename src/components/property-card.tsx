@@ -1,10 +1,10 @@
 
 'use client';
 
-import type { Property } from "@/lib/data";
+import type { Property, Agent } from "@/lib/data";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
-import { BedDouble, Bath, Ruler, MapPin, MoreVertical, Pencil, Trash2, FolderSymlink, CheckCircle, Link2, Share, Printer } from "lucide-react";
+import { BedDouble, Bath, Ruler, MapPin, MoreVertical, Pencil, Trash2, FolderSymlink, CheckCircle, Link2, Share, Printer, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
 import Link from "next/link";
@@ -13,6 +13,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { MarkAsSoldDialog } from "./mark-as-sold-dialog";
+import { useDoc, useFirestore, useUser, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
+import { SocialCardGeneratorDialog } from './social-card-generator';
 
 const portals = [
   { id: 'zap', name: 'ZAP+' },
@@ -31,7 +34,17 @@ interface PropertyCardProps {
 export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCardProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useUser();
+  const firestore = useFirestore();
+  
   const [isSoldDialogOpen, setIsSoldDialogOpen] = useState(false);
+  const [isSocialCardDialogOpen, setIsSocialCardDialogOpen] = useState(false);
+  
+  const agentRef = useMemoFirebase(() => (
+    firestore && user ? doc(firestore, `agents/${user.uid}`) : null
+  ), [firestore, user]);
+  
+  const { data: agentData } = useDoc<Agent>(agentRef);
 
   const formattedPrice = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -78,7 +91,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
   };
 
   const isDashboard = !!onDelete;
-  const isForSale = property.operation === 'Comprar';
+  const isForSale = property.operation === 'Venda';
   
   const CardContentTrigger = isDashboard ? 'div' : Link;
 
@@ -119,6 +132,10 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
                 <DropdownMenuItem onClick={handleEdit}>
                   <Pencil className="mr-2 h-4 w-4" />
                   Editar Imóvel
+                </DropdownMenuItem>
+                 <DropdownMenuItem onClick={() => setIsSocialCardDialogOpen(true)}>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Gerar Card Social
                 </DropdownMenuItem>
                  <DropdownMenuItem onClick={handleAssociate}>
                   <FolderSymlink className="mr-2 h-4 w-4" />
@@ -202,6 +219,15 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
             onStatusChange?.();
         }}
     />
+
+    {agentData && (
+       <SocialCardGeneratorDialog 
+        isOpen={isSocialCardDialogOpen}
+        onOpenChange={setIsSocialCardDialogOpen}
+        property={property}
+        agent={agentData}
+      />
+    )}
     </>
   );
 }
