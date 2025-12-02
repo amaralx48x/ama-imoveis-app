@@ -38,41 +38,6 @@ const GenerateSocialCardOutputSchema = z.object({
 export type GenerateSocialCardOutput = z.infer<typeof GenerateSocialCardOutputSchema>;
 
 
-const socialCardPrompt = ai.definePrompt(
-  {
-    name: 'socialCardPrompt',
-    input: {
-        schema: z.object({
-            propertyImageDataUri: z.string(),
-            logoImageDataUri: z.string().optional(),
-            price: z.string(),
-            operation: z.string(),
-        })
-    },
-    output: { format: 'media' },
-    prompt: `
-        You are a graphic designer specializing in real estate social media posts.
-        Your task is to create a visually appealing Instagram Story (9:16 aspect ratio) based on the provided images and text.
-
-        Instructions:
-        1.  Use the property image as the main background. The image should be visible and attractive.
-        2.  If a logo is provided, place it tastefully in one of the corners (e.g., top-left or bottom-right). The logo should be visible but not obstructive.
-        3.  Display the price in a prominent, large, and stylish font. Use a contrasting color to ensure readability against the background.
-        4.  If the operation is 'Aluguel', add "/mês" next to the price in a smaller font.
-        5.  The final image should look professional, clean, and modern. Do not add any extra text or elements not specified.
-        6.  The output must be only the final image.
-
-        Property Image: {{media url=propertyImageDataUri}}
-        {{#if logoImageDataUri}}
-        Logo: {{media url=logoImageDataUri}}
-        {{/if}}
-        Price: {{{price}}}
-        Operation: {{{operation}}}
-    `,
-  },
-);
-
-
 const generateSocialCardFlow = ai.defineFlow(
   {
     name: 'generateSocialCardFlow',
@@ -107,9 +72,7 @@ const generateSocialCardFlow = ai.defineFlow(
         ],
         config: {
             responseModalities: ['IMAGE'],
-            generationConfig: {
-                 aspectRatio: '9:16',
-            }
+            aspectRatio: '9:16',
         },
     });
 
