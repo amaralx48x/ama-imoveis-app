@@ -104,12 +104,10 @@ export function ContactDetailModal({ contact, open, onOpenChange }: ContactDetai
                  <DialogHeader>
                     <DialogTitle className="flex justify-between items-center">
                         <span className="text-2xl font-bold">Ficha de Contato</span>
-                         <div onClick={handlePrint} className="cursor-pointer">
-                            <Button variant="ghost" size="icon">
-                                <FileDown className="h-5 w-5" />
-                                <span className="sr-only">Exportar para PDF</span>
-                            </Button>
-                        </div>
+                         <Button variant="ghost" size="icon" onClick={handlePrint}>
+                            <FileDown className="h-5 w-5" />
+                            <span className="sr-only">Exportar para PDF</span>
+                        </Button>
                     </DialogTitle>
                 </DialogHeader>
 

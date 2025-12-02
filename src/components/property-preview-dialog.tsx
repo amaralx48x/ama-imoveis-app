@@ -132,12 +132,10 @@ export function PropertyPreviewDialog({ property, open, onOpenChange }: Property
             </div>
         </ScrollArea>
         <DialogFooter className="flex-shrink-0 pt-4 border-t print:hidden">
-            <div onClick={handlePrint} className="cursor-pointer">
-                <Button>
-                    <Printer className="mr-2 h-4 w-4" />
-                    Imprimir
-                </Button>
-            </div>
+            <Button onClick={handlePrint}>
+                <Printer className="mr-2 h-4 w-4" />
+                Imprimir
+            </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
