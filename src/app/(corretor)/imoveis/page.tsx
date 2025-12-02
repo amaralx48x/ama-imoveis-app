@@ -208,7 +208,7 @@ export default function ImoveisPage() {
                  <div className="flex gap-2">
                     <Button variant="outline" onClick={handleImportClick}>
                         <Upload className="mr-2 h-4 w-4" />
-                        Importar CSV
+                        Importar
                     </Button>
                     
                      <Dialog open={isUpgradeModalOpen} onOpenChange={setIsUpgradeModalOpen}>
@@ -312,5 +312,7 @@ export default function ImoveisPage() {
     );
 }
 
+
+    
 
     
