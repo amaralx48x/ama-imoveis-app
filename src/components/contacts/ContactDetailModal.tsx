@@ -1,6 +1,7 @@
+
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useUser, useFirestore } from '@/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import type { Contact, Property } from '@/lib/data';
@@ -11,7 +12,6 @@ import { User, Mail, Phone, Calendar, Hash, StickyNote, FileDown, Home } from 'l
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { useReactToPrint } from 'react-to-print';
 import { Skeleton } from '../ui/skeleton';
 
 function DetailItem({ icon, label, value }: { icon: React.ReactNode, label: string, value?: string | number | null }) {
@@ -33,7 +33,6 @@ interface ContactDetailModalProps {
     onOpenChange: (open: boolean) => void;
 }
 
-// Helper function to split an array into chunks
 function chunkArray<T>(array: T[], size: number): T[][] {
   const chunkedArr: T[][] = [];
   for (let i = 0; i < array.length; i += size) {
@@ -42,11 +41,9 @@ function chunkArray<T>(array: T[], size: number): T[][] {
   return chunkedArr;
 }
 
-
 export function ContactDetailModal({ contact, open, onOpenChange }: ContactDetailModalProps) {
     const { user } = useUser();
     const firestore = useFirestore();
-    const printRef = useRef<HTMLDivElement>(null);
 
     const [linkedProperties, setLinkedProperties] = useState<Property[]>([]);
     const [loading, setLoading] = useState(true);
@@ -66,8 +63,6 @@ export function ContactDetailModal({ contact, open, onOpenChange }: ContactDetai
                 const propertyIds = contact.linkedPropertyIds;
                 const propsRef = collection(firestore, `agents/${user.uid}/properties`);
                 const allFetchedProperties: Property[] = [];
-
-                // Firestore 'in' query has a limit of 30 elements. Chunk the requests.
                 const idChunks = chunkArray(propertyIds, 30);
 
                 for (const chunk of idChunks) {
@@ -80,7 +75,7 @@ export function ContactDetailModal({ contact, open, onOpenChange }: ContactDetai
                 setLinkedProperties(allFetchedProperties);
             } catch (error) {
                 console.error("Failed to fetch linked properties:", error);
-                setLinkedProperties([]); // Clear on error
+                setLinkedProperties([]);
             } finally {
                 setLoading(false);
             }
@@ -89,10 +84,9 @@ export function ContactDetailModal({ contact, open, onOpenChange }: ContactDetai
         fetchProperties();
     }, [contact, firestore, user, open]);
 
-    const handlePrint = useReactToPrint({
-        content: () => printRef.current,
-        documentTitle: `Ficha de Contato - ${contact?.name}`,
-    });
+    const handlePrint = () => {
+        window.open(`/contatos/imprimir/${contact.id}`, '_blank');
+    };
 
     const badgeInfo = contact?.type === 'owner' ? { label: 'Proprietário', variant: 'outline' }
         : contact?.type === 'client' ? { label: 'Cliente', variant: 'secondary' }
@@ -111,7 +105,7 @@ export function ContactDetailModal({ contact, open, onOpenChange }: ContactDetai
                     </DialogTitle>
                 </DialogHeader>
 
-                <div ref={printRef} className="printable-content p-1">
+                <div>
                     <Card id="contact-sheet" className="shadow-none border-none">
                         <CardHeader>
                             <div className="flex items-center gap-4">

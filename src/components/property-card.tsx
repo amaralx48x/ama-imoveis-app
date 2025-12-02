@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Property } from "@/lib/data";
@@ -12,8 +13,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { MarkAsSoldDialog } from "./mark-as-sold-dialog";
-import { PropertyPreviewDialog } from "./property-preview-dialog";
-
 
 const portals = [
   { id: 'zap', name: 'ZAP+' },
@@ -22,7 +21,6 @@ const portals = [
   { id: 'chavesnamao', name: 'Chaves na Mão' },
   { id: 'tecimob', name: 'Tecimob' },
 ];
-
 
 interface PropertyCardProps {
   property: Property;
@@ -34,7 +32,6 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
   const router = useRouter();
   const { toast } = useToast();
   const [isSoldDialogOpen, setIsSoldDialogOpen] = useState(false);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const formattedPrice = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -77,8 +74,8 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
   }
 
   const handlePrint = () => {
-    setIsPreviewOpen(true);
-  }
+    window.open(`/imoveis/imprimir/${property.id}`, '_blank');
+  };
 
   const isDashboard = !!onDelete;
   const isForSale = property.operation === 'Comprar';
@@ -204,12 +201,6 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
             setIsSoldDialogOpen(false);
             onStatusChange?.();
         }}
-    />
-
-    <PropertyPreviewDialog 
-        property={property}
-        open={isPreviewOpen}
-        onOpenChange={setIsPreviewOpen}
     />
     </>
   );
