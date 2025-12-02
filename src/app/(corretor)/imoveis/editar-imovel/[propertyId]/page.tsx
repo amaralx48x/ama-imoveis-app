@@ -14,6 +14,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -28,13 +34,13 @@ import ImageUpload from "@/components/image-upload";
 import Image from "next/image";
 import type { Agent, Property, Contact } from "@/lib/data";
 import Link from "next/link";
-import { ArrowLeft, X, Loader2, Pencil, User, Share2, Video, Sparkles } from "lucide-react";
+import { ArrowLeft, X, Loader2, Pencil, User, Share2, Video, Sparkles, ChevronDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { generatePropertyDescription } from '@/ai/flows/generate-property-description-flow';
+import { generatePropertyDescription, GeneratePropertyDescriptionInput } from '@/ai/flows/generate-property-description-flow';
 
 
 const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
@@ -162,43 +168,50 @@ export default function EditarImovelPage() {
     }
   }, [propertyData, form]);
 
-    const handleGenerateDescription = async () => {
-    const values = form.getValues();
-    const { description, ...dataForAI } = values; // Exclude current description
-    
-    if (!dataForAI.type || !dataForAI.city || !dataForAI.neighborhood) {
-        toast({
-            title: "Informações insuficientes",
-            description: "Preencha pelo menos o tipo, cidade e bairro para gerar uma descrição.",
-            variant: "destructive"
-        });
-        return;
-    }
-    setIsGeneratingDescription(true);
-    try {
-        const result = await generatePropertyDescription({
-            type: dataForAI.type,
-            operation: dataForAI.operation,
-            city: dataForAI.city,
-            neighborhood: dataForAI.neighborhood,
-            bedrooms: dataForAI.bedrooms,
-            bathrooms: dataForAI.bathrooms,
-            garage: dataForAI.garage,
-            builtArea: dataForAI.builtArea
-        });
-        if (result?.description) {
-            form.setValue('description', result.description, { shouldValidate: true, shouldDirty: true });
-            toast({ title: "Descrição gerada com sucesso!" });
-        } else {
-            throw new Error("A descrição retornou vazia.");
+    const handleGenerateDescription = async (style: 'short' | 'detailed') => {
+        const values = form.getValues();
+        
+        const requiredFields: (keyof typeof values)[] = ['type', 'city', 'neighborhood', 'operation', 'price'];
+        const missingFields = requiredFields.filter(field => !values[field]);
+
+        if (missingFields.length > 0) {
+            toast({
+                title: "Informações insuficientes",
+                description: `Preencha pelo menos: ${missingFields.join(', ')} para gerar uma descrição.`,
+                variant: "destructive"
+            });
+            return;
         }
-    } catch (error) {
-        console.error("Erro ao gerar descrição:", error);
-        toast({ title: "Erro na IA", description: "Não foi possível gerar a descrição.", variant: "destructive" });
-    } finally {
-        setIsGeneratingDescription(false);
-    }
-  };
+        
+        setIsGeneratingDescription(true);
+        try {
+            const input: GeneratePropertyDescriptionInput = {
+                style,
+                type: values.type,
+                operation: values.operation,
+                city: values.city,
+                neighborhood: values.neighborhood,
+                bedrooms: values.bedrooms,
+                bathrooms: values.bathrooms,
+                garage: values.garage,
+                builtArea: values.builtArea,
+                price: values.price
+            };
+
+            const result = await generatePropertyDescription(input);
+            if (result?.description) {
+                form.setValue('description', result.description, { shouldValidate: true, shouldDirty: true });
+                toast({ title: "Descrição gerada com sucesso!" });
+            } else {
+                throw new Error("A descrição retornou vazia.");
+            }
+        } catch (error) {
+            console.error("Erro ao gerar descrição:", error);
+            toast({ title: "Erro na IA", description: "Não foi possível gerar a descrição.", variant: "destructive" });
+        } finally {
+            setIsGeneratingDescription(false);
+        }
+    };
 
 
   const handleUploadComplete = (url: string) => {
@@ -537,11 +550,24 @@ export default function EditarImovelPage() {
                 render={({ field }) => (
                     <FormItem>
                     <div className="flex justify-between items-center">
-                      <FormLabel>Descrição Completa</FormLabel>
-                      <Button type="button" variant="outline" size="sm" onClick={handleGenerateDescription} disabled={isGeneratingDescription}>
-                          {isGeneratingDescription ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                          Gerar com IA
-                      </Button>
+                        <FormLabel>Descrição Completa</FormLabel>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button type="button" variant="outline" size="sm" disabled={isGeneratingDescription}>
+                                {isGeneratingDescription ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                                Gerar com IA
+                                <ChevronDown className="ml-2 h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onSelect={() => handleGenerateDescription('short')}>
+                                Curto e Objetivo
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => handleGenerateDescription('detailed')}>
+                                Detalhado e Criativo
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                     <FormControl>
                         <Textarea placeholder="Descreva os detalhes do imóvel..." className="min-h-[150px]" {...field} />

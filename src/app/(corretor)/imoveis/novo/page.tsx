@@ -14,6 +14,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -29,13 +35,13 @@ import { useState, useMemo } from "react";
 import Image from "next/image";
 import type { Agent, Contact } from "@/lib/data";
 import Link from "next/link";
-import { ArrowLeft, X, Loader2, User, Video, PlusCircle, Sparkles } from "lucide-react";
+import { ArrowLeft, X, Loader2, User, Video, PlusCircle, Sparkles, ChevronDown } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { usePlan } from "@/context/PlanContext";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { generatePropertyDescription } from '@/ai/flows/generate-property-description-flow';
+import { generatePropertyDescription, GeneratePropertyDescriptionInput } from '@/ai/flows/generate-property-description-flow';
 
 
 const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
@@ -102,30 +108,37 @@ export default function NovoImovelPage() {
     },
   });
 
-  const handleGenerateDescription = async () => {
+  const handleGenerateDescription = async (style: 'short' | 'detailed') => {
     const values = form.getValues();
-    const { description, ...dataForAI } = values; // Exclude current description
+    
+    const requiredFields: (keyof typeof values)[] = ['type', 'city', 'neighborhood', 'operation', 'price'];
+    const missingFields = requiredFields.filter(field => !values[field]);
 
-    if (!dataForAI.type || !dataForAI.city || !dataForAI.neighborhood) {
+    if (missingFields.length > 0) {
         toast({
             title: "Informações insuficientes",
-            description: "Preencha pelo menos o tipo, cidade e bairro para gerar uma descrição.",
+            description: `Preencha pelo menos: ${missingFields.join(', ')} para gerar uma descrição.`,
             variant: "destructive"
         });
         return;
     }
+    
     setIsGeneratingDescription(true);
     try {
-        const result = await generatePropertyDescription({
-            type: dataForAI.type,
-            operation: dataForAI.operation,
-            city: dataForAI.city,
-            neighborhood: dataForAI.neighborhood,
-            bedrooms: dataForAI.bedrooms,
-            bathrooms: dataForAI.bathrooms,
-            garage: dataForAI.garage,
-            builtArea: dataForAI.builtArea
-        });
+        const input: GeneratePropertyDescriptionInput = {
+            style,
+            type: values.type,
+            operation: values.operation,
+            city: values.city,
+            neighborhood: values.neighborhood,
+            bedrooms: values.bedrooms,
+            bathrooms: values.bathrooms,
+            garage: values.garage,
+            builtArea: values.builtArea,
+            price: values.price
+        };
+
+        const result = await generatePropertyDescription(input);
         if (result?.description) {
             form.setValue('description', result.description, { shouldValidate: true, shouldDirty: true });
             toast({ title: "Descrição gerada com sucesso!" });
@@ -471,11 +484,24 @@ export default function NovoImovelPage() {
                 render={({ field }) => (
                     <FormItem>
                     <div className="flex justify-between items-center">
-                      <FormLabel>Descrição Completa</FormLabel>
-                      <Button type="button" variant="outline" size="sm" onClick={handleGenerateDescription} disabled={isGeneratingDescription}>
-                          {isGeneratingDescription ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                          Gerar com IA
-                      </Button>
+                        <FormLabel>Descrição Completa</FormLabel>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button type="button" variant="outline" size="sm" disabled={isGeneratingDescription}>
+                                {isGeneratingDescription ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                                Gerar com IA
+                                <ChevronDown className="ml-2 h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onSelect={() => handleGenerateDescription('short')}>
+                                Curto e Objetivo
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => handleGenerateDescription('detailed')}>
+                                Detalhado e Criativo
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                     <FormControl>
                         <Textarea placeholder="Descreva os detalhes do imóvel..." className="min-h-[150px]" {...field} />
