@@ -29,10 +29,12 @@ import { useState, useMemo } from "react";
 import Image from "next/image";
 import type { Agent, Contact } from "@/lib/data";
 import Link from "next/link";
-import { ArrowLeft, X, Gem, Loader2, User, Video } from "lucide-react";
+import { ArrowLeft, X, Gem, Loader2, User, Video, PlusCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { usePlan } from "@/context/PlanContext";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 
 const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
@@ -74,6 +76,7 @@ export default function NovoImovelPage() {
 
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCompleteForm, setShowCompleteForm] = useState(false);
   const propertyId = useMemo(() => uuidv4(), []);
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -220,8 +223,16 @@ export default function NovoImovelPage() {
         </Button>
         <Card className="max-w-4xl mx-auto">
         <CardHeader>
-            <CardTitle className="text-3xl font-bold font-headline">Adicionar Novo Imóvel</CardTitle>
-            <CardDescription>Preencha os detalhes abaixo para cadastrar um novo imóvel no seu portfólio.</CardDescription>
+            <div className="flex justify-between items-center">
+                <div>
+                    <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2"><PlusCircle /> Adicionar Novo Imóvel</CardTitle>
+                    <CardDescription>Preencha os detalhes abaixo para cadastrar um novo imóvel.</CardDescription>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <Switch id="complete-form-switch" checked={showCompleteForm} onCheckedChange={setShowCompleteForm} />
+                    <Label htmlFor="complete-form-switch">Cadastro Completo</Label>
+                </div>
+            </div>
         </CardHeader>
         <CardContent>
             <Form {...form}>
@@ -315,60 +326,54 @@ export default function NovoImovelPage() {
                     )}
                     />
                 </div>
-                 <FormField
+                
+                <FormField
                     control={form.control}
-                    name="ownerContactId"
+                    name="price"
                     render={({ field }) => (
-                        <FormItem>
-                        <FormLabel className="flex items-center gap-2"><User className="w-4 h-4"/> Proprietário (Opcional)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                    <FormItem>
+                        <FormLabel>Preço (R$)</FormLabel>
                         <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Selecione o proprietário do imóvel" />
-                            </SelectTrigger>
+                            <Input type="text" placeholder="R$ 850.000,00" onChange={handlePriceChange('price')} />
                         </FormControl>
-                        <SelectContent>
-                            <SelectItem value="none">Nenhum</SelectItem>
-                            {owners.map((owner: Contact) => (
-                                <SelectItem key={owner.id} value={owner.id}>{owner.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                        </Select>
-                        <FormDescription>Associe um contato cadastrado a este imóvel. Você pode cadastrar novos proprietários na seção "Contatos".</FormDescription>
                         <FormMessage />
-                        </FormItem>
+                    </FormItem>
                     )}
                 />
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <FormField control={form.control} name="price" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Preço (R$)</FormLabel>
-                            <FormControl>
-                                <Input type="text" placeholder="R$ 850.000,00" onChange={handlePriceChange('price')} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="condoFee" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Condomínio (R$)</FormLabel>
-                            <FormControl>
-                                <Input type="text" placeholder="R$ 500,00" onChange={handlePriceChange('condoFee')} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="yearlyTax" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>IPTU Anual (R$)</FormLabel>
-                            <FormControl>
-                                <Input type="text" placeholder="R$ 1.200,00" onChange={handlePriceChange('yearlyTax')} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                </div>
+                {showCompleteForm && (
+                     <div className="space-y-8 p-6 bg-muted/50 rounded-lg">
+                        <p className="text-sm text-muted-foreground">O cadastro completo é ideal para exportar para portais imobiliários. Você pode preencher estes campos depois em "Editar Imóvel".</p>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField control={form.control} name="condoFee" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Condomínio (R$)</FormLabel>
+                                    <FormControl>
+                                        <Input type="text" placeholder="R$ 500,00" onChange={handlePriceChange('condoFee')} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                            <FormField control={form.control} name="yearlyTax" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>IPTU Anual (R$)</FormLabel>
+                                    <FormControl>
+                                        <Input type="text" placeholder="R$ 1.200,00" onChange={handlePriceChange('yearlyTax')} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                        </div>
+                        <FormField control={form.control} name="videoUrl" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="flex items-center gap-2"><Video /> Vídeo do Imóvel (Opcional)</FormLabel>
+                                <FormControl><Input placeholder="https://youtube.com/watch?v=..." {...field} /></FormControl>
+                                <FormDescription>Cole aqui a URL de um vídeo do YouTube ou Vimeo.</FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                     </div>
+                )}
 
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -397,16 +402,30 @@ export default function NovoImovelPage() {
                 )}
                 />
                 
-                <Separator />
-                
-                <FormField control={form.control} name="videoUrl" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel className="flex items-center gap-2"><Video /> Vídeo do Imóvel (Opcional)</FormLabel>
-                        <FormControl><Input placeholder="https://youtube.com/watch?v=..." {...field} /></FormControl>
-                        <FormDescription>Cole aqui a URL de um vídeo do YouTube ou Vimeo.</FormDescription>
+                 <FormField
+                    control={form.control}
+                    name="ownerContactId"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel className="flex items-center gap-2"><User className="w-4 h-4"/> Proprietário (Opcional)</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Selecione o proprietário do imóvel" />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            <SelectItem value="none">Nenhum</SelectItem>
+                            {owners.map((owner: Contact) => (
+                                <SelectItem key={owner.id} value={owner.id}>{owner.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                        <FormDescription>Associe um contato cadastrado a este imóvel. Você pode cadastrar novos proprietários na seção "Contatos".</FormDescription>
                         <FormMessage />
-                    </FormItem>
-                 )} />
+                        </FormItem>
+                    )}
+                />
 
                 <Separator />
                 
