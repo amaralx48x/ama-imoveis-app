@@ -1,3 +1,4 @@
+
 "use client";
 import React, { useState, useEffect } from "react";
 import { createContact, updateContact } from "@/firebase/contacts";
@@ -18,8 +19,8 @@ interface ContactFormModalProps {
     initialData?: Contact | null;
 }
 
-const defaultFormState = {
-    name: "", cpf: "", phone: "", email: "", age: "", notes: "", type: "owner"
+const defaultFormState: Omit<Contact, 'id' | 'createdAt' | 'updatedAt' | 'linkedPropertyIds'> = {
+    name: "", cpf: "", phone: "", email: "", age: undefined, notes: "", type: "owner"
 };
 
 export default function ContactFormModal({ open, onClose, agentId, initialData=null }: ContactFormModalProps) {
@@ -34,7 +35,7 @@ export default function ContactFormModal({ open, onClose, agentId, initialData=n
             cpf: initialData.cpf || "",
             phone: initialData.phone || "",
             email: initialData.email || "",
-            age: initialData.age?.toString() || "",
+            age: initialData.age || undefined,
             notes: initialData.notes || "",
             type: initialData.type || "owner"
         });
@@ -53,10 +54,13 @@ export default function ContactFormModal({ open, onClose, agentId, initialData=n
 
   const save = async () => {
     if (!agentId) return toast({title: "Erro de autenticação", variant: "destructive"});
-    if (!form.name) return toast({title: "O nome é obrigatório", variant: "destructive"});
+    if (!form.name.trim()) return toast({title: "O nome é obrigatório", variant: "destructive"});
     
     setIsSubmitting(true);
-    const payload = { ...form, age: Number(form.age) || null };
+    const payload: Partial<Contact> = { 
+        ...form, 
+        age: form.age ? Number(form.age) : undefined,
+    };
     try {
         if (initialData?.id) {
             await updateContact(agentId, initialData.id, payload);
@@ -76,7 +80,7 @@ export default function ContactFormModal({ open, onClose, agentId, initialData=n
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[480px]">
              <DialogHeader>
                 <DialogTitle>{initialData ? "Editar Contato" : "Novo Contato"}</DialogTitle>
                 <DialogDescription>
@@ -115,7 +119,7 @@ export default function ContactFormModal({ open, onClose, agentId, initialData=n
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="age" className="text-right">Idade</Label>
-                    <Input id="age" name="age" type="number" placeholder="42" value={form.age} onChange={handleChange} className="col-span-3" />
+                    <Input id="age" name="age" type="number" placeholder="42" value={form.age || ''} onChange={handleChange} className="col-span-3" />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="notes" className="text-right">Notas</Label>

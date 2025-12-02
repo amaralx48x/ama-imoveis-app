@@ -1,11 +1,13 @@
+
 'use client';
 import React from "react";
 import { deleteContact } from "@/firebase/contacts";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { MoreVertical, Edit, Trash2 } from "lucide-react";
+import { MoreVertical, Edit, Trash2, User, Building } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Contact } from "@/lib/data";
+import { Badge } from "../ui/badge";
 
 interface ContactCardProps {
     contact: Contact;
@@ -29,9 +31,15 @@ export default function ContactCard({ contact, onEdit, agentId }: ContactCardPro
   }
 
   return (
-    <div className="p-4 border rounded-lg flex justify-between items-center bg-card">
+    <div className="p-4 border rounded-lg flex justify-between items-center bg-card hover:bg-muted/50 transition-colors">
       <div className="space-y-1">
-        <div className="font-bold text-base">{contact.name}</div>
+        <div className="flex items-center gap-2">
+            <h4 className="font-bold text-base">{contact.name}</h4>
+            <Badge variant={contact.type === 'owner' ? 'outline' : 'secondary'}>
+                {contact.type === 'owner' ? <Building className="mr-1 h-3 w-3"/> : <User className="mr-1 h-3 w-3" />}
+                {contact.type === 'owner' ? 'Proprietário' : 'Cliente'}
+            </Badge>
+        </div>
         <div className="text-sm text-muted-foreground">{contact.phone} {contact.phone && contact.email && '•'} {contact.email}</div>
         <div className="text-xs text-muted-foreground">Propriedades vinculadas: {contact.linkedPropertyIds?.length || 0}</div>
       </div>
