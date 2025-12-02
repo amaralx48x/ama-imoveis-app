@@ -27,7 +27,7 @@ import ImageUpload from "@/components/image-upload";
 import Image from "next/image";
 import type { Agent, Property, Contact } from "@/lib/data";
 import Link from "next/link";
-import { ArrowLeft, X, Loader2, Pencil, User, Share2, Video, Gem } from "lucide-react";
+import { ArrowLeft, X, Loader2, Pencil, User, Share2, Video, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -111,7 +111,7 @@ export default function EditarImovelPage() {
   const agentRef = useMemoFirebase(() => (firestore && user ? doc(firestore, 'agents', user.uid) : null), [firestore, user]);
   const { data: agentData } = useDoc<Agent>(agentRef);
 
-  const propertyRef = useMemoFirebase(() => (firestore && user && propertyId ? doc(firestore, `agents/${user.uid}/properties`, propertyId) : null), [firestore, user, propertyId]);
+  const propertyRef = useMemoFirebase(() => (firestore && user && propertyId ? doc(firestore, `agents/${'user'}.uid}/properties`, propertyId) : null), [firestore, user, propertyId]);
   const { data: propertyData, isLoading: isPropertyLoading, mutate } = useDoc<Property>(propertyRef);
   
   const { contacts } = useContacts(user?.uid || null);
@@ -163,10 +163,12 @@ export default function EditarImovelPage() {
 
     const handleGenerateDescription = async () => {
     const values = form.getValues();
-    if (!values.type || !values.city || !values.neighborhood || !values.bedrooms) {
+    const { description, ...dataForAI } = values; // Exclude current description
+    
+    if (!dataForAI.type || !dataForAI.city || !dataForAI.neighborhood) {
         toast({
             title: "Informações insuficientes",
-            description: "Preencha pelo menos o tipo, cidade, bairro e número de quartos para gerar uma descrição.",
+            description: "Preencha pelo menos o tipo, cidade e bairro para gerar uma descrição.",
             variant: "destructive"
         });
         return;
@@ -174,14 +176,14 @@ export default function EditarImovelPage() {
     setIsGeneratingDescription(true);
     try {
         const result = await generatePropertyDescription({
-            type: values.type,
-            operation: values.operation,
-            city: values.city,
-            neighborhood: values.neighborhood,
-            bedrooms: values.bedrooms,
-            bathrooms: values.bathrooms,
-            garage: values.garage,
-            builtArea: values.builtArea
+            type: dataForAI.type,
+            operation: dataForAI.operation,
+            city: dataForAI.city,
+            neighborhood: dataForAI.neighborhood,
+            bedrooms: dataForAI.bedrooms,
+            bathrooms: dataForAI.bathrooms,
+            garage: dataForAI.garage,
+            builtArea: dataForAI.builtArea
         });
         if (result?.description) {
             form.setValue('description', result.description, { shouldValidate: true, shouldDirty: true });
@@ -536,7 +538,7 @@ export default function EditarImovelPage() {
                     <div className="flex justify-between items-center">
                       <FormLabel>Descrição Completa</FormLabel>
                       <Button type="button" variant="outline" size="sm" onClick={handleGenerateDescription} disabled={isGeneratingDescription}>
-                          {isGeneratingDescription ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Gem className="mr-2 h-4 w-4" />}
+                          {isGeneratingDescription ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                           Gerar com IA
                       </Button>
                     </div>
