@@ -28,13 +28,22 @@ import ImageUpload from "@/components/image-upload";
 import Image from "next/image";
 import type { Agent, Property, Contact } from "@/lib/data";
 import Link from "next/link";
-import { ArrowLeft, X, Loader2, Pencil, User } from "lucide-react";
+import { ArrowLeft, X, Loader2, Pencil, User, Share2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 
 
 const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
 const operationTypes = ["Venda", "Aluguel"];
+const portals = [
+  { id: 'zap', name: 'ZAP+ (ZAP, VivaReal, OLX)' },
+  { id: 'imovelweb', name: 'Imovelweb' },
+  { id: 'casamineira', name: 'Casa Mineira (Mercado Livre)' },
+  { id: 'chavesnamao', name: 'Chaves na Mão' },
+  { id: 'tecimob', name: 'Tecimob' },
+];
+
 
 const formSchema = z.object({
   title: z.string().min(5, "O título deve ter pelo menos 5 caracteres."),
@@ -51,6 +60,13 @@ const formSchema = z.object({
   builtArea: z.coerce.number().positive("A área construída deve ser positiva."),
   totalArea: z.coerce.number().positive("A área total deve ser positiva."),
   ownerContactId: z.string().optional(),
+  portalPublish: z.object({
+    zap: z.boolean().optional(),
+    imovelweb: z.boolean().optional(),
+    casamineira: z.boolean().optional(),
+    chavesnamao: z.boolean().optional(),
+    tecimob: z.boolean().optional(),
+  }).optional(),
 });
 
 function EditFormSkeleton() {
@@ -113,6 +129,7 @@ export default function EditarImovelPage() {
       builtArea: 0,
       totalArea: 0,
       ownerContactId: '',
+      portalPublish: {},
     },
   });
   
@@ -121,6 +138,7 @@ export default function EditarImovelPage() {
       form.reset({
         ...propertyData,
         ownerContactId: propertyData.ownerContactId || '',
+        portalPublish: propertyData.portalPublish || {},
       });
       setImageUrls(propertyData.imageUrls || []);
     }
@@ -175,6 +193,7 @@ export default function EditarImovelPage() {
       ...values,
       imageUrls: imageUrls,
       ownerContactId: values.ownerContactId === 'none' ? null : values.ownerContactId,
+      portalPublish: values.portalPublish || {},
     };
     
     try {
@@ -366,6 +385,48 @@ export default function EditarImovelPage() {
                     <FormMessage />
                     </FormItem>
                 )}
+                />
+
+                <Separator />
+                
+                <FormField
+                  control={form.control}
+                  name="portalPublish"
+                  render={() => (
+                    <FormItem>
+                      <div className="mb-4">
+                        <FormLabel className="text-lg font-semibold flex items-center gap-2">
+                          <Share2 /> Publicar em Portais
+                        </FormLabel>
+                        <FormDescription>
+                          Selecione em quais portais imobiliários este imóvel deve ser anunciado.
+                        </FormDescription>
+                      </div>
+                      <div className="space-y-3">
+                        {portals.map((portal) => (
+                            <FormField
+                                key={portal.id}
+                                control={form.control}
+                                name={`portalPublish.${portal.id}` as any}
+                                render={({ field }) => (
+                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4 hover:bg-accent/50 transition-colors">
+                                    <FormControl>
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                    </FormControl>
+                                    <FormLabel className="font-medium text-base w-full cursor-pointer">
+                                    {portal.name}
+                                    </FormLabel>
+                                </FormItem>
+                                )}
+                            />
+                        ))}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
                 
                  <Separator />
