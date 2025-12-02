@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowLeft, CheckCircle, FileUp, ListChecks, Send, XCircle, Gem, Loader2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle, FileUp, ListChecks, Send, XCircle, Gem, Loader2, Link as LinkIcon, Rss } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Property } from '@/lib/data';
 import { Separator } from '@/components/ui/separator';
@@ -33,6 +33,8 @@ export default function ImportImoveisPage() {
   const [stagedProperties, setStagedProperties] = useState<StagedProperty[]>([]);
   const [fileName, setFileName] = useState<string>('');
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [xmlUrl, setXmlUrl] = useState('');
+  const [isImportingFromXml, setIsImportingFromXml] = useState(false);
   
   const { user } = useUser();
   const firestore = useFirestore();
@@ -155,6 +157,42 @@ export default function ImportImoveisPage() {
         setIsUploading(false);
     }
   };
+
+  const handleImportFromXml = async () => {
+    if (!xmlUrl.trim()) {
+        return toast({ title: "URL do XML é obrigatória", variant: "destructive" });
+    }
+    if (!user) {
+        return toast({ title: "Usuário não autenticado", variant: "destructive" });
+    }
+
+    setIsImportingFromXml(true);
+    try {
+        const response = await fetch('/api/import-xml', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ agentId: user.uid, xmlUrl }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Erro desconhecido ao importar XML.');
+        }
+
+        toast({
+            title: "Importação XML Iniciada!",
+            description: `${result.importedCount} imóveis foram importados com sucesso.`,
+        });
+        setXmlUrl('');
+
+    } catch (error: any) {
+        console.error("Erro ao importar do XML:", error);
+        toast({ title: "Erro na Importação XML", description: error.message, variant: "destructive" });
+    } finally {
+        setIsImportingFromXml(false);
+    }
+};
   
   const validCount = stagedProperties.filter(p => p.status === 'valid').length;
   const invalidCount = stagedProperties.filter(p => p.status === 'invalid').length;
@@ -193,7 +231,7 @@ export default function ImportImoveisPage() {
 
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
         <Button variant="outline" asChild>
             <Link href="/imoveis">
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -201,81 +239,104 @@ export default function ImportImoveisPage() {
             </Link>
         </Button>
         <Card>
-        <CardHeader>
-            <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2"><FileUp/> Importar Imóveis via CSV</CardTitle>
-            <CardDescription>
-            Faça o upload de um arquivo CSV para adicionar múltiplos imóveis de uma vez. Certifique-se de que as colunas do seu arquivo correspondem aos campos necessários.
-            </CardDescription>
-            <CardDescription className="!mt-4">
-                <a href="/imoveis-exemplo.csv" download className="text-primary underline font-medium">Baixar arquivo de exemplo (.csv)</a>
-            </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-            <div className="p-4 border-2 border-dashed rounded-lg text-center">
-                <label htmlFor="csv-upload" className="cursor-pointer flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
-                    <FileUp className="w-8 h-8"/>
-                    <span className="font-medium">{fileName || "Clique aqui para selecionar um arquivo .csv"}</span>
-                </label>
-                <Input id="csv-upload" type="file" accept=".csv" onChange={handleFileUpload} className="hidden" />
-            </div>
-
-            {stagedProperties.length > 0 && (
-            <div className="space-y-6">
-                <Alert>
-                    <ListChecks className="h-4 w-4" />
-                    <AlertTitle>Prévia da Importação</AlertTitle>
-                    <AlertDescription className="flex gap-4">
-                    <span><b className="text-green-500">{validCount}</b> imóveis válidos.</span>
-                    <span><b className="text-destructive">{invalidCount}</b> imóveis com erros.</span>
-                    </AlertDescription>
-                </Alert>
-                
-                <div className="max-h-[400px] overflow-auto border rounded-lg">
-                    <Table>
-                        <TableHeader className="sticky top-0 bg-muted/95 backdrop-blur-sm">
-                            <TableRow>
-                                <TableHead className="w-[50px]">Status</TableHead>
-                                <TableHead>Título</TableHead>
-                                <TableHead>Cidade</TableHead>
-                                <TableHead>Preço</TableHead>
-                                <TableHead>Erros</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {stagedProperties.slice(0, 20).map((p, index) => (
-                                <TableRow key={index} className={p.status === 'invalid' ? 'bg-destructive/10' : ''}>
-                                    <TableCell>
-                                        {p.status === 'valid' 
-                                            ? <CheckCircle className="h-5 w-5 text-green-500" /> 
-                                            : <XCircle className="h-5 w-5 text-destructive" />}
-                                    </TableCell>
-                                    <TableCell className="font-medium">{p.data.title || 'N/A'}</TableCell>
-                                    <TableCell>{p.data.city || 'N/A'}</TableCell>
-                                    <TableCell>{p.data.price ? Number(p.data.price).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) : 'N/A'}</TableCell>
-                                    <TableCell className="text-xs text-destructive">{p.errors.join(', ')}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                    {stagedProperties.length > 20 && <p className="p-4 text-center text-sm text-muted-foreground">Mostrando os primeiros 20 registros...</p>}
+            <CardHeader>
+                <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2"><FileUp/> Importar Imóveis</CardTitle>
+                <CardDescription>
+                Adicione múltiplos imóveis de uma vez, seja através de um arquivo CSV ou de um feed XML de outro portal.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-8">
+                {/* XML Import Section */}
+                <div className="space-y-4">
+                    <h3 className="text-xl font-semibold flex items-center gap-2"><Rss /> Importar via Feed XML</h3>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        <Input
+                            placeholder="Cole a URL do feed XML aqui..."
+                            value={xmlUrl}
+                            onChange={(e) => setXmlUrl(e.target.value)}
+                            disabled={isImportingFromXml}
+                        />
+                        <Button onClick={handleImportFromXml} disabled={isImportingFromXml || !xmlUrl.trim()}>
+                            {isImportingFromXml ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Importando...</> : <><LinkIcon className="mr-2 h-4 w-4"/> Importar do XML</>}
+                        </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Cole o link de um feed XML no formato ZAP/OLX para importar os imóveis para sua conta.</p>
                 </div>
-                
+
                 <Separator />
 
-                <div className="flex justify-end">
-                    <Button
-                        onClick={handleUploadToFirestore}
-                        disabled={isUploading || validCount === 0}
-                        size="lg"
-                        className="bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity"
-                    >
-                        <Send className="mr-2 h-4 w-4" />
-                        {isUploading ? `Importando ${validCount} imóveis...` : `Importar ${validCount} imóveis válidos`}
-                    </Button>
+                {/* CSV Import Section */}
+                <div className="space-y-4">
+                    <h3 className="text-xl font-semibold">Importar via Arquivo CSV</h3>
+                    <div className="p-4 border-2 border-dashed rounded-lg text-center">
+                        <label htmlFor="csv-upload" className="cursor-pointer flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+                            <FileUp className="w-8 h-8"/>
+                            <span className="font-medium">{fileName || "Clique aqui para selecionar um arquivo .csv"}</span>
+                        </label>
+                        <Input id="csv-upload" type="file" accept=".csv" onChange={handleFileUpload} className="hidden" />
+                    </div>
+                     <CardDescription>
+                        <a href="/imoveis-exemplo.csv" download className="text-primary underline font-medium">Baixar arquivo de exemplo (.csv)</a> para garantir a formatação correta.
+                    </CardDescription>
                 </div>
-            </div>
-            )}
-        </CardContent>
+
+                {stagedProperties.length > 0 && (
+                <div className="space-y-6">
+                    <Alert>
+                        <ListChecks className="h-4 w-4" />
+                        <AlertTitle>Prévia da Importação</AlertTitle>
+                        <AlertDescription className="flex gap-4">
+                        <span><b className="text-green-500">{validCount}</b> imóveis válidos.</span>
+                        <span><b className="text-destructive">{invalidCount}</b> imóveis com erros.</span>
+                        </AlertDescription>
+                    </Alert>
+                    
+                    <div className="max-h-[400px] overflow-auto border rounded-lg">
+                        <Table>
+                            <TableHeader className="sticky top-0 bg-muted/95 backdrop-blur-sm">
+                                <TableRow>
+                                    <TableHead className="w-[50px]">Status</TableHead>
+                                    <TableHead>Título</TableHead>
+                                    <TableHead>Cidade</TableHead>
+                                    <TableHead>Preço</TableHead>
+                                    <TableHead>Erros</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {stagedProperties.slice(0, 20).map((p, index) => (
+                                    <TableRow key={index} className={p.status === 'invalid' ? 'bg-destructive/10' : ''}>
+                                        <TableCell>
+                                            {p.status === 'valid' 
+                                                ? <CheckCircle className="h-5 w-5 text-green-500" /> 
+                                                : <XCircle className="h-5 w-5 text-destructive" />}
+                                        </TableCell>
+                                        <TableCell className="font-medium">{p.data.title || 'N/A'}</TableCell>
+                                        <TableCell>{p.data.city || 'N/A'}</TableCell>
+                                        <TableCell>{p.data.price ? Number(p.data.price).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) : 'N/A'}</TableCell>
+                                        <TableCell className="text-xs text-destructive">{p.errors.join(', ')}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                        {stagedProperties.length > 20 && <p className="p-4 text-center text-sm text-muted-foreground">Mostrando os primeiros 20 registros...</p>}
+                    </div>
+                    
+                    <Separator />
+
+                    <div className="flex justify-end">
+                        <Button
+                            onClick={handleUploadToFirestore}
+                            disabled={isUploading || validCount === 0}
+                            size="lg"
+                            className="bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity"
+                        >
+                            <Send className="mr-2 h-4 w-4" />
+                            {isUploading ? `Importando ${validCount} imóveis...` : `Importar ${validCount} imóveis válidos`}
+                        </Button>
+                    </div>
+                </div>
+                )}
+            </CardContent>
         </Card>
     </div>
   );
