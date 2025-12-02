@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import type { Contact } from "@/lib/data";
 import { Badge } from "../ui/badge";
 import { useFirestore } from "@/firebase";
+import Link from "next/link";
 
 interface ContactCardProps {
     contact: Contact;
@@ -47,10 +48,10 @@ export default function ContactCard({ contact, onEdit, agentId }: ContactCardPro
   }
 
   return (
-    <div className="p-4 border rounded-lg flex justify-between items-center bg-card hover:bg-muted/50 transition-colors">
-      <div className="space-y-1">
+    <div className="p-4 border rounded-lg flex justify-between items-center bg-card hover:bg-muted/50 transition-colors group">
+      <Link href={`/contatos/${contact.id}`} className="flex-grow space-y-1 cursor-pointer">
         <div className="flex items-center gap-2">
-            <h4 className="font-bold text-base">{contact.name}</h4>
+            <h4 className="font-bold text-base group-hover:text-primary transition-colors">{contact.name}</h4>
             <Badge variant={badgeInfo.variant}>
                 {badgeInfo.icon}
                 {badgeInfo.label}
@@ -58,7 +59,7 @@ export default function ContactCard({ contact, onEdit, agentId }: ContactCardPro
         </div>
         <div className="text-sm text-muted-foreground">{contact.phone} {contact.phone && contact.email && '•'} {contact.email}</div>
         <div className="text-xs text-muted-foreground">Propriedades vinculadas: {contact.linkedPropertyIds?.length || 0}</div>
-      </div>
+      </Link>
       <div className="flex gap-2">
          <DropdownMenu>
             <DropdownMenuTrigger asChild>
