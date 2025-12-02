@@ -165,3 +165,5 @@ export function ContactDetailModal({ contact, open, onOpenChange }: ContactDetai
         </Dialog>
     );
 }
+
+    

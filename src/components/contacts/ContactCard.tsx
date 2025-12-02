@@ -86,3 +86,5 @@ export default function ContactCard({ contact, onEdit, onViewDetails, agentId }:
     </div>
   );
 }
+
+    

@@ -33,6 +33,7 @@
         "soldAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was sold or rented." },
         "commissionValue": { "type": "number", "description": "The final commission value earned from the transaction." },
         "ownerContactId": { "type": "string", "description": "Reference to the contact who owns this property." },
+        "tenantContactId": { "type": "string", "description": "Reference to the contact who is the tenant of this property." },
         "portalPublish": {
           "type": "object",
           "description": "Flags to control which real estate portals this property is published to.",
@@ -336,3 +337,5 @@
   }
 }
   
+
+    

@@ -26,7 +26,7 @@ export type Property = {
   city: string;
   neighborhood: string;
   type: 'Apartamento' | 'Casa' | 'Chácara' | 'Galpão' | 'Sala' | 'Kitnet' | 'Terreno' | 'Lote' | 'Alto Padrão';
-  operation: 'Venda' | 'Alugar';
+  operation: 'Venda' | 'Aluguel';
   sectionIds: string[];
   phone?: string;
   agentId?: string; 
@@ -35,6 +35,7 @@ export type Property = {
   soldAt?: any; // ou rentedAt
   commissionValue?: number;
   ownerContactId?: string | null;
+  tenantContactId?: string | null;
   portalPublish?: {
     zap?: boolean;
     imovelweb?: boolean;
@@ -357,3 +358,5 @@ export const getProperties = () => properties;
 export const getReviews = () => staticReviews;
 export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Guarujá', 'Rio de Janeiro', 'Belo Horizonte', 'Curitiba', 'Porto Alegre'];
 export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
+
+    
