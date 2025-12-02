@@ -1,8 +1,7 @@
-
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
-import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import type { Contact, Property } from '@/lib/data';
 import { Button } from '@/components/ui/button';
@@ -16,7 +15,7 @@ import { useReactToPrint } from 'react-to-print';
 import { Skeleton } from '../ui/skeleton';
 
 function DetailItem({ icon, label, value }: { icon: React.ReactNode, label: string, value?: string | number | null }) {
-    if (!value) return null;
+    if (!value && value !== 0) return null;
     return (
         <div className="flex items-start gap-3">
             <div className="text-muted-foreground mt-1">{icon}</div>
@@ -34,6 +33,16 @@ interface ContactDetailModalProps {
     onOpenChange: (open: boolean) => void;
 }
 
+// Helper function to split an array into chunks
+function chunkArray<T>(array: T[], size: number): T[][] {
+  const chunkedArr: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunkedArr.push(array.slice(i, i + size));
+  }
+  return chunkedArr;
+}
+
+
 export function ContactDetailModal({ contact, open, onOpenChange }: ContactDetailModalProps) {
     const { user } = useUser();
     const firestore = useFirestore();
@@ -44,21 +53,40 @@ export function ContactDetailModal({ contact, open, onOpenChange }: ContactDetai
 
     useEffect(() => {
         if (!open) return;
-        setLoading(true);
-        if (contact?.linkedPropertyIds && contact.linkedPropertyIds.length > 0 && firestore && user) {
-            const fetchProperties = async () => {
-                const propsRef = collection(firestore, `agents/${user.uid}/properties`);
-                const q = query(propsRef, where('id', 'in', contact.linkedPropertyIds));
-                const snapshot = await getDocs(q);
-                const props = snapshot.docs.map(d => d.data() as Property);
-                setLinkedProperties(props);
-                 setLoading(false);
+
+        async function fetchProperties() {
+            setLoading(true);
+            if (!contact?.linkedPropertyIds || contact.linkedPropertyIds.length === 0 || !firestore || !user) {
+                setLinkedProperties([]);
+                setLoading(false);
+                return;
             }
-            fetchProperties();
-        } else {
-            setLinkedProperties([]);
-            setLoading(false);
+            
+            try {
+                const propertyIds = contact.linkedPropertyIds;
+                const propsRef = collection(firestore, `agents/${user.uid}/properties`);
+                const allFetchedProperties: Property[] = [];
+
+                // Firestore 'in' query has a limit of 30 elements. Chunk the requests.
+                const idChunks = chunkArray(propertyIds, 30);
+
+                for (const chunk of idChunks) {
+                    const q = query(propsRef, where('id', 'in', chunk));
+                    const snapshot = await getDocs(q);
+                    const props = snapshot.docs.map(d => d.data() as Property);
+                    allFetchedProperties.push(...props);
+                }
+                
+                setLinkedProperties(allFetchedProperties);
+            } catch (error) {
+                console.error("Failed to fetch linked properties:", error);
+                setLinkedProperties([]); // Clear on error
+            } finally {
+                setLoading(false);
+            }
         }
+        
+        fetchProperties();
     }, [contact, firestore, user, open]);
 
     const handlePrint = useReactToPrint({
@@ -109,22 +137,23 @@ export function ContactDetailModal({ contact, open, onOpenChange }: ContactDetai
                                 <DetailItem icon={<Hash className="w-4 h-4"/>} label="CPF" value={contact.cpf} />
                                 <DetailItem icon={<Calendar className="w-4 h-4"/>} label="Idade" value={contact.age} />
                             </div>
-                            <Separator />
-                             <DetailItem icon={<StickyNote className="w-4 h-4"/>} label="Anotações" value={contact.notes} />
+                            
+                            <DetailItem icon={<StickyNote className="w-4 h-4"/>} label="Anotações" value={contact.notes} />
                             
                             {loading ? (
-                                <div className="space-y-2">
-                                    <Skeleton className="h-4 w-1/3" />
-                                    <Skeleton className="h-16 w-full" />
+                                <div className="space-y-2 pt-4">
+                                    <Skeleton className="h-4 w-1/3 mb-2" />
+                                    <Skeleton className="h-12 w-full" />
+                                    <Skeleton className="h-12 w-full" />
                                 </div>
-                            ) : linkedProperties.length > 0 && (
+                            ) : linkedProperties.length > 0 ? (
                                 <>
                                     <Separator />
                                     <div>
-                                        <h4 className="text-sm text-muted-foreground mb-2 flex items-center gap-2"><Home className="w-4 h-4"/>Imóveis Vinculados</h4>
+                                        <h4 className="text-sm text-muted-foreground mb-2 flex items-center gap-2"><Home className="w-4 h-4"/>Imóveis Vinculados ({linkedProperties.length})</h4>
                                         <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
                                             {linkedProperties.map(prop => (
-                                                <Link key={prop.id} href={`/imoveis/editar-imovel/${prop.id}`}>
+                                                <Link key={prop.id} href={`/imoveis/editar-imovel/${prop.id}`} className="block">
                                                    <div className="p-3 border rounded-md hover:bg-muted/50 transition-colors">
                                                         <p className="font-semibold">{prop.title}</p>
                                                         <p className="text-xs text-muted-foreground">{prop.neighborhood}, {prop.city}</p>
@@ -134,7 +163,7 @@ export function ContactDetailModal({ contact, open, onOpenChange }: ContactDetai
                                         </div>
                                     </div>
                                 </>
-                            )}
+                            ) : null}
                         </CardContent>
                     </Card>
                 </div>
