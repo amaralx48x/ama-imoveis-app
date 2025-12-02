@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm } from "react-hook-form";
@@ -32,6 +31,8 @@ import { ArrowLeft, X, Loader2, Pencil, User, Share2, Video } from "lucide-react
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 
 const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
@@ -116,6 +117,7 @@ export default function EditarImovelPage() {
   const owners = useMemo(() => contacts.filter((c: Contact) => c.type === 'owner'), [contacts]);
 
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [showCompleteForm, setShowCompleteForm] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -150,6 +152,10 @@ export default function EditarImovelPage() {
         yearlyTax: propertyData.yearlyTax || 0,
       });
       setImageUrls(propertyData.imageUrls || []);
+
+      if (propertyData.condoFee || propertyData.yearlyTax || propertyData.videoUrl || (propertyData.portalPublish && Object.values(propertyData.portalPublish).some(v => v))) {
+        setShowCompleteForm(true);
+      }
     }
   }, [propertyData, form]);
 
@@ -257,8 +263,16 @@ export default function EditarImovelPage() {
         </Button>
         <Card className="max-w-4xl mx-auto">
         <CardHeader>
-            <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2"><Pencil /> Editar Imóvel</CardTitle>
-            <CardDescription>Altere os detalhes do imóvel <span className="font-semibold text-primary">{propertyData?.title || '...'}</span>.</CardDescription>
+            <div className="flex justify-between items-center">
+                <div>
+                    <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2"><Pencil /> Editar Imóvel</CardTitle>
+                    <CardDescription>Altere os detalhes do imóvel <span className="font-semibold text-primary">{propertyData?.title || '...'}</span>.</CardDescription>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <Switch id="complete-form-switch" checked={showCompleteForm} onCheckedChange={setShowCompleteForm} />
+                    <Label htmlFor="complete-form-switch">Cadastro Completo</Label>
+                </div>
+            </div>
         </CardHeader>
         <CardContent>
             {isPropertyLoading ? <EditFormSkeleton /> : (
@@ -379,35 +393,89 @@ export default function EditarImovelPage() {
                     )}
                 />
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <FormField control={form.control} name="price" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Preço (R$)</FormLabel>
-                            <FormControl>
-                                <Input type="text" placeholder="R$ 850.000,00" onChange={handlePriceChange('price')} defaultValue={field.value ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(field.value) : ''}/>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="condoFee" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Condomínio (R$)</FormLabel>
-                            <FormControl>
-                                <Input type="text" placeholder="R$ 500,00" onChange={handlePriceChange('condoFee')} defaultValue={field.value ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(field.value) : ''}/>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="yearlyTax" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>IPTU Anual (R$)</FormLabel>
-                            <FormControl>
-                                <Input type="text" placeholder="R$ 1.200,00" onChange={handlePriceChange('yearlyTax')} defaultValue={field.value ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(field.value) : ''}/>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                </div>
+                <FormField control={form.control} name="price" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Preço (R$)</FormLabel>
+                        <FormControl>
+                            <Input type="text" placeholder="R$ 850.000,00" onChange={handlePriceChange('price')} defaultValue={field.value ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(field.value) : ''}/>
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )} />
+
+                {showCompleteForm && (
+                     <div className="space-y-8 p-6 bg-muted/50 rounded-lg">
+                        <p className="text-sm text-muted-foreground">O cadastro completo é ideal para exportar para portais imobiliários. Você pode preencher estes campos depois em "Editar Imóvel".</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField control={form.control} name="condoFee" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Condomínio (R$)</FormLabel>
+                                    <FormControl>
+                                        <Input type="text" placeholder="R$ 500,00" onChange={handlePriceChange('condoFee')} defaultValue={field.value ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(field.value) : ''}/>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                            <FormField control={form.control} name="yearlyTax" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>IPTU Anual (R$)</FormLabel>
+                                    <FormControl>
+                                        <Input type="text" placeholder="R$ 1.200,00" onChange={handlePriceChange('yearlyTax')} defaultValue={field.value ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(field.value) : ''}/>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                        </div>
+                         <FormField control={form.control} name="videoUrl" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="flex items-center gap-2"><Video /> Vídeo do Imóvel (Opcional)</FormLabel>
+                                <FormControl><Input placeholder="https://youtube.com/watch?v=..." {...field} /></FormControl>
+                                <FormDescription>Cole aqui a URL de um vídeo do YouTube ou Vimeo.</FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+
+                        <FormField
+                            control={form.control}
+                            name="portalPublish"
+                            render={() => (
+                                <FormItem>
+                                <div className="mb-4">
+                                    <FormLabel className="text-lg font-semibold flex items-center gap-2">
+                                    <Share2 /> Publicar em Portais
+                                    </FormLabel>
+                                    <FormDescription>
+                                    Selecione em quais portais imobiliários este imóvel deve ser anunciado.
+                                    </FormDescription>
+                                </div>
+                                <div className="space-y-3">
+                                    {portals.map((portal) => (
+                                        <FormField
+                                            key={portal.id}
+                                            control={form.control}
+                                            name={`portalPublish.${portal.id}` as any}
+                                            render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4 hover:bg-accent/50 transition-colors">
+                                                <FormControl>
+                                                <Checkbox
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                />
+                                                </FormControl>
+                                                <FormLabel className="font-medium text-base w-full cursor-pointer">
+                                                {portal.name}
+                                                </FormLabel>
+                                            </FormItem>
+                                            )}
+                                        />
+                                    ))}
+                                </div>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                )}
 
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -435,61 +503,8 @@ export default function EditarImovelPage() {
                     </FormItem>
                 )}
                 />
-
+                
                 <Separator />
-                
-                <FormField control={form.control} name="videoUrl" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel className="flex items-center gap-2"><Video /> Vídeo do Imóvel (Opcional)</FormLabel>
-                        <FormControl><Input placeholder="https://youtube.com/watch?v=..." {...field} /></FormControl>
-                        <FormDescription>Cole aqui a URL de um vídeo do YouTube ou Vimeo.</FormDescription>
-                        <FormMessage />
-                    </FormItem>
-                 )} />
-
-                <Separator />
-                
-                <FormField
-                  control={form.control}
-                  name="portalPublish"
-                  render={() => (
-                    <FormItem>
-                      <div className="mb-4">
-                        <FormLabel className="text-lg font-semibold flex items-center gap-2">
-                          <Share2 /> Publicar em Portais
-                        </FormLabel>
-                        <FormDescription>
-                          Selecione em quais portais imobiliários este imóvel deve ser anunciado.
-                        </FormDescription>
-                      </div>
-                      <div className="space-y-3">
-                        {portals.map((portal) => (
-                            <FormField
-                                key={portal.id}
-                                control={form.control}
-                                name={`portalPublish.${portal.id}` as any}
-                                render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4 hover:bg-accent/50 transition-colors">
-                                    <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                    </FormControl>
-                                    <FormLabel className="font-medium text-base w-full cursor-pointer">
-                                    {portal.name}
-                                    </FormLabel>
-                                </FormItem>
-                                )}
-                            />
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                 <Separator />
                 
                 <FormItem>
                 <FormLabel>Imagens do Imóvel</FormLabel>

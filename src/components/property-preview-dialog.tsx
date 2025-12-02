@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -68,7 +67,7 @@ export function PropertyPreviewDialog({ property, open, onOpenChange }: Property
             <div className="flex justify-between items-center">
                  <Badge>{property.operation}</Badge>
                  <p className="text-2xl font-bold text-primary">
-                    {property.operation === 'Comprar' ? formattedPrice(property.price) : `${formattedPrice(property.price)} /mês`}
+                    {property.operation === 'Venda' ? formattedPrice(property.price) : `${formattedPrice(property.price)} /mês`}
                 </p>
             </div>
             

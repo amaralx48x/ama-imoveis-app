@@ -3,7 +3,7 @@
 import type { Property } from "@/lib/data";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
-import { BedDouble, Bath, Ruler, MapPin, MoreVertical, Pencil, Trash2, FolderSymlink, CheckCircle, Link2, Share } from "lucide-react";
+import { BedDouble, Bath, Ruler, MapPin, MoreVertical, Pencil, Trash2, FolderSymlink, CheckCircle, Link2, Share, Printer } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
 import Link from "next/link";
@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { MarkAsSoldDialog } from "./mark-as-sold-dialog";
+import { PropertyPreviewDialog } from "./property-preview-dialog";
 
 
 const portals = [
@@ -33,6 +34,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
   const router = useRouter();
   const { toast } = useToast();
   const [isSoldDialogOpen, setIsSoldDialogOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const formattedPrice = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -72,6 +74,10 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
         title: "Link Copiado!",
         description: `O link do imóvel para o portal ${portalName} foi copiado.`,
     });
+  }
+
+  const handlePrint = () => {
+    setIsPreviewOpen(true);
   }
 
   const isDashboard = !!onDelete;
@@ -126,6 +132,10 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
                     <Link2 className="mr-2 h-4 w-4" />
                     Ver Página Pública
                   </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handlePrint}>
+                    <Printer className="mr-2 h-4 w-4" />
+                    Imprimir Ficha
                 </DropdownMenuItem>
                  <DropdownMenuSub>
                     <DropdownMenuSubTrigger>
@@ -194,6 +204,12 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
             setIsSoldDialogOpen(false);
             onStatusChange?.();
         }}
+    />
+
+    <PropertyPreviewDialog 
+        property={property}
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
     />
     </>
   );
