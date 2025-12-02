@@ -35,7 +35,7 @@ export async function generatePropertyDescription(input: GeneratePropertyDescrip
   return generatePropertyDescriptionFlow(input);
 }
 
-const detailedPrompt = `
+const detailedPromptText = `
     Você é um corretor de imóveis especialista em copywriting e marketing imobiliário. Sua tarefa é criar uma descrição de anúncio de imóvel que seja completa, atraente e persuasiva, destacando os pontos fortes com base nas informações fornecidas.
 
     **Instruções:**
@@ -60,7 +60,7 @@ const detailedPrompt = `
     Gere apenas o texto da descrição para o campo 'description' do JSON de saída.
 `;
 
-const shortPrompt = `
+const shortPromptText = `
     Você é um corretor de imóveis especialista em criar anúncios curtos e diretos para redes sociais como Instagram e WhatsApp. Sua tarefa é criar uma descrição em formato de lista, usando emojis, com base nas informações fornecidas.
 
     **Instruções:**
@@ -99,17 +99,18 @@ const shortPrompt = `
     Gere apenas o texto da descrição para o campo 'description' do JSON de saída.
 `;
 
-const prompt = ai.definePrompt({
-  name: 'generatePropertyDescriptionPrompt',
+const detailedPrompt = ai.definePrompt({
+  name: 'generateDetailedPropertyDescriptionPrompt',
   input: { schema: GeneratePropertyDescriptionInputSchema },
   output: { schema: GeneratePropertyDescriptionOutputSchema },
-  prompt: `
-    {{#if (eq style "short")}}
-        ${shortPrompt}
-    {{else}}
-        ${detailedPrompt}
-    {{/if}}
-  `,
+  prompt: detailedPromptText,
+});
+
+const shortPrompt = ai.definePrompt({
+  name: 'generateShortPropertyDescriptionPrompt',
+  input: { schema: GeneratePropertyDescriptionInputSchema },
+  output: { schema: GeneratePropertyDescriptionOutputSchema },
+  prompt: shortPromptText,
 });
 
 const generatePropertyDescriptionFlow = ai.defineFlow(
@@ -119,7 +120,12 @@ const generatePropertyDescriptionFlow = ai.defineFlow(
     outputSchema: GeneratePropertyDescriptionOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    return output!;
+    let result;
+    if (input.style === 'short') {
+      result = await shortPrompt(input);
+    } else {
+      result = await detailedPrompt(input);
+    }
+    return result.output!;
   }
 );
