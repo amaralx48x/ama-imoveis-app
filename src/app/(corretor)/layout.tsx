@@ -1,10 +1,9 @@
-
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search } from 'lucide-react';
+import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search, Rss } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
+import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection } from '@/firebase';
 import { useEffect } from 'react';
 import { collection, query, where, doc } from 'firebase/firestore';
 import type { Lead, Agent, Review } from '@/lib/data';
@@ -87,6 +86,7 @@ export default function CorretorLayout({
     { href: '/imoveis', label: 'Meus Imóveis', icon: Briefcase },
     { href: '/inbox', label: 'Caixa de Entrada', icon: Mail, badgeCount: unreadCount },
     { href: '/contatos', label: 'Contatos', icon: Users },
+    { href: '/integracoes', label: 'Integrações', icon: Rss },
     { href: '/perfil', label: 'Perfil', icon: User },
     { href: '/avaliacoes', label: 'Avaliações', icon: Star, badgeCount: pendingReviewsCount, badgeClass: 'bg-yellow-500 text-black' },
     { href: '/suporte', label: 'Suporte', icon: LifeBuoy },
@@ -221,3 +221,5 @@ export default function CorretorLayout({
     </SidebarProvider>
   );
 }
+
+  
