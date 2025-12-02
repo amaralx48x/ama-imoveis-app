@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from "react-hook-form";
@@ -111,7 +112,7 @@ export default function EditarImovelPage() {
   const agentRef = useMemoFirebase(() => (firestore && user ? doc(firestore, 'agents', user.uid) : null), [firestore, user]);
   const { data: agentData } = useDoc<Agent>(agentRef);
 
-  const propertyRef = useMemoFirebase(() => (firestore && user && propertyId ? doc(firestore, `agents/${'user'}.uid}/properties`, propertyId) : null), [firestore, user, propertyId]);
+  const propertyRef = useMemoFirebase(() => (firestore && user && propertyId ? doc(firestore, `agents/${user.uid}/properties`, propertyId) : null), [firestore, user, propertyId]);
   const { data: propertyData, isLoading: isPropertyLoading, mutate } = useDoc<Property>(propertyRef);
   
   const { contacts } = useContacts(user?.uid || null);
