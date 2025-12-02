@@ -8,6 +8,7 @@ import { MoreVertical, Edit, Trash2, User, Building } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Contact } from "@/lib/data";
 import { Badge } from "../ui/badge";
+import { useFirestore } from "@/firebase";
 
 interface ContactCardProps {
     contact: Contact;
@@ -30,12 +31,14 @@ const getBadgeInfo = (type: Contact['type']) => {
 
 export default function ContactCard({ contact, onEdit, agentId }: ContactCardProps) {
   const { toast } = useToast();
+  const firestore = useFirestore();
   const badgeInfo = getBadgeInfo(contact.type);
 
   const handleDelete = async () => {
     if (!window.confirm(`Tem certeza que deseja excluir o contato "${contact.name}"?`)) return;
+    if (!firestore) return;
     try {
-        await deleteContact(agentId, contact.id);
+        await deleteContact(firestore, agentId, contact.id);
         toast({ title: "Contato excluído!" });
     } catch (err) {
         console.error(err);

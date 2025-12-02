@@ -1,15 +1,12 @@
 
 "use client";
 
-import { addDoc, updateDoc, deleteDoc, collection, doc, serverTimestamp, arrayUnion, arrayRemove } from "firebase/firestore";
-import { useFirestore, errorEmitter, FirestorePermissionError } from "./index";
+import { addDoc, updateDoc, deleteDoc, collection, doc, serverTimestamp, arrayUnion, arrayRemove, Firestore } from "firebase/firestore";
+import { errorEmitter, FirestorePermissionError } from "./index";
 
 
-export async function createContact(agentId: string, payload: any) {
-  const firestoreInstance = useFirestore();
-  if (!firestoreInstance) throw new Error("Firestore not initialized");
-
-  const collRef = collection(firestoreInstance, "agents", agentId, "contacts");
+export async function createContact(firestore: Firestore, agentId: string, payload: any) {
+  const collRef = collection(firestore, "agents", agentId, "contacts");
   
   try {
     const docRef = await addDoc(collRef, {
@@ -30,11 +27,8 @@ export async function createContact(agentId: string, payload: any) {
   }
 }
 
-export async function updateContact(agentId: string, contactId: string, data: any) {
-    const firestoreInstance = useFirestore();
-    if (!firestoreInstance) throw new Error("Firestore not initialized");
-
-    const ref = doc(firestoreInstance, "agents", agentId, "contacts", contactId);
+export async function updateContact(firestore: Firestore, agentId: string, contactId: string, data: any) {
+    const ref = doc(firestore, "agents", agentId, "contacts", contactId);
 
     try {
         await updateDoc(ref, {
@@ -52,11 +46,8 @@ export async function updateContact(agentId: string, contactId: string, data: an
     }
 }
 
-export async function deleteContact(agentId: string, contactId: string) {
-    const firestoreInstance = useFirestore();
-    if (!firestoreInstance) throw new Error("Firestore not initialized");
-
-    const ref = doc(firestoreInstance, "agents", agentId, "contacts", contactId);
+export async function deleteContact(firestore: Firestore, agentId: string, contactId: string) {
+    const ref = doc(firestore, "agents", agentId, "contacts", contactId);
 
     try {
         await deleteDoc(ref);
@@ -70,11 +61,9 @@ export async function deleteContact(agentId: string, contactId: string) {
     }
 }
 
-export async function linkContactToProperty(agentId: string, contactId: string, propertyId: string) {
-    const firestoreInstance = useFirestore();
-    if (!firestoreInstance) throw new Error("Firestore not initialized");
-    const contactRef = doc(firestoreInstance, "agents", agentId, "contacts", contactId);
-    const propertyRef = doc(firestoreInstance, "agents", agentId, "properties", propertyId);
+export async function linkContactToProperty(firestore: Firestore, agentId: string, contactId: string, propertyId: string) {
+    const contactRef = doc(firestore, "agents", agentId, "contacts", contactId);
+    const propertyRef = doc(firestore, "agents", agentId, "properties", propertyId);
 
     try {
         await updateDoc(contactRef, {
@@ -96,11 +85,9 @@ export async function linkContactToProperty(agentId: string, contactId: string, 
     }
 }
 
-export async function unlinkContactFromProperty(agentId: string, contactId: string, propertyId: string) {
-    const firestoreInstance = useFirestore();
-    if (!firestoreInstance) throw new Error("Firestore not initialized");
-    const contactRef = doc(firestoreInstance, "agents", agentId, "contacts", contactId);
-    const propertyRef = doc(firestoreInstance, "agents", agentId, "properties", propertyId);
+export async function unlinkContactFromProperty(firestore: Firestore, agentId: string, contactId: string, propertyId: string) {
+    const contactRef = doc(firestore, "agents", agentId, "contacts", contactId);
+    const propertyRef = doc(firestore, "agents", agentId, "properties", propertyId);
     
     try {
         await updateDoc(contactRef, {
