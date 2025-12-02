@@ -187,7 +187,7 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                     <CardContent className="pt-6 space-y-3">
                          <div className="space-y-2 text-sm">
                             <div className="flex justify-between font-bold text-lg">
-                                <span>{property.operation === 'Alugar' ? 'Valor do Aluguel' : 'Valor de Venda'}</span>
+                                <span>{property.operation === 'Alugar' ? 'Valor do Aluguel' : 'Preço do Imóvel'}</span>
                                 <span>{formattedPrice(property.price)}</span>
                             </div>
                         </div>
