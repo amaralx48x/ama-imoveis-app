@@ -1,90 +1,67 @@
 
 'use server';
 /**
- * @fileOverview Flow to generate a social media card for a property.
+ * @fileOverview Flow to generate a social media post for a property.
  *
- * - generateSocialCard - A function that combines a property image, agent logo, and price into a social media post.
- * - GenerateSocialCardInput - The input type for the function.
- * - GenerateSocialCardOutput - The return type for the function.
+ * - generateSocialCardPost - A function that takes a property description and generates a catchy social media caption.
+ * - GenerateSocialCardPostInput - The input type for the function.
+ * - GenerateSocialCardPostOutput - The return type for the function.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
-// Helper to convert image URL to Data URI
-async function imageUrlToDataURI(url: string): Promise<string> {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch image: ${response.statusText}`);
-    }
-    const buffer = await response.arrayBuffer();
-    const contentType = response.headers.get('content-type') || 'image/jpeg';
-    const base64 = Buffer.from(buffer).toString('base64');
-    return `data:${contentType};base64,${base64}`;
-}
-
-
-const GenerateSocialCardInputSchema = z.object({
-  propertyImageUrl: z.string().url().describe('A URL of the main property photo.'),
-  logoImageUrl: z.string().url().optional().describe('An optional URL of the agent\'s logo.'),
+const GenerateSocialCardPostInputSchema = z.object({
+  description: z.string().describe('The full description of the property.'),
   price: z.string().describe('The formatted price of the property (e.g., "R$ 500.000,00").'),
   operation: z.enum(['Venda', 'Aluguel']).describe('The type of operation.'),
 });
-export type GenerateSocialCardInput = z.infer<typeof GenerateSocialCardInputSchema>;
+export type GenerateSocialCardPostInput = z.infer<typeof GenerateSocialCardPostInputSchema>;
 
-const GenerateSocialCardOutputSchema = z.object({
-  imageUrl: z.string().describe("The generated image as a data URI. Expected format: 'data:image/png;base64,<encoded_data>'."),
+const GenerateSocialCardPostOutputSchema = z.object({
+  postText: z.string().describe("The generated social media post caption."),
 });
-export type GenerateSocialCardOutput = z.infer<typeof GenerateSocialCardOutputSchema>;
+export type GenerateSocialCardPostOutput = z.infer<typeof GenerateSocialCardPostOutputSchema>;
 
 
-const generateSocialCardFlow = ai.defineFlow(
+const generateSocialCardPostFlow = ai.defineFlow(
   {
-    name: 'generateSocialCardFlow',
-    inputSchema: GenerateSocialCardInputSchema,
-    outputSchema: GenerateSocialCardOutputSchema,
+    name: 'generateSocialCardPostFlow',
+    inputSchema: GenerateSocialCardPostInputSchema,
+    outputSchema: GenerateSocialCardPostOutputSchema,
   },
   async (input) => {
     
-    // Convert image URLs to data URIs in parallel
-    const [propertyImageDataUri, logoImageDataUri] = await Promise.all([
-        imageUrlToDataURI(input.propertyImageUrl),
-        input.logoImageUrl ? imageUrlToDataURI(input.logoImageUrl) : Promise.resolve(undefined)
-    ]);
-    
-    const { media } = await ai.generate({
-        model: 'googleai/gemini-2.5-flash-image-preview',
-        prompt: [
-            { media: { url: propertyImageDataUri }},
-            ...(logoImageDataUri ? [{ media: { url: logoImageDataUri }}] : []),
-            { text: `
-                You are a graphic designer specializing in real estate social media posts.
-                Your task is to create a visually appealing Instagram Story (9:16 aspect ratio) based on the provided images and text.
+    const prompt = `
+        Você é um especialista em marketing de redes sociais para o mercado imobiliário.
+        Sua tarefa é pegar a descrição de um imóvel e transformá-la em uma legenda curta, atraente e eficaz para um post no Instagram ou Facebook.
 
-                Instructions:
-                1. Use the first image (property image) as the main background. The image should be visible and attractive.
-                2. The second image is a logo. Place it tastefully in one of the corners (e.g., top-left or bottom-right). The logo should be visible but not obstructive.
-                3. Display the price: "${input.price}" in a prominent, large, and stylish font. Use a contrasting color to ensure readability against the background.
-                4. If the operation is 'Aluguel', add "/mês" next to the price in a smaller font.
-                5. The final image should look professional, clean, and modern. Do not add any extra text or elements not specified.
-                6. The output must be only the final image.
-            `},
-        ],
-        config: {
-            responseModalities: ['IMAGE'],
-            aspectRatio: '9:16',
-        },
+        Instruções:
+        1. Comece com uma frase de impacto que capture a atenção.
+        2. Destaque 2 ou 3 das características mais importantes do imóvel de forma concisa.
+        3. Inclua o preço de forma clara: "${input.price}" ${input.operation === 'Aluguel' ? '/mês' : ''}.
+        4. Use 3 a 5 hashtags relevantes e populares no final (ex: #imoveis #casapropria #investimentoimobiliario).
+        5. Termine com uma chamada para ação clara, incentivando o contato ou clique no link da bio.
+        6. A legenda inteira deve ser curta e fácil de ler. Não use mais que 4 parágrafos pequenos ou itens de lista.
+
+        Descrição original do imóvel para se basear:
+        ---
+        ${input.description}
+        ---
+
+        Gere apenas o texto da legenda para o campo 'postText' do JSON de saída.
+    `;
+
+    const { text } = await ai.generate({
+        prompt: prompt,
+        model: 'googleai/gemini-2.5-flash',
     });
 
-    if (!media?.url) {
-      throw new Error('Image generation failed to return a media object.');
-    }
-
-    return { imageUrl: media.url };
+    return { postText: text };
   }
 );
 
 
-export async function generateSocialCard(input: GenerateSocialCardInput): Promise<GenerateSocialCardOutput> {
-  return generateSocialCardFlow(input);
+export async function generateSocialCardPost(input: GenerateSocialCardPostInput): Promise<GenerateSocialCardPostOutput> {
+  return generateSocialCardPostFlow(input);
 }
