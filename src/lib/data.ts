@@ -1,6 +1,4 @@
 
-
-
 export type SocialLink = {
   id: string;
   label: string;
@@ -14,6 +12,8 @@ export type Property = {
   title: string;
   description: string;
   price: number;
+  condoFee?: number;
+  yearlyTax?: number;
   bedrooms: number;
   bathrooms: number;
   garage: number; 
@@ -21,6 +21,7 @@ export type Property = {
   builtArea: number;
   totalArea: number;
   imageUrls: string[];
+  videoUrl?: string;
   city: string;
   neighborhood: string;
   type: 'Apartamento' | 'Casa' | 'Chácara' | 'Galpão' | 'Sala' | 'Kitnet' | 'Terreno' | 'Lote' | 'Alto Padrão';
@@ -33,6 +34,13 @@ export type Property = {
   soldAt?: any; // ou rentedAt
   commissionValue?: number;
   ownerContactId?: string | null;
+  portalPublish?: {
+    zap?: boolean;
+    imovelweb?: boolean;
+    casamineira?: boolean;
+    chavesnamao?: boolean;
+    tecimob?: boolean;
+  }
 };
 
 export type Contact = {
@@ -348,10 +356,3 @@ export const getProperties = () => properties;
 export const getReviews = () => staticReviews;
 export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Guarujá', 'Rio de Janeiro', 'Belo Horizonte', 'Curitiba', 'Porto Alegre'];
 export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
-
-
-
-
-
-
-

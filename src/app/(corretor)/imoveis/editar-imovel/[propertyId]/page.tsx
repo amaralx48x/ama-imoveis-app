@@ -28,7 +28,7 @@ import ImageUpload from "@/components/image-upload";
 import Image from "next/image";
 import type { Agent, Property, Contact } from "@/lib/data";
 import Link from "next/link";
-import { ArrowLeft, X, Loader2, Pencil, User, Share2 } from "lucide-react";
+import { ArrowLeft, X, Loader2, Pencil, User, Share2, Video } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -53,6 +53,8 @@ const formSchema = z.object({
   type: z.enum(propertyTypes as [string, ...string[]]),
   operation: z.enum(operationTypes as [string, ...string[]]),
   price: z.coerce.number().positive("O preço deve ser um número positivo."),
+  condoFee: z.coerce.number().min(0).optional(),
+  yearlyTax: z.coerce.number().min(0).optional(),
   bedrooms: z.coerce.number().int().min(0),
   bathrooms: z.coerce.number().int().min(0),
   garage: z.coerce.number().int().min(0),
@@ -60,6 +62,7 @@ const formSchema = z.object({
   builtArea: z.coerce.number().positive("A área construída deve ser positiva."),
   totalArea: z.coerce.number().positive("A área total deve ser positiva."),
   ownerContactId: z.string().optional(),
+  videoUrl: z.string().url("URL do vídeo inválida").optional().or(z.literal('')),
   portalPublish: z.object({
     zap: z.boolean().optional(),
     imovelweb: z.boolean().optional(),
@@ -130,6 +133,9 @@ export default function EditarImovelPage() {
       totalArea: 0,
       ownerContactId: '',
       portalPublish: {},
+      videoUrl: '',
+      condoFee: 0,
+      yearlyTax: 0
     },
   });
   
@@ -139,6 +145,9 @@ export default function EditarImovelPage() {
         ...propertyData,
         ownerContactId: propertyData.ownerContactId || '',
         portalPublish: propertyData.portalPublish || {},
+        videoUrl: propertyData.videoUrl || '',
+        condoFee: propertyData.condoFee || 0,
+        yearlyTax: propertyData.yearlyTax || 0,
       });
       setImageUrls(propertyData.imageUrls || []);
     }
@@ -153,15 +162,15 @@ export default function EditarImovelPage() {
     setImageUrls(prev => prev.filter((_, index) => index !== indexToRemove));
   }
 
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePriceChange = (fieldName: 'price' | 'condoFee' | 'yearlyTax') => (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/\D/g, '');
     if (rawValue === '') {
-        form.setValue('price', 0);
+        form.setValue(fieldName, 0);
         e.target.value = '';
         return;
     }
     const numberValue = Number(rawValue) / 100;
-    form.setValue('price', numberValue);
+    form.setValue(fieldName, numberValue);
     
     // Format for display
     e.target.value = new Intl.NumberFormat('pt-BR', {
@@ -348,24 +357,37 @@ export default function EditarImovelPage() {
                         </FormItem>
                     )}
                 />
-                <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <FormField control={form.control} name="price" render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Preço (R$)</FormLabel>
-                        <FormControl>
-                            <Input 
-                            type="text" 
-                            placeholder="R$ 850.000,00"
-                            onChange={handlePriceChange}
-                            defaultValue={field.value ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(field.value) : ''}
-                            />
-                        </FormControl>
-                        <FormMessage />
+                            <FormLabel>Preço (R$)</FormLabel>
+                            <FormControl>
+                                <Input type="text" placeholder="R$ 850.000,00" onChange={handlePriceChange('price')} defaultValue={field.value ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(field.value) : ''}/>
+                            </FormControl>
+                            <FormMessage />
                         </FormItem>
-                    )}
-                />
+                    )} />
+                    <FormField control={form.control} name="condoFee" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Condomínio (R$)</FormLabel>
+                            <FormControl>
+                                <Input type="text" placeholder="R$ 500,00" onChange={handlePriceChange('condoFee')} defaultValue={field.value ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(field.value) : ''}/>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                    <FormField control={form.control} name="yearlyTax" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>IPTU Anual (R$)</FormLabel>
+                            <FormControl>
+                                <Input type="text" placeholder="R$ 1.200,00" onChange={handlePriceChange('yearlyTax')} defaultValue={field.value ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(field.value) : ''}/>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                </div>
+
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <FormField control={form.control} name="bedrooms" render={({ field }) => (<FormItem><FormLabel>Quartos</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
@@ -392,6 +414,17 @@ export default function EditarImovelPage() {
                     </FormItem>
                 )}
                 />
+
+                <Separator />
+                
+                <FormField control={form.control} name="videoUrl" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel className="flex items-center gap-2"><Video /> Vídeo do Imóvel (Opcional)</FormLabel>
+                        <FormControl><Input placeholder="https://youtube.com/watch?v=..." {...field} /></FormControl>
+                        <FormDescription>Cole aqui a URL de um vídeo do YouTube ou Vimeo.</FormDescription>
+                        <FormMessage />
+                    </FormItem>
+                 )} />
 
                 <Separator />
                 
@@ -486,5 +519,3 @@ export default function EditarImovelPage() {
     </div>
   );
 }
-
-    
