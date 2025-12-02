@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useRouter, useParams } from "next/navigation";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
 import { useContacts } from "@/firebase/hooks/useContacts";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { useState, useEffect, useMemo } from "react";
 import ImageUpload from "@/components/image-upload";
 import Image from "next/image";
@@ -180,7 +180,7 @@ export default function EditarImovelPage() {
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!propertyRef || !user) {
+    if (!propertyRef || !user || !firestore) {
         toast({
             title: "Erro de Autenticação",
             variant: "destructive"
@@ -202,17 +202,38 @@ export default function EditarImovelPage() {
         return acc;
     }, {} as Record<string, boolean>);
 
+    const newOwnerContactId = values.ownerContactId === 'none' ? undefined : values.ownerContactId;
+    const oldOwnerContactId = propertyData?.ownerContactId;
 
     const updatedProperty = {
       ...propertyData,
       ...values,
       imageUrls: imageUrls,
-      ownerContactId: values.ownerContactId === 'none' ? null : values.ownerContactId,
+      ownerContactId: newOwnerContactId,
       portalPublish: portalPublishData,
     };
     
     try {
         await setDoc(propertyRef, updatedProperty, { merge: true });
+
+        // Handle contact linking logic
+        if (newOwnerContactId !== oldOwnerContactId) {
+            // Unlink from old owner if exists
+            if (oldOwnerContactId) {
+                const oldContactRef = doc(firestore, `agents/${user.uid}/contacts`, oldOwnerContactId);
+                await updateDoc(oldContactRef, {
+                    linkedPropertyIds: arrayRemove(propertyId)
+                });
+            }
+            // Link to new owner if exists
+            if (newOwnerContactId) {
+                const newContactRef = doc(firestore, `agents/${user.uid}/contacts`, newOwnerContactId);
+                await updateDoc(newContactRef, {
+                    linkedPropertyIds: arrayUnion(propertyId)
+                });
+            }
+        }
+        
         mutate();
         
         toast({

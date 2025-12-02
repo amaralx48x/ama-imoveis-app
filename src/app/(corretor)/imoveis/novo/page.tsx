@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useRouter } from "next/navigation";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
 import { useContacts } from "@/firebase/hooks/useContacts";
-import { doc, setDoc, collection } from "firebase/firestore";
+import { doc, setDoc, collection, updateDoc, arrayUnion } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 import ImageUpload from "@/components/image-upload";
 import { useState, useMemo } from "react";
@@ -152,6 +152,8 @@ export default function NovoImovelPage() {
         return;
     }
 
+    const ownerContactId = values.ownerContactId === 'none' ? undefined : values.ownerContactId;
+
     const newProperty = {
       ...values,
       id: propertyId,
@@ -159,14 +161,23 @@ export default function NovoImovelPage() {
       imageUrls: imageUrls,
       createdAt: new Date().toISOString(),
       status: 'ativo' as const,
-      sectionIds: ['featured'], // Automatically add to featured
-      ownerContactId: values.ownerContactId === 'none' ? null : values.ownerContactId,
+      sectionIds: ['featured'],
+      ownerContactId: ownerContactId,
     };
     
     const propertyRef = doc(firestore, `agents/${user.uid}/properties`, propertyId);
     
     try {
         await setDoc(propertyRef, newProperty);
+        
+        // If an owner was selected, update their contact document too
+        if (ownerContactId) {
+            const contactRef = doc(firestore, `agents/${user.uid}/contacts`, ownerContactId);
+            await updateDoc(contactRef, {
+                linkedPropertyIds: arrayUnion(propertyId)
+            });
+        }
+
         toast({
             title: "Imóvel Adicionado!",
             description: `${values.title} foi cadastrado com sucesso.`,
@@ -202,7 +213,7 @@ export default function NovoImovelPage() {
             <Gem className="h-4 w-4" />
             <AlertTitle>Limite de Imóveis Atingido!</AlertTitle>
             <AlertDescription>
-                Você atingiu o limite de {limits.maxProperties} imóveis para o seu plano atual. Para continuar adicionando, por favor, faça o upgrade do seu plano.
+                Você atingiu o limite de ${limits.maxProperties} imóveis para o seu plano atual. Para continuar adicionando, por favor, faça o upgrade do seu plano.
                 <Button asChild variant="link" className="p-0 h-auto ml-1 text-destructive">
                     <Link href="/meu-plano">Fazer Upgrade</Link>
                 </Button>
@@ -329,6 +340,31 @@ export default function NovoImovelPage() {
                 
                 <FormField
                     control={form.control}
+                    name="ownerContactId"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel className="flex items-center gap-2"><User className="w-4 h-4"/> Proprietário (Opcional)</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Selecione o proprietário do imóvel" />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            <SelectItem value="none">Nenhum</SelectItem>
+                            {owners.map((owner: Contact) => (
+                                <SelectItem key={owner.id} value={owner.id}>{owner.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                        <FormDescription>Associe um contato cadastrado a este imóvel. Você pode cadastrar novos proprietários na seção "Contatos".</FormDescription>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                
+                <FormField
+                    control={form.control}
                     name="price"
                     render={({ field }) => (
                     <FormItem>
@@ -402,31 +438,6 @@ export default function NovoImovelPage() {
                 )}
                 />
                 
-                 <FormField
-                    control={form.control}
-                    name="ownerContactId"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel className="flex items-center gap-2"><User className="w-4 h-4"/> Proprietário (Opcional)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Selecione o proprietário do imóvel" />
-                            </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            <SelectItem value="none">Nenhum</SelectItem>
-                            {owners.map((owner: Contact) => (
-                                <SelectItem key={owner.id} value={owner.id}>{owner.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                        </Select>
-                        <FormDescription>Associe um contato cadastrado a este imóvel. Você pode cadastrar novos proprietários na seção "Contatos".</FormDescription>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
                 <Separator />
                 
                 <FormItem>
