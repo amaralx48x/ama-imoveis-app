@@ -15,9 +15,22 @@ interface ContactCardProps {
     agentId: string;
 }
 
+const getBadgeInfo = (type: Contact['type']) => {
+    switch (type) {
+        case 'owner':
+            return { icon: <Building className="mr-1 h-3 w-3"/>, label: 'Proprietário', variant: 'outline' as const };
+        case 'client':
+            return { icon: <User className="mr-1 h-3 w-3"/>, label: 'Cliente', variant: 'secondary' as const };
+        case 'inquilino':
+            return { icon: <User className="mr-1 h-3 w-3"/>, label: 'Inquilino', variant: 'secondary' as const };
+        default:
+            return { icon: <User className="mr-1 h-3 w-3"/>, label: 'Contato', variant: 'secondary' as const };
+    }
+}
 
 export default function ContactCard({ contact, onEdit, agentId }: ContactCardProps) {
   const { toast } = useToast();
+  const badgeInfo = getBadgeInfo(contact.type);
 
   const handleDelete = async () => {
     if (!window.confirm(`Tem certeza que deseja excluir o contato "${contact.name}"?`)) return;
@@ -35,9 +48,9 @@ export default function ContactCard({ contact, onEdit, agentId }: ContactCardPro
       <div className="space-y-1">
         <div className="flex items-center gap-2">
             <h4 className="font-bold text-base">{contact.name}</h4>
-            <Badge variant={contact.type === 'owner' ? 'outline' : 'secondary'}>
-                {contact.type === 'owner' ? <Building className="mr-1 h-3 w-3"/> : <User className="mr-1 h-3 w-3" />}
-                {contact.type === 'owner' ? 'Proprietário' : 'Cliente'}
+            <Badge variant={badgeInfo.variant}>
+                {badgeInfo.icon}
+                {badgeInfo.label}
             </Badge>
         </div>
         <div className="text-sm text-muted-foreground">{contact.phone} {contact.phone && contact.email && '•'} {contact.email}</div>

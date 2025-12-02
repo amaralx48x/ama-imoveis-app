@@ -1,4 +1,5 @@
 
+
 export type SocialLink = {
   id: string;
   label: string;
@@ -45,7 +46,7 @@ export type Property = {
 
 export type Contact = {
     id: string;
-    type: "owner" | "client";
+    type: "owner" | "client" | "inquilino";
     name: string;
     cpf?: string;
     phone?: string;

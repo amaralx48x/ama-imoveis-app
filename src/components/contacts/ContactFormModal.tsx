@@ -48,7 +48,7 @@ export default function ContactFormModal({ open, onClose, agentId, initialData=n
       const { name, value } = e.target;
       setForm(prev => ({...prev, [name]: value}));
   }
-   const handleTypeChange = (value: "owner" | "client") => {
+   const handleTypeChange = (value: "owner" | "client" | "inquilino") => {
       setForm(prev => ({ ...prev, type: value }));
   };
 
@@ -98,6 +98,10 @@ export default function ContactFormModal({ open, onClose, agentId, initialData=n
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value="client" id="r-client" />
                             <Label htmlFor="r-client">Cliente</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="inquilino" id="r-tenant" />
+                            <Label htmlFor="r-tenant">Inquilino</Label>
                         </div>
                     </RadioGroup>
                 </div>
