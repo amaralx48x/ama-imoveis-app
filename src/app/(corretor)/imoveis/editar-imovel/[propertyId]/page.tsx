@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -34,14 +34,18 @@ import ImageUpload from "@/components/image-upload";
 import Image from "next/image";
 import type { Agent, Property, Contact } from "@/lib/data";
 import Link from "next/link";
-import { ArrowLeft, X, Loader2, Pencil, User, Share2, Video, Sparkles, ChevronDown } from "lucide-react";
+import { ArrowLeft, X, Loader2, Pencil, User, Share2, Video, Sparkles, ChevronDown, FileText } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { generatePropertyDescription, GeneratePropertyDescriptionInput } from '@/ai/flows/generate-property-description-flow';
-
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 
 const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
 const operationTypes = ["Venda", "Aluguel"];
@@ -71,6 +75,7 @@ const formSchema = z.object({
   builtArea: z.coerce.number().positive("A área construída deve ser positiva."),
   totalArea: z.coerce.number().positive("A área total deve ser positiva."),
   ownerContactId: z.string().optional(),
+  tenantContactId: z.string().optional(),
   videoUrl: z.string().url("URL do vídeo inválida").optional().or(z.literal('')),
   portalPublish: z.object({
     zap: z.boolean().optional(),
@@ -78,6 +83,10 @@ const formSchema = z.object({
     casamineira: z.boolean().optional(),
     chavesnamao: z.boolean().optional(),
     tecimob: z.boolean().optional(),
+  }).optional(),
+  rentalDetails: z.object({
+    startDate: z.date().optional(),
+    endDate: z.date().optional(),
   }).optional(),
 });
 
@@ -123,6 +132,7 @@ export default function EditarImovelPage() {
   
   const { contacts } = useContacts(user?.uid || null);
   const owners = useMemo(() => contacts.filter((c: Contact) => c.type === 'owner'), [contacts]);
+  const tenants = useMemo(() => contacts.filter((c: Contact) => c.type === 'inquilino'), [contacts]);
 
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [showCompleteForm, setShowCompleteForm] = useState(false);
@@ -143,10 +153,15 @@ export default function EditarImovelPage() {
       builtArea: 0,
       totalArea: 0,
       ownerContactId: '',
+      tenantContactId: '',
       portalPublish: {},
       videoUrl: '',
       condoFee: 0,
-      yearlyTax: 0
+      yearlyTax: 0,
+      rentalDetails: {
+          startDate: undefined,
+          endDate: undefined,
+      }
     },
   });
   
@@ -155,10 +170,15 @@ export default function EditarImovelPage() {
       form.reset({
         ...propertyData,
         ownerContactId: propertyData.ownerContactId || '',
+        tenantContactId: propertyData.tenantContactId || '',
         portalPublish: propertyData.portalPublish || {},
         videoUrl: propertyData.videoUrl || '',
         condoFee: propertyData.condoFee || 0,
         yearlyTax: propertyData.yearlyTax || 0,
+        rentalDetails: {
+            startDate: propertyData.rentalDetails?.startDate?.toDate ? propertyData.rentalDetails.startDate.toDate() : undefined,
+            endDate: propertyData.rentalDetails?.endDate?.toDate ? propertyData.rentalDetails.endDate.toDate() : undefined,
+        }
       });
       setImageUrls(propertyData.imageUrls || []);
 
@@ -265,32 +285,38 @@ export default function EditarImovelPage() {
     const newOwnerContactId = values.ownerContactId === 'none' ? undefined : values.ownerContactId;
     const oldOwnerContactId = propertyData?.ownerContactId;
 
+    const newTenantContactId = values.tenantContactId === 'none' ? undefined : values.tenantContactId;
+    const oldTenantContactId = propertyData?.tenantContactId;
+
     const updatedProperty = {
       ...propertyData,
       ...values,
       imageUrls: imageUrls,
       ownerContactId: newOwnerContactId,
+      tenantContactId: newTenantContactId,
       portalPublish: portalPublishData,
     };
     
     try {
         await setDoc(propertyRef, updatedProperty, { merge: true });
 
-        // Handle contact linking logic
+        // Handle owner linking logic
         if (newOwnerContactId !== oldOwnerContactId) {
-            // Unlink from old owner if exists
             if (oldOwnerContactId) {
-                const oldContactRef = doc(firestore, `agents/${user.uid}/contacts`, oldOwnerContactId);
-                await updateDoc(oldContactRef, {
-                    linkedPropertyIds: arrayRemove(propertyId)
-                });
+                await updateDoc(doc(firestore, `agents/${user.uid}/contacts`, oldOwnerContactId), { linkedPropertyIds: arrayRemove(propertyId) });
             }
-            // Link to new owner if exists
             if (newOwnerContactId) {
-                const newContactRef = doc(firestore, `agents/${user.uid}/contacts`, newOwnerContactId);
-                await updateDoc(newContactRef, {
-                    linkedPropertyIds: arrayUnion(propertyId)
-                });
+                await updateDoc(doc(firestore, `agents/${user.uid}/contacts`, newOwnerContactId), { linkedPropertyIds: arrayUnion(propertyId) });
+            }
+        }
+        
+        // Handle tenant linking logic
+        if (newTenantContactId !== oldTenantContactId) {
+            if (oldTenantContactId) {
+                await updateDoc(doc(firestore, `agents/${user.uid}/contacts`, oldTenantContactId), { linkedPropertyIds: arrayRemove(propertyId) });
+            }
+            if (newTenantContactId) {
+                await updateDoc(doc(firestore, `agents/${user.uid}/contacts`, newTenantContactId), { linkedPropertyIds: arrayUnion(propertyId) });
             }
         }
         
@@ -306,6 +332,8 @@ export default function EditarImovelPage() {
         toast({title: "Erro ao salvar", variant: "destructive"});
     }
   }
+  
+  const operationType = form.watch('operation');
 
   return (
     <div className="space-y-4">
@@ -422,6 +450,7 @@ export default function EditarImovelPage() {
                     )}
                     />
                 </div>
+                
                 <FormField
                     control={form.control}
                     name="ownerContactId"
@@ -529,6 +558,90 @@ export default function EditarImovelPage() {
                             )}
                         />
                     </div>
+                )}
+                
+                {operationType === 'Aluguel' && (
+                  <div className="space-y-6 p-6 bg-muted/50 rounded-lg">
+                    <h3 className="text-lg font-semibold flex items-center gap-2"><FileText/> Detalhes do Aluguel</h3>
+                    <FormField
+                        control={form.control}
+                        name="tenantContactId"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel className="flex items-center gap-2"><User className="w-4 h-4"/> Inquilino (Opcional)</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o inquilino do imóvel" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="none">Nenhum</SelectItem>
+                                {tenants.map((tenant: Contact) => (
+                                    <SelectItem key={tenant.id} value={tenant.id}>{tenant.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                            </Select>
+                            <FormDescription>Associe um contato do tipo "inquilino" a este imóvel alugado.</FormDescription>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       <Controller
+                          control={form.control}
+                          name="rentalDetails.startDate"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                              <FormLabel>Início do Contrato</FormLabel>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant={"outline"}
+                                      className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                    >
+                                      {field.value ? format(field.value, "PPP") : <span>Escolha uma data</span>}
+                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                  <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                </PopoverContent>
+                              </Popover>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                       <Controller
+                          control={form.control}
+                          name="rentalDetails.endDate"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                              <FormLabel>Fim do Contrato</FormLabel>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant={"outline"}
+                                      className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                    >
+                                      {field.value ? format(field.value, "PPP") : <span>Escolha uma data</span>}
+                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                  <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                </PopoverContent>
+                              </Popover>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                    </div>
+                  </div>
                 )}
 
 

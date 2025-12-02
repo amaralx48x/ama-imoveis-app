@@ -29,25 +29,41 @@ interface RentalManagementCardProps {
   tenant?: Contact | null;
 }
 
-// Mock data, as requested
-const mockRentalDetails = {
-    contractUrl: '#',
-    startDate: new Date('2023-01-15'),
-    endDate: new Date('2025-07-14'),
-    rentValue: 2500,
-    igpmAdjustmentMonth: 'Janeiro',
-    paymentHistory: [
-        { dueDate: new Date('2024-07-10'), paidDate: new Date('2024-07-08'), value: 2500, status: 'pago' as const },
-        { dueDate: new Date('2024-06-10'), paidDate: new Date('2024-06-10'), value: 2500, status: 'pago' as const },
-        { dueDate: new Date('2024-08-10'), value: 2500, status: 'pendente' as const },
-    ]
-}
 
 export default function RentalManagementCard({ property, tenant }: RentalManagementCardProps) {
-  const rentalDetails = property.rentalDetails || mockRentalDetails;
+  const rentalDetails = property.rentalDetails;
   
-  const formatDate = (date: Date) => format(date, "dd 'de' MMMM, yyyy", { locale: ptBR });
-  const formatCurrency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  const formatDate = (date: any) => {
+    if (!date) return 'Não definida';
+    const d = date.toDate ? date.toDate() : new Date(date);
+    return format(d, "dd 'de' MMMM, yyyy", { locale: ptBR });
+  };
+  const formatCurrency = (value?: number) => {
+    if (value === undefined || value === null) return 'N/A';
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  }
+
+  if (!rentalDetails) {
+    return (
+        <Card className="bg-muted/30 border-dashed">
+            <CardHeader>
+                <CardTitle className="text-xl font-bold flex items-center gap-2">
+                    <FileText className="text-primary"/>
+                    Gestão do Aluguel
+                </CardTitle>
+                <CardDescription>
+                Este imóvel está alugado, mas os detalhes do contrato ainda não foram preenchidos.
+                </CardDescription>
+            </CardHeader>
+             <CardContent>
+                <p className="text-sm text-muted-foreground">
+                    Para habilitar a gestão, edite o imóvel e preencha as informações na seção "Detalhes do Aluguel".
+                </p>
+            </CardContent>
+        </Card>
+    );
+  }
+
 
   return (
     <Card className="bg-muted/30 border-dashed">
@@ -88,7 +104,7 @@ export default function RentalManagementCard({ property, tenant }: RentalManagem
         <Separator />
 
         <div>
-            <h4 className="font-semibold mb-2">Histórico de Pagamentos</h4>
+            <h4 className="font-semibold mb-2">Histórico de Pagamentos (Exemplo)</h4>
              <div className="border rounded-lg overflow-hidden">
                 <Table>
                     <TableHeader>
@@ -100,7 +116,7 @@ export default function RentalManagementCard({ property, tenant }: RentalManagem
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {rentalDetails.paymentHistory.map((payment, index) => (
+                        {rentalDetails.paymentHistory?.map((payment, index) => (
                              <TableRow key={index} className={payment.status === 'pendente' ? 'bg-yellow-500/10' : ''}>
                                 <TableCell>{formatDate(payment.dueDate)}</TableCell>
                                 <TableCell>{formatCurrency(payment.value)}</TableCell>
@@ -117,6 +133,11 @@ export default function RentalManagementCard({ property, tenant }: RentalManagem
                                 </TableCell>
                             </TableRow>
                         ))}
+                         {!rentalDetails.paymentHistory && (
+                             <TableRow>
+                                <TableCell colSpan={4} className="text-center text-muted-foreground">Nenhum histórico de pagamento registrado.</TableCell>
+                             </TableRow>
+                         )}
                     </TableBody>
                 </Table>
             </div>

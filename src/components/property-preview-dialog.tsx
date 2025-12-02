@@ -9,7 +9,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { BedDouble, Bath, Ruler, MapPin, Car, Home, Printer, Link as LinkIcon, FileText } from "lucide-react";
-import { useReactToPrint } from 'react-to-print';
+import Link from "next/link";
 import { Separator } from "./ui/separator";
 import RentalManagementCard from "./rental-management-card";
 
@@ -142,13 +142,6 @@ export function PropertyPreviewDialog({ property, owner, tenant, agent, open, on
                             <h4 className="font-semibold text-sm mb-2">Proprietário</h4>
                             <p className="text-lg font-bold">{owner.name}</p>
                             <p className="text-xs text-muted-foreground">{owner.phone}</p>
-                        </div>
-                    )}
-                    {tenant && (
-                        <div className="p-4 rounded-lg bg-muted/50">
-                            <h4 className="font-semibold text-sm mb-2">Inquilino</h4>
-                            <p className="text-lg font-bold">{tenant.name}</p>
-                            <p className="text-xs text-muted-foreground">{tenant.phone}</p>
                         </div>
                     )}
                 </div>
