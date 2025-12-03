@@ -290,13 +290,6 @@
         "feature_video_url": { "type": "string", "format": "uri", "description": "URL for the feature video section." },
         "feature_video_title": { "type": "string", "description": "Title to be displayed over the feature video." },
         "ctaImageUrl": { "type": "string", "format": "uri", "description": "URL for the image next to the CTA button." },
-        "section2_image": { "type": "string", "format": "uri" },
-        "section3_image": { "type": "string", "format": "uri" },
-        "section4_image1": { "type": "string", "format": "uri" },
-        "section4_image2": { "type": "string", "format": "uri" },
-        "section5_image1": { "type": "string", "format": "uri" },
-        "section5_image2": { "type": "string", "format": "uri" },
-        "section6_image": { "type": "string", "format": "uri" },
         "supportWhatsapp": { "type": "string", "description": "WhatsApp number for priority support." },
         "supportEmail": { "type": "string", "description": "Email for general support." }
       }
