@@ -1,7 +1,7 @@
 
 'use client'
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import type { MarketingContent } from "@/lib/data";
@@ -91,28 +91,31 @@ function PolicyDialog({ title, content, companyName }: { title: string, content:
     )
 }
 
-export default function MarketingClientPage() {
+export default function MarketingClientPage({ serverContent }: { serverContent: MarketingContent | null }) {
+  const [content, setContent] = useState(serverContent);
   const firestore = useFirestore();
+
   const marketingRef = useMemoFirebase(
     () => (firestore ? doc(firestore, 'marketing', 'content') : null),
     [firestore]
   );
-  const { data: content, isLoading } = useDoc<MarketingContent>(marketingRef);
+  
+  // Usamos `useDoc` para atualizações em tempo real, mas usamos o `serverContent` para a renderização inicial
+  const { data: liveContent, isLoading } = useDoc<MarketingContent>(marketingRef);
+
+  useEffect(() => {
+    // Atualiza o estado com os dados em tempo real quando eles chegam, se forem diferentes dos dados do servidor
+    if (liveContent) {
+      setContent(liveContent);
+    }
+  }, [liveContent]);
   
   useEffect(() => {
     // Theme logic
-    if (content?.theme) {
-        const theme = content.theme;
-        document.documentElement.classList.remove('light', 'dark');
-        document.documentElement.classList.add(theme);
-    } else {
-        // Fallback to dark theme if not set
-        if (!document.documentElement.classList.contains('dark')) {
-             document.documentElement.classList.remove('light');
-             document.documentElement.classList.add('dark');
-        }
-    }
-  }, [content]);
+    const theme = content?.theme || 'dark';
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(theme);
+  }, [content?.theme]);
 
   const getImage = (field: keyof Omit<MarketingContent, 'hero_media_type' | 'hero_media_url' | 'feature_video_url' | 'feature_video_title' | 'ctaImageUrl' | 'supportWhatsapp' | 'supportEmail' | 'theme'>, defaultSeed: string) => {
     // @ts-ignore
@@ -122,7 +125,7 @@ export default function MarketingClientPage() {
     return placeholder?.imageUrl || `https://picsum.photos/seed/${defaultSeed}/1200/800`;
   };
 
-  if (isLoading) {
+  if (isLoading && !serverContent) {
     return <LoadingSkeleton />;
   }
 
