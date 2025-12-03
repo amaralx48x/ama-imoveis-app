@@ -74,7 +74,7 @@ export default function AdminSettingsPage() {
         if (marketingData) {
             form.reset({
                 supportWhatsapp: marketingData.supportWhatsapp || '',
-                supportEmail: marketingData.supportEmail || 'amaralx48@gmail.com',
+                supportEmail: marketingData.supportEmail || '',
             });
         }
     }, [marketingData, form]);
@@ -156,5 +156,3 @@ export default function AdminSettingsPage() {
         </div>
     )
 }
-
-    

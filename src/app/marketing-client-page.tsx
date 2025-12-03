@@ -114,7 +114,7 @@ export default function MarketingClientPage() {
     }
   }, [content]);
 
-  const getImage = (field: keyof Omit<MarketingContent, 'hero_media_type' | 'hero_media_url' | 'feature_video_url' | 'feature_video_title' | 'ctaImageUrl' | 'supportWhatsapp' | 'theme'>, defaultSeed: string) => {
+  const getImage = (field: keyof Omit<MarketingContent, 'hero_media_type' | 'hero_media_url' | 'feature_video_url' | 'feature_video_title' | 'ctaImageUrl' | 'supportWhatsapp' | 'supportEmail' | 'theme'>, defaultSeed: string) => {
     // @ts-ignore
     const url = content?.[field];
     if (url) return url;
@@ -366,7 +366,7 @@ export default function MarketingClientPage() {
                 <p className="mt-2 text-foreground/70">Sem cartão no teste — experimente e veja o impacto nas suas vendas.</p>
                 <div className="mt-6 flex justify-center gap-4">
                   <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-6 py-3 rounded-lg font-semibold`}>Começar 7 dias grátis</Link>
-                  <Link href="#plans" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-border/10">Ver planos</Link>
+                  <a href="#plans" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-border/10">Ver planos</a>
                 </div>
               </div>
             </section>

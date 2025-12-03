@@ -44,7 +44,7 @@ const marketingFormSchema = z.object({
 
 
 type ImageField = {
-    name: keyof Omit<MarketingContent, 'hero_media_url' | 'hero_media_type' | 'feature_video_url' | 'feature_video_title' | 'theme'>;
+    name: keyof Omit<MarketingContent, 'hero_media_url' | 'hero_media_type' | 'feature_video_url' | 'feature_video_title' | 'ctaImageUrl' | 'supportWhatsapp' | 'supportEmail' | 'theme'>;
     label: string;
     description: string;
 }
