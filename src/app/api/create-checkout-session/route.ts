@@ -27,7 +27,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'userId é obrigatório' }, { status: 400 });
     }
 
-    // Use o domínio de produção real agora que ele está sendo configurado.
+    // Use o domínio de produção real.
     const productionUrl = 'https://amaimobi.com.br';
 
     const session = await stripe.checkout.sessions.create({
