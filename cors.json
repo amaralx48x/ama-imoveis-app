@@ -4,7 +4,7 @@
     "origin": [
       "https://amaimobi.com.br",
       "https://www.amaimobi.com.br",
-      "https://studio--studio-7095998453-3cbf3.us-central1.hosted.app",
+      "https://studio--ama-imveis-041125-945215-63275.us-central1.hosted.app",
       "http://localhost:3000"
     ],
     "method": [
@@ -16,6 +16,7 @@
     ],
     "responseHeader": [
       "Content-Type",
+      "Access-Control-Allow-Origin",
       "x-goog-meta-*",
       "x-goog-upload-protocol",
       "x-goog-upload-command",
