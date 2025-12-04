@@ -4,10 +4,12 @@ import { getFirebaseServer } from '@/firebase/server-init';
 import { doc, getDoc } from 'firebase/firestore';
 import type { MarketingContent } from '@/lib/data';
 import { getSEO } from '@/firebase/server-actions/seo';
-import MarketingClientPage from "./marketing-client-page";
+import { Header } from '@/components/layout/header';
+import { Footer } from '@/components/layout/footer';
+import MarketingHero from '@/components/MarketingHero';
 
 // Função para buscar o conteúdo da página de marketing no servidor
-async function getMarketingPageContent(): Promise<MarketingContent | null> {
+async function getMarketingPageContent() {
   try {
     const { firestore } = getFirebaseServer();
     const contentRef = doc(firestore, 'marketing', 'content');
@@ -42,14 +44,25 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-/**
- * Este é o ponto de entrada principal para a rota '/'.
- * Ele busca os dados de conteúdo no servidor e os passa para o componente cliente,
- * garantindo uma renderização inicial correta e sem erros de hidratação.
- */
-export default async function MarketingPage() {
+// O componente da página (Server Component)
+export default async function MarketingV2Page() {
+  // Busca o conteúdo no servidor antes de renderizar a página
   const content = await getMarketingPageContent();
-  
-  // Passa o conteúdo para o componente cliente, que cuidará da renderização.
-  return <MarketingClientPage serverContent={content} />;
+
+  return (
+    <div className="min-h-screen text-white bg-black">
+      <Header agentName="AMA Imóveis" />
+      <main>
+        {/* O componente Hero recebe o conteúdo diretamente, evitando erros de hidratação */}
+        <MarketingHero content={content} />
+        
+        {/* Seção de placeholder para conteúdo futuro */}
+        <div className="py-20 text-center">
+          <h2 className="text-3xl font-bold">Mais conteúdo virá aqui</h2>
+          <p className="text-white/70 mt-2">Esta é uma página de marketing limpa e funcional.</p>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
 }
