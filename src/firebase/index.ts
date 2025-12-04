@@ -19,7 +19,7 @@ export function initializeFirebase() {
   const firebaseApp = initializeFirebaseApp();
   const auth = getAuth(firebaseApp);
   const firestore = getFirestore(firebaseApp);
-  const storage = getStorage(firebaseApp, "gs://studio-7095998453-3cbf3.firebasestorage.app");
+  const storage = getStorage(firebaseApp, "gs://studio-7095998453-3cbf3.appspot.com");
   const googleProvider = new GoogleAuthProvider();
   return {
     firebaseApp,
@@ -65,7 +65,6 @@ export const saveUserToFirestore = async (user: User, additionalData?: Additiona
             }
         };
         await setDoc(userRef, agentData);
-        console.log("Novo usuário criado no Firestore");
     }
 };
 
