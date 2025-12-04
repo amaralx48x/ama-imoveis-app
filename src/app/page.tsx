@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 import { getFirebaseServer } from '@/firebase/server-init';
 import { doc, getDoc } from 'firebase/firestore';
@@ -6,7 +5,6 @@ import type { MarketingContent } from '@/lib/data';
 import { getSEO } from '@/firebase/server-actions/seo';
 import { MarketingHero } from "@/components/marketing-hero";
 
-// Função para buscar o conteúdo da página de marketing no servidor
 async function getMarketingPageContent(): Promise<MarketingContent | null> {
   try {
     const { firestore } = getFirebaseServer();
@@ -22,7 +20,6 @@ async function getMarketingPageContent(): Promise<MarketingContent | null> {
   return null;
 }
 
-// Gera os metadados (SEO) para a página
 export async function generateMetadata(): Promise<Metadata> {
   const seoData = await getSEO("homepage");
   const title = seoData?.title || 'AMA Imóveis - A Plataforma para Corretores';
@@ -46,7 +43,6 @@ export default async function MarketingPage() {
   return (
     <main>
       <MarketingHero content={content} />
-      {/* Aqui podem ser adicionadas outras seções da página de marketing no futuro */}
     </main>
   );
 }
