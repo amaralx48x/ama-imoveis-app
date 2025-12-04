@@ -23,8 +23,9 @@ service cloud.firestore {
     // Coleção de Agentes/Imobiliárias
     // =========================
     match /agents/{agentId} {
-      // Qualquer um pode ler os dados públicos de um agente (para a página pública).
-      allow get: if true;
+      // PERMISSÃO ATUALIZADA: Qualquer usuário autenticado pode ler o perfil de qualquer agente.
+      // Isso é necessário para a regra do Storage (`isAdmin`) funcionar corretamente.
+      allow get: if isSignedIn();
       // Apenas admins podem listar todos os agentes.
       allow list: if isAdmin();
       // O próprio agente ou um admin podem escrever/atualizar seu perfil.

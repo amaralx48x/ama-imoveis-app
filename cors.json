@@ -1,4 +1,4 @@
-[
+{[
   {
     "origin": [
       "https://amaimobi.com.br",
@@ -10,7 +10,6 @@
       "GET",
       "POST",
       "PUT",
-      "HEAD",
       "DELETE",
       "OPTIONS"
     ],
