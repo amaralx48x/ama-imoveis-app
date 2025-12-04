@@ -102,7 +102,7 @@ function FooterSkeleton() {
 export function Footer({ agentId }: { agentId?: string }) {
   const firestore = useFirestore();
   const agentRef = useMemoFirebase(
-    () => (agentId && firestore ? doc(firestore, "agents", agentId) : null),
+    () => (agentId && firestore && agentId !== 'exemplo' ? doc(firestore, "agents", agentId) : null),
     [agentId, firestore]
   );
   

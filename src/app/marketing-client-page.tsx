@@ -1,17 +1,13 @@
 
 'use client'
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import type { MarketingContent } from "@/lib/data";
 import { defaultPrivacyPolicy, defaultTermsOfUse } from "@/lib/data";
 import { Search, Share2, Video, Check, X, Mail } from "lucide-react";
 import Image from 'next/image';
-import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
-import { doc } from "firebase/firestore";
-import { Skeleton } from "@/components/ui/skeleton";
 import MarketingHero from '@/components/MarketingHero';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -29,28 +25,6 @@ const fadeUpItem = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
-
-function LoadingSkeleton() {
-  return (
-    <div className="min-h-screen bg-black">
-      <header className="sticky top-0 z-50 border-b border-white/10 backdrop-blur-sm">
-         <div className="container mx-auto flex items-center justify-between px-6 py-4">
-            <Skeleton className="h-10 w-48" />
-            <Skeleton className="h-10 w-24" />
-        </div>
-      </header>
-      <main>
-        <section className="relative min-h-[70vh] flex items-center justify-center">
-            <Skeleton className="w-full h-full absolute inset-0"/>
-            <div className="z-10 text-center flex flex-col items-center">
-                <Skeleton className="h-12 w-96 mb-4" />
-                <Skeleton className="h-6 w-80" />
-            </div>
-        </section>
-      </main>
-    </div>
-  )
-}
 
 const PlanFeature = ({ children, included }: { children: React.ReactNode, included: boolean }) => (
     <li className={`flex items-start gap-3 ${!included ? 'text-white/50' : ''}`}>
@@ -92,42 +66,6 @@ function PolicyDialog({ title, content, companyName }: { title: string, content:
 }
 
 export default function MarketingClientPage({ serverContent }: { serverContent: MarketingContent | null }) {
-  const [content, setContent] = useState(serverContent);
-  const firestore = useFirestore();
-
-  const marketingRef = useMemoFirebase(
-    () => (firestore ? doc(firestore, 'marketing', 'content') : null),
-    [firestore]
-  );
-  
-  // Usamos `useDoc` para atualizações em tempo real, mas usamos o `serverContent` para a renderização inicial
-  const { data: liveContent, isLoading } = useDoc<MarketingContent>(marketingRef);
-
-  useEffect(() => {
-    // Atualiza o estado com os dados em tempo real quando eles chegam, se forem diferentes dos dados do servidor
-    if (liveContent) {
-      setContent(liveContent);
-    }
-  }, [liveContent]);
-  
-  useEffect(() => {
-    // Theme logic
-    const theme = content?.theme || 'dark';
-    document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(theme);
-  }, [content?.theme]);
-
-  const getImage = (field: keyof Omit<MarketingContent, 'hero_media_type' | 'hero_media_url' | 'feature_video_url' | 'feature_video_title' | 'ctaImageUrl' | 'supportWhatsapp' | 'supportEmail' | 'theme'>, defaultSeed: string) => {
-    // @ts-ignore
-    const url = content?.[field];
-    if (url) return url;
-    const placeholder = PlaceHolderImages.find(img => img.id === defaultSeed);
-    return placeholder?.imageUrl || `https://picsum.photos/seed/${defaultSeed}/1200/800`;
-  };
-
-  if (isLoading && !serverContent) {
-    return <LoadingSkeleton />;
-  }
 
   return (
     <div className="min-h-screen text-foreground bg-background">
@@ -155,7 +93,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
       </header>
       
       <main className="relative">
-        <MarketingHero content={content} />
+        <MarketingHero content={serverContent} />
       
         <div className="relative bg-background z-10">
           <div className="container mx-auto px-6 py-20">
@@ -201,10 +139,10 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
             <section className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center py-10">
                <div className="relative h-80 lg:h-96">
                   <motion.div initial={{ opacity: 0, x: -20, rotate: -5 }} whileInView={{ opacity: 1, x: 0, rotate: -8 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }} className="absolute top-0 left-0 w-3/4 rounded-lg overflow-hidden shadow-lg border border-border/10">
-                    <Image src={getImage('section2_image', "property-1-2")} alt="Visão do painel" width={1200} height={800} className="object-cover" />
+                    <Image src={serverContent?.section2_image || ''} alt="Visão do painel" width={1200} height={800} className="object-cover" />
                   </motion.div>
                   <motion.div initial={{ opacity: 0, x: 20, rotate: 5 }} whileInView={{ opacity: 1, x: 0, rotate: 2 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }} className="absolute bottom-0 right-0 w-3/4 rounded-lg overflow-hidden shadow-2xl border border-border/10">
-                    <Image src={getImage('section4_image1', "property-2-2")} alt="Detalhe do painel" width={600} height={400} className="object-cover" />
+                    <Image src={serverContent?.section4_image1 || ''} alt="Detalhe do painel" width={600} height={400} className="object-cover" />
                   </motion.div>
               </div>
               <div className="p-6 rounded-xl bg-card/50 border border-border/10 h-full flex flex-col justify-center">
@@ -225,7 +163,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
               </div>
               <div className="rounded-xl overflow-hidden shadow-lg h-full lg:order-first aspect-[4/3]">
                 <Image 
-                    src={getImage('section3_image', "agent-photo")} 
+                    src={serverContent?.section3_image || ''}
                     alt="Site público do corretor" 
                     width={1200} height={900} 
                     className="object-cover w-full h-full" 
@@ -256,12 +194,12 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
             {/* Video Section */}
             <section className="mt-16 py-10">
                 <div className="text-center mb-8">
-                    <h4 className="font-extrabold text-3xl text-gradient">{content?.feature_video_title || "Veja a Plataforma em Ação"}</h4>
+                    <h4 className="font-extrabold text-3xl text-gradient">{serverContent?.feature_video_title || "Veja a Plataforma em Ação"}</h4>
                 </div>
                 <div className="relative rounded-xl border border-border/10 aspect-video overflow-hidden shadow-lg h-full flex items-center justify-center">
-                    {content?.feature_video_url ? (
+                    {serverContent?.feature_video_url ? (
                         <video 
-                            src={content.feature_video_url} 
+                            src={serverContent.feature_video_url} 
                             autoPlay 
                             loop 
                             muted 
@@ -287,7 +225,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
                 </div>
                  <div className="rounded-xl overflow-hidden shadow-lg h-full aspect-video">
                     <Image 
-                        src={getImage('section6_image', "property-3-1")} 
+                        src={serverContent?.section6_image || ''}
                         alt="Exemplo de SEO" 
                         width={1200} height={630} 
                         className="object-cover w-full h-full" 
@@ -384,10 +322,10 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
           <div className="flex items-center gap-4 text-foreground/60">
               <PolicyDialog title="Termos de Uso" content={defaultTermsOfUse} companyName="AMA Tecnologia" />
               <PolicyDialog title="Política de Privacidade" content={defaultPrivacyPolicy} companyName="AMA Tecnologia" />
-              {content?.supportEmail && (
-                <a href={`mailto:${content.supportEmail}`} className="flex items-center gap-2 text-sm hover:text-white transition-colors">
+              {serverContent?.supportEmail && (
+                <a href={`mailto:${serverContent.supportEmail}`} className="flex items-center gap-2 text-sm hover:text-white transition-colors">
                   <Mail className="w-4 h-4" />
-                  {content.supportEmail}
+                  {serverContent.supportEmail}
                 </a>
               )}
           </div>
