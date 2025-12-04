@@ -23,10 +23,9 @@ service cloud.firestore {
     // Coleção de Agentes/Imobiliárias
     // =========================
     match /agents/{agentId} {
-      // PERMISSÃO ATUALIZADA: Qualquer usuário autenticado pode ler o perfil de qualquer agente.
-      // Isso é necessário para a regra do Storage (`isAdmin`) funcionar corretamente.
+      // Qualquer usuário autenticado pode LER o perfil de qualquer agente para validação cruzada.
       allow get: if isSignedIn();
-      // Apenas admins podem listar todos os agentes.
+      // Apenas admins podem LISTAR todos os agentes.
       allow list: if isAdmin();
       // O próprio agente ou um admin podem escrever/atualizar seu perfil.
       allow write: if isOwner(agentId) || isAdmin();
