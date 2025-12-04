@@ -8,8 +8,7 @@
       "*://*.cloudworkstations.dev",
       "http://localhost:3000",
       "http://localhost:5173",
-      "https://studio--studio-7095998453-3cbf3.us-central1.hosted.app",
-      "https://amaimobi.com.br"
+      "https://studio--studio-7095998453-3cbf3.us-central1.hosted.app"
     ],
     "method": [
       "GET",
