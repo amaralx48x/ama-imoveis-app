@@ -20,7 +20,8 @@ export function initializeFirebase() {
   const firebaseApp = initializeFirebaseApp();
   const auth = getAuth(firebaseApp);
   const firestore = getFirestore(firebaseApp);
-  const storage = getStorage(firebaseApp, "gs://ama-imveis-041125-945215-63275.appspot.com");
+  // Forçando o uso do bucket correto
+  const storage = getStorage(firebaseApp, "gs://studio-7095998453-3cbf3.firebasestorage.app");
   const googleProvider = new GoogleAuthProvider();
   return {
     firebaseApp,
