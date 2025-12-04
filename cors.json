@@ -3,22 +3,17 @@
     "origin": [
       "https://amaimobi.com.br",
       "https://www.amaimobi.com.br",
-      "https://ama-imveis-041125-94521575.web.app",
-      "https://6000-firebase-ama-imveis-041125-1762295652515.cluster-hlmk2l2htragyudeyf6f3tzsi6.cloudworkstations.dev",
-      "https://studio--studio-7095998453-3cbf3.us-central1.hosted.app",
+      "https://studio--ama-imveis-041125-945215-63275.us-central1.hosted.app",
       "http://localhost:3000"
     ],
     "method": [
       "GET",
       "POST",
-      "PUT",
-      "DELETE",
-      "HEAD"
+      "PUT"
     ],
     "responseHeader": [
       "Content-Type",
-      "x-goog-meta-*",
-      "Authorization"
+      "x-goog-meta-*"
     ],
     "maxAgeSeconds": 3600
   }
