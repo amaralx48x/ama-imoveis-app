@@ -255,8 +255,8 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
             
             {/* Video Section */}
             <section className="mt-16 py-10">
-                <div className="text-center mb-4">
-                    <h4 className="font-extrabold text-4xl text-gradient drop-shadow-lg">{content?.feature_video_title || "Veja a Plataforma em Ação"}</h4>
+                <div className="text-center mb-8">
+                    <h4 className="font-extrabold text-3xl text-gradient">{content?.feature_video_title || "Veja a Plataforma em Ação"}</h4>
                 </div>
                 <div className="relative rounded-xl border border-border/10 aspect-video overflow-hidden shadow-lg h-full flex items-center justify-center">
                     {content?.feature_video_url ? (

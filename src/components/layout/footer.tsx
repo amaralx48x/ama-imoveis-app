@@ -189,7 +189,7 @@ export function Footer({ agentId }: { agentId?: string }) {
         <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left border-t border-border pt-6">
            <div className="mb-4 md:mb-0">
              <p className="text-muted-foreground text-sm">
-              © {new Date().getFullYear()} AMA Tecnologia. Todos os direitos reservados.
+              © {new Date().getFullYear()} {agent?.name || "AMA Imóveis"}. Todos os direitos reservados.
             </p>
           </div>
           <div className="text-muted-foreground text-xs space-x-2">

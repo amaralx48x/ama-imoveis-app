@@ -5,6 +5,7 @@ import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export interface MarketingContent {
   hero_media_url?: string | null;
@@ -27,9 +28,9 @@ const fadeUpItem = {
 };
 
 export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: MarketingHeroProps) {
-  const mediaUrl = content?.hero_media_url || null;
+  const fallbackImage = PlaceHolderImages.find(img => img.id === 'hero-background');
+  const mediaUrl = content?.hero_media_url || fallbackImage?.imageUrl;
   const mediaType = content?.hero_media_type ?? 'image';
-  const fallback = "/hero-placeholder.jpg"; 
 
   return (
     <section className="relative h-[80vh] min-h-[600px] w-full flex items-center justify-center text-white">
@@ -46,7 +47,7 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
           />
         ) : (
           <Image
-            src={mediaUrl || fallback}
+            src={mediaUrl || "/hero-placeholder.jpg"}
             alt="Apresentação da plataforma"
             fill
             priority
