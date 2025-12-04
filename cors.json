@@ -5,7 +5,8 @@
       "https://amaimobi.com.br",
       "https://www.amaimobi.com.br",
       "https://studio--ama-imveis-041125-945215-63275.us-central1.hosted.app",
-      "http://localhost:3000"
+      "http://localhost:3000",
+      "https://6000-firebase-ama-imveis-041125-1762295652515.cluster-hlmk2l2htragyudeyf6f3tzsi6.cloudworkstations.dev"
     ],
     "method": [
       "GET",
