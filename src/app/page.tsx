@@ -4,11 +4,9 @@ import { getFirebaseServer } from '@/firebase/server-init';
 import { doc, getDoc } from 'firebase/firestore';
 import type { MarketingContent } from '@/lib/data';
 import { getSEO } from '@/firebase/server-actions/seo';
-import { MarketingHero } from '@/components/marketing-hero';
-import MarketingClientPage from './marketing-client-page';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import MarketingClientPage from "./marketing-client-page";
 
-
+// Função para buscar o conteúdo da página de marketing no servidor
 async function getMarketingPageContent(): Promise<MarketingContent | null> {
   try {
     const { firestore } = getFirebaseServer();
@@ -16,21 +14,17 @@ async function getMarketingPageContent(): Promise<MarketingContent | null> {
     const contentSnap = await getDoc(contentRef);
 
     if (contentSnap.exists()) {
+      // Retorna os dados como um objeto simples para evitar problemas de serialização
       return JSON.parse(JSON.stringify(contentSnap.data())) as MarketingContent;
     }
   } catch (error) {
     console.error("Failed to fetch marketing content on server:", error);
   }
-  
-  // Fallback to static data if Firestore fetch fails or document doesn't exist
-  const heroImage = PlaceHolderImages.find(img => img.id === 'hero-background');
-  return {
-    hero_media_url: heroImage?.imageUrl || null,
-    hero_media_type: 'image',
-    // Adicione outros fallbacks que seu client page possa precisar
-  };
+  // Retorna null se não encontrar ou der erro
+  return null;
 }
 
+// Gera os metadados (SEO) para a página
 export async function generateMetadata(): Promise<Metadata> {
   const seoData = await getSEO("homepage");
   const title = seoData?.title || 'AMA Imóveis - A Plataforma para Corretores';
@@ -48,7 +42,14 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+/**
+ * Este é o ponto de entrada principal para a rota '/'.
+ * Ele busca os dados de conteúdo no servidor e os passa para o componente cliente,
+ * garantindo uma renderização inicial correta e sem erros de hidratação.
+ */
 export default async function MarketingPage() {
   const content = await getMarketingPageContent();
+  
+  // Passa o conteúdo para o componente cliente, que cuidará da renderização.
   return <MarketingClientPage serverContent={content} />;
 }

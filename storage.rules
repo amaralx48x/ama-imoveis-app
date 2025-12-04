@@ -1,0 +1,62 @@
+
+rules_version = '2';
+
+// Use {bucket} como um curinga para o nome do seu bucket
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // -----------------------
+    // Funções auxiliares
+    // -----------------------
+    
+    // Verifica se o usuário é admin
+    function isAdmin() {
+      // get() no Firestore para verificar a role do usuário.
+      // Requer que as regras do Firestore permitam esta leitura (`allow get` na coleção de agentes).
+      return request.auth != null 
+             && get(/databases/$(database)/documents/agents/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Verifica se o usuário é dono do recurso
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // -----------------------
+    // Imagens de marketing (página inicial)
+    // -----------------------
+    match /marketing/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // -----------------------
+    // Imagens de SEO
+    // -----------------------
+    match /seo/assets/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /agents/{agentId}/site-assets/{fileName} {
+      allow read: if true;
+      allow write: if isOwner(agentId) || isAdmin();
+    }
+
+    // -----------------------
+    // Imagens de suporte
+    // -----------------------
+    match /support-images/{userId}/{fileName} {
+      allow write: if isOwner(userId);
+      allow read: if isOwner(userId) || isAdmin();
+    }
+
+    // -----------------------
+    // Imagens de perfil e imóveis de agentes
+    // -----------------------
+    match /agents/{agentId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isOwner(agentId) || isAdmin();
+    }
+  }
+}

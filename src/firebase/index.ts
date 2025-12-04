@@ -1,4 +1,3 @@
-
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
@@ -21,7 +20,7 @@ export function initializeFirebase() {
   const auth = getAuth(firebaseApp);
   const firestore = getFirestore(firebaseApp);
   // Forçando o uso do bucket correto
-  const storage = getStorage(firebaseApp, "gs://studio-7095998453-3cbf3.firebasestorage.app");
+  const storage = getStorage(firebaseApp, `gs://${firebaseConfig.storageBucket}`);
   const googleProvider = new GoogleAuthProvider();
   return {
     firebaseApp,
@@ -67,6 +66,7 @@ export const saveUserToFirestore = async (user: User, additionalData?: Additiona
             }
         };
         await setDoc(userRef, agentData);
+        console.log("Novo usuário criado no Firestore");
     }
 };
 

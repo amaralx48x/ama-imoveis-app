@@ -99,17 +99,14 @@ function FooterSkeleton() {
     )
 }
 
-export function Footer({ agentId, agent: agentProp }: { agentId?: string, agent?: Agent | null }) {
+export function Footer({ agentId }: { agentId?: string }) {
   const firestore = useFirestore();
-  
   const agentRef = useMemoFirebase(
-    () => (agentId && firestore && !agentProp ? doc(firestore, "agents", agentId) : null),
-    [agentId, firestore, agentProp]
+    () => (agentId && firestore ? doc(firestore, "agents", agentId) : null),
+    [agentId, firestore]
   );
   
-  const { data: agentFromHook, isLoading } = useDoc<Agent>(agentRef);
-
-  const agent = agentProp ?? agentFromHook;
+  const { data: agent, isLoading } = useDoc<Agent>(agentRef);
   
   const privacyPolicy = agent?.siteSettings?.privacyPolicy || defaultPrivacyPolicy;
   const termsOfUse = agent?.siteSettings?.termsOfUse || defaultTermsOfUse;
@@ -192,7 +189,7 @@ export function Footer({ agentId, agent: agentProp }: { agentId?: string, agent?
         <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left border-t border-border pt-6">
            <div className="mb-4 md:mb-0">
              <p className="text-muted-foreground text-sm">
-              © {new Date().getFullYear()} {agent?.name || "AMA Imóveis"}. Todos os direitos reservados.
+              © {new Date().getFullYear()} AMA Tecnologia. Todos os direitos reservados.
             </p>
           </div>
           <div className="text-muted-foreground text-xs space-x-2">

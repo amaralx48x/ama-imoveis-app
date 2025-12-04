@@ -75,12 +75,28 @@ service cloud.firestore {
     // =========================
     // Coleção de Clientes (Stripe)
     // =========================
-    match /customers/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
-      
-      // Assinaturas de um cliente
-      match /subscriptions/{subscriptionId} {
-          allow read, write: if isOwner(userId) || isAdmin();
+    match /customers/{uid} {
+      allow read: if isOwner(uid);
+
+      match /checkout_sessions/{id} {
+        allow read, write: if isOwner(uid);
+      }
+      match /subscriptions/{id} {
+        allow read: if isOwner(uid);
+      }
+      match /payments/{id} {
+        allow read: if isOwner(uid);
+      }
+    }
+
+    // =========================
+    // Produtos e Preços (Stripe)
+    // =========================
+     match /products/{id} {
+      allow read: if true;
+
+      match /prices/{id} {
+        allow read: if true;
       }
     }
 

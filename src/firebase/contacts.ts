@@ -2,8 +2,7 @@
 "use client";
 
 import { addDoc, updateDoc, deleteDoc, collection, doc, serverTimestamp, arrayUnion, arrayRemove, Firestore } from "firebase/firestore";
-import { errorEmitter } from "./error-emitter";
-import { FirestorePermissionError } from "./errors";
+import { errorEmitter, FirestorePermissionError } from "./index";
 
 
 export async function createContact(firestore: Firestore, agentId: string, payload: any) {
