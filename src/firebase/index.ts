@@ -35,8 +35,7 @@ export function initializeFirebase() {
   const firebaseApp = initializeFirebaseApp();
   const auth = getAuth(firebaseApp);
   const firestore = getFirestore(firebaseApp);
-  // Forçando o uso do bucket correto para o Storage.
-  const storage = getStorage(firebaseApp, "gs://studio-7095998453-3cbf3.firebasestorage.app");
+  const storage = getStorage(firebaseApp); // No need to force the bucket URL here
 
   const googleProvider = new GoogleAuthProvider();
 
