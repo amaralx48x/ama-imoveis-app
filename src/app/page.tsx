@@ -6,6 +6,7 @@ import type { MarketingContent } from '@/lib/data';
 import { getSEO } from '@/firebase/server-actions/seo';
 import { MarketingHero } from '@/components/marketing-hero';
 import MarketingClientPage from './marketing-client-page';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 
 async function getMarketingPageContent(): Promise<MarketingContent | null> {
@@ -20,7 +21,14 @@ async function getMarketingPageContent(): Promise<MarketingContent | null> {
   } catch (error) {
     console.error("Failed to fetch marketing content on server:", error);
   }
-  return null;
+  
+  // Fallback to static data if Firestore fetch fails or document doesn't exist
+  const heroImage = PlaceHolderImages.find(img => img.id === 'hero-background');
+  return {
+    hero_media_url: heroImage?.imageUrl || null,
+    hero_media_type: 'image',
+    // Adicione outros fallbacks que seu client page possa precisar
+  };
 }
 
 export async function generateMetadata(): Promise<Metadata> {

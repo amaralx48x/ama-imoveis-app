@@ -99,14 +99,17 @@ function FooterSkeleton() {
     )
 }
 
-export function Footer({ agentId }: { agentId?: string }) {
+export function Footer({ agentId, agent: agentProp }: { agentId?: string, agent?: Agent | null }) {
   const firestore = useFirestore();
+  
   const agentRef = useMemoFirebase(
-    () => (agentId && firestore && agentId !== 'exemplo' ? doc(firestore, "agents", agentId) : null),
-    [agentId, firestore]
+    () => (agentId && firestore && !agentProp ? doc(firestore, "agents", agentId) : null),
+    [agentId, firestore, agentProp]
   );
   
-  const { data: agent, isLoading } = useDoc<Agent>(agentRef);
+  const { data: agentFromHook, isLoading } = useDoc<Agent>(agentRef);
+
+  const agent = agentProp ?? agentFromHook;
   
   const privacyPolicy = agent?.siteSettings?.privacyPolicy || defaultPrivacyPolicy;
   const termsOfUse = agent?.siteSettings?.termsOfUse || defaultTermsOfUse;
