@@ -8,7 +8,7 @@ import type { MarketingContent } from "@/lib/data";
 import { defaultPrivacyPolicy, defaultTermsOfUse } from "@/lib/data";
 import { Search, Share2, Video, Check, X, Mail } from "lucide-react";
 import Image from 'next/image';
-import MarketingHero from '@/components/MarketingHero';
+import { MarketingHero } from '@/components/marketing-hero';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -139,10 +139,10 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
             <section className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center py-10">
                <div className="relative h-80 lg:h-96">
                   <motion.div initial={{ opacity: 0, x: -20, rotate: -5 }} whileInView={{ opacity: 1, x: 0, rotate: -8 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }} className="absolute top-0 left-0 w-3/4 rounded-lg overflow-hidden shadow-lg border border-border/10">
-                    <Image src={serverContent?.section2_image || ''} alt="Visão do painel" width={1200} height={800} className="object-cover" />
+                    <Image src={serverContent?.section2_image || 'https://picsum.photos/seed/panel/1200/800'} alt="Visão do painel" width={1200} height={800} className="object-cover" />
                   </motion.div>
                   <motion.div initial={{ opacity: 0, x: 20, rotate: 5 }} whileInView={{ opacity: 1, x: 0, rotate: 2 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }} className="absolute bottom-0 right-0 w-3/4 rounded-lg overflow-hidden shadow-2xl border border-border/10">
-                    <Image src={serverContent?.section4_image1 || ''} alt="Detalhe do painel" width={600} height={400} className="object-cover" />
+                    <Image src={serverContent?.section4_image1 || 'https://picsum.photos/seed/detail/600/400'} alt="Detalhe do painel" width={600} height={400} className="object-cover" />
                   </motion.div>
               </div>
               <div className="p-6 rounded-xl bg-card/50 border border-border/10 h-full flex flex-col justify-center">
@@ -163,7 +163,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
               </div>
               <div className="rounded-xl overflow-hidden shadow-lg h-full lg:order-first aspect-[4/3]">
                 <Image 
-                    src={serverContent?.section3_image || ''}
+                    src={serverContent?.section3_image || 'https://picsum.photos/seed/website/1200/900'}
                     alt="Site público do corretor" 
                     width={1200} height={900} 
                     className="object-cover w-full h-full" 
@@ -225,7 +225,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
                 </div>
                  <div className="rounded-xl overflow-hidden shadow-lg h-full aspect-video">
                     <Image 
-                        src={serverContent?.section6_image || ''}
+                        src={serverContent?.section6_image || 'https://picsum.photos/seed/seo/1200/630'}
                         alt="Exemplo de SEO" 
                         width={1200} height={630} 
                         className="object-cover w-full h-full" 
