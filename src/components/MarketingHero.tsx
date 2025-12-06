@@ -59,14 +59,14 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
         <div className="absolute inset-0 bg-black/50" />
       </div>
 
-      {/* Camada de Conteúdo de Texto (Sobreposta) */}
-      <div className="relative z-10 text-center p-6">
+      {/* Camada de Conteúdo (Sobreposta) */}
+      <div className="relative z-10 container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 items-center gap-8">
         <motion.div
           variants={fadeUpContainer}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
-          className={`${maxWidthClass} w-full mx-auto`}
+          className="text-center md:text-left"
         >
           <motion.h1 variants={fadeUpItem} className="text-3xl md:text-5xl font-extrabold leading-tight">
             A plataforma completa para{' '}
@@ -79,7 +79,7 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
             Gerencie anúncios, leads e comissões — tudo em um só lugar.
           </motion.p>
 
-          <motion.div variants={fadeUpItem} className="mt-8 flex gap-3 justify-center flex-wrap">
+          <motion.div variants={fadeUpItem} className="mt-8 flex gap-3 justify-center md:justify-start flex-wrap">
             <Link
               href="/login"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-semibold shadow-lg"
@@ -91,6 +91,22 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
               Conhecer recursos
             </a>
           </motion.div>
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="hidden md:flex justify-center"
+        >
+            <Image 
+                src="https://images.unsplash.com/photo-1628191137426-c2ea7e2b30c7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwaG9uZSUyMGFwcCUyMG1vY2t1cHxlbnwwfHx8fDE3NjIyNjc0NTZ8MA&ixlib=rb-4.1.0&q=80&w=1080"
+                alt="Aplicativo em um celular"
+                width={300}
+                height={600}
+                className="rounded-3xl shadow-2xl"
+                data-ai-hint="phone app mockup"
+            />
         </motion.div>
       </div>
     </section>
