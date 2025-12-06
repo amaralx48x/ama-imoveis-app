@@ -1,7 +1,16 @@
-import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/google-genai';
+import {genkit, firebase} from 'genkit';
+import {vertexAI} from '@genkit-ai/vertexai';
+import {firebase as firebasePlugin} from '@genkit-ai/firebase';
 
 export const ai = genkit({
-  plugins: [googleAI()],
-  model: 'googleai/gemini-2.5-flash',
+  plugins: [
+    firebasePlugin({
+      firestore: {
+        // As collections are added, they can be added to this list.
+        collections: ['agents'],
+      },
+    }),
+    vertexAI(),
+  ],
+  model: 'vertexai/gemini-2.5-flash',
 });
