@@ -257,7 +257,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
                     {/* Left Side: Title and Features */}
                     <div className="space-y-8">
                         <motion.div variants={fadeUpItem}>
-                            <h2 className="text-4xl font-extrabold text-foreground">site e CRM</h2>
+                            <h2 className="text-4xl font-extrabold text-foreground">Site e CRM para imobiliárias e Corretores de Imóveis</h2>
                             <p className="mt-4 text-lg text-foreground/70">Faça um <span className="font-bold">Teste Grátis</span> e supere suas expectativas. Sistema para imobiliárias, CRM Completo e integrado ao Whatsapp.</p>
                         </motion.div>
 
