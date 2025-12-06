@@ -1,3 +1,4 @@
+
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
@@ -35,7 +36,7 @@ export function initializeFirebase() {
   const firebaseApp = initializeFirebaseApp();
   const auth = getAuth(firebaseApp);
   const firestore = getFirestore(firebaseApp);
-  const storage = getStorage(firebaseApp); // No need to force the bucket URL here
+  const storage = getStorage(firebaseApp); 
 
   const googleProvider = new GoogleAuthProvider();
 
@@ -73,7 +74,7 @@ export const saveUserToFirestore = async (user: User, additionalData?: Additiona
       creci: '000000-F',
       photoUrl: user.photoURL || '',
       role: 'corretor',
-      plan: 'corretor',
+      plan: 'simples' as const, // Default to the new base plan
       createdAt: serverTimestamp(),
       siteSettings: {
         siteStatus: true,

@@ -114,7 +114,7 @@ export type Agent = {
     availability?: Availability;
     siteSettings?: SiteSettings;
     role?: 'corretor' | 'admin';
-    plan?: 'corretor' | 'imobiliaria';
+    plan?: 'simples' | 'essencial' | 'impulso' | 'expansao';
 }
 
 export type LeadType = "seller" | "buyer" | "other";
@@ -373,3 +373,4 @@ export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Gu
 export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
 
     
+

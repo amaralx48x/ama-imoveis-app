@@ -1,3 +1,4 @@
+
 'use client';
 
 import { collection, onSnapshot, doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -14,7 +15,7 @@ import { useFirestore, useUser } from '@/firebase';
 import type { Agent } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 
-export type PlanType = 'corretor' | 'imobiliaria';
+export type PlanType = 'simples' | 'essencial' | 'impulso' | 'expansao';
 
 interface PlanLimits {
     maxProperties: number;
@@ -29,28 +30,48 @@ interface PlanContextProps {
   currentPropertiesCount: number;
   isLoading: boolean;
   canAddNewProperty: () => boolean;
+  planSettings: Record<PlanType, PlanLimits & { name: string; priceId: string }>;
 }
 
-const planSettings: Record<PlanType, PlanLimits> = {
-    'corretor': {
-        maxProperties: 50,
+const planSettings: Record<PlanType, PlanLimits & { name: string; priceId: string }> = {
+    'simples': {
+        name: 'Simples',
+        priceId: process.env.NEXT_PUBLIC_STRIPE_PLANO1_PRICE_ID || 'price_simples',
+        maxProperties: 30,
         canImportCSV: false,
+        storageGB: 2,
+    },
+    'essencial': {
+        name: 'Essencial',
+        priceId: process.env.NEXT_PUBLIC_STRIPE_PLANO2_PRICE_ID || 'price_essencial',
+        maxProperties: 350,
+        canImportCSV: true,
         storageGB: 5,
     },
-    'imobiliaria': {
-        maxProperties: 300,
+    'impulso': {
+        name: 'Impulso',
+        priceId: process.env.NEXT_PUBLIC_STRIPE_PLANO3_PRICE_ID || 'price_impulso',
+        maxProperties: 1000,
         canImportCSV: true,
         storageGB: 10,
+    },
+    'expansao': {
+        name: 'Expansão',
+        priceId: process.env.NEXT_PUBLIC_STRIPE_PLANO4_PRICE_ID || 'price_expansao',
+        maxProperties: 3000,
+        canImportCSV: true,
+        storageGB: 20,
     }
-}
+};
 
 const defaultPlanContext: PlanContextProps = {
-  plan: 'corretor',
+  plan: 'simples',
   setPlan: () => {},
-  limits: planSettings.corretor,
+  limits: planSettings.simples,
   currentPropertiesCount: 0,
   isLoading: true,
   canAddNewProperty: () => false,
+  planSettings: planSettings,
 };
 
 const PlanContext = createContext<PlanContextProps>(defaultPlanContext);
@@ -70,7 +91,12 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
       const agentRef = doc(firestore, `agents/${user.uid}`);
       const unsubscribe = onSnapshot(agentRef, (docSnap) => {
         if (docSnap.exists()) {
-          setAgentData(docSnap.data() as Agent);
+          const data = docSnap.data() as Agent;
+          // Ensure plan is valid, default if not
+          if (data.plan && !Object.keys(planSettings).includes(data.plan)) {
+              data.plan = 'simples'; 
+          }
+          setAgentData(data);
         }
         // No need to setIsLoading here, we do it in the properties fetch
       }, (error) => {
@@ -121,7 +147,7 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
         await updateDoc(agentRef, { plan: newPlan });
         toast({
             title: "Plano Atualizado!",
-            description: `O plano foi alterado para ${newPlan === 'corretor' ? 'AMAPLUS' : 'AMA ULTRA'}.`
+            description: `O plano foi alterado para ${planSettings[newPlan].name}.`
         })
     } catch (error) {
         console.error("Erro ao atualizar plano:", error);
@@ -130,7 +156,9 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
 
   }, [user, firestore, agentData?.role, toast]);
 
-  const plan = agentData?.plan || 'corretor';
+  const plan = agentData?.plan && Object.keys(planSettings).includes(agentData.plan) 
+    ? agentData.plan as PlanType 
+    : 'simples';
 
   const limits = useMemo(() => {
     return planSettings[plan];
@@ -148,6 +176,7 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
     currentPropertiesCount,
     isLoading,
     canAddNewProperty,
+    planSettings,
   };
 
   return <PlanContext.Provider value={value}>{children}</PlanContext.Provider>;
