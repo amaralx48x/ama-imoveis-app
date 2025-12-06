@@ -15,6 +15,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import MarketingHero from '@/components/MarketingHero';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import { Star } from "lucide-react";
 
 
 const fadeUpContainer = {
@@ -128,6 +130,74 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
   if (isLoading && !serverContent) {
     return <LoadingSkeleton />;
   }
+
+  const planDetails = {
+    simples: {
+      name: 'Simples',
+      price: '54,99',
+      features: [
+        { text: 'Cadastro de até 30 imóveis', included: true },
+        { text: '32 Fotos por imóvel', included: true },
+        { text: '1 Conta de E-mail (via POP3)', included: true },
+        { text: '5 Catálogos de Imóveis (sites extras)', included: true },
+        { text: '5 Hotsites Diversos (sites extras)', included: true },
+        { text: 'Usuário único do Sistema', included: true },
+        { text: 'Inteligência Artificial - 5 descrições', included: true },
+        { text: 'Esteira de Leads', included: false },
+        { text: 'Certificado SSL', included: false },
+        { text: 'Habilitação Órulo e DWV', included: false },
+      ],
+    },
+     essencial: {
+      name: 'Essencial',
+      price: '74,99',
+      features: [
+        { text: 'Cadastro de até 350 imóveis', included: true },
+        { text: '50 Fotos por Imóvel', included: true },
+        { text: '3 Contas de E-mail (via POP3)', included: true },
+        { text: '10 Catálogos de Imóveis (sites extras)', included: true },
+        { text: '10 Hotsites Diversos (sites extras)', included: true },
+        { text: '3 Usuários do Sistema', included: true },
+        { text: 'Inteligência Artificial - 10 descrições', included: true },
+        { text: 'Esteira de Leads', included: true },
+        { text: 'Certificado SSL', included: true },
+        { text: 'Habilitação Órulo e DWV', included: false },
+      ],
+    },
+     impulso: {
+      name: 'Impulso',
+      price: '119,99',
+      recommended: true,
+      features: [
+        { text: 'Cadastro de até 1000 imóveis', included: true },
+        { text: '64 Fotos por Imóvel', included: true },
+        { text: '5 Contas de E-mail (via POP3)', included: true },
+        { text: '20 Catálogos de Imóveis (sites extras)', included: true },
+        { text: '20 Hotsites Diversos (sites extras)', included: true },
+        { text: '5 Usuários do Sistema', included: true },
+        { text: 'Inteligência Artificial - 15 descrições', included: true },
+        { text: 'Esteira de Leads', included: true },
+        { text: 'Certificado SSL', included: true },
+        { text: 'Habilitação Órulo e DWV', included: false },
+      ],
+    },
+    expansao: {
+      name: 'Expansão',
+      price: '249,99',
+      features: [
+        { text: 'Cadastro de até 3000 imóveis', included: true },
+        { text: '64 Fotos por Imóvel', included: true },
+        { text: '15 Contas de E-mail (via POP3)', included: true },
+        { text: '40 Catálogos de Imóveis (sites extras)', included: true },
+        { text: '40 Hotsites Diversos (sites extras)', included: true },
+        { text: '15 Usuários do Sistema', included: true },
+        { text: 'Inteligência Artificial - 50 descrições', included: true },
+        { text: 'Esteira de Leads', included: true },
+        { text: 'Certificado SSL', included: true },
+        { text: 'Habilitação Órulo e DWV **', included: true },
+      ],
+    },
+  };
 
   return (
     <div className="min-h-screen text-foreground bg-background">
@@ -301,64 +371,40 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
               <motion.h3 variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-3xl font-extrabold text-center">Planos</motion.h3>
               <p className="mt-2 text-foreground/70 text-center">Teste 7 dias grátis. Depois, escolha seu plano.</p>
 
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                    {/* AMAPLUS Plan */}
-                    <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex flex-col p-6 rounded-2xl border border-border/10 bg-card/50 shadow-lg">
-                        <div className="flex-grow">
-                            <h4 className="text-lg font-bold">AMAPLUS</h4>
-                            <p className="text-sm text-foreground/60 mb-4">Para corretores individuais</p>
-                            <div className="mb-6">
-                                <span className="text-4xl font-extrabold">R$ 39,90</span>
-                                <span className="text-sm text-foreground/60">/mês</span>
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+                    {Object.values(planDetails).map((p) => (
+                        <motion.div 
+                            key={p.name} 
+                            variants={fadeUpItem} 
+                            initial="hidden" 
+                            whileInView="show" 
+                            viewport={{ once: true }} 
+                            className={cn('flex flex-col p-6 rounded-2xl border border-border/10 bg-card/50 shadow-lg relative', p.recommended && 'border-2 border-blue-500')}
+                        >
+                            {p.recommended && (
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-fit px-4 py-1 bg-yellow-400 text-black text-xs font-bold rounded-full flex items-center gap-1">
+                                <Star className="w-3 h-3" /> RECOMENDADO
+                                </div>
+                            )}
+                            <div className="flex-grow">
+                                <h4 className="text-lg font-bold">{p.name}</h4>
+                                <div className="my-4">
+                                    <span className="text-4xl font-extrabold">R$ {p.price}</span>
+                                    <span className="text-sm text-foreground/60">/mês</span>
+                                </div>
+                                <ul className="space-y-3 text-sm">
+                                    {p.features.map(feat => (
+                                        <PlanFeature key={feat.text} included={feat.included}>{feat.text}</PlanFeature>
+                                    ))}
+                                </ul>
                             </div>
-                            <ul className="space-y-3 text-sm">
-                                <PlanFeature included={true}>Site profissional personalizável</PlanFeature>
-                                <PlanFeature included={true}>Painel de controle</PlanFeature>
-                                <PlanFeature included={true}>CRM completo</PlanFeature>
-                                <PlanFeature included={true}>SEO (Otimização para Google)</PlanFeature>
-                                <PlanFeature included={true}>Lista de captação de leads</PlanFeature>
-                                <PlanFeature included={true}>Até 50 imóveis simultâneos</PlanFeature>
-                                <PlanFeature included={true}>5 GB de dados por mês</PlanFeature>
-                                <PlanFeature included={true}>Domínio pago à parte (R$ 40/anual)</PlanFeature>
-                                <PlanFeature included={false}>Importar lista de imóveis por CSV</PlanFeature>
-                                <PlanFeature included={false}>Atendimento prioritário técnico</PlanFeature>
-                            </ul>
-                        </div>
-                        <div className="mt-8">
-                            <Link href="/login" className="inline-flex items-center justify-center w-full bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-4 py-3 rounded-md font-semibold hover:opacity-90 transition-opacity">
-                                Iniciar 7 dias
-                            </Link>
-                        </div>
-                    </motion.div>
-
-                    {/* AMA ULTRA Plan */}
-                    <motion.div variants={fadeUpItem} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex flex-col p-6 rounded-2xl border-2 border-primary bg-primary/10 shadow-lg">
-                         <div className="flex-grow">
-                            <h4 className="text-lg font-bold">AMA ULTRA</h4>
-                            <p className="text-sm text-foreground/60 mb-4">Para equipes e imobiliárias</p>
-                            <div className="mb-6">
-                                <span className="text-4xl font-extrabold">R$ 59,90</span>
-                                <span className="text-sm text-foreground/60">/mês</span>
+                            <div className="mt-8">
+                                <Link href="/login" className="inline-flex items-center justify-center w-full bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-4 py-3 rounded-md font-semibold hover:opacity-90 transition-opacity">
+                                    TESTE GRÁTIS
+                                </Link>
                             </div>
-                            <ul className="space-y-3 text-sm">
-                                <PlanFeature included={true}>Site profissional personalizável</PlanFeature>
-                                <PlanFeature included={true}>Painel de controle</PlanFeature>
-                                <PlanFeature included={true}>CRM completo</PlanFeature>
-                                <PlanFeature included={true}>SEO (Otimização para Google)</PlanFeature>
-                                <PlanFeature included={true}>Lista de captação de leads</PlanFeature>
-                                <PlanFeature included={true}>Até 300 imóveis cadastrados</PlanFeature>
-                                <PlanFeature included={true}>10 GB de dados por mês</PlanFeature>
-                                <PlanFeature included={true}>Importar lista de imóveis por CSV</PlanFeature>
-                                <PlanFeature included={true}>Domínio personalizado de graça</PlanFeature>
-                                <PlanFeature included={true}>Atendimento prioritário técnico</PlanFeature>
-                            </ul>
-                        </div>
-                        <div className="mt-8">
-                            <Link href="/login" className="inline-flex items-center justify-center w-full bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-4 py-3 rounded-md font-semibold hover:opacity-90 transition-opacity">
-                                Iniciar 7 dias
-                            </Link>
-                        </div>
-                    </motion.div>
+                        </motion.div>
+                    ))}
                 </div>
             </section>
 
