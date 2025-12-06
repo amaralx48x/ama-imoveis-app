@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import type { MarketingContent } from "@/lib/data";
 import { defaultPrivacyPolicy, defaultTermsOfUse } from "@/lib/data";
-import { Search, Share2, Video, Check, X, Mail } from "lucide-react";
+import { Search, Share2, Video, Check, X, Mail, Filter, User, Home, ArrowRight, Rss, FileText, CheckCircle } from "lucide-react";
 import Image from 'next/image';
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
@@ -92,6 +92,21 @@ function PolicyDialog({ title, content, companyName }: { title: string, content:
         </Dialog>
     )
 }
+
+const FeatureGridItem = ({ icon: Icon, title, children }: { icon: React.ElementType, title: string, children: React.ReactNode }) => (
+    <motion.div variants={fadeUpItem} className="flex items-start gap-4">
+        <div className="flex-shrink-0">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Icon className="h-6 w-6" />
+            </div>
+        </div>
+        <div>
+            <h4 className="text-lg font-bold text-foreground">{title}</h4>
+            <p className="mt-1 text-sm text-foreground/70">{children}</p>
+        </div>
+    </motion.div>
+);
+
 
 export default function MarketingClientPage({ serverContent }: { serverContent: MarketingContent | null }) {
   const [content, setContent] = useState(serverContent);
@@ -229,6 +244,68 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
       
         <div className="relative bg-background z-10">
           <div className="container mx-auto px-6 py-20">
+
+             {/* Pricing and Features Section */}
+            <section className="py-16">
+                 <motion.div 
+                    initial="hidden" 
+                    whileInView="show" 
+                    viewport={{ once: true, amount: 0.3 }} 
+                    variants={fadeUpContainer}
+                    className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+                 >
+                    {/* Left Side: Title and Features */}
+                    <div className="space-y-8">
+                        <motion.div variants={fadeUpItem}>
+                            <h2 className="text-4xl font-extrabold text-foreground">Site para imobiliárias e Corretores de Imóveis</h2>
+                            <p className="mt-4 text-lg text-foreground/70">Faça um <span className="font-bold">Teste Grátis</span> e supere suas expectativas. Sistema para imobiliárias, CRM Completo e integrado ao Whatsapp.</p>
+                        </motion.div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <FeatureGridItem icon={Filter} title="Funil de Vendas">Defina e acompanhe toda jornada de compra do seu cliente.</FeatureGridItem>
+                            <FeatureGridItem icon={User} title="Vida do Cliente">Todas as informações de seus clientes em apenas um lugar.</FeatureGridItem>
+                            <FeatureGridItem icon={Home} title="Imóveis Compatíveis">A ferramenta ideal para encontrar o imóvel certo para seu cliente.</FeatureGridItem>
+                            <FeatureGridItem icon={FileText} title="Gerador de Contratos">Crie diversos contratos preenchendo poucas informações.</FeatureGridItem>
+                            <FeatureGridItem icon={Rss} title="Integração com Portais">Integre seus imóveis em diversos portais de imóveis.</FeatureGridItem>
+                        </div>
+                    </div>
+
+                    {/* Right Side: Price Badge and Details */}
+                     <motion.div variants={fadeUpItem} className="flex flex-col items-center lg:items-start">
+                        <div className="relative mb-6">
+                            <svg className="w-48 h-auto text-yellow-400" viewBox="0 0 160 140" fill="currentColor">
+                                <path d="M80 0 L160 35 V105 L80 140 L0 105 V35 Z" />
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-black">
+                                <p className="text-sm font-bold">POR APENAS</p>
+                                <p className="font-extrabold">
+                                    <span className="text-xl align-top">R$</span>
+                                    <span className="text-5xl">54</span>
+                                    <span className="text-2xl align-top">,99</span>
+                                </p>
+                                <p className="text-sm font-bold">/MÊS</p>
+                            </div>
+                        </div>
+                         <div className="space-y-4 text-center lg:text-left">
+                            <div className="flex items-center gap-2 text-foreground">
+                                <CheckCircle className="w-5 h-5 text-green-500" />
+                                <span>Sem contrato de fidelidade</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-foreground">
+                                <CheckCircle className="w-5 h-5 text-green-500" />
+                                <span>Sem tempo mínimo de permanência</span>
+                            </div>
+
+                             <div className="pt-4">
+                                <h4 className="font-bold text-lg">Quais são os gastos para manter o site?</h4>
+                                <p className="text-sm text-foreground/70">R$ 54,99 / mensal (para a AMA Imobi)</p>
+                                <p className="text-sm text-foreground/70">R$ 40,00 / anual (para o órgão Registro.br - www.registro.br)</p>
+                            </div>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            </section>
+
             {/* Call to Action Section */}
             <section className="py-10 text-center">
                 <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUpContainer}>
@@ -237,11 +314,11 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
                     </motion.h3>
                     <motion.div variants={fadeUpItem} className="mt-4">
                         <a href="https://studio--ama-imveis-041125-945215-63275.us-central1.hosted.app/corretor/4vEISo4pEORjFhv6RzD7eC42cgm2" className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white text-lg shadow-lg hover:scale-105 transition-transform`}>
-                            Clique aqui
+                            Clique aqui <ArrowRight className="w-5 h-5" />
                         </a>
                     </motion.div>
                     <motion.p variants={fadeUpItem} className="mt-3 text-foreground/70">
-                        veja um site simples e profissional
+                        e veja um site simples e profissional.
                     </motion.p>
                 </motion.div>
             </section>
