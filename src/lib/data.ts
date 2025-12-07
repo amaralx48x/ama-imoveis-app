@@ -8,6 +8,19 @@ export type SocialLink = {
   imageUrl?: string; // Adicionado para a foto do endereço
 }
 
+export type Availability = {
+  days: {
+    Segunda: boolean;
+    Terça: boolean;
+    Quarta: boolean;
+    Quinta: boolean;
+    Sexta: boolean;
+    Sábado: boolean;
+    Domingo: boolean;
+  };
+  timeSlots: { id: string; start: string; end: string }[];
+}
+
 export type Property = {
   id: string;
   title: string;
@@ -73,19 +86,7 @@ export type Contact = {
     agentId?: string;
 };
 
-export type Availability = {
-  days: {
-    Segunda: boolean;
-    Terça: boolean;
-    Quarta: boolean;
-    Quinta: boolean;
-    Sexta: boolean;
-    Sábado: boolean;
-    Domingo: boolean;
-  };
-  startTime: string;
-  endTime: string;
-}
+
 
 export type SiteSettings = {
     showFinancing?: boolean;
@@ -270,7 +271,7 @@ const properties: Property[] = [
       rooms: 3,
       builtArea: 50,
       totalArea: 50,
-      imageUrls: ['https://images.unsplash.com/photo-1737737210863-387afd35344e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjb3p5JTIwYXBhcnRtZW50fGVufDB8fHx8MTc2MjAxMDk0NXww&ixlib=rb-4.1.0&q=80&w=1080'],
+      imageUrls: ['https://images.unsplash.com/photo-1737737210863-387afd35344e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjb3p5JTIwYXBhcnRtZW50fGVufDB8fHx8MTc2MjAxMDk0NXww&ixlib.rb-4.1.0&q=80&w=1080'],
       city: 'São Paulo',
       neighborhood: 'Itaim Bibi',
       type: 'Apartamento',
@@ -373,4 +374,3 @@ export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Gu
 export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
 
     
-

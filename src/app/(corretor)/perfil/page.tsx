@@ -1,6 +1,6 @@
 
 'use client';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -26,11 +26,18 @@ import type { Agent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ImageUpload from '@/components/image-upload';
-import { X, Plus, CalendarDays, Loader2 } from 'lucide-react';
+import { X, Plus, CalendarDays, Loader2, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { InfoCard } from '@/components/info-card';
+import { v4 as uuidv4 } from 'uuid';
+
+const timeSlotSchema = z.object({
+  id: z.string(),
+  start: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Formato de hora inválido (HH:MM)"),
+  end: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Formato de hora inválido (HH:MM)"),
+});
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, { message: 'O nome de exibição deve ter pelo menos 2 caracteres.' }),
@@ -49,8 +56,7 @@ const profileFormSchema = z.object({
     Sábado: z.boolean(),
     Domingo: z.boolean(),
   }),
-  availabilityStartTime: z.string(),
-  availabilityEndTime: z.string(),
+  availabilityTimeSlots: z.array(timeSlotSchema),
 });
 
 const weekDays = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"] as const;
@@ -82,9 +88,13 @@ export default function PerfilPage() {
       photoUrl: '',
       phone: '',
       availabilityDays: { Segunda: false, Terça: false, Quarta: false, Quinta: false, Sexta: false, Sábado: false, Domingo: false },
-      availabilityStartTime: '09:00',
-      availabilityEndTime: '18:00',
+      availabilityTimeSlots: [{ id: uuidv4(), start: '09:00', end: '18:00' }],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "availabilityTimeSlots",
   });
 
   useEffect(() => {
@@ -98,8 +108,7 @@ export default function PerfilPage() {
         photoUrl: agentData.photoUrl || '',
         phone: agentData.phone || '',
         availabilityDays: agentData.availability?.days || { Segunda: false, Terça: false, Quarta: false, Quinta: false, Sexta: false, Sábado: false, Domingo: false },
-        availabilityStartTime: agentData.availability?.startTime || '09:00',
-        availabilityEndTime: agentData.availability?.endTime || '18:00',
+        availabilityTimeSlots: agentData.availability?.timeSlots?.length ? agentData.availability.timeSlots : [{ id: uuidv4(), start: '09:00', end: '18:00' }],
       });
     }
   }, [agentData, form]);
@@ -123,8 +132,7 @@ export default function PerfilPage() {
         phone: values.phone,
         availability: {
           days: values.availabilityDays,
-          startTime: values.availabilityStartTime,
-          endTime: values.availabilityEndTime,
+          timeSlots: values.availabilityTimeSlots,
         }
     };
 
@@ -225,7 +233,7 @@ export default function PerfilPage() {
     <div className="space-y-6">
     <InfoCard cardId="perfil-info" title="Suas Informações Públicas">
         <p>
-            Tudo que você preencher aqui será usado para construir seu site público. O "Nome do Site" aparecerá no topo, a foto de perfil e a descrição "Sobre Você" criarão sua seção de apresentação.
+            Tudo que você preencher aqui será usado para construir seu site público. O "Nome do Site" aparecerá no topo, a foto de perfil и a descrição "Sobre Você" criarão sua seção de apresentação.
         </p>
         <p>
             As cidades de atuação e a disponibilidade para visitas serão usadas nos formulários de busca e agendamento dos seus clientes.
@@ -415,35 +423,53 @@ export default function PerfilPage() {
                         </FormItem>
                     )}
                 />
-
-                <div className="grid grid-cols-2 gap-6">
-                    <FormField
-                        control={form.control}
-                        name="availabilityStartTime"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Horário de Início</FormLabel>
-                                <FormControl>
-                                    <Input type="time" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="availabilityEndTime"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Horário de Fim</FormLabel>
-                                <FormControl>
-                                    <Input type="time" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                 
+                <div>
+                    <FormLabel>Intervalos de Horário</FormLabel>
+                    <div className="space-y-4 mt-2">
+                        {fields.map((field, index) => (
+                          <div key={field.id} className="flex items-center gap-2 p-3 border rounded-md bg-muted/50">
+                              <FormField
+                                  control={form.control}
+                                  name={`availabilityTimeSlots.${index}.start`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormControl>
+                                        <Input type="time" {...field} className="w-32"/>
+                                      </FormControl>
+                                      <FormMessage/>
+                                    </FormItem>
+                                  )}
+                              />
+                              <span>até</span>
+                              <FormField
+                                  control={form.control}
+                                  name={`availabilityTimeSlots.${index}.end`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormControl>
+                                        <Input type="time" {...field} className="w-32"/>
+                                      </FormControl>
+                                      <FormMessage/>
+                                    </FormItem>
+                                  )}
+                              />
+                              <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-destructive hover:bg-destructive/10">
+                                  <Trash2 className="w-4 h-4" />
+                              </Button>
+                          </div>
+                        ))}
+                         <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => append({ id: uuidv4(), start: '14:00', end: '18:00' })}
+                        >
+                           <Plus className="mr-2 h-4 w-4"/> Adicionar Intervalo
+                        </Button>
+                    </div>
                 </div>
+
             </div>
 
             <Button type="submit" size="lg" disabled={form.formState.isSubmitting} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">

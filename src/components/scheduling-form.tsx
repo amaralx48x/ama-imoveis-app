@@ -51,16 +51,20 @@ const weekDayMap: Record<string, number> = {
     Sábado: 6
 };
 
-function generateTimeSlots(start: string, end: string, intervalMinutes: number): string[] {
-    const slots = [];
-    let currentTime = parse(start, 'HH:mm', new Date());
-    const endTime = parse(end, 'HH:mm', new Date());
+function generateTimeSlots(timeSlots: { start: string; end: string }[], intervalMinutes: number): string[] {
+    const allSlots = new Set<string>();
+    
+    timeSlots.forEach(slot => {
+        let currentTime = parse(slot.start, 'HH:mm', new Date());
+        const endTime = parse(slot.end, 'HH:mm', new Date());
 
-    while (currentTime <= endTime) {
-        slots.push(currentTime.toTimeString().slice(0, 5));
-        currentTime.setMinutes(currentTime.getMinutes() + intervalMinutes);
-    }
-    return slots;
+        while (currentTime < endTime) { // Use < to not include the end time itself
+            allSlots.add(currentTime.toTimeString().slice(0, 5));
+            currentTime.setMinutes(currentTime.getMinutes() + intervalMinutes);
+        }
+    });
+
+    return Array.from(allSlots).sort();
 }
 
 
@@ -77,10 +81,12 @@ export function SchedulingForm({ agent, propertyId, onFormSubmit }: SchedulingFo
   }, [agent.availability?.days]);
   
   const timeSlots = useMemo(() => {
-      const start = agent.availability?.startTime || '09:00';
-      const end = agent.availability?.endTime || '18:00';
-      return generateTimeSlots(start, end, 30); // 30-minute intervals
-  }, [agent.availability]);
+      const agentTimeSlots = agent.availability?.timeSlots;
+      if (!agentTimeSlots || agentTimeSlots.length === 0) {
+          return generateTimeSlots([{ start: '09:00', end: '18:00' }], 30);
+      }
+      return generateTimeSlots(agentTimeSlots, 30); // 30-minute intervals
+  }, [agent.availability?.timeSlots]);
 
 
   const form = useForm<z.infer<typeof schedulingFormSchema>>({

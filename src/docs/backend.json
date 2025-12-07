@@ -148,8 +148,19 @@
                 "Domingo": { "type": "boolean" }
               }
             },
-            "startTime": { "type": "string", "description": "The start time of availability, e.g., '09:00'." },
-            "endTime": { "type": "string", "description": "The end time of availability, e.g., '18:00'." }
+            "timeSlots": {
+              "type": "array",
+              "description": "Array of available time slots for the selected days.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "string" },
+                  "start": { "type": "string", "description": "The start time of the slot, e.g., '09:00'." },
+                  "end": { "type": "string", "description": "The end time of the slot, e.g., '12:00'." }
+                },
+                "required": ["id", "start", "end"]
+              }
+            }
           }
         },
         "siteSettings": {
