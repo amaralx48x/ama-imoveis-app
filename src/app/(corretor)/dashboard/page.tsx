@@ -1,15 +1,14 @@
 
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, 'useState', 'useEffect' from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Home, FileText, MoreVertical } from 'lucide-react';
+import { TrendingUp, Home, FileText, MoreVertical, PlusCircle, Mail, User, Palette, Link as LinkIcon, Settings } from 'lucide-react';
 import { useDoc, useFirestore, useUser, useMemoFirebase, useCollection } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import type { Agent, Property } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { isSameMonth } from 'date-fns';
-import { MonthlyPerformanceChart } from '@/components/dashboard/monthly-chart';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +23,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { InfoCard } from '@/components/info-card';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 const MotionCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <div className={`transition-all duration-500 ease-out hover:scale-105 hover:shadow-primary/20 ${className}`}>
@@ -36,6 +37,47 @@ function formatCurrency(value: number): string {
         return `R$ ${(value / 1000).toFixed(0)}k`;
     }
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+const shortcutLinks = [
+    { href: '/imoveis/novo', icon: PlusCircle, title: 'Adicionar Imóvel', description: 'Cadastre um novo imóvel no seu portfólio.' },
+    { href: '/inbox', icon: Mail, title: 'Ver Leads', description: 'Acesse sua caixa de entrada de novos contatos.' },
+    { href: '/contatos', icon: User, title: 'Adicionar Contato', description: 'Gerencie sua agenda de clientes e proprietários.' },
+    { href: '/configuracoes/aparencia', icon: Palette, title: 'Personalizar Site', description: 'Altere o tema e a aparência da sua página pública.' },
+];
+
+function QuickShortcuts() {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Settings /> Atalhos Rápidos</CardTitle>
+                <CardDescription>Acesse rapidamente as funções mais importantes do seu dia a dia.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {shortcutLinks.map((link, index) => (
+                     <motion.div key={link.href}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                     >
+                        <Link href={link.href} className="block h-full">
+                            <Card className="h-full hover:bg-muted/50 hover:border-primary/50 transition-colors flex flex-col">
+                                <CardHeader className="flex-row items-center gap-4 space-y-0">
+                                    <div className="p-2 bg-primary/10 text-primary rounded-lg">
+                                        <link.icon className="h-6 w-6" />
+                                    </div>
+                                    <CardTitle className="text-lg font-semibold">{link.title}</CardTitle>
+                                </CardHeader>
+                                <CardContent className="flex-grow">
+                                    <p className="text-sm text-muted-foreground">{link.description}</p>
+                                </CardContent>
+                            </Card>
+                        </Link>
+                    </motion.div>
+                ))}
+            </CardContent>
+        </Card>
+    )
 }
 
 
@@ -95,7 +137,7 @@ export default function DashboardPage() {
         <div className="space-y-8">
              <InfoCard cardId="dashboard-welcome" title={`Bem-vindo(a) ao seu Painel, ${displayName}!`}>
                 <p>
-                    Este é o seu centro de comando. Acompanhe as métricas mais importantes do seu negócio, como imóveis ativos, comissões e o desempenho de vendas ao longo do mês.
+                    Este é o seu centro de comando. Acompanhe as métricas mais importantes do seu negócio e utilize os atalhos rápidos para agilizar suas tarefas diárias.
                 </p>
                 <p>
                     Use o menu à esquerda para navegar entre as funcionalidades, como gerenciar seus imóveis, leads e configurar seu site público.
@@ -201,7 +243,8 @@ export default function DashboardPage() {
                 </MotionCard>
             </div>
             
-            <MonthlyPerformanceChart properties={properties || []} isLoading={isLoading} />
+            <QuickShortcuts />
+
         </div>
         {user && (
             <ManualCommissionDialog
