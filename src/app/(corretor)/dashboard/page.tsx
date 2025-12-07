@@ -1,6 +1,6 @@
 
 'use client';
-import React, 'useState', 'useEffect' from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Home, FileText, MoreVertical, PlusCircle, Mail, User, Palette, Link as LinkIcon, Settings } from 'lucide-react';
