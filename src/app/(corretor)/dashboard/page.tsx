@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Home, FileText, MoreVertical, PlusCircle, Mail, User, Palette, Link as LinkIcon, Settings } from 'lucide-react';
+import { TrendingUp, Home, FileText, MoreVertical, PlusCircle, Mail, User, Palette, Link as LinkIcon, Settings, Star, Briefcase, Users, Rss, LifeBuoy, Gem, Folder, Search, Percent } from 'lucide-react';
 import { useDoc, useFirestore, useUser, useMemoFirebase, useCollection } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import type { Agent, Property } from '@/lib/data';
@@ -25,6 +25,10 @@ import {
 import { InfoCard } from '@/components/info-card';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 const MotionCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <div className={`transition-all duration-500 ease-out hover:scale-105 hover:shadow-primary/20 ${className}`}>
@@ -39,22 +43,103 @@ function formatCurrency(value: number): string {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-const shortcutLinks = [
-    { href: '/imoveis/novo', icon: PlusCircle, title: 'Adicionar Imóvel', description: 'Cadastre um novo imóvel no seu portfólio.' },
-    { href: '/inbox', icon: Mail, title: 'Ver Leads', description: 'Acesse sua caixa de entrada de novos contatos.' },
-    { href: '/contatos', icon: User, title: 'Adicionar Contato', description: 'Gerencie sua agenda de clientes e proprietários.' },
-    { href: '/configuracoes/aparencia', icon: Palette, title: 'Personalizar Site', description: 'Altere o tema e a aparência da sua página pública.' },
+const allShortcuts = [
+    { id: 'add-property', href: '/imoveis/novo', icon: PlusCircle, title: 'Adicionar Imóvel', description: 'Cadastre um novo imóvel no seu portfólio.' },
+    { id: 'view-leads', href: '/inbox', icon: Mail, title: 'Ver Leads', description: 'Acesse sua caixa de entrada de novos contatos.' },
+    { id: 'add-contact', href: '/contatos', icon: Users, title: 'Adicionar Contato', description: 'Gerencie sua agenda de clientes e proprietários.' },
+    { id: 'customize-site', href: '/configuracoes/aparencia', icon: Palette, title: 'Personalizar Site', description: 'Altere o tema e a aparência da sua página pública.' },
+    { id: 'manage-reviews', href: '/avaliacoes', icon: Star, title: 'Gerenciar Avaliações', description: 'Aprove ou remova avaliações de clientes.' },
+    { id: 'manage-properties', href: '/imoveis', icon: Briefcase, title: 'Ver Meus Imóveis', description: 'Visualize e edite seu portfólio de imóveis.' },
+    { id: 'integrations', href: '/integracoes', icon: Rss, title: 'Integrações', description: 'Configure feeds XML para portais imobiliários.' },
+    { id: 'support', href: '/suporte', icon: LifeBuoy, title: 'Suporte', description: 'Tire dúvidas ou reporte problemas.' },
+    { id: 'my-plan', href: '/meu-plano', icon: Gem, title: 'Meu Plano', description: 'Gerencie sua assinatura e limites.' },
+    { id: 'manage-sections', href: '/configuracoes/secoes', icon: Folder, title: 'Gerenciar Seções', description: 'Crie seções personalizadas para seu site.' },
+    { id: 'seo-settings', href: '/configuracoes/seo', icon: Search, title: 'Configurar SEO', description: 'Otimize seu site para buscas.' },
+    { id: 'commission-settings', href: '/configuracoes/metricas', icon: Percent, title: 'Métricas de Comissão', description: 'Defina suas comissões padrão.' },
 ];
 
+const defaultShortcutIds = ['add-property', 'view-leads', 'add-contact', 'customize-site'];
+
+
 function QuickShortcuts() {
+    const { toast } = useToast();
+    const [selectedShortcuts, setSelectedShortcuts] = useState<string[]>([]);
+    
+    useEffect(() => {
+        const savedShortcuts = localStorage.getItem('dashboard-shortcuts');
+        if (savedShortcuts) {
+            setSelectedShortcuts(JSON.parse(savedShortcuts));
+        } else {
+            setSelectedShortcuts(defaultShortcutIds);
+        }
+    }, []);
+
+    const handleSelectionChange = (shortcutId: string) => {
+        setSelectedShortcuts(prev => {
+            const isSelected = prev.includes(shortcutId);
+            if (isSelected) {
+                return prev.filter(id => id !== shortcutId);
+            } else {
+                if (prev.length >= 12) {
+                    toast({
+                        title: "Limite de atalhos atingido",
+                        description: "Você pode selecionar no máximo 12 atalhos.",
+                        variant: "destructive"
+                    });
+                    return prev;
+                }
+                return [...prev, shortcutId];
+            }
+        });
+    };
+
+    const handleSaveShortcuts = () => {
+        localStorage.setItem('dashboard-shortcuts', JSON.stringify(selectedShortcuts));
+        toast({ title: "Atalhos salvos!", description: "Seu dashboard foi atualizado." });
+    };
+
+    const displayedShortcuts = allShortcuts.filter(s => selectedShortcuts.includes(s.id));
+
     return (
         <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Settings /> Atalhos Rápidos</CardTitle>
-                <CardDescription>Acesse rapidamente as funções mais importantes do seu dia a dia.</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle className="flex items-center gap-2">Atalhos Rápidos</CardTitle>
+                    <CardDescription>Acesse rapidamente as funções mais importantes do seu dia a dia.</CardDescription>
+                </div>
+                 <Dialog>
+                    <DialogTrigger asChild>
+                         <Button variant="ghost" size="icon">
+                            <Settings className="h-5 w-5" />
+                            <span className="sr-only">Personalizar atalhos</span>
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                            <DialogTitle>Personalizar Atalhos</DialogTitle>
+                            <DialogDescription>
+                                Selecione até 12 atalhos para exibir no seu dashboard. As alterações são salvas automaticamente.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-4 max-h-[50vh] overflow-y-auto">
+                            {allShortcuts.map(shortcut => (
+                                <div key={shortcut.id} className="flex items-center space-x-2 p-3 border rounded-md">
+                                    <Checkbox
+                                        id={`shortcut-${shortcut.id}`}
+                                        checked={selectedShortcuts.includes(shortcut.id)}
+                                        onCheckedChange={() => handleSelectionChange(shortcut.id)}
+                                    />
+                                    <Label htmlFor={`shortcut-${shortcut.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
+                                        {shortcut.title}
+                                    </Label>
+                                </div>
+                            ))}
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {shortcutLinks.map((link, index) => (
+                {displayedShortcuts.map((link, index) => (
                      <motion.div key={link.href}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
