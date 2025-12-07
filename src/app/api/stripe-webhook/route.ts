@@ -13,17 +13,8 @@ if (!stripeSecretKey || !webhookSecret) {
 
 const stripe = new Stripe(stripeSecretKey!, { apiVersion: '2024-06-20' });
 
-// --- CORREÇÃO: Desabilita o bodyParser padrão do Next.js para esta rota ---
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-// --- FIM DA CORREÇÃO ---
-
-// --- CORREÇÃO: Define o runtime como nodejs para maior compatibilidade ---
+// Define o runtime como nodejs para maior compatibilidade com streams
 export const runtime = 'nodejs';
-// --- FIM DA CORREÇÃO ---
 
 
 const relevantEvents = new Set([
