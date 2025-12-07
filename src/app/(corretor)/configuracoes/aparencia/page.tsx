@@ -18,7 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { Agent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Palette, Sun, Moon, Loader2, Image as ImageIcon, View } from 'lucide-react';
@@ -29,6 +29,7 @@ import ImageUpload from '@/components/image-upload';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
 import { Slider } from '@/components/ui/slider';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const appearanceFormSchema = z.object({
   theme: z.enum(['light', 'dark'], { required_error: 'Por favor, selecione um tema.' }),
@@ -74,6 +75,10 @@ export default function AparenciaPage() {
   
   const { data: agentData, isLoading: isAgentLoading, mutate } = useDoc<Agent>(agentRef);
 
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [heroFile, setHeroFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   const form = useForm<z.infer<typeof appearanceFormSchema>>({
     resolver: zodResolver(appearanceFormSchema),
     defaultValues: {
@@ -97,31 +102,42 @@ export default function AparenciaPage() {
 
   const handleThemeChange = (theme: 'light' | 'dark') => {
     form.setValue('theme', theme);
-    document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(theme);
   };
   
-  const handleHeroUploadComplete = (url: string) => {
-    form.setValue('heroImageUrl', url, { shouldDirty: true });
-  }
-  
-  const handleLogoUploadComplete = (url: string) => {
-    form.setValue('logoUrl', url, { shouldDirty: true });
-  }
+  const uploadFile = async (file: File, path: string): Promise<string> => {
+      const storage = getStorage();
+      const storageRef = ref(storage, path);
+      await uploadBytes(storageRef, file);
+      return await getDownloadURL(storageRef);
+  };
 
   async function onSubmit(values: z.infer<typeof appearanceFormSchema>) {
-    if (!agentRef) return;
+    if (!agentRef || !user) return;
+    setIsUploading(true);
+    
+    let { logoUrl, heroImageUrl } = values;
 
-    const currentSettings = agentData?.siteSettings || {};
-    
-    const newSettings = {
-        ...currentSettings,
-        ...values,
-    };
-    
     try {
+        if (logoFile) {
+            logoUrl = await uploadFile(logoFile, `agents/${user.uid}/site-assets/logo`);
+            form.setValue('logoUrl', logoUrl);
+        }
+        if (heroFile) {
+            heroImageUrl = await uploadFile(heroFile, `agents/${user.uid}/site-assets/hero-image`);
+            form.setValue('heroImageUrl', heroImageUrl);
+        }
+
+        const newSettings = {
+            ...agentData?.siteSettings,
+            ...values,
+            logoUrl,
+            heroImageUrl,
+        };
+    
         await setDoc(agentRef, { siteSettings: newSettings }, { merge: true });
         mutate();
+        setLogoFile(null);
+        setHeroFile(null);
 
         toast({
             title: 'Aparência Salva!',
@@ -134,6 +150,8 @@ export default function AparenciaPage() {
             description: 'Não foi possível atualizar a aparência.',
             variant: 'destructive'
         });
+    } finally {
+      setIsUploading(false);
     }
   }
   
@@ -215,12 +233,7 @@ export default function AparenciaPage() {
                         <ImageIcon /> Logotipo do Site
                       </FormLabel>
                       <FormControl>
-                          <ImageUpload
-                            onUploadComplete={handleLogoUploadComplete}
-                            currentImageUrl={field.value}
-                            agentId={user?.uid || 'unknown'}
-                            propertyId="logo"
-                          />
+                          <ImageUpload onFileSelect={(files) => setLogoFile(files[0])} />
                       </FormControl>
                        <FormDescription>Este é o logotipo que aparece no cabeçalho do site. Tamanho recomendado: 128x128 pixels. Use um formato com fundo transparente, como .png.</FormDescription>
                       <FormMessage />
@@ -249,12 +262,7 @@ export default function AparenciaPage() {
                         <ImageIcon /> Imagem de Fundo (Hero)
                       </FormLabel>
                       <FormControl>
-                          <ImageUpload
-                            onUploadComplete={handleHeroUploadComplete}
-                            currentImageUrl={field.value}
-                            agentId={user?.uid || 'unknown'}
-                            propertyId="hero-image"
-                          />
+                          <ImageUpload onFileSelect={(files) => setHeroFile(files[0])} />
                       </FormControl>
                        <FormDescription>Esta é a imagem principal que aparece no topo do seu site. Tamanho recomendado: 1920x1080 pixels.</FormDescription>
                       <FormMessage />
@@ -303,8 +311,8 @@ export default function AparenciaPage() {
                 />
 
 
-                <Button type="submit" size="lg" disabled={form.formState.isSubmitting || !form.formState.isDirty} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
-                {form.formState.isSubmitting ? (
+                <Button type="submit" size="lg" disabled={isUploading || form.formState.isSubmitting || !form.formState.isDirty && !logoFile && !heroFile} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
+                {isUploading || form.formState.isSubmitting ? (
                     <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Salvando...

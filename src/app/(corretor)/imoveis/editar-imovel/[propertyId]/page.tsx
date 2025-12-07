@@ -29,7 +29,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase";
 import { useContacts } from "@/firebase/hooks/useContacts";
 import { doc, setDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import ImageUpload from "@/components/image-upload";
 import Image from "next/image";
 import type { Agent, Property, Contact } from "@/lib/data";
@@ -46,6 +46,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { v4 as uuidv4 } from 'uuid';
 
 const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
 const operationTypes = ["Venda", "Aluguel"];
@@ -134,6 +136,7 @@ export default function EditarImovelPage() {
   const owners = useMemo(() => contacts.filter((c: Contact) => c.type === 'owner'), [contacts]);
   const tenants = useMemo(() => contacts.filter((c: Contact) => c.type === 'inquilino'), [contacts]);
 
+  const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [showCompleteForm, setShowCompleteForm] = useState(false);
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
@@ -233,11 +236,6 @@ export default function EditarImovelPage() {
         }
     };
 
-
-  const handleUploadComplete = (url: string) => {
-    setImageUrls(prev => [...prev, url]);
-  }
-
   const handleRemoveImage = (indexToRemove: number) => {
     setImageUrls(prev => prev.filter((_, index) => index !== indexToRemove));
   }
@@ -252,52 +250,61 @@ export default function EditarImovelPage() {
     const numberValue = Number(rawValue) / 100;
     form.setValue(fieldName, numberValue);
     
-    // Format for display
     e.target.value = new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
     }).format(numberValue);
   }
 
+  const uploadImages = useCallback(async (): Promise<string[]> => {
+    if (filesToUpload.length === 0 || !user) return [];
+    
+    const storage = getStorage();
+    const uploadPromises = filesToUpload.map(async (file) => {
+        const filePath = `agents/${user.uid}/properties/${propertyId}/${uuidv4()}`;
+        const fileRef = ref(storage, filePath);
+        await uploadBytes(fileRef, file);
+        return getDownloadURL(fileRef);
+    });
+
+    return Promise.all(uploadPromises);
+  }, [filesToUpload, user, propertyId]);
+
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!propertyRef || !user || !firestore) {
-        toast({
-            title: "Erro de Autenticação",
-            variant: "destructive"
-        });
+        toast({ title: "Erro de Autenticação", variant: "destructive" });
         return;
     }
     
-    if (imageUrls.length === 0) {
-      toast({
-        title: "Nenhuma imagem enviada",
-        description: "Por favor, adicione pelo menos uma imagem para o imóvel.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const portalPublishData = portals.reduce((acc, portal) => {
-        acc[portal.id as keyof typeof acc] = values.portalPublish?.[portal.id as keyof typeof values.portalPublish] || false;
-        return acc;
-    }, {} as Record<string, boolean>);
-
-    const newOwnerContactId = values.ownerContactId === 'none' ? undefined : values.ownerContactId;
-    const oldOwnerContactId = propertyData?.ownerContactId;
-
-    const newTenantContactId = values.tenantContactId === 'none' ? undefined : values.tenantContactId;
-    const oldTenantContactId = propertyData?.tenantContactId;
-
-    const updatedProperty = {
-      ...propertyData,
-      ...values,
-      imageUrls: imageUrls,
-      ownerContactId: newOwnerContactId,
-      tenantContactId: newTenantContactId,
-      portalPublish: portalPublishData,
-    };
-    
     try {
+        const newImageUrls = await uploadImages();
+        const allImageUrls = [...imageUrls, ...newImageUrls];
+
+        if (allImageUrls.length === 0) {
+            toast({ title: "Nenhuma imagem enviada", description: "Adicione pelo menos uma imagem.", variant: "destructive" });
+            return;
+        }
+
+        const portalPublishData = portals.reduce((acc, portal) => {
+            acc[portal.id as keyof typeof acc] = values.portalPublish?.[portal.id as keyof typeof values.portalPublish] || false;
+            return acc;
+        }, {} as Record<string, boolean>);
+
+        const newOwnerContactId = values.ownerContactId === 'none' ? undefined : values.ownerContactId;
+        const oldOwnerContactId = propertyData?.ownerContactId;
+        const newTenantContactId = values.tenantContactId === 'none' ? undefined : values.tenantContactId;
+        const oldTenantContactId = propertyData?.tenantContactId;
+
+        const updatedProperty = {
+          ...propertyData,
+          ...values,
+          imageUrls: allImageUrls,
+          ownerContactId: newOwnerContactId,
+          tenantContactId: newTenantContactId,
+          portalPublish: portalPublishData,
+        };
+    
         await setDoc(propertyRef, updatedProperty, { merge: true });
 
         // Handle owner linking logic
@@ -321,11 +328,9 @@ export default function EditarImovelPage() {
         }
         
         mutate();
+        setFilesToUpload([]);
         
-        toast({
-            title: "Imóvel Atualizado!",
-            description: `${values.title} foi atualizado com sucesso.`,
-        });
+        toast({ title: "Imóvel Atualizado!", description: `${values.title} foi atualizado.`, });
         router.push('/imoveis');
     } catch (error) {
         console.error("Erro ao atualizar imóvel:", error);
@@ -693,34 +698,27 @@ export default function EditarImovelPage() {
                 <Separator />
                 
                 <FormItem>
-                <FormLabel>Imagens do Imóvel</FormLabel>
-                <FormDescription>Para uma melhor apresentação, use imagens de alta resolução.</FormDescription>
-                {user && (
-                    <ImageUpload
-                        onUploadComplete={handleUploadComplete}
-                        currentImageUrl={imageUrls}
-                        multiple
-                        agentId={user.uid}
-                        propertyId={propertyId}
-                    />
-                )}
-                {imageUrls.length > 0 && (
-                    <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                    {imageUrls.map((url, index) => (
-                        <div key={index} className="relative aspect-square rounded-md overflow-hidden group">
-                            <Image src={url} alt={`Imagem do imóvel ${index + 1}`} fill sizes="150px" className="object-cover" />
-                            <button
-                                type="button"
-                                onClick={() => handleRemoveImage(index)}
-                                className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                aria-label="Remover imagem"
-                            >
-                                <X className="h-3 w-3" />
-                            </button>
-                        </div>
-                    ))}
-                    </div>
-                )}
+                  <FormLabel>Imagens do Imóvel</FormLabel>
+                  <FormDescription>Adicione novas imagens ou remova as existentes.</FormDescription>
+                  <ImageUpload onFileSelect={setFilesToUpload} multiple />
+                
+                  {imageUrls.length > 0 && (
+                      <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                      {imageUrls.map((url, index) => (
+                          <div key={index} className="relative aspect-square rounded-md overflow-hidden group">
+                              <Image src={url} alt={`Imagem do imóvel ${index + 1}`} fill sizes="150px" className="object-cover" />
+                              <button
+                                  type="button"
+                                  onClick={() => handleRemoveImage(index)}
+                                  className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  aria-label="Remover imagem"
+                              >
+                                  <X className="h-3 w-3" />
+                              </button>
+                          </div>
+                      ))}
+                      </div>
+                  )}
                 </FormItem>
                 
                  <Separator />

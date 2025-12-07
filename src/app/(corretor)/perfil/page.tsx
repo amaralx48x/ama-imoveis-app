@@ -21,7 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { setDoc, doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import type { Agent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -142,7 +142,7 @@ export default function PerfilPage() {
     }
   }
 
-  const handleSavePhoto = async () => {
+  const handleSavePhoto = useCallback(async () => {
     if (!profilePhotoFile || !user || !firestore) {
       toast({ title: 'Nenhum arquivo selecionado', variant: 'destructive' });
       return;
@@ -162,7 +162,7 @@ export default function PerfilPage() {
       mutate();
 
       form.setValue('photoUrl', photoUrl);
-      setProfilePhotoFile(null); // Clear file after upload
+      setProfilePhotoFile(null);
       toast({ title: 'Foto de Perfil Atualizada!' });
     } catch (error) {
       console.error(error);
@@ -170,8 +170,7 @@ export default function PerfilPage() {
     } finally {
       setIsUploading(false);
     }
-  };
-
+  }, [profilePhotoFile, user, firestore, agentRef, mutate, form, toast]);
 
   const handleAddCity = async () => {
     if (!agentRef || !newCity.trim()) return;
@@ -249,15 +248,10 @@ export default function PerfilPage() {
                     <AvatarFallback>{form.getValues('displayName')?.charAt(0) || 'A'}</AvatarFallback>
                 </Avatar>
                 <div className='flex-grow space-y-2'>
-                    {user && (
-                        <ImageUpload 
-                            onFileChange={setProfilePhotoFile}
-                            currentImageUrl={agentData?.photoUrl}
-                            agentId={user.uid}
-                            propertyId="profile"
-                        />
-                    )}
-                     <Button onClick={handleSavePhoto} disabled={!profilePhotoFile || isUploading}>
+                    <ImageUpload 
+                        onFileSelect={(files) => setProfilePhotoFile(files[0])}
+                    />
+                    <Button onClick={handleSavePhoto} disabled={!profilePhotoFile || isUploading}>
                         {isUploading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando...</> : "Salvar Foto"}
                     </Button>
                 </div>

@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { saveSEOClient } from '@/firebase/seo'; 
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,9 +11,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Loader2, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import ImageUpload from '@/components/image-upload';
 import Image from 'next/image';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 type SeoData = {
     title: string;
@@ -48,6 +50,7 @@ function SEOPageSkeleton() {
 export default function SEOPage() {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  const [ogImageFile, setOgImageFile] = useState<File | null>(null);
   
   const firestore = useFirestore();
   const seoRef = useMemoFirebase(() => firestore ? doc(firestore, "seo", "homepage") : null, [firestore]);
@@ -71,20 +74,29 @@ export default function SEOPage() {
     }
   }, [seoData]);
 
-  const handleUploadComplete = (url: string) => {
-    setSeo(prev => ({ ...prev, image: url }));
-  }
-
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
+    if (!seoRef) return;
     setIsSaving(true);
+    
+    let imageUrl = seo.image;
+
     try {
+        if (ogImageFile) {
+            const storage = getStorage();
+            const filePath = `seo/assets/homepage-og-image`;
+            const fileRef = ref(storage, filePath);
+            await uploadBytes(fileRef, ogImageFile);
+            imageUrl = await getDownloadURL(fileRef);
+        }
+
         await saveSEOClient('homepage', {
             title: seo.title,
             description: seo.description,
             keywords: seo.keywords.split(',').map(k => k.trim()).filter(Boolean),
-            image: seo.image,
+            image: imageUrl,
         });
         mutate();
+        setOgImageFile(null);
         toast({ title: 'SEO salvo com sucesso!' });
     } catch(err) {
         console.error(err);
@@ -92,7 +104,7 @@ export default function SEOPage() {
     } finally {
         setIsSaving(false);
     }
-  };
+  }, [seo, ogImageFile, seoRef, mutate, toast]);
 
   return (
     <Card>
@@ -141,10 +153,7 @@ export default function SEOPage() {
                     <div>
                         <label className="text-sm font-medium">Imagem de Compartilhamento (OG Image)</label>
                          <ImageUpload
-                            onUploadComplete={handleUploadComplete}
-                            currentImageUrl={seo.image}
-                            agentId="admin"
-                            propertyId="seo-homepage"
+                            onFileSelect={(files) => setOgImageFile(files[0])}
                          />
                          <p className="text-xs text-muted-foreground mt-1">A imagem que aparece ao compartilhar seu site em redes sociais. Tamanho recomendado: 1200x630px.</p>
                     </div>

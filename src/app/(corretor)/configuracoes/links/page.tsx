@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   useFirestore,
   useUser,
@@ -21,12 +21,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Plus, Trash, Link as LinkIcon, Loader2, Image as ImageIcon, Power } from "lucide-react";
+import { Plus, Trash, Link as LinkIcon, Loader2, Image as ImageIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import ImageUpload from "@/components/image-upload";
-import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -132,8 +131,6 @@ const availableIcons = [
   { value: 'mail', label: 'E-mail', placeholder: 'contato@seu-email.com' },
 ];
 
-type LinkState = SocialLink & { file?: File | null };
-
 export default function SocialLinksSettingsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
@@ -146,9 +143,10 @@ export default function SocialLinksSettingsPage() {
   
   const { data: agentData, isLoading: isAgentLoading, mutate } = useDoc<Agent>(agentRef);
 
-  const [socialLinks, setSocialLinks] = useState<LinkState[]>([]);
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [siteSettings, setSiteSettings] = useState(agentData?.siteSettings);
+  const [filesToUpload, setFilesToUpload] = useState<Record<string, File>>({});
 
   useEffect(() => {
     if (agentData?.siteSettings) {
@@ -167,11 +165,17 @@ export default function SocialLinksSettingsPage() {
     ]);
   };
 
-  const handleChange = (id: string, field: keyof LinkState, value: any) => {
+  const handleChange = (id: string, field: keyof SocialLink, value: any) => {
     setSocialLinks((prev) =>
       prev.map((link) => (link.id === id ? { ...link, [field]: value } : link))
     );
   };
+  
+  const handleFileSelect = (id: string) => (files: File[]) => {
+      if (files[0]) {
+          setFilesToUpload(prev => ({...prev, [id]: files[0]}));
+      }
+  }
 
   const handleDelete = (id: string) => {
     setSocialLinks((prev) => prev.filter((link) => link.id !== id));
@@ -214,7 +218,7 @@ const handleLinkBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
     }
 }
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!agentRef || !user) return;
 
     setIsSaving(true);
@@ -222,16 +226,15 @@ const handleLinkBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
         const storage = getStorage();
         const updatedLinks = await Promise.all(
             socialLinks.map(async (link) => {
-                if (link.file) {
-                    const filePath = `agents/${user.uid}/links/${link.id}_${link.file.name}`;
+                const file = filesToUpload[link.id];
+                if (file) {
+                    const filePath = `agents/${user.uid}/links/${link.id}_${file.name}`;
                     const fileRef = ref(storage, filePath);
-                    await uploadBytes(fileRef, link.file);
+                    await uploadBytes(fileRef, file);
                     const imageUrl = await getDownloadURL(fileRef);
-                    const { file, ...rest } = link; // remove file from link object
-                    return { ...rest, imageUrl };
+                    return { ...link, imageUrl };
                 }
-                const { file, ...rest } = link;
-                return rest;
+                return link;
             })
         );
         
@@ -243,6 +246,7 @@ const handleLinkBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
        }, { merge: true });
 
       mutate();
+      setFilesToUpload({});
       toast({ title: "Links salvos com sucesso!" });
     } catch (e) {
       console.error("Erro ao salvar links", e);
@@ -250,7 +254,7 @@ const handleLinkBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [agentRef, user, socialLinks, filesToUpload, siteSettings, mutate, toast]);
 
 
   return (
@@ -315,7 +319,7 @@ const handleLinkBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
                     <h3 className="text-xl font-bold font-headline mb-4">Links e Redes Sociais</h3>
                     <div className="space-y-4">
                     <AnimatePresence>
-                    {isAgentLoading ? <LinksFormSkeleton /> : socialLinks.map((link, index) => {
+                    {isAgentLoading ? <LinksFormSkeleton /> : socialLinks.map((link) => {
                         const currentIcon = availableIcons.find(i => i.value === link.icon);
                         const isLocation = link.icon === 'map-pin';
                         return (
@@ -363,11 +367,7 @@ const handleLinkBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
                                     <div className="flex-grow">
                                         <label className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-2"><ImageIcon className="w-4 h-4"/> Foto do Endereço (Opcional)</label>
                                         <ImageUpload
-                                            agentId={user.uid}
-                                            propertyId={link.id}
-                                            onFileChange={(file) => handleChange(link.id, "file", file)}
-                                            onUploadComplete={(imageUrl) => handleChange(link.id, "imageUrl", imageUrl)}
-                                            currentImageUrl={link.imageUrl}
+                                            onFileSelect={handleFileSelect(link.id)}
                                             id={`upload-${link.id}`}
                                         />
                                     </div>

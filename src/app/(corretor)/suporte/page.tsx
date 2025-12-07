@@ -1,17 +1,16 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { collection, addDoc, serverTimestamp, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, getStorage } from 'firebase/storage';
-import { useFirestore, useUser, useFirebaseApp, useMemoFirebase } from '@/firebase';
-import { Input } from '@/components/ui/input';
+import { useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useToast } from '@/hooks/use-toast';
-import { LifeBuoy, Loader2, Upload, X, MessageSquare, AlertTriangle, Briefcase, Users, Gem, Settings } from 'lucide-react';
+import { LifeBuoy, Loader2, Upload, MessageSquare, AlertTriangle, Briefcase, Users, Gem, Settings } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { v4 as uuidv4 } from 'uuid';
 import type { SupportMessage } from '@/lib/data';
@@ -214,27 +213,36 @@ function MessagesHistory() {
 export default function SuportePage() {
   const { user } = useUser();
   const firestore = useFirestore();
-  const firebaseApp = useFirebaseApp();
   const { toast } = useToast();
 
   const [message, setMessage] = useState('');
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
-  const [messageId] = useState(uuidv4()); // Stable ID for the message being composed
+  const messageId = useMemo(() => uuidv4(), []);
 
-  const handleUploadComplete = (url: string) => {
-    setImageUrls(prev => [...prev, url]);
-  };
-
+  const uploadImages = useCallback(async (): Promise<string[]> => {
+    if (!user || filesToUpload.length === 0) return [];
+    
+    const storage = getStorage();
+    const uploadPromises = filesToUpload.map(async (file) => {
+        const filePath = `support-images/${user.uid}/${messageId}/${file.name}`;
+        const fileRef = ref(storage, filePath);
+        await uploadBytes(fileRef, file);
+        return getDownloadURL(fileRef);
+    });
+    return Promise.all(uploadPromises);
+  }, [user, filesToUpload, messageId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return toast({ title: 'A mensagem não pode estar vazia.', variant: 'destructive'});
-    if (!user) return toast({ title: 'Usuário não autenticado.', variant: 'destructive'});
+    if (!user || !firestore) return toast({ title: 'Usuário não autenticado.', variant: 'destructive'});
 
     setLoading(true);
     
     try {
+      const uploadedImageUrls = await uploadImages();
+
       const supportCollectionRef = collection(firestore, 'supportMessages');
       await addDoc(supportCollectionRef, {
         id: messageId,
@@ -242,14 +250,14 @@ export default function SuportePage() {
         senderName: user.displayName || 'Não informado',
         senderEmail: user.email || 'Não informado',
         message,
-        images: imageUrls,
+        images: uploadedImageUrls,
         status: 'pending',
         createdAt: serverTimestamp(),
       });
 
       toast({ title: 'Mensagem de suporte enviada!', description: 'Nossa equipe responderá em breve.' });
       setMessage('');
-      setImageUrls([]); // Reset images
+      setFilesToUpload([]);
     } catch (err: any) {
       console.error(err);
       toast({ title: 'Erro ao enviar mensagem', description: err.message, variant: 'destructive' });
@@ -331,15 +339,10 @@ export default function SuportePage() {
             />
             <div className="p-4 border rounded-lg bg-card/50">
                  <label htmlFor="file-upload" className="block text-sm font-medium text-muted-foreground mb-2">Anexar imagens (opcional)</label>
-                 {user && (
-                    <ImageUpload 
-                        agentId={user.uid}
-                        propertyId={`support-ticket-${messageId}`}
-                        onUploadComplete={handleUploadComplete}
-                        multiple
-                        currentImageUrl={imageUrls}
-                    />
-                 )}
+                 <ImageUpload 
+                    onFileSelect={setFilesToUpload}
+                    multiple
+                 />
                 <p className="text-xs text-muted-foreground mt-2">Você pode anexar até 5 imagens (prints de tela, etc).</p>
             </div>
 

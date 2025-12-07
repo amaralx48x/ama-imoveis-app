@@ -19,13 +19,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { setDoc, doc } from 'firebase/firestore';
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import type { MarketingContent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MonitorPlay, Loader2, Palette, Sun, Moon } from 'lucide-react';
 import ImageUpload from '@/components/image-upload';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const marketingFormSchema = z.object({
   hero_media_url: z.string().url('URL inválida').optional().or(z.literal('')),
@@ -44,12 +45,14 @@ const marketingFormSchema = z.object({
 
 
 type ImageField = {
-    name: keyof Omit<MarketingContent, 'hero_media_url' | 'hero_media_type' | 'feature_video_url' | 'feature_video_title' | 'ctaImageUrl' | 'supportWhatsapp' | 'supportEmail' | 'theme'>;
+    name: keyof MarketingContent;
     label: string;
     description: string;
 }
 
-const otherImageFields: ImageField[] = [
+const allImageFields: ImageField[] = [
+    { name: 'hero_media_url', label: 'Upload da Mídia do Herói', description: 'Envie um vídeo (.mp4) ou imagem.' },
+    { name: 'feature_video_url', label: 'Upload do Vídeo de Features', description: 'Envie um vídeo no formato .mp4.' },
     { name: 'section2_image', label: 'Seção 2: Imagem do Painel', description: 'Tamanho recomendado: 1200x800' },
     { name: 'section3_image', label: 'Seção 3: Imagem do Site Público', description: 'Tamanho recomendado: 1200x800' },
     { name: 'section4_image1', label: 'Seção 4: Imagem Sobreposta 1', description: 'Tamanho recomendado: 600x400' },
@@ -58,6 +61,7 @@ const otherImageFields: ImageField[] = [
     { name: 'section5_image2', label: 'Seção 5: Imagem Sobreposta 4', description: 'Tamanho recomendado: 600x400' },
     { name: 'section6_image', label: 'Seção 6: Imagem de SEO', description: 'Tamanho recomendado: 1200x630' },
 ];
+
 
 function MarketingFormSkeleton() {
   return (
@@ -91,6 +95,9 @@ export default function MarketingAdminPage() {
     );
 
     const { data: marketingData, isLoading, mutate } = useDoc<MarketingContent>(marketingRef);
+    
+    const [filesToUpload, setFilesToUpload] = useState<Record<string, File | null>>({});
+    const [isUploading, setIsUploading] = useState(false);
 
     const form = useForm<z.infer<typeof marketingFormSchema>>({
         resolver: zodResolver(marketingFormSchema),
@@ -112,16 +119,36 @@ export default function MarketingAdminPage() {
         }
     }, [marketingData, form]);
     
-    const handleUploadComplete = (fieldName: keyof MarketingContent) => (url: string) => {
-        form.setValue(fieldName as any, url, { shouldDirty: true });
+    const handleFileSelect = (fieldName: keyof MarketingContent) => (files: File[]) => {
+        setFilesToUpload(prev => ({ ...prev, [fieldName]: files[0] || null }));
     };
+
+    const uploadFile = useCallback(async (file: File, path: string): Promise<string> => {
+        const storage = getStorage();
+        const storageRef = ref(storage, path);
+        await uploadBytes(storageRef, file);
+        return getDownloadURL(storageRef);
+    }, []);
 
     async function onSubmit(values: z.infer<typeof marketingFormSchema>) {
         if (!marketingRef) return;
-        
+        setIsUploading(true);
+
         try {
-            await setDoc(marketingRef, values, { merge: true });
+            const updatedValues = { ...values };
+
+            for (const fieldName in filesToUpload) {
+                const file = filesToUpload[fieldName];
+                if (file) {
+                    const path = `marketing/${fieldName}`;
+                    const url = await uploadFile(file, path);
+                    updatedValues[fieldName as keyof typeof updatedValues] = url;
+                }
+            }
+            
+            await setDoc(marketingRef, updatedValues, { merge: true });
             mutate();
+            setFilesToUpload({});
             toast({
                 title: 'Conteúdo Atualizado!',
                 description: 'As mídias e configurações da página de marketing foram salvas.',
@@ -129,6 +156,8 @@ export default function MarketingAdminPage() {
         } catch (error) {
             console.error("Erro ao salvar conteúdo de marketing:", error);
             toast({title: "Erro ao salvar", variant: "destructive"});
+        } finally {
+          setIsUploading(false);
         }
     }
 
@@ -230,12 +259,7 @@ export default function MarketingAdminPage() {
                                         <FormLabel>Upload da Mídia do Herói</FormLabel>
                                         <FormDescription>Envie um vídeo (.mp4) ou imagem.</FormDescription>
                                         <FormControl>
-                                            <ImageUpload
-                                                onUploadComplete={handleUploadComplete('hero_media_url')}
-                                                currentImageUrl={field.value}
-                                                agentId="marketing"
-                                                propertyId="hero_media"
-                                            />
+                                            <ImageUpload onFileSelect={handleFileSelect('hero_media_url')} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -258,12 +282,7 @@ export default function MarketingAdminPage() {
                                         <FormLabel>Upload do Vídeo de Features</FormLabel>
                                         <FormDescription>Envie um vídeo no formato .mp4.</FormDescription>
                                         <FormControl>
-                                            <ImageUpload
-                                                onUploadComplete={handleUploadComplete('feature_video_url')}
-                                                currentImageUrl={field.value}
-                                                agentId="marketing"
-                                                propertyId="feature_video"
-                                            />
+                                            <ImageUpload onFileSelect={handleFileSelect('feature_video_url')} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -292,24 +311,19 @@ export default function MarketingAdminPage() {
                              <CardDescription>Imagens para as outras seções da página de marketing.</CardDescription>
                         </CardHeader>
                         <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {otherImageFields.map(fieldInfo => (
+                            {allImageFields.filter(f => f.name !== 'hero_media_url' && f.name !== 'feature_video_url').map(fieldInfo => (
                                 <FormField
                                     key={fieldInfo.name}
                                     control={form.control}
                                     name={fieldInfo.name as any}
-                                    render={({ field }) => (
+                                    render={() => (
                                     <FormItem className="p-4 border rounded-lg space-y-4">
                                         <div>
                                             <FormLabel className="text-lg">{fieldInfo.label}</FormLabel>
                                             <FormDescription>{fieldInfo.description}</FormDescription>
                                         </div>
                                         <FormControl>
-                                        <ImageUpload
-                                                onUploadComplete={handleUploadComplete(fieldInfo.name as any)}
-                                                currentImageUrl={field.value}
-                                                agentId="marketing" // Use a dedicated folder
-                                                propertyId={fieldInfo.name} // Use field name for uniqueness
-                                            />
+                                            <ImageUpload onFileSelect={handleFileSelect(fieldInfo.name)} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -318,8 +332,8 @@ export default function MarketingAdminPage() {
                             ))}
                         </CardContent>
                          <CardHeader>
-                             <Button type="submit" size="lg" disabled={form.formState.isSubmitting || !form.formState.isDirty} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
-                                {form.formState.isSubmitting ? (
+                             <Button type="submit" size="lg" disabled={isUploading || !form.formState.isDirty && Object.keys(filesToUpload).length === 0} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
+                                {isUploading ? (
                                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando...</>
                                 ) : "Salvar Alterações"}
                             </Button>

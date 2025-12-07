@@ -31,7 +31,7 @@ import { useContacts } from "@/firebase/hooks/useContacts";
 import { doc, setDoc, collection, updateDoc, arrayUnion } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 import ImageUpload from "@/components/image-upload";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import Image from "next/image";
 import type { Agent, Contact } from "@/lib/data";
 import Link from "next/link";
@@ -42,6 +42,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { generatePropertyDescription, GeneratePropertyDescriptionInput } from '@/ai/flows/generate-property-description-flow';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 
 const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
@@ -81,6 +82,7 @@ export default function NovoImovelPage() {
   const owners = useMemo(() => contacts.filter((c: Contact) => c.type === 'owner'), [contacts]);
 
 
+  const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCompleteForm, setShowCompleteForm] = useState(false);
@@ -154,14 +156,6 @@ export default function NovoImovelPage() {
   };
 
 
-  const handleUploadComplete = (url: string) => {
-    setImageUrls(prev => [...prev, url]);
-  }
-
-  const handleRemoveImage = (indexToRemove: number) => {
-    setImageUrls(prev => prev.filter((_, index) => index !== indexToRemove));
-  }
-
   const handlePriceChange = (fieldName: 'price' | 'condoFee' | 'yearlyTax') => (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/\D/g, '');
     if (rawValue === '') {
@@ -178,6 +172,20 @@ export default function NovoImovelPage() {
     }).format(numberValue);
   }
 
+  const uploadImages = useCallback(async (): Promise<string[]> => {
+    if (filesToUpload.length === 0 || !user) return [];
+    
+    const storage = getStorage();
+    const uploadPromises = filesToUpload.map(async (file) => {
+        const filePath = `agents/${user.uid}/properties/${propertyId}/${uuidv4()}`;
+        const fileRef = ref(storage, filePath);
+        await uploadBytes(fileRef, file);
+        return getDownloadURL(fileRef);
+    });
+
+    return Promise.all(uploadPromises);
+  }, [filesToUpload, user, propertyId]);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     if (!firestore || !user) {
@@ -186,7 +194,7 @@ export default function NovoImovelPage() {
         return;
     }
     
-    if (imageUrls.length === 0) {
+    if (filesToUpload.length === 0) {
       toast({
         title: "Nenhuma imagem enviada",
         description: "Por favor, adicione pelo menos uma imagem para o imóvel.",
@@ -206,25 +214,25 @@ export default function NovoImovelPage() {
         return;
     }
 
-    const ownerContactId = values.ownerContactId === 'none' ? undefined : values.ownerContactId;
-
-    const newProperty = {
-      ...values,
-      id: propertyId,
-      agentId: user.uid,
-      imageUrls: imageUrls,
-      createdAt: new Date().toISOString(),
-      status: 'ativo' as const,
-      sectionIds: ['featured'],
-      ownerContactId: ownerContactId,
-    };
-    
-    const propertyRef = doc(firestore, `agents/${user.uid}/properties`, propertyId);
-    
     try {
+        const uploadedImageUrls = await uploadImages();
+
+        const ownerContactId = values.ownerContactId === 'none' ? undefined : values.ownerContactId;
+
+        const newProperty = {
+          ...values,
+          id: propertyId,
+          agentId: user.uid,
+          imageUrls: uploadedImageUrls,
+          createdAt: new Date().toISOString(),
+          status: 'ativo' as const,
+          sectionIds: ['featured'],
+          ownerContactId: ownerContactId,
+        };
+        
+        const propertyRef = doc(firestore, `agents/${user.uid}/properties`, propertyId);
         await setDoc(propertyRef, newProperty);
         
-        // If an owner was selected, update their contact document too
         if (ownerContactId) {
             const contactRef = doc(firestore, `agents/${user.uid}/contacts`, ownerContactId);
             await updateDoc(contactRef, {
@@ -514,33 +522,9 @@ export default function NovoImovelPage() {
                 <Separator />
                 
                 <FormItem>
-                <FormLabel>Imagens do Imóvel</FormLabel>
-                <FormDescription>Para uma melhor apresentação, use imagens de alta resolução.</FormDescription>
-                {user && (
-                    <ImageUpload
-                      agentId={user.uid}
-                      propertyId={propertyId}
-                      onUploadComplete={handleUploadComplete}
-                      multiple
-                    />
-                )}
-                {imageUrls.length > 0 && (
-                    <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                    {imageUrls.map((url, index) => (
-                        <div key={index} className="relative aspect-square rounded-md overflow-hidden group">
-                            <Image src={url} alt={`Imagem do imóvel ${index + 1}`} fill sizes="150px" className="object-cover" />
-                            <button
-                                type="button"
-                                onClick={() => handleRemoveImage(index)}
-                                className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                aria-label="Remover imagem"
-                            >
-                                <X className="h-3 w-3" />
-                            </button>
-                        </div>
-                    ))}
-                    </div>
-                )}
+                  <FormLabel>Imagens do Imóvel</FormLabel>
+                  <FormDescription>Para uma melhor apresentação, use imagens de alta resolução.</FormDescription>
+                  <ImageUpload onFileSelect={setFilesToUpload} multiple />
                 </FormItem>
                 
                  <Separator />

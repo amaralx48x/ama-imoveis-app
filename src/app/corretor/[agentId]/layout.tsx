@@ -15,30 +15,22 @@ function AgentSiteLayoutUpdater({ agentId }: { agentId: string }) {
     const { data: agentData } = useDoc<Agent>(agentRef);
 
     useEffect(() => {
+        if (!agentData) return;
+    
         // Theme logic
-        if (agentData?.siteSettings?.theme) {
-            const theme = agentData.siteSettings.theme;
-            document.documentElement.classList.remove('light', 'dark');
-            document.documentElement.classList.add(theme);
-        } else {
-            // Fallback to dark theme if not set
-            if (!document.documentElement.classList.contains('dark')) {
-                 document.documentElement.classList.remove('light');
-                 document.documentElement.classList.add('dark');
-            }
-        }
-        
+        const theme = agentData.siteSettings?.theme || 'dark';
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(theme);
+    
         // Favicon logic
-        if (agentData?.siteSettings?.faviconUrl) {
-            let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
-            if (!link) {
-                link = document.createElement('link');
-                link.rel = 'icon';
-                document.getElementsByTagName('head')[0].appendChild(link);
-            }
-            link.href = agentData.siteSettings.faviconUrl;
+        const faviconUrl = agentData.siteSettings?.faviconUrl;
+        let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
+        if (!link) {
+            link = document.createElement('link');
+            link.rel = 'icon';
+            document.head.appendChild(link);
         }
-
+        link.href = faviconUrl || '/favicon.ico'; // Fallback to a default favicon
     }, [agentData]);
 
     return null;

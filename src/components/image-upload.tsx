@@ -1,172 +1,92 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { useFirebaseApp, useUser, storage } from '@/firebase';
 import { Loader2, Upload, X } from 'lucide-react';
-import Image from 'next/image';
-import { v4 as uuidv4 } from 'uuid';
 
 type Props = {
-  onUploadComplete?: (url: string) => void;
-  onFileChange?: (file: File | null) => void;
+  onFileSelect: (files: File[]) => void;
+  onUploadClick?: () => void;
   multiple?: boolean;
-  currentImageUrl?: string | string[] | null;
-  agentId: string;
-  propertyId: string;
+  isUploading?: boolean;
   id?: string;
+  className?: string;
 };
 
-export default function ImageUpload({ onUploadComplete, onFileChange, multiple, currentImageUrl, agentId, propertyId, id }: Props) {
-  const [files, setFiles] = useState<File[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const { toast } = useToast();
+export default function ImageUpload({
+  onFileSelect,
+  onUploadClick,
+  multiple,
+  isUploading,
+  id,
+  className
+}: Props) {
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const inputId = id || `file-upload-${Math.random().toString(36).substring(7)}`;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const selectedFiles = Array.from(e.target.files);
-      if (onFileChange) {
-        if (multiple) {
-            setFiles(prev => [...prev, ...selectedFiles]);
-            selectedFiles.forEach(file => onFileChange(file));
-        } else {
-            setFiles([selectedFiles[0]]);
-            onFileChange(selectedFiles[0]);
-        }
-      } else {
-        setFiles(prev => multiple ? [...prev, ...selectedFiles] : [selectedFiles[0]]);
-      }
-    }
-  };
-
-  const handleUpload = async () => {
-    if (files.length === 0) {
-      toast({ title: "Nenhum arquivo selecionado", variant: "destructive" });
-      return;
-    }
-    
-    if (!agentId || !propertyId) {
-        toast({ title: "Erro interno: IDs ausentes para upload", variant: "destructive"});
-        console.error("agentId or propertyId is missing for ImageUpload", { agentId, propertyId });
-        return;
-    }
-
-    setIsUploading(true);
-    
-    try {
-      const uploadPromises = files.map(async (file) => {
-        let basePath;
-        let fileName;
-        const fileExtension = file.name.split('.').pop() || 'jpg';
-        const timestamp = Date.now(); // Cache-busting timestamp
-
-        if (propertyId === 'profile' || propertyId === 'favicon' || propertyId === 'hero-image' || propertyId === 'logo') {
-            basePath = `agents/${agentId}/site-assets`;
-            fileName = `${propertyId}.${fileExtension}`;
-        } else if (propertyId.startsWith('support-ticket-')) {
-            basePath = `support-images/${agentId}`;
-            fileName = `${timestamp}_${uuidv4()}.${fileExtension}`;
-        } else if (agentId === 'marketing') {
-            basePath = `marketing`;
-            fileName = `${propertyId}.${fileExtension}`;
-        } else if (propertyId.startsWith('upload-')) {
-            basePath = `agents/${agentId}/links`;
-            const linkId = propertyId.replace('upload-', '');
-            fileName = `${linkId}.${fileExtension}`;
-        } else if (propertyId === 'seo-homepage' && agentId === 'admin') {
-            basePath = `seo/assets`;
-            fileName = `homepage-og-image.${fileExtension}`;
-        } else if (propertyId === 'seo-image') {
-             basePath = `agents/${agentId}/site-assets`;
-             fileName = `seo-og-image.${fileExtension}`;
-        } else {
-            basePath = `agents/${agentId}/properties/${propertyId}`;
-            fileName = `${timestamp}_${uuidv4()}.${fileExtension}`;
-        }
-
-        const filePath = `${basePath}/${fileName}`;
-        const fileRef = ref(storage, filePath);
-        await uploadBytes(fileRef, file);
-        const url = await getDownloadURL(fileRef);
-        const finalUrl = `${url}?t=${timestamp}`; // Append timestamp for cache busting
-        
-        if (onUploadComplete) {
-            onUploadComplete(finalUrl);
-        }
-      });
-      
-      await Promise.all(uploadPromises);
-      
-      toast({ title: `Sucesso! ${files.length} arquivo(s) enviado(s).` });
-      setFiles([]);
-    } catch (err) {
-      console.error(err);
-      toast({ title: "Erro no upload", description: "Verifique as permissões de CORS e Storage.", variant: "destructive" });
-    } finally {
-      setIsUploading(false);
+      const newFiles = Array.from(e.target.files);
+      setSelectedFiles(multiple ? [...selectedFiles, ...newFiles] : newFiles);
+      onFileSelect(newFiles);
+      // Reset input value to allow re-selecting the same file
+      e.target.value = ''; 
     }
   };
 
   const handleRemoveFile = (index: number) => {
-    const newFiles = files.filter((_, i) => i !== index);
-    setFiles(newFiles);
-    if(onFileChange && !multiple) {
-        onFileChange(null);
-    }
+    const newFiles = selectedFiles.filter((_, i) => i !== index);
+    setSelectedFiles(newFiles);
+    // Note: We don't call onFileSelect here as it might be confusing.
+    // The parent component manages the list of files to be uploaded.
   };
-  
-  const displayImages = Array.isArray(currentImageUrl) ? currentImageUrl : (currentImageUrl ? [currentImageUrl] : []);
-  const inputId = id || `file-upload-${propertyId}`;
-  
-  const hasOnFileSelected = !!onFileChange;
 
   return (
-    <div className="space-y-4">
+    <div className={`space-y-4 ${className}`}>
       <div className="grid gap-2">
-        <Input 
+        <Input
           id={inputId}
-          type="file" 
+          type="file"
           accept="image/*,video/mp4,.ico"
           onChange={handleFileChange}
           className='file:text-primary file:font-semibold'
           multiple={multiple}
         />
       </div>
-      
-      {files.length > 0 && (
+
+      {selectedFiles.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {files.map((file, index) => (
+          {selectedFiles.map((file, index) => (
             <div key={index} className="relative text-xs bg-muted p-2 rounded-md flex items-center gap-2">
               <span className="truncate max-w-[100px]">{file.name}</span>
               <button
                 type="button"
                 onClick={() => handleRemoveFile(index)}
                 className="text-destructive"
+                aria-label={`Remove ${file.name}`}
               >
-                <X className="w-3 h-3"/>
+                <X className="w-3 h-3" />
               </button>
             </div>
           ))}
         </div>
       )}
-      
-      {!hasOnFileSelected && (
-        <Button onClick={handleUpload} disabled={isUploading || files.length === 0} type="button">
-            {isUploading ? (
+
+      {onUploadClick && (
+        <Button onClick={onUploadClick} disabled={isUploading || selectedFiles.length === 0} type="button">
+          {isUploading ? (
             <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Enviando...
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Enviando...
             </>
-            ) : (
+          ) : (
             <>
-                <Upload className="mr-2 h-4 w-4" />
-                Enviar {files.length > 0 ? files.length : ''} Arquivo(s)
+              <Upload className="mr-2 h-4 w-4" />
+              Enviar {selectedFiles.length > 0 ? selectedFiles.length : ''} Arquivo(s)
             </>
-            )}
+          )}
         </Button>
       )}
     </div>

@@ -24,6 +24,7 @@ import { Loader2, Image as ImageIcon } from 'lucide-react';
 import ImageUpload from '@/components/image-upload';
 import Image from 'next/image';
 import { InfoCard } from '@/components/info-card';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const faviconFormSchema = z.object({
   faviconUrl: z.string().url("URL do favicon inválida.").or(z.literal('')),
@@ -56,6 +57,8 @@ export default function FaviconPage() {
   );
   
   const { data: agentData, isLoading: isAgentLoading, mutate } = useDoc<Agent>(agentRef);
+  const [faviconFile, setFaviconFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const form = useForm<z.infer<typeof faviconFormSchema>>({
     resolver: zodResolver(faviconFormSchema),
@@ -72,16 +75,24 @@ export default function FaviconPage() {
     }
   }, [agentData, form]);
 
-  const handleUploadComplete = (url: string) => {
-    form.setValue('faviconUrl', url, { shouldDirty: true });
-  };
-
   async function onSubmit(values: z.infer<typeof faviconFormSchema>) {
-    if (!agentRef) return;
+    if (!agentRef || !user) return;
+    setIsUploading(true);
     
+    let faviconUrl = values.faviconUrl;
+
     try {
-        await setDoc(agentRef, { siteSettings: { faviconUrl: values.faviconUrl } }, { merge: true });
+        if (faviconFile) {
+            const storage = getStorage();
+            const filePath = `agents/${user.uid}/site-assets/favicon`;
+            const fileRef = ref(storage, filePath);
+            await uploadBytes(fileRef, faviconFile);
+            faviconUrl = await getDownloadURL(fileRef);
+        }
+
+        await setDoc(agentRef, { siteSettings: { faviconUrl: faviconUrl } }, { merge: true });
         mutate();
+        setFaviconFile(null);
 
         toast({
             title: 'Favicon Salvo!',
@@ -94,6 +105,8 @@ export default function FaviconPage() {
             description: 'Não foi possível atualizar o ícone do site.',
             variant: 'destructive'
         });
+    } finally {
+        setIsUploading(false);
     }
   }
 
@@ -126,16 +139,11 @@ export default function FaviconPage() {
                 <FormField
                 control={form.control}
                 name="faviconUrl"
-                render={({ field }) => (
+                render={() => (
                     <FormItem>
                     <FormLabel className="text-lg font-semibold">Upload da Imagem</FormLabel>
                     <FormControl>
-                        <ImageUpload
-                        onUploadComplete={handleUploadComplete}
-                        currentImageUrl={field.value}
-                        agentId={user?.uid || 'unknown'}
-                        propertyId="favicon" // Unique ID for this upload purpose
-                        />
+                        <ImageUpload onFileSelect={(files) => setFaviconFile(files[0])} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -152,8 +160,8 @@ export default function FaviconPage() {
                     </div>
                 )}
 
-                <Button type="submit" size="lg" disabled={form.formState.isSubmitting || !form.formState.isDirty} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
-                {form.formState.isSubmitting ? (
+                <Button type="submit" size="lg" disabled={isUploading || (!form.formState.isDirty && !faviconFile)} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
+                {isUploading ? (
                     <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Salvando...
