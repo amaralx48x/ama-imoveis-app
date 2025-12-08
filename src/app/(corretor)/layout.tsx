@@ -1,7 +1,7 @@
 
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search, Rss } from 'lucide-react';
+import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
@@ -101,11 +101,13 @@ export default function CorretorLayout({
       { href: '/admin/dashboard', label: 'Painel Admin', icon: ShieldCheck },
   ]
 
-  const settingsItems = [
+  const pageSettingsItems = [
       { href: '/configuracoes/aparencia', label: 'Aparência', icon: Palette },
-      { href: '/configuracoes/favicon', label: 'Favicon', icon: ImageIcon },
       { href: '/configuracoes/links', label: 'Links e Exibição', icon: LinkIcon },
       { href: '/configuracoes/secoes', label: 'Gerenciar Seções', icon: Folder },
+  ];
+
+  const generalSettingsItems = [
       { href: '/configuracoes/seo', label: 'SEO da Página', icon: Search },
       { href: '/configuracoes/metricas', label: 'Métricas e Comissões', icon: Percent },
       { href: '/configuracoes/politicas', label: 'Políticas e Termos', icon: FileText },
@@ -159,26 +161,47 @@ export default function CorretorLayout({
                     <Settings/>
                     <span className="group-data-[collapsible=icon]:hidden">Configurações</span>
                 </AccordionTrigger>
-                <AccordionContent className="p-0 pl-7">
-                   <SidebarMenu>
-                    {settingsItems.map((item) => (
-                      <SidebarMenuItem key={item.href}>
-                        <SidebarMenuButton
-                          asChild
-                          size="sm"
-                          isActive={pathname.startsWith(item.href)}
-                           tooltip={{
-                            children: item.label,
-                          }}
-                        >
-                          <Link href={item.href}>
-                            <item.icon />
-                            <span>{item.label}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
+                <AccordionContent className="p-0 pl-4 space-y-2">
+                    <div>
+                        <p className="px-4 py-2 text-xs font-semibold text-muted-foreground">Página</p>
+                        <SidebarMenu>
+                        {pageSettingsItems.map((item) => (
+                          <SidebarMenuItem key={item.href}>
+                            <SidebarMenuButton
+                              asChild
+                              size="sm"
+                              isActive={pathname.startsWith(item.href)}
+                              tooltip={{ children: item.label }}
+                            >
+                              <Link href={item.href}>
+                                <item.icon />
+                                <span>{item.label}</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                      </SidebarMenu>
+                    </div>
+                    <div>
+                        <p className="px-4 py-2 text-xs font-semibold text-muted-foreground">Geral</p>
+                        <SidebarMenu>
+                        {generalSettingsItems.map((item) => (
+                          <SidebarMenuItem key={item.href}>
+                            <SidebarMenuButton
+                              asChild
+                              size="sm"
+                              isActive={pathname.startsWith(item.href)}
+                              tooltip={{ children: item.label }}
+                            >
+                              <Link href={item.href}>
+                                <item.icon />
+                                <span>{item.label}</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                      </SidebarMenu>
+                   </div>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

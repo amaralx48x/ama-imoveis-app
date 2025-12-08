@@ -35,6 +35,7 @@ const appearanceFormSchema = z.object({
   theme: z.enum(['light', 'dark'], { required_error: 'Por favor, selecione um tema.' }),
   heroImageUrl: z.string().url("URL inválida").optional().or(z.literal('')),
   logoUrl: z.string().url("URL inválida").optional().or(z.literal('')),
+  faviconUrl: z.string().url("URL inválida").optional().or(z.literal('')),
   propertiesPerSection: z.coerce.number().min(3).max(5).default(4),
 });
 
@@ -77,6 +78,7 @@ export default function AparenciaPage() {
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [heroFile, setHeroFile] = useState<File | null>(null);
+  const [faviconFile, setFaviconFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
   const form = useForm<z.infer<typeof appearanceFormSchema>>({
@@ -85,6 +87,7 @@ export default function AparenciaPage() {
       theme: 'dark',
       heroImageUrl: '',
       logoUrl: '',
+      faviconUrl: '',
       propertiesPerSection: 4,
     },
   });
@@ -95,6 +98,7 @@ export default function AparenciaPage() {
         theme: agentData.siteSettings.theme || 'dark',
         heroImageUrl: agentData.siteSettings.heroImageUrl || '',
         logoUrl: agentData.siteSettings.logoUrl || '',
+        faviconUrl: agentData.siteSettings.faviconUrl || '',
         propertiesPerSection: agentData.siteSettings.propertiesPerSection || 4,
       });
     }
@@ -115,7 +119,7 @@ export default function AparenciaPage() {
     if (!agentRef || !user) return;
     setIsUploading(true);
     
-    let { logoUrl, heroImageUrl } = values;
+    let { logoUrl, heroImageUrl, faviconUrl } = values;
 
     try {
         if (logoFile) {
@@ -126,18 +130,24 @@ export default function AparenciaPage() {
             heroImageUrl = await uploadFile(heroFile, `agents/${user.uid}/site-assets/hero-image`);
             form.setValue('heroImageUrl', heroImageUrl);
         }
+        if (faviconFile) {
+            faviconUrl = await uploadFile(faviconFile, `agents/${user.uid}/site-assets/favicon`);
+            form.setValue('faviconUrl', faviconUrl);
+        }
 
         const newSettings = {
             ...agentData?.siteSettings,
             ...values,
             logoUrl,
             heroImageUrl,
+            faviconUrl,
         };
     
         await setDoc(agentRef, { siteSettings: newSettings }, { merge: true });
         mutate();
         setLogoFile(null);
         setHeroFile(null);
+        setFaviconFile(null);
 
         toast({
             title: 'Aparência Salva!',
@@ -157,22 +167,23 @@ export default function AparenciaPage() {
   
   const currentHeroImage = form.watch('heroImageUrl');
   const currentLogo = form.watch('logoUrl');
+  const currentFavicon = form.watch('faviconUrl');
   const propertiesPerSection = form.watch('propertiesPerSection');
 
   return (
     <div className="space-y-6">
         <InfoCard cardId="aparencia-info" title="Personalize a Aparência">
             <p>
-                Escolha o tema de cores, a imagem de fundo e a densidade de imóveis nas seções do seu site. Suas seleções são aplicadas instantaneamente neste painel para você ter uma pré-visualização.
+                Escolha o tema de cores, imagens de fundo, logotipo e o ícone do seu site. Suas seleções são aplicadas instantaneamente neste painel para você ter uma pré-visualização.
             </p>
             <p>
-                Ao clicar em "Salvar", as mudanças serão aplicadas também no seu site público, garantindo uma experiência visual consistente para seus clientes.
+                Ao clicar em "Salvar", as mudanças serão aplicadas também no seu site público.
             </p>
         </InfoCard>
         <Card>
         <CardHeader>
             <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2">
-            <Palette /> Aparência
+            <Palette /> Aparência do Site
             </CardTitle>
             <CardDescription>
             Personalize a aparência do seu site público e do painel de controle.
@@ -281,6 +292,32 @@ export default function AparenciaPage() {
                 
                 <Separator />
 
+                 <FormField
+                  control={form.control}
+                  name="faviconUrl"
+                  render={() => (
+                      <FormItem>
+                      <FormLabel className="text-lg font-semibold flex items-center gap-2"><ImageIcon /> Favicon do Site</FormLabel>
+                      <FormControl>
+                          <ImageUpload onFileSelect={(files) => setFaviconFile(files[0])} />
+                      </FormControl>
+                      <FormDescription>Este é o ícone que aparece na aba do navegador. Recomenda-se uma imagem quadrada (ex: .png, .ico).</FormDescription>
+                      <FormMessage />
+                      </FormItem>
+                  )}
+                />
+                 {currentFavicon && (
+                    <div className="space-y-2">
+                        <p className="text-sm font-medium">Preview do Favicon:</p>
+                        <div className="flex items-center gap-4 p-4 border rounded-md bg-muted/50">
+                            <Image src={currentFavicon} alt="Preview do Favicon" width={32} height={32} className="rounded-md"/>
+                            <span className="text-muted-foreground">O ícone aparecerá na aba do navegador.</span>
+                        </div>
+                    </div>
+                )}
+
+                <Separator />
+
                 <FormField
                   control={form.control}
                   name="propertiesPerSection"
@@ -311,7 +348,7 @@ export default function AparenciaPage() {
                 />
 
 
-                <Button type="submit" size="lg" disabled={isUploading || form.formState.isSubmitting || !form.formState.isDirty && !logoFile && !heroFile} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
+                <Button type="submit" size="lg" disabled={isUploading || form.formState.isSubmitting || !form.formState.isDirty && !logoFile && !heroFile && !faviconFile} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
                 {isUploading || form.formState.isSubmitting ? (
                     <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
