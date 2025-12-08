@@ -171,6 +171,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
         { text: 'Inteligência Artificial', included: true },
         { text: 'Esteira de Leads', included: true },
         { text: 'Certificado SSL', included: true },
+        { text: 'Exportação CSV', included: true },
       ],
     },
      impulso: {
@@ -185,6 +186,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
         { text: 'Inteligência Artificial', included: true },
         { text: 'Esteira de Leads', included: true },
         { text: 'Certificado SSL', included: true },
+        { text: 'Exportação CSV e XML', included: true },
       ],
     },
     expansao: {
@@ -198,6 +200,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
         { text: 'Inteligência Artificial', included: true },
         { text: 'Esteira de Leads', included: true },
         { text: 'Certificado SSL', included: true },
+        { text: 'Exportação CSV e XML', included: true },
       ],
     },
   };
