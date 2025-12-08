@@ -415,7 +415,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
                         </div>
                     )}
                     <div className="relative z-10 text-center">
-                        <h4 className="font-extrabold text-4xl text-gradient drop-shadow-lg">{content?.feature_video_title || "Veja a Plataforma em Ação"}</h4>
+                        <h4 className="font-extrabold text-4xl text-gradient drop-shadow-lg">{content?.feature_video_title}</h4>
                     </div>
                 </div>
             </section>
