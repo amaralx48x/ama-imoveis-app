@@ -74,7 +74,7 @@ export default function MeuPlanoPage() {
       name: 'Simples',
       subtitle: 'Plano 1',
       description: 'Serviço inicial para o seu orçamento',
-      price: '54,99',
+      price: '39,99',
       features: [
         { text: 'Site Próprio Personalizável', included: true },
         { text: `Cadastro de até ${planSettings.simples.maxProperties} imóveis`, included: true },
@@ -93,7 +93,7 @@ export default function MeuPlanoPage() {
       name: 'Essencial',
       subtitle: 'Plano 2',
       description: 'Para quem está em constante evolução',
-      price: '74,99',
+      price: '59,99',
       features: [
         { text: 'Site Próprio Personalizável', included: true },
         { text: `Cadastro de até ${planSettings.essencial.maxProperties} imóveis`, included: true },
@@ -113,7 +113,7 @@ export default function MeuPlanoPage() {
       name: 'Impulso',
       subtitle: 'Plano 3',
       description: 'Eleve sua jornada para o próximo patamar',
-      price: '119,99',
+      price: '89,99',
       recommended: true,
       features: [
         { text: 'Site Próprio Personalizável', included: true },
@@ -134,7 +134,7 @@ export default function MeuPlanoPage() {
       name: 'Expansão',
       subtitle: 'Plano 4',
       description: 'Para negócios que exigem a mais alta perfomance',
-      price: '249,99',
+      price: '149,99',
       features: [
         { text: 'Site Próprio Personalizável', included: true },
         { text: `Cadastro de até ${planSettings.expansao.maxProperties} imóveis`, included: true },

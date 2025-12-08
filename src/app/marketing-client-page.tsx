@@ -163,7 +163,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
     },
      essencial: {
       name: 'Essencial',
-      price: '74,99',
+      price: '59,99',
       features: [
         { text: 'Site Próprio Personalizável', included: true },
         { text: `Cadastro de até 350 imóveis`, included: true },
@@ -178,7 +178,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
     },
      impulso: {
       name: 'Impulso',
-      price: '119,99',
+      price: '89,99',
       recommended: true,
       features: [
         { text: 'Site Próprio Personalizável', included: true },
@@ -194,7 +194,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
     },
     expansao: {
       name: 'Expansão',
-      price: '249,99',
+      price: '149,99',
       features: [
         { text: 'Site Próprio Personalizável', included: true },
         { text: `Cadastro de até 3000 imóveis`, included: true },
@@ -293,7 +293,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
 
                              <div className="pt-4">
                                 <h4 className="font-bold text-lg">Quais são os gastos mensais com a AMA?</h4>
-                                <p className="text-sm text-foreground/70">Apenas a mensalidade e nada mais! A AMA possui domínio base para todos os usuários, sem dor de cabeça e gastos desnecessários com domínios.</p>
+                                <p className="text-sm text-foreground/70">Apenas a mensalidade e nada mais!, AMA possui dominio base para todos os uuario sem dor de cabeça e gastos desnecessários com dominios</p>
                             </div>
                         </div>
                     </motion.div>
