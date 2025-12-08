@@ -151,7 +151,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
       name: 'Simples',
       price: '39,99',
       features: [
-        { text: 'Cadastro de até 30 imóveis', included: true },
+        { text: `Cadastro de até 30 imóveis`, included: true },
         { text: '32 Fotos por imóvel', included: true },
         { text: '1 Conta de E-mail (via POP3)', included: true },
         { text: '5 Catálogos de Imóveis (sites extras)', included: true },
@@ -167,7 +167,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
       name: 'Essencial',
       price: '74,99',
       features: [
-        { text: 'Cadastro de até 350 imóveis', included: true },
+        { text: `Cadastro de até 350 imóveis`, included: true },
         { text: '50 Fotos por Imóvel', included: true },
         { text: '3 Contas de E-mail (via POP3)', included: true },
         { text: '10 Catálogos de Imóveis (sites extras)', included: true },
@@ -184,7 +184,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
       price: '119,99',
       recommended: true,
       features: [
-        { text: 'Cadastro de até 1000 imóveis', included: true },
+        { text: `Cadastro de até 1000 imóveis`, included: true },
         { text: '64 Fotos por Imóvel', included: true },
         { text: '5 Contas de E-mail (via POP3)', included: true },
         { text: '20 Catálogos de Imóveis (sites extras)', included: true },
@@ -200,7 +200,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
       name: 'Expansão',
       price: '249,99',
       features: [
-        { text: 'Cadastro de até 3000 imóveis', included: true },
+        { text: `Cadastro de até 3000 imóveis`, included: true },
         { text: '64 Fotos por Imóvel', included: true },
         { text: '15 Contas de E-mail (via POP3)', included: true },
         { text: '40 Catálogos de Imóveis (sites extras)', included: true },
@@ -297,9 +297,8 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
                             </div>
 
                              <div className="pt-4">
-                                <h4 className="font-bold text-lg">Quais são os gastos para manter o site?</h4>
-                                <p className="text-sm text-foreground/70">R$ 39,99 / mensal (para a AMA Imobi)</p>
-                                <p className="text-sm text-foreground/70">R$ 40,00 / anual (para o órgão Registro.br - www.registro.br)</p>
+                                <h4 className="font-bold text-lg">Quais são os gastos mensais com a AMA?</h4>
+                                <p className="text-sm text-foreground/70">Apenas a mensalidade e nada mais! A AMA possui domínio base para todos os usuários, sem dor de cabeça e gastos desnecessários com domínios.</p>
                             </div>
                         </div>
                     </motion.div>
