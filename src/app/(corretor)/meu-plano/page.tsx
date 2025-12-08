@@ -137,7 +137,7 @@ export default function MeuPlanoPage() {
       name: 'Simples',
       subtitle: 'Plano 1',
       description: 'Serviço inicial para o seu orçamento',
-      price: '54,99',
+      price: '39,99',
       features: [
         { text: 'Site Próprio Personalizável', included: true },
         { text: `Cadastro de até ${planSettings.simples.maxProperties} imóveis`, included: true },
