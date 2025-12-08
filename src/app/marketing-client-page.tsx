@@ -312,7 +312,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
                         Um click diz mais que mil palavras
                     </motion.h3>
                     <motion.div variants={fadeUpItem} className="mt-4">
-                        <a href="https://studio--ama-imveis-041125-945215-63275.us-central1.hosted.app/corretor/4vEISo4pEORjFhv6RzD7eC42cgm2" className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white text-lg shadow-lg hover:scale-105 transition-transform`}>
+                        <a href="https://amaimobi.com.br/corretor/4vEISo4pEORjFhv6RzD7eC42cgm2" className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white text-lg shadow-lg hover:scale-105 transition-transform`}>
                             Clique aqui <ArrowRight className="w-5 h-5" />
                         </a>
                     </motion.div>
