@@ -66,36 +66,35 @@ function QuickShortcuts() {
     const [selectedShortcuts, setSelectedShortcuts] = useState<string[]>([]);
     
     useEffect(() => {
-        const savedShortcuts = localStorage.getItem('dashboard-shortcuts');
-        if (savedShortcuts) {
-            setSelectedShortcuts(JSON.parse(savedShortcuts));
-        } else {
+        try {
+            const savedShortcuts = localStorage.getItem('dashboard-shortcuts');
+            if (savedShortcuts) {
+                setSelectedShortcuts(JSON.parse(savedShortcuts));
+            } else {
+                setSelectedShortcuts(defaultShortcutIds);
+            }
+        } catch (error) {
+            console.error("Failed to parse shortcuts from localStorage", error);
             setSelectedShortcuts(defaultShortcutIds);
         }
     }, []);
 
     const handleSelectionChange = (shortcutId: string) => {
-        setSelectedShortcuts(prev => {
-            const isSelected = prev.includes(shortcutId);
-            if (isSelected) {
-                return prev.filter(id => id !== shortcutId);
-            } else {
-                if (prev.length >= 12) {
-                    toast({
-                        title: "Limite de atalhos atingido",
-                        description: "Você pode selecionar no máximo 12 atalhos.",
-                        variant: "destructive"
-                    });
-                    return prev;
-                }
-                return [...prev, shortcutId];
-            }
-        });
-    };
+        const newSelection = selectedShortcuts.includes(shortcutId)
+            ? selectedShortcuts.filter(id => id !== shortcutId)
+            : [...selectedShortcuts, shortcutId];
 
-    const handleSaveShortcuts = () => {
-        localStorage.setItem('dashboard-shortcuts', JSON.stringify(selectedShortcuts));
-        toast({ title: "Atalhos salvos!", description: "Seu dashboard foi atualizado." });
+        if (newSelection.length > 12) {
+             toast({
+                title: "Limite de atalhos atingido",
+                description: "Você pode selecionar no máximo 12 atalhos.",
+                variant: "destructive"
+            });
+            return;
+        }
+        
+        setSelectedShortcuts(newSelection);
+        localStorage.setItem('dashboard-shortcuts', JSON.stringify(newSelection));
     };
 
     const displayedShortcuts = allShortcuts.filter(s => selectedShortcuts.includes(s.id));
