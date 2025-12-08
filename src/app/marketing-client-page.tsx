@@ -153,14 +153,11 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
       features: [
         { text: `Cadastro de até 30 imóveis`, included: true },
         { text: '32 Fotos por imóvel', included: true },
-        { text: '1 Conta de E-mail (via POP3)', included: true },
         { text: '5 Catálogos de Imóveis (sites extras)', included: true },
-        { text: '5 Hotsites Diversos (sites extras)', included: true },
         { text: 'Usuário único do Sistema', included: true },
-        { text: 'Inteligência Artificial - 5 descrições', included: true },
+        { text: 'Inteligência Artificial', included: false },
         { text: 'Esteira de Leads', included: false },
         { text: 'Certificado SSL', included: false },
-        { text: 'Habilitação Órulo e DWV', included: false },
       ],
     },
      essencial: {
@@ -169,14 +166,11 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
       features: [
         { text: `Cadastro de até 350 imóveis`, included: true },
         { text: '50 Fotos por Imóvel', included: true },
-        { text: '3 Contas de E-mail (via POP3)', included: true },
         { text: '10 Catálogos de Imóveis (sites extras)', included: true },
-        { text: '10 Hotsites Diversos (sites extras)', included: true },
         { text: '3 Usuários do Sistema', included: true },
-        { text: 'Inteligência Artificial - 10 descrições', included: true },
+        { text: 'Inteligência Artificial', included: true },
         { text: 'Esteira de Leads', included: true },
         { text: 'Certificado SSL', included: true },
-        { text: 'Habilitação Órulo e DWV', included: false },
       ],
     },
      impulso: {
@@ -186,14 +180,11 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
       features: [
         { text: `Cadastro de até 1000 imóveis`, included: true },
         { text: '64 Fotos por Imóvel', included: true },
-        { text: '5 Contas de E-mail (via POP3)', included: true },
         { text: '20 Catálogos de Imóveis (sites extras)', included: true },
-        { text: '20 Hotsites Diversos (sites extras)', included: true },
         { text: '5 Usuários do Sistema', included: true },
-        { text: 'Inteligência Artificial - 15 descrições', included: true },
+        { text: 'Inteligência Artificial', included: true },
         { text: 'Esteira de Leads', included: true },
         { text: 'Certificado SSL', included: true },
-        { text: 'Habilitação Órulo e DWV', included: false },
       ],
     },
     expansao: {
@@ -202,14 +193,11 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
       features: [
         { text: `Cadastro de até 3000 imóveis`, included: true },
         { text: '64 Fotos por Imóvel', included: true },
-        { text: '15 Contas de E-mail (via POP3)', included: true },
         { text: '40 Catálogos de Imóveis (sites extras)', included: true },
-        { text: '40 Hotsites Diversos (sites extras)', included: true },
         { text: '15 Usuários do Sistema', included: true },
-        { text: 'Inteligência Artificial - 50 descrições', included: true },
+        { text: 'Inteligência Artificial', included: true },
         { text: 'Esteira de Leads', included: true },
         { text: 'Certificado SSL', included: true },
-        { text: 'Habilitação Órulo e DWV **', included: true },
       ],
     },
   };
