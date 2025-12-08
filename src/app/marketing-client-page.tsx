@@ -149,7 +149,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
   const planDetails = {
     simples: {
       name: 'Simples',
-      price: '54,99',
+      price: '39,99',
       features: [
         { text: 'Cadastro de até 30 imóveis', included: true },
         { text: '32 Fotos por imóvel', included: true },
@@ -280,7 +280,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
                                 <p className="text-sm font-bold">POR APENAS</p>
                                 <p className="font-extrabold">
                                     <span className="text-xl align-top">R$</span>
-                                    <span className="text-5xl">54</span>
+                                    <span className="text-5xl">39</span>
                                     <span className="text-2xl align-top">,99</span>
                                 </p>
                                 <p className="text-sm font-bold">/MÊS</p>
@@ -298,7 +298,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
 
                              <div className="pt-4">
                                 <h4 className="font-bold text-lg">Quais são os gastos para manter o site?</h4>
-                                <p className="text-sm text-foreground/70">R$ 54,99 / mensal (para a AMA Imobi)</p>
+                                <p className="text-sm text-foreground/70">R$ 39,99 / mensal (para a AMA Imobi)</p>
                                 <p className="text-sm text-foreground/70">R$ 40,00 / anual (para o órgão Registro.br - www.registro.br)</p>
                             </div>
                         </div>
