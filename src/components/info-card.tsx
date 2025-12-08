@@ -16,15 +16,28 @@ interface InfoCardProps {
 }
 
 export function InfoCard({ cardId, title, children, className }: InfoCardProps) {
-  const [isVisible, setIsVisible] = useState(false);
+  // Initialize state based on localStorage to prevent flash of content.
+  const [isVisible, setIsVisible] = useState(() => {
+    // This function runs only on initial render.
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(cardId) !== 'hidden';
+    }
+    // On the server, we assume it might be visible to avoid hydration mismatches,
+    // but the useEffect below will correct it on the client.
+    return true; 
+  });
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    // This effect runs once on the client to ensure correct visibility state.
+    setIsClient(true);
     const preference = localStorage.getItem(cardId);
-    if (preference !== 'hidden') {
-      setIsVisible(true);
+    if (preference === 'hidden') {
+      setIsVisible(false);
     }
   }, [cardId]);
+
 
   const handleClose = () => {
     if (dontShowAgain) {
@@ -32,6 +45,10 @@ export function InfoCard({ cardId, title, children, className }: InfoCardProps) 
     }
     setIsVisible(false);
   };
+  
+  if (!isClient || !isVisible) {
+      return null;
+  }
 
   return (
     <AnimatePresence>
