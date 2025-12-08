@@ -1,7 +1,7 @@
 
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search } from 'lucide-react';
+import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search, Rss } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
@@ -163,7 +163,7 @@ export default function CorretorLayout({
                 </AccordionTrigger>
                 <AccordionContent className="p-0 pl-4 space-y-2">
                     <div>
-                        <p className="px-4 py-2 text-xs font-semibold text-muted-foreground">Página</p>
+                        <p className="px-4 py-2 text-xs font-semibold text-muted-foreground">Configuração da Página</p>
                         <SidebarMenu>
                         {pageSettingsItems.map((item) => (
                           <SidebarMenuItem key={item.href}>
@@ -183,7 +183,7 @@ export default function CorretorLayout({
                       </SidebarMenu>
                     </div>
                     <div>
-                        <p className="px-4 py-2 text-xs font-semibold text-muted-foreground">Geral</p>
+                        <p className="px-4 py-2 text-xs font-semibold text-muted-foreground">Configuração Geral</p>
                         <SidebarMenu>
                         {generalSettingsItems.map((item) => (
                           <SidebarMenuItem key={item.href}>
