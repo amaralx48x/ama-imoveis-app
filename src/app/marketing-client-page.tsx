@@ -151,6 +151,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
       name: 'Simples',
       price: '39,99',
       features: [
+        { text: 'Site Próprio Personalizável', included: true },
         { text: `Cadastro de até 30 imóveis`, included: true },
         { text: '32 Fotos por imóvel', included: true },
         { text: '5 Catálogos de Imóveis (sites extras)', included: true },
@@ -164,6 +165,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
       name: 'Essencial',
       price: '74,99',
       features: [
+        { text: 'Site Próprio Personalizável', included: true },
         { text: `Cadastro de até 350 imóveis`, included: true },
         { text: '50 Fotos por Imóvel', included: true },
         { text: '10 Catálogos de Imóveis (sites extras)', included: true },
@@ -179,6 +181,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
       price: '119,99',
       recommended: true,
       features: [
+        { text: 'Site Próprio Personalizável', included: true },
         { text: `Cadastro de até 1000 imóveis`, included: true },
         { text: '64 Fotos por Imóvel', included: true },
         { text: '20 Catálogos de Imóveis (sites extras)', included: true },
@@ -193,6 +196,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
       name: 'Expansão',
       price: '249,99',
       features: [
+        { text: 'Site Próprio Personalizável', included: true },
         { text: `Cadastro de até 3000 imóveis`, included: true },
         { text: '64 Fotos por Imóvel', included: true },
         { text: '40 Catálogos de Imóveis (sites extras)', included: true },

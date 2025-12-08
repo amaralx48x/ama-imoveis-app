@@ -76,6 +76,7 @@ export default function MeuPlanoPage() {
       description: 'Serviço inicial para o seu orçamento',
       price: '54,99',
       features: [
+        { text: 'Site Próprio Personalizável', included: true },
         { text: `Cadastro de até ${planSettings.simples.maxProperties} imóveis`, included: true },
         { text: '32 Fotos por imóvel', included: true },
         { text: '5 Catálogos de Imóveis (sites extras)', included: true },
@@ -94,6 +95,7 @@ export default function MeuPlanoPage() {
       description: 'Para quem está em constante evolução',
       price: '74,99',
       features: [
+        { text: 'Site Próprio Personalizável', included: true },
         { text: `Cadastro de até ${planSettings.essencial.maxProperties} imóveis`, included: true },
         { text: '50 Fotos por Imóvel', included: true },
         { text: '10 Catálogos de Imóveis (sites extras)', included: true },
@@ -114,6 +116,7 @@ export default function MeuPlanoPage() {
       price: '119,99',
       recommended: true,
       features: [
+        { text: 'Site Próprio Personalizável', included: true },
         { text: `Cadastro de até ${planSettings.impulso.maxProperties} imóveis`, included: true },
         { text: '64 Fotos por Imóvel', included: true },
         { text: '20 Catálogos de Imóveis (sites extras)', included: true },
@@ -133,6 +136,7 @@ export default function MeuPlanoPage() {
       description: 'Para negócios que exigem a mais alta perfomance',
       price: '249,99',
       features: [
+        { text: 'Site Próprio Personalizável', included: true },
         { text: `Cadastro de até ${planSettings.expansao.maxProperties} imóveis`, included: true },
         { text: '64 Fotos por Imóvel', included: true },
         { text: '40 Catálogos de Imóveis (sites extras)', included: true },
@@ -231,5 +235,3 @@ export default function MeuPlanoPage() {
     </div>
   );
 }
-
-
