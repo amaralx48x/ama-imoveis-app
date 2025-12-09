@@ -1,7 +1,7 @@
 
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, User, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search, Rss } from 'lucide-react';
+import { Home, Briefcase, User, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Search, Rss } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
@@ -48,6 +48,15 @@ export default function CorretorLayout({
     }
     
     const subUserId = sessionStorage.getItem('subUserId');
+    if (!subUserId) {
+        // This is the race condition fix: if no subUserId is set,
+        // and we have subUsers, redirect to selection.
+        if (agentData.subUsers && agentData.subUsers.length > 0 && pathname !== '/selecao-usuario' && pathname !== '/login') {
+            router.replace('/selecao-usuario');
+            return; // Stop further execution in this render
+        }
+    }
+    
     if (subUserId === agentData.id) {
       setCurrentUserLevel('owner');
     } else {
@@ -55,14 +64,6 @@ export default function CorretorLayout({
       setCurrentUserLevel(subUser?.level || null);
     }
     
-    const hasSubUsers = agentData.subUsers && agentData.subUsers.length > 0;
-    const isSessionSelected = !!subUserId;
-    const isOnSelectionPage = pathname === '/selecao-usuario';
-    const isOnLoginPage = pathname === '/login';
-
-    if (hasSubUsers && !isSessionSelected && !isOnSelectionPage && !isOnLoginPage) {
-        router.replace('/selecao-usuario');
-    }
   }, [agentData, isAgentLoading, pathname, router, user]);
 
 
@@ -166,29 +167,31 @@ export default function CorretorLayout({
   
   const MenuItemWrapper = ({ item, children }: { item: any, children: React.ReactNode }) => {
     const permitted = hasPermission(item.permission);
-
-    if (permitted) {
-      return <>{children}</>;
+    
+    // If not permitted, render a div with a tooltip instead of a link
+    if (!permitted) {
+        return (
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <div className="w-full opacity-50 cursor-not-allowed">
+                            <SidebarMenuButton asChild={false} disabled={true} tooltip={{ children: item.label }}>
+                                {item.icon && <item.icon />}
+                                <span className="flex-1">{item.label}</span>
+                                {item.badgeCount > 0 && (
+                                    <Badge className={`h-5 group-data-[collapsible=icon]:hidden ${item.badgeClass || ''}`}>{item.badgeCount}</Badge>
+                                )}
+                            </SidebarMenuButton>
+                        </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="right"><p>Seu usuário não tem acesso</p></TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        );
     }
-
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="w-full opacity-50 cursor-not-allowed">
-              <SidebarMenuButton asChild={false} disabled={true} tooltip={{ children: item.label }}>
-                  <item.icon />
-                  <span className="flex-1">{item.label}</span>
-                  {item.badgeCount && item.badgeCount > 0 && (
-                      <Badge className={`h-5 group-data-[collapsible=icon]:hidden ${item.badgeClass || ''}`}>{item.badgeCount}</Badge>
-                  )}
-              </SidebarMenuButton>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent side="right"><p>Seu usuário não tem acesso</p></TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
+    
+    // If permitted, render the children (which should contain the Link)
+    return <>{children}</>;
   };
 
   return (
