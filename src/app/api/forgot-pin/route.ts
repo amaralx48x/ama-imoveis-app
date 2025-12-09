@@ -3,14 +3,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getFirebaseServer } from '@/firebase/server-init';
 import { doc, getDoc } from 'firebase/firestore';
-
-// PASSO 1: Instale o Resend
-// Execute no seu terminal: npm install resend
 import { Resend } from 'resend';
 
-// PASSO 2: Crie sua chave de API no site do Resend e adicione ao .env
 const resend = new Resend(process.env.RESEND_API_KEY);
-
 
 export async function POST(req: NextRequest) {
   const { agentId } = await req.json();
@@ -21,8 +16,15 @@ export async function POST(req: NextRequest) {
 
   try {
     const { firestore } = getFirebaseServer();
+    
+    // Busca os dados do agente e as configurações de marketing (para o email de 'from')
     const agentRef = doc(firestore, 'agents', agentId);
-    const agentSnap = await getDoc(agentRef);
+    const marketingRef = doc(firestore, 'marketing', 'content');
+    
+    const [agentSnap, marketingSnap] = await Promise.all([
+        getDoc(agentRef),
+        getDoc(marketingRef),
+    ]);
 
     if (!agentSnap.exists()) {
       return NextResponse.json({ error: 'Agente não encontrado' }, { status: 404 });
@@ -30,17 +32,21 @@ export async function POST(req: NextRequest) {
 
     const agentData = agentSnap.data();
     const agentEmail = agentData.email;
-    const agentPin = agentData.pin || '0000'; // Usa o PIN ou o padrão
+    const agentPin = agentData.pin || '0000'; 
 
     if (!agentEmail) {
       return NextResponse.json({ error: 'O agente não possui um e-mail cadastrado.' }, { status: 400 });
     }
 
-    
-    // PASSO 3: Descomente este bloco para ativar o envio de e-mail
+    // Determina o e-mail de remetente, com fallback
+    const marketingData = marketingSnap.exists() ? marketingSnap.data() : {};
+    const fromEmail = marketingData.supportEmail || 'onboarding@resend.dev';
+    const fromName = marketingData.name || 'AMA Imobi';
+    const fromAddress = `${fromName} <${fromEmail}>`;
+
     try {
       await resend.emails.send({
-        from: 'AMA Imobi <onboarding@resend.dev>', // Ou seu domínio verificado
+        from: fromAddress,
         to: [agentEmail],
         subject: 'Lembrete de PIN - AMA Imobi',
         html: `
@@ -58,12 +64,9 @@ export async function POST(req: NextRequest) {
       });
     } catch (emailError) {
       console.error("Erro ao enviar e-mail pelo Resend:", emailError);
-      // Mesmo que o e-mail falhe, retornamos um sucesso genérico para não expor a falha ao usuário final
-      return NextResponse.json({ message: 'Se um e-mail estiver associado a esta conta, um lembrete de PIN foi enviado.' });
+      return NextResponse.json({ error: 'Falha no serviço de envio de e-mail.' }, { status: 500 });
     }
     
-    
-    // Retorna uma mensagem de sucesso genérica para o frontend
     return NextResponse.json({ message: 'Se um e-mail estiver associado a esta conta, um lembrete de PIN foi enviado.' });
 
   } catch (error) {
