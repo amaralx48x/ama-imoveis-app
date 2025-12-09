@@ -121,6 +121,7 @@ export default function CorretorLayout({
   const agentSiteUrl = user ? `/corretor/${user.uid}` : '/';
   
   const hasPermission = (permissionFn: (level: any) => boolean) => {
+      if (!currentUserLevel) return false;
       return permissionFn(currentUserLevel);
   }
 
@@ -158,7 +159,7 @@ export default function CorretorLayout({
   const canSeeSettings = pageSettingsItems.some(item => hasPermission(item.permission)) || generalSettingsItems.some(item => hasPermission(item.permission));
 
 
-  if (isUserLoading || !user) {
+  if (isUserLoading || !user || !currentUserLevel) {
     return (
         <div className="flex items-center justify-center h-screen bg-background">
             <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
@@ -168,14 +169,24 @@ export default function CorretorLayout({
   
   const MenuItemWrapper = ({ item, children }: { item: any, children: React.ReactNode }) => {
     const permitted = hasPermission(item.permission);
+
     if (permitted) {
       return <>{children}</>;
     }
+
     return (
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="w-full opacity-50 cursor-not-allowed">{children}</div>
+            <div className="w-full opacity-50 cursor-not-allowed">
+              <SidebarMenuButton asChild={false} disabled={true} tooltip={{ children: item.label }}>
+                  <item.icon />
+                  <span className="flex-1">{item.label}</span>
+                  {item.badgeCount && item.badgeCount > 0 && (
+                      <Badge className={`h-5 group-data-[collapsible=icon]:hidden ${item.badgeClass || ''}`}>{item.badgeCount}</Badge>
+                  )}
+              </SidebarMenuButton>
+            </div>
           </TooltipTrigger>
           <TooltipContent side="right"><p>Seu usuário não tem acesso</p></TooltipContent>
         </Tooltip>
@@ -202,7 +213,6 @@ export default function CorretorLayout({
                     <SidebarMenuButton
                     asChild
                     isActive={pathname === item.href}
-                    disabled={!hasPermission(item.permission)}
                     tooltip={{
                         children: item.label,
                     }}
@@ -239,7 +249,6 @@ export default function CorretorLayout({
                                 asChild
                                 size="sm"
                                 isActive={pathname.startsWith(item.href)}
-                                disabled={!hasPermission(item.permission)}
                                 tooltip={{ children: item.label }}
                                 >
                                 <Link href={item.href}>
@@ -264,7 +273,6 @@ export default function CorretorLayout({
                                 asChild
                                 size="sm"
                                 isActive={pathname.startsWith(item.href)}
-                                disabled={!hasPermission(item.permission)}
                                 tooltip={{ children: item.label }}
                                 >
                                 <Link href={item.href}>
