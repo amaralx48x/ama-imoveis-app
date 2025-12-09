@@ -2,18 +2,20 @@
 'use client';
 
 import type { Property, Agent } from "@/lib/data";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { BedDouble, Bath, Ruler, MapPin, Car, Home, Phone, Mail, Printer, Link as LinkIcon, CalendarPlus, MessageCircle } from "lucide-react";
+import { BedDouble, Bath, Ruler, MapPin, Car, Home, Phone, Mail, Printer, Link as LinkIcon, CalendarPlus, MessageCircle, Expand } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ContactForm } from "@/components/contact-form";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { SchedulingForm } from "@/components/scheduling-form";
+import { cn } from "@/lib/utils";
+
 
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg viewBox="0 0 24 24" {...props}>
@@ -40,11 +42,38 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
     const [currentUrl, setCurrentUrl] = useState('');
+    const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
+    
+    const [mainApi, setMainApi] = useState<CarouselApi>();
+    const [thumbApi, setThumbApi] = useState<CarouselApi>();
+    const [selectedIndex, setSelectedIndex] = useState(0);
+
 
     useEffect(() => {
-        // This ensures the URL is only read on the client-side
         setCurrentUrl(window.location.href);
     }, []);
+
+    const onThumbClick = useCallback((index: number) => {
+        if (!mainApi || !thumbApi) return;
+        mainApi.scrollTo(index);
+    }, [mainApi, thumbApi]);
+
+
+    const onSelect = useCallback(() => {
+        if (!mainApi || !thumbApi) return;
+        const newSelectedIndex = mainApi.selectedScrollSnap();
+        setSelectedIndex(newSelectedIndex);
+        thumbApi.scrollTo(newSelectedIndex);
+    }, [mainApi, thumbApi, setSelectedIndex]);
+
+
+    useEffect(() => {
+        if (!mainApi) return;
+        onSelect();
+        mainApi.on("select", onSelect);
+        mainApi.on("reInit", onSelect);
+    }, [mainApi, onSelect]);
+
 
     const handleShare = (platform: 'whatsapp' | 'facebook' | 'twitter' | 'email') => {
         const encodedUrl = encodeURIComponent(currentUrl);
@@ -104,27 +133,74 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
             <div className="lg:col-span-2 space-y-8">
                 <Card>
                     <CardHeader className="p-0">
-                        <Carousel className="w-full">
-                            <CarouselContent>
-                                {images.map((imageUrl, index) => (
-                                    <CarouselItem key={index}>
-                                        <div className="aspect-video relative rounded-lg overflow-hidden">
-                                            <Image
-                                                src={imageUrl}
-                                                alt={`${property.title || 'Imagem do imóvel'} - Imagem ${index + 1}`}
-                                                fill
-                                                sizes="(max-width: 768px) 100vw, 66vw"
-                                                className="object-cover"
-                                                data-ai-hint="house interior"
-                                                priority={index === 0}
-                                            />
-                                        </div>
-                                    </CarouselItem>
-                                ))}
-                            </CarouselContent>
-                            <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex" />
-                            <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex" />
-                        </Carousel>
+                         {/* Fullscreen Dialog */}
+                        <Dialog open={isFullscreenOpen} onOpenChange={setIsFullscreenOpen}>
+                            <DialogTrigger asChild>
+                                <div className="relative cursor-pointer group">
+                                     <Carousel className="w-full" setApi={setMainApi}>
+                                        <CarouselContent>
+                                            {images.map((imageUrl, index) => (
+                                                <CarouselItem key={index}>
+                                                    <div className="aspect-video relative rounded-lg overflow-hidden">
+                                                        <Image
+                                                            src={imageUrl}
+                                                            alt={`${property.title || 'Imagem do imóvel'} - Imagem ${index + 1}`}
+                                                            fill
+                                                            sizes="(max-width: 768px) 100vw, 66vw"
+                                                            className="object-cover"
+                                                            data-ai-hint="house interior"
+                                                            priority={index === 0}
+                                                        />
+                                                    </div>
+                                                </CarouselItem>
+                                            ))}
+                                        </CarouselContent>
+                                        <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex" />
+                                        <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex" />
+                                    </Carousel>
+                                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <Expand className="w-12 h-12 text-white" />
+                                    </div>
+                                </div>
+                            </DialogTrigger>
+                             <DialogContent className="max-w-[90vw] max-h-[90vh] h-full w-full bg-background/80 backdrop-blur-sm border-none p-2">
+                                <Carousel className="w-full h-full" opts={{startIndex: selectedIndex}}>
+                                    <CarouselContent>
+                                        {images.map((imageUrl, index) => (
+                                            <CarouselItem key={index} className="flex items-center justify-center">
+                                                <div className="relative w-full h-full max-w-full max-h-full">
+                                                    <Image
+                                                        src={imageUrl}
+                                                        alt={`${property.title} - Imagem ${index + 1}`}
+                                                        fill
+                                                        className="object-contain"
+                                                    />
+                                                </div>
+                                            </CarouselItem>
+                                        ))}
+                                    </CarouselContent>
+                                    <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10" />
+                                    <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10" />
+                                </Carousel>
+                            </DialogContent>
+                        </Dialog>
+                       
+                        {/* Thumbnail Carousel */}
+                        {images.length > 1 && (
+                            <div className="p-4">
+                                <Carousel setApi={setThumbApi} opts={{ align: "start", slidesToScroll: 1, dragFree: true }} className="w-full">
+                                    <CarouselContent className="-ml-2">
+                                    {images.map((url, index) => (
+                                        <CarouselItem key={index} onClick={() => onThumbClick(index)} className="pl-2 basis-1/4 md:basis-1/6 cursor-pointer">
+                                            <div className={cn("relative aspect-square rounded-md overflow-hidden ring-2 ring-transparent transition-all", index === selectedIndex && "ring-primary")}>
+                                                <Image src={url} alt={`Thumbnail ${index + 1}`} fill sizes="100px" className="object-cover"/>
+                                            </div>
+                                        </CarouselItem>
+                                    ))}
+                                    </CarouselContent>
+                                </Carousel>
+                            </div>
+                        )}
                     </CardHeader>
                     <CardContent className="pt-6">
                         <div className="flex justify-between items-start mb-4">
