@@ -1,7 +1,7 @@
 
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, User, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Search, Rss } from 'lucide-react';
+import { Home, Briefcase, User, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Search, Rss, Droplet } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
@@ -143,6 +143,7 @@ export default function CorretorLayout({
 
   const pageSettingsItems = [
       { href: '/configuracoes/aparencia', label: 'Aparência', icon: Palette, permission: (level: any) => level === 'owner' || level === '3' },
+      { href: '/configuracoes/aparencia/marcadagua', label: 'Marca d\'água', icon: Droplet, permission: (level: any) => level === 'owner' || level === '3' },
       { href: '/configuracoes/links', label: 'Links e Exibição', icon: LinkIcon, permission: (level: any) => level === 'owner' || level === '3' },
       { href: '/configuracoes/secoes', label: 'Gerenciar Seções', icon: Folder, permission: () => true },
   ];
