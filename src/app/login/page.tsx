@@ -81,7 +81,7 @@ export default function LoginPage() {
                         accountType: 'corretor',
                     });
                     toast({ title: "Login bem-sucedido!" });
-                    // The useEffect above will handle the redirect
+                    router.replace('/selecao-usuario');
                 } else {
                     setIsGoogleLoading(false); // No redirect result, stop loading
                 }
@@ -90,7 +90,7 @@ export default function LoginPage() {
                 handleAuthError(error as FirebaseError);
                 setIsGoogleLoading(false);
             });
-    }, [auth, toast]);
+    }, [auth, toast, router]);
 
     const loginForm = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
@@ -148,7 +148,7 @@ export default function LoginPage() {
                 title: "Login bem-sucedido!",
                 description: "Redirecionando para o seu painel...",
             });
-            // Let the useEffect handle the redirect
+            router.replace('/selecao-usuario');
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -172,7 +172,7 @@ export default function LoginPage() {
                 title: "Conta criada com sucesso!",
                 description: "Redirecionando para o seu painel...",
             });
-             // Let the useEffect handle the redirect
+            router.replace('/selecao-usuario');
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {

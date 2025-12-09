@@ -131,7 +131,7 @@ export default function EditarImovelPage() {
   const agentRef = useMemoFirebase(() => (firestore && user ? doc(firestore, 'agents', user.uid) : null), [firestore, user]);
   const { data: agentData } = useDoc<Agent>(agentRef);
 
-  const propertyRef = useMemoFirebase(() => (firestore && user && propertyId ? doc(firestore, `agents/${'user.uid'}/properties`, propertyId) : null), [firestore, user, propertyId]);
+  const propertyRef = useMemoFirebase(() => (firestore && user && propertyId ? doc(firestore, `agents/${user.uid}/properties`, propertyId) : null), [firestore, user, propertyId]);
   const { data: propertyData, isLoading: isPropertyLoading, mutate } = useDoc<Property>(propertyRef);
   
   const { contacts } = useContacts(user?.uid || null);
@@ -231,7 +231,7 @@ export default function EditarImovelPage() {
     
     const storage = getStorage();
     const uploadPromises = filesToUpload.map(async (file) => {
-        const filePath = `agents/${'user.uid'}/properties/${propertyId}/${uuidv4()}`;
+        const filePath = `agents/${user.uid}/properties/${propertyId}/${uuidv4()}`;
         const fileRef = ref(storage, filePath);
         await uploadBytes(fileRef, file);
         return getDownloadURL(fileRef);
@@ -282,20 +282,20 @@ export default function EditarImovelPage() {
         // Handle owner linking logic
         if (newOwnerContactId !== oldOwnerContactId) {
             if (oldOwnerContactId) {
-                await updateDoc(doc(firestore, `agents/${'user.uid'}/contacts`, oldOwnerContactId), { linkedPropertyIds: arrayRemove(propertyId) });
+                await updateDoc(doc(firestore, `agents/${user.uid}/contacts`, oldOwnerContactId), { linkedPropertyIds: arrayRemove(propertyId) });
             }
             if (newOwnerContactId) {
-                await updateDoc(doc(firestore, `agents/${'user.uid'}/contacts`, newOwnerContactId), { linkedPropertyIds: arrayUnion(propertyId) });
+                await updateDoc(doc(firestore, `agents/${user.uid}/contacts`, newOwnerContactId), { linkedPropertyIds: arrayUnion(propertyId) });
             }
         }
         
         // Handle tenant linking logic
         if (newTenantContactId !== oldTenantContactId) {
             if (oldTenantContactId) {
-                await updateDoc(doc(firestore, `agents/${'user.uid'}/contacts`, oldTenantContactId), { linkedPropertyIds: arrayRemove(propertyId) });
+                await updateDoc(doc(firestore, `agents/${user.uid}/contacts`, oldTenantContactId), { linkedPropertyIds: arrayRemove(propertyId) });
             }
             if (newTenantContactId) {
-                await updateDoc(doc(firestore, `agents/${'user.uid'}/contacts`, newTenantContactId), { linkedPropertyIds: arrayUnion(propertyId) });
+                await updateDoc(doc(firestore, `agents/${user.uid}/contacts`, newTenantContactId), { linkedPropertyIds: arrayUnion(propertyId) });
             }
         }
         
@@ -535,93 +535,92 @@ export default function EditarImovelPage() {
                                 </FormItem>
                             )}
                         />
+                         {operationType === 'Aluguel' && (
+                            <div className="space-y-6 pt-6 border-t">
+                                <h3 className="text-lg font-semibold flex items-center gap-2"><FileText/> Detalhes do Aluguel</h3>
+                                <FormField
+                                    control={form.control}
+                                    name="tenantContactId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel className="flex items-center gap-2"><User className="w-4 h-4"/> Inquilino (Opcional)</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value ?? "none"}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecione o inquilino do imóvel" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="none">Nenhum</SelectItem>
+                                            {tenants.map((tenant: Contact) => (
+                                                <SelectItem key={tenant.id} value={tenant.id}>{tenant.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                        </Select>
+                                        <FormDescription>Associe um contato do tipo "inquilino" a este imóvel alugado.</FormDescription>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <Controller
+                                    control={form.control}
+                                    name="rentalDetails.startDate"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                        <FormLabel>Início do Contrato</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                variant={"outline"}
+                                                className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                                >
+                                                {field.value ? format(field.value, "PPP") : <span>Escolha uma data</span>}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                    />
+                                <Controller
+                                    control={form.control}
+                                    name="rentalDetails.endDate"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                        <FormLabel>Fim do Contrato</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                variant={"outline"}
+                                                className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                                >
+                                                {field.value ? format(field.value, "PPP") : <span>Escolha uma data</span>}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
                 
-                {operationType === 'Aluguel' && (
-                  <div className="space-y-6 p-6 bg-muted/50 rounded-lg">
-                    <h3 className="text-lg font-semibold flex items-center gap-2"><FileText/> Detalhes do Aluguel</h3>
-                    <FormField
-                        control={form.control}
-                        name="tenantContactId"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel className="flex items-center gap-2"><User className="w-4 h-4"/> Inquilino (Opcional)</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value ?? "none"}>
-                            <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecione o inquilino do imóvel" />
-                                </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                <SelectItem value="none">Nenhum</SelectItem>
-                                {tenants.map((tenant: Contact) => (
-                                    <SelectItem key={tenant.id} value={tenant.id}>{tenant.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                            </Select>
-                            <FormDescription>Associe um contato do tipo "inquilino" a este imóvel alugado.</FormDescription>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                       <Controller
-                          control={form.control}
-                          name="rentalDetails.startDate"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                              <FormLabel>Início do Contrato</FormLabel>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <Button
-                                      variant={"outline"}
-                                      className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                                    >
-                                      {field.value ? format(field.value, "PPP") : <span>Escolha uma data</span>}
-                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                  <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                                </PopoverContent>
-                              </Popover>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                       <Controller
-                          control={form.control}
-                          name="rentalDetails.endDate"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                              <FormLabel>Fim do Contrato</FormLabel>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <Button
-                                      variant={"outline"}
-                                      className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                                    >
-                                      {field.value ? format(field.value, "PPP") : <span>Escolha uma data</span>}
-                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                  <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                                </PopoverContent>
-                              </Popover>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                    </div>
-                  </div>
-                )}
-
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <FormField control={form.control} name="bedrooms" render={({ field }) => (<FormItem><FormLabel>Quartos</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
