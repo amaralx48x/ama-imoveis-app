@@ -16,6 +16,19 @@ export type Filters = {
     sortBy?: 'price-asc' | 'price-desc';
 }
 
+/**
+ * Normaliza uma string removendo acentos e convertendo para minúsculas.
+ * @param str A string a ser normalizada.
+ * @returns A string normalizada.
+ */
+function normalizeString(str: string | undefined | null): string {
+    if (!str) return '';
+    return str
+        .toLowerCase()
+        .normalize("NFD") // Decompõe os caracteres acentuados
+        .replace(/[\u0300-\u036f]/g, ""); // Remove os diacríticos
+}
+
 export function filterProperties(properties: Property[], filters: Filters): Property[] {
   let filtered = properties;
   
@@ -24,20 +37,20 @@ export function filterProperties(properties: Property[], filters: Filters): Prop
       minPrice, maxPrice, bedrooms, garage, keyword, sectionId, sortBy
     } = filters;
     
-  // Primary keyword search on title, city, neighborhood
+  // Primary keyword search on title, city, neighborhood, description
   if (keyword) {
-    const lowercasedKeyword = keyword.toLowerCase();
+    const normalizedKeyword = normalizeString(keyword);
     filtered = filtered.filter(p => 
-        p.title.toLowerCase().includes(lowercasedKeyword) ||
-        p.city.toLowerCase().includes(lowercasedKeyword) ||
-        p.neighborhood.toLowerCase().includes(lowercasedKeyword) ||
-        p.description.toLowerCase().includes(lowercasedKeyword)
+        normalizeString(p.title).includes(normalizedKeyword) ||
+        normalizeString(p.city).includes(normalizedKeyword) ||
+        normalizeString(p.neighborhood).includes(normalizedKeyword) ||
+        normalizeString(p.description).includes(normalizedKeyword)
     );
   }
 
-  // Structured filters
+  // Structured filters (mantendo a lógica original, que já é eficaz para filtros específicos)
   if (city) filtered = filtered.filter(p => p.city === city);
-  if (neighborhood) filtered = filtered.filter(p => p.neighborhood.toLowerCase().includes(neighborhood.toLowerCase()));
+  if (neighborhood) filtered = filtered.filter(p => normalizeString(p.neighborhood).includes(normalizeString(neighborhood)));
   if (type) filtered = filtered.filter(p => p.type === type);
   if (operation) filtered = filtered.filter(p => p.operation === operation);
   if (minPrice) filtered = filtered.filter(p => p.price >= Number(minPrice));
