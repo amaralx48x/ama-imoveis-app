@@ -33,9 +33,9 @@ import { v4 as uuidv4 } from 'uuid';
 import ImageUpload from "@/components/image-upload";
 import { useState, useMemo, useCallback } from "react";
 import Image from "next/image";
-import type { Agent, Contact } from "@/lib/data";
+import type { Agent, Contact, Property } from "@/lib/data";
 import Link from "next/link";
-import { ArrowLeft, X, Loader2, User, Video, PlusCircle, Sparkles, ChevronDown } from "lucide-react";
+import { ArrowLeft, X, Loader2, User, Video, PlusCircle, Sparkles, ChevronDown, Gem } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { usePlan } from "@/context/PlanContext";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -113,6 +113,14 @@ export default function NovoImovelPage() {
   });
 
   const handleGenerateDescription = async (style: 'short' | 'detailed') => {
+    if (!limits.aiDescriptions) {
+        toast({
+            title: "Recurso indisponível",
+            description: "A geração de descrição por IA não está inclusa no seu plano.",
+            variant: "destructive"
+        });
+        return;
+    }
     const values = form.getValues();
     
     const requiredFields: (keyof typeof values)[] = ['type', 'city', 'neighborhood', 'operation', 'price'];
@@ -221,7 +229,7 @@ export default function NovoImovelPage() {
 
         const ownerContactId = values.ownerContactId === 'none' ? undefined : values.ownerContactId;
 
-        const newProperty: Omit<Partial<Property>, 'id'> = {
+        const newPropertyData = {
           ...values,
           id: propertyId,
           agentId: user.uid,
@@ -229,15 +237,17 @@ export default function NovoImovelPage() {
           createdAt: new Date().toISOString(),
           status: 'ativo' as const,
           sectionIds: ['featured'],
-          ownerContactId: ownerContactId,
         };
         
-        // Remove undefined fields before saving
-        Object.keys(newProperty).forEach(key => newProperty[key as keyof typeof newProperty] === undefined && delete newProperty[key as keyof typeof newProperty]);
-
+        // Remove undefined ownerContactId before saving
+        if (ownerContactId) {
+            (newPropertyData as Partial<Property>).ownerContactId = ownerContactId;
+        } else {
+            delete (newPropertyData as Partial<Property>).ownerContactId;
+        }
 
         const propertyRef = doc(firestore, `agents/${user.uid}/properties`, propertyId);
-        await setDoc(propertyRef, newProperty);
+        await setDoc(propertyRef, newPropertyData);
         
         if (ownerContactId) {
             const contactRef = doc(firestore, `agents/${user.uid}/contacts`, ownerContactId);
@@ -277,12 +287,12 @@ export default function NovoImovelPage() {
                 Voltar para Meus Imóveis
             </Link>
         </Button>
-        <Alert variant="destructive">
-            <Sparkles className="h-4 w-4" />
-            <AlertTitle>Limite de Imóveis Atingido!</AlertTitle>
+        <Alert variant="destructive" className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30 text-foreground">
+            <Gem className="h-4 w-4 text-primary" />
+            <AlertTitle className="text-xl text-primary font-bold">Limite de Imóveis Atingido!</AlertTitle>
             <AlertDescription>
-                Você atingiu o limite de ${limits.maxProperties} imóveis para o seu plano atual. Para continuar adicionando, por favor, faça o upgrade do seu plano.
-                <Button asChild variant="link" className="p-0 h-auto ml-1 text-destructive">
+                Você atingiu o limite de {limits.maxProperties} imóveis para o seu plano atual. Para continuar adicionando, por favor, faça o upgrade do seu plano.
+                <Button asChild variant="link" className="p-0 h-auto ml-1 text-primary">
                     <Link href="/meu-plano">Fazer Upgrade</Link>
                 </Button>
             </AlertDescription>
@@ -501,7 +511,7 @@ export default function NovoImovelPage() {
                         <FormLabel>Descrição Completa</FormLabel>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button type="button" variant="outline" size="sm" disabled={isGeneratingDescription}>
+                                <Button type="button" variant="outline" size="sm" disabled={isGeneratingDescription || !limits.aiDescriptions}>
                                 {isGeneratingDescription ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                                 Gerar com IA
                                 <ChevronDown className="ml-2 h-4 w-4" />

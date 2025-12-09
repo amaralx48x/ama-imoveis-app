@@ -215,10 +215,10 @@ export default function ImoveisPage() {
                         <DialogContent>
                              <DialogHeader>
                                 <DialogTitle className="flex items-center gap-2 text-2xl font-bold text-primary">
-                                    <Gem /> Recurso Exclusivo AMA ULTRA
+                                    <Gem /> Recurso Exclusivo de Planos Superiores
                                 </DialogTitle>
                                 <DialogDescription className="pt-2">
-                                    A importação de imóveis por planilha (CSV) é uma ferramenta poderosa para economizar seu tempo, permitindo cadastrar dezenas de imóveis de uma só vez.
+                                    A importação de imóveis (CSV ou XML) é uma ferramenta poderosa para economizar seu tempo. Faça o upgrade do seu plano para desbloquear este e outros benefícios.
                                 </DialogDescription>
                             </DialogHeader>
                             <Button asChild onClick={() => setIsUpgradeModalOpen(false)}>

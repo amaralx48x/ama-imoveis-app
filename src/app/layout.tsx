@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import { Inter, Poppins } from 'next/font/google'
-import { FirebaseClientProvider } from "@/firebase";
-import { PlanProvider } from "@/context/PlanContext";
+import { Providers } from "@/app/providers";
 
 const inter = Inter({
   subsets: ['latin'],
@@ -29,11 +28,9 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`${inter.variable} ${poppins.variable} dark`}>
       <body className={`font-body antialiased`}>
-        <FirebaseClientProvider>
-          <PlanProvider>
+        <Providers>
             {children}
-          </PlanProvider>
-        </FirebaseClientProvider>
+        </Providers>
         <Toaster />
       </body>
     </html>

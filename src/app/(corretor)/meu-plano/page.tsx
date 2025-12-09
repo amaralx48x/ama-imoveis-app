@@ -64,8 +64,8 @@ function PlanCard({ planDetail, isAdmin }: { planDetail: any, isAdmin: boolean }
                 </CardDescription>
             </CardHeader>
             <CardContent className="flex-grow space-y-4 pt-6">
-                <p className="text-4xl font-bold text-blue-500">
-                    <span className={cn(planDetail.recommended && 'text-white')}>R$ {planDetail.price}</span>
+                <p className="text-4xl font-bold">
+                    <span className={cn(planDetail.recommended && 'text-blue-500')}>R$ {planDetail.price}</span>
                     <span className="text-lg font-normal text-muted-foreground">/mês</span>
                 </p>
                  <ul className="space-y-3 text-sm">
@@ -135,7 +135,6 @@ export default function MeuPlanoPage() {
   const planDetails = {
     simples: {
       name: 'Simples',
-      subtitle: 'Plano 1',
       description: 'Serviço inicial para o seu orçamento',
       price: '39,99',
       features: [
@@ -144,9 +143,10 @@ export default function MeuPlanoPage() {
         { text: '32 Fotos por imóvel', included: true },
         { text: '5 Catálogos de Imóveis (sites extras)', included: true },
         { text: 'Usuário único do Sistema', included: true },
-        { text: 'Inteligência Artificial', included: false },
+        { text: 'Inteligência Artificial', included: planSettings.simples.aiDescriptions },
         { text: 'Esteira de Leads', included: false },
         { text: 'Certificado SSL', included: false },
+        { text: 'Exportação CSV', included: planSettings.simples.canImportCSV },
       ],
       action: () => handlePlanChange('simples'),
       isCurrent: plan === 'simples',
@@ -154,7 +154,6 @@ export default function MeuPlanoPage() {
     },
      essencial: {
       name: 'Essencial',
-      subtitle: 'Plano 2',
       description: 'Para quem está em constante evolução',
       price: '59,99',
       features: [
@@ -163,10 +162,10 @@ export default function MeuPlanoPage() {
         { text: '50 Fotos por Imóvel', included: true },
         { text: '10 Catálogos de Imóveis (sites extras)', included: true },
         { text: '3 Usuários do Sistema', included: true },
-        { text: 'Inteligência Artificial', included: true },
+        { text: 'Inteligência Artificial', included: planSettings.essencial.aiDescriptions },
         { text: 'Esteira de Leads', included: true },
         { text: 'Certificado SSL', included: true },
-        { text: 'Exportação CSV', included: true },
+        { text: 'Exportação CSV', included: planSettings.essencial.canImportCSV },
       ],
       action: () => handlePlanChange('essencial'),
       isCurrent: plan === 'essencial',
@@ -174,7 +173,6 @@ export default function MeuPlanoPage() {
     },
      impulso: {
       name: 'Impulso',
-      subtitle: 'Plano 3',
       description: 'Eleve sua jornada para o próximo patamar',
       price: '89,99',
       recommended: true,
@@ -184,10 +182,10 @@ export default function MeuPlanoPage() {
         { text: '64 Fotos por Imóvel', included: true },
         { text: '20 Catálogos de Imóveis (sites extras)', included: true },
         { text: '5 Usuários do Sistema', included: true },
-        { text: 'Inteligência Artificial', included: true },
+        { text: 'Inteligência Artificial', included: planSettings.impulso.aiDescriptions },
         { text: 'Esteira de Leads', included: true },
         { text: 'Certificado SSL', included: true },
-        { text: 'Exportação CSV e XML', included: true },
+        { text: 'Exportação CSV e XML', included: planSettings.impulso.canImportCSV },
       ],
       action: () => handlePlanChange('impulso'),
       isCurrent: plan === 'impulso',
@@ -195,7 +193,6 @@ export default function MeuPlanoPage() {
     },
     expansao: {
       name: 'Expansão',
-      subtitle: 'Plano 4',
       description: 'Para negócios que exigem a mais alta perfomance',
       price: '149,99',
       features: [
@@ -204,10 +201,10 @@ export default function MeuPlanoPage() {
         { text: '64 Fotos por Imóvel', included: true },
         { text: '40 Catálogos de Imóveis (sites extras)', included: true },
         { text: '15 Usuários do Sistema', included: true },
-        { text: 'Inteligência Artificial', included: true },
+        { text: 'Inteligência Artificial', included: planSettings.expansao.aiDescriptions },
         { text: 'Esteira de Leads', included: true },
         { text: 'Certificado SSL', included: true },
-        { text: 'Exportação CSV e XML', included: true },
+        { text: 'Exportação CSV e XML', included: planSettings.expansao.canImportCSV },
       ],
       action: () => handlePlanChange('expansao'),
       isCurrent: plan === 'expansao',

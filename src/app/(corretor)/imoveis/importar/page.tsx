@@ -217,9 +217,9 @@ export default function ImportImoveisPage() {
         </Button>
         <Alert variant="destructive" className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30 text-foreground">
             <Gem className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-xl text-primary font-bold">Recurso Exclusivo do Plano AMA ULTRA</AlertTitle>
+            <AlertTitle className="text-xl text-primary font-bold">Recurso Exclusivo de Planos Superiores</AlertTitle>
             <AlertDescription>
-                A importação de imóveis por planilha (CSV) é uma ferramenta poderosa para economizar seu tempo. Faça o upgrade para o plano AMA ULTRA para desbloquear este e outros benefícios.
+                A importação de imóveis (CSV ou XML) é uma ferramenta poderosa para economizar seu tempo. Faça o upgrade do seu plano para desbloquear este e outros benefícios.
                 <Button asChild variant="link" className="p-0 h-auto ml-1 text-primary">
                     <Link href="/meu-plano">Conhecer Planos e Fazer Upgrade</Link>
                 </Button>

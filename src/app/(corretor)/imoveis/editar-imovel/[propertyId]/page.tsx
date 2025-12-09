@@ -48,6 +48,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
+import { usePlan } from '@/context/PlanContext';
 
 const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
 const operationTypes = ["Venda", "Aluguel"];
@@ -123,6 +124,7 @@ export default function EditarImovelPage() {
   const params = useParams();
   const firestore = useFirestore();
   const { user } = useUser();
+  const { limits } = usePlan();
   
   const propertyId = params.propertyId as string;
 
@@ -194,6 +196,14 @@ export default function EditarImovelPage() {
   }, [propertyData, form]);
 
     const handleGenerateDescription = async (style: 'short' | 'detailed') => {
+        if (!limits.aiDescriptions) {
+            toast({
+                title: "Recurso indisponível",
+                description: "A geração de descrição por IA não está inclusa no seu plano.",
+                variant: "destructive"
+            });
+            return;
+        }
         const values = form.getValues();
         
         const requiredFields: (keyof typeof values)[] = ['type', 'city', 'neighborhood', 'operation', 'price'];
@@ -293,24 +303,19 @@ export default function EditarImovelPage() {
             return acc;
         }, {} as Record<string, boolean>);
 
-        const newOwnerContactId = values.ownerContactId === 'none' ? undefined : values.ownerContactId;
+        const newOwnerContactId = values.ownerContactId === 'none' ? null : values.ownerContactId;
         const oldOwnerContactId = propertyData?.ownerContactId;
-        const newTenantContactId = values.tenantContactId === 'none' ? undefined : values.tenantContactId;
+        const newTenantContactId = values.tenantContactId === 'none' ? null : values.tenantContactId;
         const oldTenantContactId = propertyData?.tenantContactId;
 
         const updatedProperty: Omit<Partial<Property>, 'id'> = {
           ...propertyData,
           ...values,
           imageUrls: allImageUrls,
+          portalPublish: portalPublishData,
           ownerContactId: newOwnerContactId,
           tenantContactId: newTenantContactId,
-          portalPublish: portalPublishData,
         };
-
-        // Remove undefined fields before saving
-        Object.keys(updatedProperty).forEach(key => updatedProperty[key as keyof typeof updatedProperty] === undefined && delete updatedProperty[key as keyof typeof updatedProperty]);
-
-        await setDoc(propertyRef, updatedProperty, { merge: true });
 
         // Handle owner linking logic
         if (newOwnerContactId !== oldOwnerContactId) {
@@ -332,6 +337,7 @@ export default function EditarImovelPage() {
             }
         }
         
+        await setDoc(propertyRef, updatedProperty, { merge: true });
         mutate();
         setFilesToUpload([]);
         
@@ -467,7 +473,7 @@ export default function EditarImovelPage() {
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel className="flex items-center gap-2"><User className="w-4 h-4"/> Proprietário (Opcional)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                         <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Selecione o proprietário do imóvel" />
@@ -579,7 +585,7 @@ export default function EditarImovelPage() {
                         render={({ field }) => (
                             <FormItem>
                             <FormLabel className="flex items-center gap-2"><User className="w-4 h-4"/> Inquilino (Opcional)</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                             <FormControl>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecione o inquilino do imóvel" />
@@ -676,7 +682,7 @@ export default function EditarImovelPage() {
                         <FormLabel>Descrição Completa</FormLabel>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button type="button" variant="outline" size="sm" disabled={isGeneratingDescription}>
+                                <Button type="button" variant="outline" size="sm" disabled={isGeneratingDescription || !limits.aiDescriptions}>
                                 {isGeneratingDescription ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                                 Gerar com IA
                                 <ChevronDown className="ml-2 h-4 w-4" />

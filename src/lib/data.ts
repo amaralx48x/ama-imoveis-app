@@ -172,6 +172,8 @@ export type MarketingContent = {
     hero_media_url?: string;
     hero_media_type?: 'image' | 'video';
     theme?: 'light' | 'dark';
+    feature_video_url?: string;
+    feature_video_title?: string;
     section2_image?: string;
     section3_image?: string;
     section4_image1?: string;
@@ -179,6 +181,7 @@ export type MarketingContent = {
     section5_image1?: string;
     section5_image2?: string;
     section6_image?: string;
+    supportEmail?: string;
 }
 
 export type Customer = {
@@ -374,3 +377,4 @@ export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Gu
 export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
 
     
+

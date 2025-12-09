@@ -21,6 +21,7 @@ interface PlanLimits {
     maxProperties: number;
     canImportCSV: boolean;
     storageGB: number;
+    aiDescriptions: boolean;
 }
 
 interface PlanContextProps {
@@ -40,6 +41,7 @@ const planSettings: Record<PlanType, PlanLimits & { name: string; priceId: strin
         maxProperties: 30,
         canImportCSV: false,
         storageGB: 2,
+        aiDescriptions: false,
     },
     'essencial': {
         name: 'Essencial',
@@ -47,6 +49,7 @@ const planSettings: Record<PlanType, PlanLimits & { name: string; priceId: strin
         maxProperties: 350,
         canImportCSV: true,
         storageGB: 5,
+        aiDescriptions: true,
     },
     'impulso': {
         name: 'Impulso',
@@ -54,6 +57,7 @@ const planSettings: Record<PlanType, PlanLimits & { name: string; priceId: strin
         maxProperties: 1000,
         canImportCSV: true,
         storageGB: 10,
+        aiDescriptions: true,
     },
     'expansao': {
         name: 'Expansão',
@@ -61,6 +65,7 @@ const planSettings: Record<PlanType, PlanLimits & { name: string; priceId: strin
         maxProperties: 3000,
         canImportCSV: true,
         storageGB: 20,
+        aiDescriptions: true,
     }
 };
 

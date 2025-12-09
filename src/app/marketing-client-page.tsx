@@ -159,6 +159,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
         { text: 'Inteligência Artificial', included: false },
         { text: 'Esteira de Leads', included: false },
         { text: 'Certificado SSL', included: false },
+        { text: 'Exportação CSV', included: false },
       ],
     },
      essencial: {
@@ -307,7 +308,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
                         Um click diz mais que mil palavras
                     </motion.h3>
                     <motion.div variants={fadeUpItem} className="mt-4">
-                        <a href="https://amaimobi.com.br/corretor/4vEISo4pEORjFhv6RzD7eC42cgm2" className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white text-lg shadow-lg hover:scale-105 transition-transform`}>
+                        <a href="https://amaimobi.com.br/corretor/exemplo" className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white text-lg shadow-lg hover:scale-105 transition-transform`}>
                             Clique aqui <ArrowRight className="w-5 h-5" />
                         </a>
                     </motion.div>
