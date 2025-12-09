@@ -52,7 +52,7 @@ export function filterProperties(properties: Property[], filters: Filters): Prop
   }
 
   // Apply structured filters with normalization for text fields
-  if (city) {
+  if (city && city !== 'all') {
     const normalizedCity = normalizeString(city);
     filtered = filtered.filter(p => normalizeString(p.city) === normalizedCity);
   }
@@ -60,11 +60,11 @@ export function filterProperties(properties: Property[], filters: Filters): Prop
     const normalizedNeighborhood = normalizeString(neighborhood);
     filtered = filtered.filter(p => normalizeString(p.neighborhood).includes(normalizedNeighborhood));
   }
-  if (type) {
+  if (type && type !== 'all') {
       const normalizedType = normalizeString(type);
       filtered = filtered.filter(p => normalizeString(p.type) === normalizedType);
   }
-  if (operation) {
+  if (operation && operation !== 'all') {
       const normalizedOperation = normalizeString(operation);
       filtered = filtered.filter(p => normalizeString(p.operation) === normalizedOperation);
   }

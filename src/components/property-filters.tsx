@@ -42,9 +42,9 @@ export default function PropertyFilters({ agent, propertyTypes = [], onSearch }:
 
   const handleSearch = () => {
     const filters: Filters = {
-      operation: operation || undefined,
-      city: city === 'outras' ? undefined : city || undefined,
-      type: type || undefined,
+      operation: operation === 'all' ? undefined : operation || undefined,
+      city: city === 'all' ? undefined : city === 'outras' ? undefined : city || undefined,
+      type: type === 'all' ? undefined : type || undefined,
       bedrooms: bedrooms || undefined,
       garage: garage || undefined,
       keyword: keyword || undefined,
@@ -100,7 +100,7 @@ export default function PropertyFilters({ agent, propertyTypes = [], onSearch }:
                         <SelectValue placeholder="Comprar ou Alugar" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">Todas as Operações</SelectItem>
+                        <SelectItem value="all">Todas as Operações</SelectItem>
                         <SelectItem value="Venda">Venda</SelectItem>
                         <SelectItem value="Aluguel">Aluguel</SelectItem>
                     </SelectContent>
@@ -114,7 +114,7 @@ export default function PropertyFilters({ agent, propertyTypes = [], onSearch }:
                         </div>
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">Todas as Cidades</SelectItem>
+                        <SelectItem value="all">Todas as Cidades</SelectItem>
                         {cities.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                         {cities.length > 0 && <SelectItem value="outras">Outras cidades</SelectItem>}
                     </SelectContent>
@@ -128,7 +128,7 @@ export default function PropertyFilters({ agent, propertyTypes = [], onSearch }:
                         </div>
                     </SelectTrigger>
                     <SelectContent>
-                       <SelectItem value="">Todos os Tipos</SelectItem>
+                       <SelectItem value="all">Todos os Tipos</SelectItem>
                        {propertyTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
                 </Select>
