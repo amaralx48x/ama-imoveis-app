@@ -48,16 +48,38 @@ export function filterProperties(properties: Property[], filters: Filters): Prop
     );
   }
 
-  // Structured filters (mantendo a lógica original, que já é eficaz para filtros específicos)
-  if (city) filtered = filtered.filter(p => p.city === city);
-  if (neighborhood) filtered = filtered.filter(p => normalizeString(p.neighborhood).includes(normalizeString(neighborhood)));
-  if (type) filtered = filtered.filter(p => p.type === type);
-  if (operation) filtered = filtered.filter(p => p.operation === operation);
-  if (minPrice) filtered = filtered.filter(p => p.price >= Number(minPrice));
-  if (maxPrice) filtered = filtered.filter(p => p.price <= Number(maxPrice));
-  if (bedrooms) filtered = filtered.filter(p => p.bedrooms >= Number(bedrooms));
-  if (garage) filtered = filtered.filter(p => p.garage >= Number(garage));
-  if (sectionId) filtered = filtered.filter(p => (p.sectionIds || []).includes(sectionId));
+  // Apply structured filters with normalization for text fields
+  if (city) {
+    const normalizedCity = normalizeString(city);
+    filtered = filtered.filter(p => normalizeString(p.city) === normalizedCity);
+  }
+  if (neighborhood) {
+    const normalizedNeighborhood = normalizeString(neighborhood);
+    filtered = filtered.filter(p => normalizeString(p.neighborhood).includes(normalizedNeighborhood));
+  }
+  if (type) {
+      const normalizedType = normalizeString(type);
+      filtered = filtered.filter(p => normalizeString(p.type) === normalizedType);
+  }
+  if (operation) {
+      const normalizedOperation = normalizeString(operation);
+      filtered = filtered.filter(p => normalizeString(p.operation) === normalizedOperation);
+  }
+  if (minPrice) {
+    filtered = filtered.filter(p => p.price >= Number(minPrice));
+  }
+  if (maxPrice) {
+    filtered = filtered.filter(p => p.price <= Number(maxPrice));
+  }
+  if (bedrooms) {
+    filtered = filtered.filter(p => p.bedrooms >= Number(bedrooms));
+  }
+  if (garage) {
+    filtered = filtered.filter(p => p.garage >= Number(garage));
+  }
+  if (sectionId) {
+    filtered = filtered.filter(p => (p.sectionIds || []).includes(sectionId));
+  }
 
   // Sorting
   if (sortBy === 'price-asc') {
