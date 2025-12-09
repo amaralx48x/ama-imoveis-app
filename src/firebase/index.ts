@@ -110,4 +110,3 @@ export {
   signInWithRedirect, 
   getRedirectResult 
 };
-
