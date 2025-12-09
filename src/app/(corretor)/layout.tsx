@@ -42,7 +42,10 @@ export default function CorretorLayout({
   }, [user, isUserLoading, router, pathname]);
 
   useEffect(() => {
-    if (isAgentLoading || !agentData || typeof window === 'undefined') return;
+    // Aguarda o carregamento dos dados do agente antes de executar a lógica
+    if (isAgentLoading || !agentData || typeof window === 'undefined') {
+        return;
+    }
     
     const subUserId = sessionStorage.getItem('subUserId');
     if (subUserId === agentData.id) {
