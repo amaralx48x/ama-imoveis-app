@@ -64,7 +64,8 @@ export const saveUserToFirestore = async (user: User, additionalData?: Additiona
   const snapshot = await getDoc(userRef);
 
   if (!snapshot.exists()) {
-    const isGoogleSignUp = !additionalData?.name; // Heurística: se não houver nome, provavelmente é do Google.
+    // For any new user, set their status to 'pending' to force profile completion.
+    const isGoogleSignUp = additionalData?.name === user.displayName;
     
     const agentData = {
       id: user.uid,
@@ -74,12 +75,12 @@ export const saveUserToFirestore = async (user: User, additionalData?: Additiona
       accountType: additionalData?.accountType || 'corretor',
       description: "Edite sua descrição na seção Perfil do seu painel.",
       email: user.email,
-      creci: '000000-F',
+      creci: '',
       photoUrl: user.photoURL || '',
       role: 'corretor',
       plan: 'simples' as const,
       createdAt: serverTimestamp(),
-      status: isGoogleSignUp ? 'pending' : 'active', // Define status como 'pending' para novos cadastros Google
+      status: 'pending', // Always set to 'pending' for new users
       siteSettings: {
         siteStatus: true,
         showFinancing: true,
@@ -88,7 +89,7 @@ export const saveUserToFirestore = async (user: User, additionalData?: Additiona
       }
     };
     await setDoc(userRef, agentData);
-    console.log("Novo usuário criado no Firestore");
+    console.log("Novo usuário criado no Firestore com status pendente");
   }
 };
 
@@ -109,3 +110,4 @@ export {
   signInWithRedirect, 
   getRedirectResult 
 };
+

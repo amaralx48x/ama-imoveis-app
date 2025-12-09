@@ -60,37 +60,46 @@ export default function LoginPage() {
     const router = useRouter();
     const pathname = usePathname();
     const [isLoading, setIsLoading] = useState(false);
-    const [isGoogleLoading, setIsGoogleLoading] = useState(true);
-
-    // Handle user state changes for redirection after login.
-    useEffect(() => {
-        if (!isUserLoading && user && pathname === '/login') {
-            router.replace('/selecao-usuario');
-        }
-    }, [user, isUserLoading, router, pathname]);
+    const [isGoogleLoading, setIsGoogleLoading] = useState(true); // Start true to handle redirect
 
     // Handle Google Redirect Result
     useEffect(() => {
         if (!auth) return;
-        getRedirectResult(auth)
-            .then(async (result) => {
+
+        const processRedirectResult = async () => {
+            try {
+                const result = await getRedirectResult(auth);
                 if (result) {
+                    // This means a user has successfully signed in via redirect.
+                    setIsGoogleLoading(true); // Keep loading state while we save data
                     await saveUserToFirestore(result.user, {
                         displayName: result.user.displayName,
                         name: result.user.displayName,
                         accountType: 'corretor',
                     });
                     toast({ title: "Login bem-sucedido!" });
-                    router.replace('/selecao-usuario');
+                    // Redirection will be handled by the other useEffect watching `user` state
                 } else {
-                    setIsGoogleLoading(false); // No redirect result, stop loading
+                    // No redirect result, probably a fresh visit to the login page.
+                    setIsGoogleLoading(false);
                 }
-            })
-            .catch((error) => {
+            } catch (error) {
                 handleAuthError(error as FirebaseError);
                 setIsGoogleLoading(false);
-            });
-    }, [auth, toast, router]);
+            }
+        };
+
+        processRedirectResult();
+    }, [auth, toast]); // Removed router from dependencies to avoid re-running unnecessarily
+
+
+    // Handle user state changes for redirection after any login method.
+    useEffect(() => {
+        // If a user object exists and we're on the login page, redirect them.
+        if (!isUserLoading && user && pathname === '/login') {
+            router.replace('/selecao-usuario');
+        }
+    }, [user, isUserLoading, router, pathname]);
 
     const loginForm = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
@@ -148,7 +157,7 @@ export default function LoginPage() {
                 title: "Login bem-sucedido!",
                 description: "Redirecionando para o seu painel...",
             });
-            router.replace('/selecao-usuario');
+            // Redirection is handled by the useEffect watching the `user` state
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -172,7 +181,7 @@ export default function LoginPage() {
                 title: "Conta criada com sucesso!",
                 description: "Redirecionando para o seu painel...",
             });
-            router.replace('/selecao-usuario');
+            // Redirection is handled by the useEffect watching the `user` state
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -182,12 +191,12 @@ export default function LoginPage() {
     
     async function handleGoogleLogin() {
         if (!auth) return;
-        setIsGoogleLoading(true);
+        setIsGoogleLoading(true); // Show loading state immediately on click
         signInWithRedirect(auth, googleProvider);
     }
 
 
-    if (isUserLoading && !user) {
+    if (isUserLoading || isGoogleLoading) { // Show loader if either auth state or google redirect is processing
         return (
              <div className="relative min-h-screen flex items-center justify-center p-4">
                  <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
@@ -274,7 +283,7 @@ export default function LoginPage() {
                                         name="accountType"
                                         render={({ field }) => (
                                             <FormItem className="space-y-3">
-                                            <FormLabel>Tipo de Conta</FormLabel>
+                                            <FormLabel>Você é um(a)...</FormLabel>
                                             <FormControl>
                                                 <RadioGroup
                                                 onValueChange={field.onChange}
@@ -325,4 +334,3 @@ export default function LoginPage() {
     );
 }
 
-    
