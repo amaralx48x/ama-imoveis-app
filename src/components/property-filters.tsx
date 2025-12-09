@@ -100,6 +100,7 @@ export default function PropertyFilters({ agent, propertyTypes = [], onSearch }:
                         <SelectValue placeholder="Comprar ou Alugar" />
                     </SelectTrigger>
                     <SelectContent>
+                        <SelectItem value="">Todas as Operações</SelectItem>
                         <SelectItem value="Venda">Venda</SelectItem>
                         <SelectItem value="Aluguel">Aluguel</SelectItem>
                     </SelectContent>
@@ -113,6 +114,7 @@ export default function PropertyFilters({ agent, propertyTypes = [], onSearch }:
                         </div>
                     </SelectTrigger>
                     <SelectContent>
+                        <SelectItem value="">Todas as Cidades</SelectItem>
                         {cities.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                         {cities.length > 0 && <SelectItem value="outras">Outras cidades</SelectItem>}
                     </SelectContent>
@@ -126,6 +128,7 @@ export default function PropertyFilters({ agent, propertyTypes = [], onSearch }:
                         </div>
                     </SelectTrigger>
                     <SelectContent>
+                       <SelectItem value="">Todos os Tipos</SelectItem>
                        {propertyTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
                 </Select>
@@ -162,6 +165,7 @@ export default function PropertyFilters({ agent, propertyTypes = [], onSearch }:
                             </div>
                         </SelectTrigger>
                         <SelectContent>
+                            <SelectItem value="">Todos</SelectItem>
                             <SelectItem value="1">1+</SelectItem>
                             <SelectItem value="2">2+</SelectItem>
                             <SelectItem value="3">3+</SelectItem>
@@ -177,6 +181,7 @@ export default function PropertyFilters({ agent, propertyTypes = [], onSearch }:
                             </div>
                         </SelectTrigger>
                         <SelectContent>
+                            <SelectItem value="">Todas</SelectItem>
                             <SelectItem value="1">1+</SelectItem>
                             <SelectItem value="2">2+</SelectItem>
                             <SelectItem value="3">3+</SelectItem>
