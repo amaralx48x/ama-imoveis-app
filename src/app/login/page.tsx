@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, googleProvider, signInWithRedirect, getRedirectResult, saveUserToFirestore } from '@/firebase';
+import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, googleProvider, signInWithPopup, saveUserToFirestore } from '@/firebase';
 import { useRouter, usePathname } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -59,37 +59,7 @@ export default function LoginPage() {
     const router = useRouter();
     const pathname = usePathname();
     const [isLoading, setIsLoading] = useState(false);
-    const [isGoogleLoading, setIsGoogleLoading] = useState(true);
-
-    // Handle Google Redirect Result on initial load
-    useEffect(() => {
-        if (!auth) return;
-
-        const processRedirectResult = async () => {
-            try {
-                const result = await getRedirectResult(auth);
-                if (result) {
-                    setIsGoogleLoading(true); // Keep loading state
-                    await saveUserToFirestore(result.user, {
-                        displayName: result.user.displayName,
-                        name: result.user.displayName,
-                        accountType: 'corretor',
-                    });
-                    toast({ title: "Login com Google bem-sucedido!" });
-                    // Redirection will now be handled by the user state effect
-                } else {
-                    // No redirect result, ready for user interaction
-                    setIsGoogleLoading(false);
-                }
-            } catch (error) {
-                handleAuthError(error as FirebaseError);
-                setIsGoogleLoading(false);
-            }
-        };
-
-        processRedirectResult();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [auth]);
+    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
 
     // Handle user state changes for redirection after any login method.
@@ -117,9 +87,7 @@ export default function LoginPage() {
         switch (error.code) {
             case 'auth/cancelled-popup-request':
             case 'auth/popup-closed-by-user':
-                title = "Login Cancelado";
-                description = "A janela de login foi fechada antes da conclusão.";
-                break;
+                return; // Não mostrar toast para fechamento de popup
             case 'auth/user-not-found':
             case 'auth/wrong-password':
             case 'auth/invalid-credential':
@@ -190,12 +158,25 @@ export default function LoginPage() {
     
     async function handleGoogleLogin() {
         if (!auth) return;
-        setIsGoogleLoading(true); // Show loading state immediately on click
-        signInWithRedirect(auth, googleProvider);
+        setIsGoogleLoading(true);
+        try {
+            const result = await signInWithPopup(auth, googleProvider);
+            await saveUserToFirestore(result.user, {
+                displayName: result.user.displayName,
+                name: result.user.displayName,
+                accountType: 'corretor',
+            });
+            toast({ title: "Login com Google bem-sucedido!" });
+            // Redirection will happen automatically via useUser hook
+        } catch (error) {
+            handleAuthError(error as FirebaseError);
+        } finally {
+            setIsGoogleLoading(false);
+        }
     }
 
 
-    if (isUserLoading || isGoogleLoading) { // Show loader if either auth state or google redirect is processing
+    if (isUserLoading) {
         return (
              <div className="relative min-h-screen flex items-center justify-center p-4">
                  <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
