@@ -4,14 +4,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getFirebaseServer } from '@/firebase/server-init';
 import { doc, getDoc } from 'firebase/firestore';
 
-/*
 // PASSO 1: Instale o Resend
 // Execute no seu terminal: npm install resend
 import { Resend } from 'resend';
 
 // PASSO 2: Crie sua chave de API no site do Resend e adicione ao .env
-// const resend = new Resend(process.env.RESEND_API_KEY);
-*/
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 
 export async function POST(req: NextRequest) {
   const { agentId } = await req.json();
@@ -37,7 +36,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'O agente não possui um e-mail cadastrado.' }, { status: 400 });
     }
 
-    /*
+    
     // PASSO 3: Descomente este bloco para ativar o envio de e-mail
     try {
       await resend.emails.send({
@@ -62,7 +61,7 @@ export async function POST(req: NextRequest) {
       // Mesmo que o e-mail falhe, retornamos um sucesso genérico para não expor a falha ao usuário final
       return NextResponse.json({ message: 'Se um e-mail estiver associado a esta conta, um lembrete de PIN foi enviado.' });
     }
-    */
+    
     
     // Retorna uma mensagem de sucesso genérica para o frontend
     return NextResponse.json({ message: 'Se um e-mail estiver associado a esta conta, um lembrete de PIN foi enviado.' });
