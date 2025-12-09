@@ -6,18 +6,16 @@ import { getFirebaseServer } from '@/firebase/server-init';
 import { doc, getDoc } from 'firebase/firestore';
 import { Resend } from 'resend';
 
-// Verifica se a chave da API do Resend está definida no ambiente do servidor
-const resendApiKey = process.env.RESEND_API_KEY;
-if (!resendApiKey) {
-  console.error("CRITICAL: RESEND_API_KEY is not set in the environment.");
-}
-const resend = new Resend(resendApiKey);
 
 export async function POST(req: NextRequest) {
-  // Verificação dupla para garantir que a chave esteja disponível no momento da execução
+  // A chave da API é lida e o Resend é instanciado DENTRO da função
+  // para garantir que as variáveis de ambiente estejam carregadas.
+  const resendApiKey = process.env.RESEND_API_KEY;
   if (!resendApiKey) {
+    console.error("CRITICAL: RESEND_API_KEY is not set in the environment.");
     return NextResponse.json({ error: 'O serviço de e-mail não está configurado no servidor.' }, { status: 500 });
   }
+  const resend = new Resend(resendApiKey);
 
   const { agentId } = await req.json();
 
@@ -28,7 +26,6 @@ export async function POST(req: NextRequest) {
   try {
     const { firestore } = getFirebaseServer();
     
-    // Busca os dados do agente para obter e-mail e PIN
     const agentRef = doc(firestore, 'agents', agentId);
     const agentSnap = await getDoc(agentRef);
 
@@ -38,16 +35,15 @@ export async function POST(req: NextRequest) {
 
     const agentData = agentSnap.data();
     const agentEmail = agentData.email;
-    const agentPin = agentData.pin || '0000'; // Usa 0000 como PIN padrão se não estiver definido
+    const agentPin = agentData.pin || '0000'; 
 
     if (!agentEmail) {
       return NextResponse.json({ error: 'O agente não possui um e-mail de cadastro para recuperação.' }, { status: 400 });
     }
-
+    
     // Formata o remetente no formato "Nome <email@dominio.com>"
     const fromAddress = 'AMA Imobi <amaralx48@gmail.com>';
 
-    // Envia o e-mail usando Resend
     await resend.emails.send({
       from: fromAddress,
       to: [agentEmail],
