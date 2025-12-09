@@ -27,6 +27,7 @@ function generateCasaMineiraXml(properties: Property[]) {
         <price>${p.price}</price>
         <description>${escapeXml(p.description)}</description>
         <location>
+            <address>${escapeXml(p.address || '')}</address>
             <city>${escapeXml(p.city)}</city>
             <neighborhood>${escapeXml(p.neighborhood)}</neighborhood>
         </location>
@@ -89,3 +90,5 @@ export async function GET(request: Request) {
         return new NextResponse("Erro interno ao gerar feed XML", { status: 500 });
     }
 }
+
+    

@@ -30,6 +30,7 @@ function generateZapXml(properties: Property[]) {
         <UF>SP</UF> 
         <Cidade>${escapeXml(p.city)}</Cidade>
         <Bairro>${escapeXml(p.neighborhood)}</Bairro>
+        <Logradouro>${escapeXml(p.address || '')}</Logradouro>
         <PrecoVenda>${negotiationType === 'Venda' ? p.price : ''}</PrecoVenda>
         <PrecoLocacao>${negotiationType === 'Locacao' ? p.price : ''}</PrecoLocacao>
         <Dormitorios>${p.bedrooms}</Dormitorios>
@@ -91,3 +92,5 @@ export async function GET(request: Request) {
         return new NextResponse("Erro interno ao gerar feed XML", { status: 500 });
     }
 }
+
+    

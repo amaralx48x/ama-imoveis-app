@@ -3,6 +3,7 @@
 
 
 
+
 export type SocialLink = {
   id: string;
   label: string;
@@ -39,6 +40,7 @@ export type Property = {
   totalArea: number;
   imageUrls: string[];
   videoUrl?: string;
+  address?: string;
   city: string;
   neighborhood: string;
   type: 'Apartamento' | 'Casa' | 'Chácara' | 'Galpão' | 'Sala' | 'Kitnet' | 'Terreno' | 'Lote' | 'Alto Padrão';
@@ -238,6 +240,7 @@ const properties: Property[] = [
     imageUrls: ['https://images.unsplash.com/photo-1621070659899-40b6b6f6731d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxtb2Rlcm4lMjBhcGFydG1lbnR8ZW58MHx8fHwxNzYxOTY5MTY4fDA&ixlib=rb-4.1.0&q=80&w=1080', 'https://images.unsplash.com/photo-1742453161018-73e39a241541?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxhcGFydG1lbnQlMjBsaXZpbmclMjByb29tfGVufDB8fHx8MTc2MjAxMDk0NHww&ixlib=rb-4.1.0&q=80&w=1080', 'https://images.unsplash.com/photo-1630699294197-6ac1c11ae156?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxhcGFydG1lbnQlMjBraXRjaGVufGVufDB8fHx8MTc2MTkxOTE1MHww&ixlib=rb-4.1.0&q=80&w=1080'],
     city: 'São Paulo',
     neighborhood: 'Centro',
+    address: 'Av. Paulista, 1000',
     type: 'Apartamento',
     operation: 'Venda',
     sectionIds: ['featured'],
@@ -255,9 +258,10 @@ const properties: Property[] = [
     rooms: 9,
     builtArea: 250,
     totalArea: 400,
-    imageUrls: ['https://images.unsplash.com/photo-1572120360610-d971b9d7767c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzdWJ1cmJhbiUyMGhvdXNlfGVufDB8fHx8MTc2MTkwODc5N3ww&ixlib=rb-4.1.0&q=80&w=1080', 'https://images.unsplash.com/photo-1726968335694-02219ed7ce96?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxob3VzZSUyMGJhY2t5YXJkfGVufDB8fHx8MTc2MjAwOTc0Mnww&ixlib-rb-4.1.0&q=80&w=1080'],
+    imageUrls: ['https://images.unsplash.com/photo-1572120360610-d971b9d7767c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzdWJ1cmJhbiUyMGhvdXNlfGVufDB8fHx8MTc2MTkwODc5N3ww&ixlib=rb-4.1.0&q=80&w=1080', 'https://images.unsplash.com/photo-1726968335694-02219ed7ce96?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxob3VzZSUyMGJhY2t5YXJkfGVufDB8fHx8MTc2MjAwOTc0Mnww&ixlib=rb-4.1.0&q=80&w=1080'],
     city: 'Campinas',
     neighborhood: 'Taquaral',
+    address: 'Rua das Camélias, 123',
     type: 'Casa',
     operation: 'Venda',
     sectionIds: ['featured'],
@@ -275,9 +279,10 @@ const properties: Property[] = [
     rooms: 10,
     builtArea: 400,
     totalArea: 600,
-    imageUrls: ['https://images.unsplash.com/photo-1634351580440-8fcf7813367e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxiZWFjaGZyb250JTIwaG91c2V8ZW58MHx8fHwxNzYxOTQ1NTg4fDA&ixlib-rb-4.1.0&q=80&w=1080'],
+    imageUrls: ['https://images.unsplash.com/photo-1634351580440-8fcf7813367e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxiZWFjaGZyb250JTIwaG91c2V8ZW58MHx8fHwxNzYxOTQ1NTg4fDA&ixlib=rb-4.1.0&q=80&w=1080'],
     city: 'Ubatuba',
     neighborhood: 'Praia Grande',
+    address: 'Av. Atlântica, 500',
     type: 'Casa',
     operation: 'Venda',
     sectionIds: ['featured'],
@@ -298,8 +303,9 @@ const properties: Property[] = [
       imageUrls: ['https://images.unsplash.com/photo-1737737210863-387afd35344e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjb3p5JTIwYXBhcnRtZW50fGVufDB8fHx8MTc2MjAxMDk0NXww&ixlib.rb-4.1.0&q=80&w=1080'],
       city: 'São Paulo',
       neighborhood: 'Itaim Bibi',
+      address: 'Rua Joaquim Floriano, 700',
       type: 'Apartamento',
-      operation: 'Alugar',
+      operation: 'Aluguel',
       sectionIds: [],
       status: 'ativo'
   },
@@ -396,5 +402,7 @@ export const getProperties = () => properties;
 export const getReviews = () => staticReviews;
 export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Guarujá', 'Rio de Janeiro', 'Belo Horizonte', 'Curitiba', 'Porto Alegre'];
 export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
+
+    
 
     

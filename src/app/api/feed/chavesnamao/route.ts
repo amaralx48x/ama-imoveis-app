@@ -26,6 +26,7 @@ function generateChavesNaMaoXml(properties: Property[]) {
         <titulo>${escapeXml(p.title)}</titulo>
         <descricao>${escapeXml(p.description)}</descricao>
         <valor>${p.price}</valor>
+        <endereco>${escapeXml(p.address || '')}</endereco>
         <cidade>${escapeXml(p.city)}</cidade>
         <bairro>${escapeXml(p.neighborhood)}</bairro>
         <quartos>${p.bedrooms}</quartos>
@@ -85,3 +86,5 @@ export async function GET(request: Request) {
         return new NextResponse("Erro interno ao gerar feed XML", { status: 500 });
     }
 }
+
+    

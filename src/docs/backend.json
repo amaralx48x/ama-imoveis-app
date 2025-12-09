@@ -21,6 +21,7 @@
         "totalArea": { "type": "number", "description": "Total area in square meters." },
         "imageUrls": { "type": "array", "items": { "type": "string" }, "description": "Array of URLs for property images." },
         "videoUrl": { "type": "string", "description": "URL of a promotional video for the property." },
+        "address": { "type": "string", "description": "Full street address of the property." },
         "city": { "type": "string", "description": "City where the property is located." },
         "neighborhood": { "type": "string", "description": "Neighborhood where the property is located." },
         "type": { "type": "string", "enum": ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"], "description": "Type of property." },
@@ -403,3 +404,5 @@
     ]
   }
 }
+
+    

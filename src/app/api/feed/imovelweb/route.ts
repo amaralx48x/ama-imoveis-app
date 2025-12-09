@@ -26,6 +26,7 @@ function generateImovelWebXml(properties: Property[]) {
         <tipoOperacion>${p.operation === 'Venda' ? 'Venta' : 'Alquiler'}</tipoOperacion>
         <tipoInmueble>${escapeXml(p.type)}</tipoInmueble>
         <direccion>
+            <nombreCalle>${escapeXml(p.address || '')}</nombreCalle>
             <localidad>${escapeXml(p.city)}</localidad>
             <barrio>${escapeXml(p.neighborhood)}</barrio>
             <provincia>SP</provincia>
@@ -90,3 +91,5 @@ export async function GET(request: Request) {
         return new NextResponse("Erro interno ao gerar feed XML", { status: 500 });
     }
 }
+
+    

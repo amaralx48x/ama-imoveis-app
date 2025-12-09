@@ -27,6 +27,7 @@ function generateTecimobXml(properties: Property[]) {
         <Type>${escapeXml(p.type)}</Type>
         <Transaction>${escapeXml(p.operation)}</Transaction>
         <Price>${p.price}</Price>
+        <Address>${escapeXml(p.address || '')}</Address>
         <City>${escapeXml(p.city)}</City>
         <Bedrooms>${p.bedrooms}</Bedrooms>
         <Bathrooms>${p.bathrooms}</Bathrooms>
@@ -85,3 +86,5 @@ export async function GET(request: Request) {
         return new NextResponse("Erro interno ao gerar feed XML", { status: 500 });
     }
 }
+
+    
