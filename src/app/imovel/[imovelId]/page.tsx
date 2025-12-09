@@ -15,6 +15,7 @@ import { RelatedProperties } from '@/components/imovel/RelatedProperties';
 import { getProperties as getStaticProperties } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { AgentMetadata } from '@/components/agent-metadata';
 
 function BackButton() {
     const router = useRouter();
@@ -163,6 +164,7 @@ export default function PropertyPage() {
   if (isLoading) {
     return (
       <>
+        <AgentMetadata agentId={agentId} />
         <Header agentId={agentId || undefined} />
         <main className="min-h-screen">
           <LoadingSkeleton />
@@ -178,6 +180,7 @@ export default function PropertyPage() {
 
   return (
     <>
+      <AgentMetadata agentId={agentId} />
       <Header agent={agentData} agentId={agentId || undefined} />
       <main className="min-h-[calc(100vh-theme(spacing.14)-theme(spacing.32))] container mx-auto px-4 py-8">
         <BackButton />
