@@ -11,7 +11,7 @@ import {
   useEffect,
   useCallback,
 } from 'react';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore } from '@/firebase';
 import type { Agent } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 
@@ -25,7 +25,6 @@ interface PlanLimits {
 
 interface PlanContextProps {
   plan: PlanType;
-  setPlan: (plan: PlanType) => void;
   limits: PlanLimits;
   currentPropertiesCount: number;
   isLoading: boolean;
@@ -66,7 +65,6 @@ const planSettings: Record<PlanType, PlanLimits & { name: string; priceId: strin
 
 const defaultPlanContext: PlanContextProps = {
   plan: 'simples',
-  setPlan: () => {},
   limits: planSettings.simples,
   currentPropertiesCount: 0,
   isLoading: true,
@@ -76,44 +74,39 @@ const defaultPlanContext: PlanContextProps = {
 
 const PlanContext = createContext<PlanContextProps>(defaultPlanContext);
 
-export const PlanProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useUser();
+export const PlanProvider = ({ children, agentId }: { children: ReactNode, agentId: string | null }) => {
   const firestore = useFirestore();
-  const { toast } = useToast();
-  
   const [agentData, setAgentData] = useState<Agent | null>(null);
   const [currentPropertiesCount, setCurrentPropertiesCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch agent data (including plan)
   useEffect(() => {
-    if (user && firestore) {
-      const agentRef = doc(firestore, `agents/${user.uid}`);
+    if (agentId && firestore) {
+      const agentRef = doc(firestore, `agents/${agentId}`);
       const unsubscribe = onSnapshot(agentRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data() as Agent;
-          // Ensure plan is valid, default if not
           if (data.plan && !Object.keys(planSettings).includes(data.plan)) {
               data.plan = 'simples'; 
           }
           setAgentData(data);
         }
-        // No need to setIsLoading here, we do it in the properties fetch
+        // Loading is handled by properties fetch
       }, (error) => {
-        console.error("Error fetching agent data:", error);
-        setIsLoading(false);
+        console.error("Error fetching agent data in PlanContext:", error);
       });
       return () => unsubscribe();
     } else {
         setAgentData(null);
     }
-  }, [user, firestore]);
+  }, [agentId, firestore]);
 
   // Fetch current properties count in real-time
   useEffect(() => {
-    if (user && firestore) {
+    if (agentId && firestore) {
       setIsLoading(true);
-      const propertiesRef = collection(firestore, `agents/${user.uid}/properties`);
+      const propertiesRef = collection(firestore, `agents/${agentId}/properties`);
       const unsubscribe = onSnapshot(
         propertiesRef,
         (snapshot) => {
@@ -121,7 +114,7 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
           setIsLoading(false);
         },
         (error) => {
-          console.error("Error fetching properties count:", error);
+          console.error("Error fetching properties count in PlanContext:", error);
           setIsLoading(false);
         }
       );
@@ -130,32 +123,8 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
       setCurrentPropertiesCount(0);
       setIsLoading(false);
     }
-  }, [user, firestore]);
+  }, [agentId, firestore]);
   
-  const setPlan = useCallback(async (newPlan: PlanType) => {
-    if (!user || !firestore || agentData?.role !== 'admin') {
-        toast({
-            title: "Permissão Negada",
-            description: "Apenas administradores podem alterar o plano.",
-            variant: "destructive"
-        })
-        return;
-    };
-
-    const agentRef = doc(firestore, 'agents', user.uid);
-    try {
-        await updateDoc(agentRef, { plan: newPlan });
-        toast({
-            title: "Plano Atualizado!",
-            description: `O plano foi alterado para ${planSettings[newPlan].name}.`
-        })
-    } catch (error) {
-        console.error("Erro ao atualizar plano:", error);
-        toast({ title: "Erro ao salvar", variant: 'destructive'})
-    }
-
-  }, [user, firestore, agentData?.role, toast]);
-
   const plan = agentData?.plan && Object.keys(planSettings).includes(agentData.plan) 
     ? agentData.plan as PlanType 
     : 'simples';
@@ -171,7 +140,7 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
 
   const value = {
     plan,
-    setPlan,
+    setPlan: () => {}, // setPlan is not implemented for clients
     limits,
     currentPropertiesCount,
     isLoading,

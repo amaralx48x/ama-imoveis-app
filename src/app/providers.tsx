@@ -4,16 +4,18 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
-import { useAuth, getRedirectResult, saveUserToFirestore } from '@/firebase';
+import { useAuth, getRedirectResult, saveUserToFirestore, useUser } from '@/firebase';
 import { PlanProvider } from '@/context/PlanContext';
 
 interface Props {
   children: React.ReactNode;
 }
 
-export function Providers({ children }: Props) {
+// Inner component to safely use hooks that depend on FirebaseProvider
+function AppProviders({ children }: Props) {
   const router = useRouter();
   const auth = useAuth();
+  const { user } = useUser(); // Now this is safe to call
 
   // Trata o resultado do redirect do Google (após signInWithRedirect)
   useEffect(() => {
@@ -26,7 +28,6 @@ export function Providers({ children }: Props) {
         if (!mounted) return;
 
         if (result && result.user) {
-          // Salva/garante o documento no Firestore
           try {
             await saveUserToFirestore(result.user, {
               displayName: result.user.displayName ?? undefined,
@@ -36,8 +37,6 @@ export function Providers({ children }: Props) {
           } catch (e) {
             console.error('Erro ao salvar usuário após redirect:', e);
           }
-
-          // Redireciona para a tela de seleção de usuário
           router.replace('/selecao-usuario');
         }
       } catch (err) {
@@ -50,12 +49,18 @@ export function Providers({ children }: Props) {
     };
   }, [auth, router]);
 
-  // Envolvemos toda a aplicação com os providers
+  return (
+    <PlanProvider agentId={user?.uid || null}>
+      {children}
+    </PlanProvider>
+  );
+}
+
+
+export function Providers({ children }: Props) {
   return (
     <FirebaseClientProvider>
-      <PlanProvider>
-        {children}
-      </PlanProvider>
+      <AppProviders>{children}</AppProviders>
     </FirebaseClientProvider>
   );
 }
