@@ -19,10 +19,9 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useFirestore, useUser, googleProvider, signInWithRedirect, getRedirectResult, saveUserToFirestore } from '@/firebase';
+import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, googleProvider, signInWithRedirect, getRedirectResult, saveUserToFirestore } from '@/firebase';
 import { useRouter, usePathname } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
-import { setDoc, doc } from 'firebase/firestore';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 
@@ -60,9 +59,9 @@ export default function LoginPage() {
     const router = useRouter();
     const pathname = usePathname();
     const [isLoading, setIsLoading] = useState(false);
-    const [isGoogleLoading, setIsGoogleLoading] = useState(true); // Start true to handle redirect
+    const [isGoogleLoading, setIsGoogleLoading] = useState(true);
 
-    // Handle Google Redirect Result
+    // Handle Google Redirect Result on initial load
     useEffect(() => {
         if (!auth) return;
 
@@ -70,17 +69,16 @@ export default function LoginPage() {
             try {
                 const result = await getRedirectResult(auth);
                 if (result) {
-                    // This means a user has successfully signed in via redirect.
-                    setIsGoogleLoading(true); // Keep loading state while we save data
+                    setIsGoogleLoading(true); // Keep loading state
                     await saveUserToFirestore(result.user, {
                         displayName: result.user.displayName,
                         name: result.user.displayName,
                         accountType: 'corretor',
                     });
-                    toast({ title: "Login bem-sucedido!" });
-                    // Redirection will be handled by the other useEffect watching `user` state
+                    toast({ title: "Login com Google bem-sucedido!" });
+                    // Redirection will now be handled by the user state effect
                 } else {
-                    // No redirect result, probably a fresh visit to the login page.
+                    // No redirect result, ready for user interaction
                     setIsGoogleLoading(false);
                 }
             } catch (error) {
@@ -90,7 +88,8 @@ export default function LoginPage() {
         };
 
         processRedirectResult();
-    }, [auth, toast]); // Removed router from dependencies to avoid re-running unnecessarily
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [auth]);
 
 
     // Handle user state changes for redirection after any login method.
@@ -285,11 +284,7 @@ export default function LoginPage() {
                                             <FormItem className="space-y-3">
                                             <FormLabel>Você é um(a)...</FormLabel>
                                             <FormControl>
-                                                <RadioGroup
-                                                onValueChange={field.onChange}
-                                                defaultValue={field.value}
-                                                className="flex flex-row space-x-4"
-                                                >
+                                                <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-row space-x-4">
                                                 <FormItem className="flex items-center space-x-2 space-y-0">
                                                     <FormControl>
                                                     <RadioGroupItem value="corretor" />
@@ -333,4 +328,3 @@ export default function LoginPage() {
         </div>
     );
 }
-
