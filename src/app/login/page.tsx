@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -18,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, googleProvider, signInWithRedirect, saveUserToFirestore } from '@/firebase';
+import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, googleProvider, signInWithRedirect, saveUserToFirestore, getRedirectResult } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -61,7 +62,7 @@ export default function LoginPage() {
 
 
     useEffect(() => {
-        if (isUserLoading) return; // Aguarda o fim do carregamento inicial
+        if (isUserLoading) return;
         if (user) {
             router.replace('/selecao-usuario');
         }
@@ -244,23 +245,9 @@ export default function LoginPage() {
                                             <FormItem className="space-y-3">
                                             <FormLabel>Você é um(a)...</FormLabel>
                                             <FormControl>
-                                                <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-row space-x-4">
-                                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                                    <FormControl>
-                                                    <RadioGroupItem value="corretor" />
-                                                    </FormControl>
-                                                    <FormLabel className="font-normal">
-                                                    Corretor(a)
-                                                    </FormLabel>
-                                                </FormItem>
-                                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                                    <FormControl>
-                                                    <RadioGroupItem value="imobiliaria" />
-                                                    </FormControl>
-                                                    <FormLabel className="font-normal">
-                                                    Imobiliária
-                                                    </FormLabel>
-                                                </FormItem>
+                                                <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-4">
+                                                <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="corretor" /></FormControl><FormLabel className="font-normal">Corretor(a)</FormLabel></FormItem>
+                                                <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="imobiliaria" /></FormControl><FormLabel className="font-normal">Imobiliária</FormLabel></FormItem>
                                                 </RadioGroup>
                                             </FormControl>
                                             <FormMessage />
@@ -288,3 +275,5 @@ export default function LoginPage() {
         </div>
     );
 }
+
+    

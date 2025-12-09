@@ -1,3 +1,4 @@
+
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
 import { Home, Briefcase, User, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Search, Rss, Droplet } from 'lucide-react';
@@ -345,3 +346,5 @@ export default function CorretorLayout({
     </SidebarProvider>
   );
 }
+
+    
