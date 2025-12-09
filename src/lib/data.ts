@@ -1,6 +1,7 @@
 
 
 
+
 export type SocialLink = {
   id: string;
   label: string;
@@ -199,6 +200,7 @@ export type MarketingContent = {
     section5_image1?: string;
     section5_image2?: string;
     section6_image?: string;
+    supportWhatsapp?: string;
     supportEmail?: string;
 }
 

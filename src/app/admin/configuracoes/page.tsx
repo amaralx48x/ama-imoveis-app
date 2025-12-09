@@ -110,7 +110,7 @@ export default function AdminSettingsPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Contatos de Suporte</CardTitle>
-                            <CardDescription>Estes contatos serão exibidos na página de marketing.</CardDescription>
+                            <CardDescription>Estes contatos serão exibidos na página de marketing e usados para envio de e-mails do sistema.</CardDescription>
                         </CardHeader>
                         <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                             <FormField

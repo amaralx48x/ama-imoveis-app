@@ -17,14 +17,9 @@ export async function POST(req: NextRequest) {
   try {
     const { firestore } = getFirebaseServer();
     
-    // Busca os dados do agente e as configurações de marketing (para o email de 'from')
+    // Busca os dados do agente
     const agentRef = doc(firestore, 'agents', agentId);
-    const marketingRef = doc(firestore, 'marketing', 'content');
-    
-    const [agentSnap, marketingSnap] = await Promise.all([
-        getDoc(agentRef),
-        getDoc(marketingRef),
-    ]);
+    const agentSnap = await getDoc(agentRef);
 
     if (!agentSnap.exists()) {
       return NextResponse.json({ error: 'Agente não encontrado' }, { status: 404 });
@@ -38,11 +33,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'O agente não possui um e-mail cadastrado.' }, { status: 400 });
     }
 
-    // Determina o e-mail de remetente, com fallback
-    const marketingData = marketingSnap.exists() ? marketingSnap.data() : {};
-    const fromEmail = marketingData.supportEmail || 'onboarding@resend.dev';
-    const fromName = marketingData.name || 'AMA Imobi';
-    const fromAddress = `${fromName} <${fromEmail}>`;
+    // Usar o e-mail fornecido como remetente, com um fallback seguro.
+    const fromAddress = 'AMA Imobi <amaralx48@gmail.com>';
 
     try {
       await resend.emails.send({
