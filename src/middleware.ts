@@ -25,3 +25,5 @@ export function middleware(request: NextRequest) {
   // Por enquanto, apenas o fato de ele rodar nessas rotas e não nas públicas já resolve o problema.
   return NextResponse.next()
 }
+
+    

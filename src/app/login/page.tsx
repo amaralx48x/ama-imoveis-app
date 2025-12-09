@@ -61,14 +61,10 @@ export default function LoginPage() {
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
 
-    // Robust redirection effect
     useEffect(() => {
-        // Do not do anything while Firebase is determining the auth state.
-        if (isUserLoading) return;
-
-        // If the user object exists, it means they are logged in. Redirect them.
+        if (isUserLoading) return; // Aguarda o fim do carregamento inicial
         if (user) {
-            router.replace('/selecao-usuario');
+            router.replace('/selecao-usuario'); // Se o usuário existir, redireciona
         }
     }, [user, isUserLoading, router]);
 
@@ -126,7 +122,6 @@ export default function LoginPage() {
                 title: "Login bem-sucedido!",
                 description: "Redirecionando para o seu painel...",
             });
-            // Redirection is handled by the useEffect watching the `user` state
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -150,7 +145,6 @@ export default function LoginPage() {
                 title: "Conta criada com sucesso!",
                 description: "Redirecionando para o seu painel...",
             });
-            // Redirection is handled by the useEffect watching the `user` state
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -169,7 +163,6 @@ export default function LoginPage() {
                 accountType: 'corretor', // Default value
             });
             toast({ title: "Login com Google bem-sucedido!" });
-            // Redirection will happen automatically via useUser hook
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -309,3 +302,5 @@ export default function LoginPage() {
         </div>
     );
 }
+
+    
