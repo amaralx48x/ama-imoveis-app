@@ -4,7 +4,7 @@ import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, 
 import { Home, Briefcase, User, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Search, Rss, Droplet } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc, getRedirectResult, saveUserToFirestore } from '@/firebase';
+import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
 import { useEffect, useState, useMemo } from 'react';
 import { collection, query, where, doc, setDoc, updateDoc } from 'firebase/firestore';
 import type { Lead, Agent, Review, SubUser } from '@/lib/data';
@@ -36,20 +36,7 @@ export default function CorretorLayout({
     [user, firestore]
   );
   const { data: agentData, isLoading: isAgentLoading, mutate } = useDoc<Agent>(agentRef);
-
-  useEffect(() => {
-    if (!isUserLoading && auth) {
-      getRedirectResult(auth).then(async (result) => {
-        if (result?.user) {
-          await saveUserToFirestore(result.user);
-          router.replace("/selecao-usuario");
-        }
-      }).catch(error => {
-        console.error("Erro no redirecionamento do Google:", error);
-      });
-    }
-  }, [isUserLoading, auth, router]);
-
+  
   useEffect(() => {
     if (!isUserLoading && !user && pathname !== '/login') {
       router.replace('/login');
@@ -62,11 +49,9 @@ export default function CorretorLayout({
     }
     
     const subUserId = sessionStorage.getItem('subUserId');
-    if (!subUserId) {
-        if (agentData.subUsers && agentData.subUsers.length > 0 && pathname !== '/selecao-usuario' && pathname !== '/login') {
-            router.replace('/selecao-usuario');
-            return;
-        }
+    if (!subUserId && pathname !== '/login' && pathname !== '/selecao-usuario') {
+        router.replace('/selecao-usuario');
+        return;
     }
     
     if (subUserId === agentData.id) {
@@ -346,5 +331,3 @@ export default function CorretorLayout({
     </SidebarProvider>
   );
 }
-
-    

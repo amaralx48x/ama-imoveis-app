@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Este matcher define em quais rotas o middleware será executado.
-// Apenas rotas do painel (privadas) devem ser incluídas aqui.
+// A rota '/selecao-usuario' foi removida para não interferir no fluxo de login.
 export const config = {
   matcher: [
     '/dashboard/:path*',
@@ -16,14 +16,11 @@ export const config = {
     '/integracoes/:path*',
     '/meu-plano/:path*',
     '/admin/:path*',
-    '/selecao-usuario',
+    '/usuarios/:path*',
   ],
 }
 
 export function middleware(request: NextRequest) {
   // A lógica de proteção de rotas (verificação de token/sessão) pode ser adicionada aqui no futuro.
-  // Por enquanto, apenas o fato de ele rodar nessas rotas e não nas públicas já resolve o problema.
   return NextResponse.next()
 }
-
-    
