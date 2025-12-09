@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, UserCheck } from 'lucide-react';
+import { Loader2, UserCheck, Mail } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { v4 as uuidv4 } from 'uuid';
@@ -72,6 +72,22 @@ export default function SelecaoUsuarioPage() {
     const handleSelectUser = (userToSelect: any) => {
         setSelectedUser(userToSelect);
         setPinDialogOpen(true);
+    };
+
+    const handleForgotPin = () => {
+        // Simula o envio do email. A implementação real dependeria de um serviço de backend/API.
+        if (agentData?.email) {
+            toast({
+                title: "Lembrete Enviado!",
+                description: `Um lembrete do seu PIN foi enviado para ${agentData.email}.`,
+            });
+        } else {
+            toast({
+                title: "E-mail não encontrado",
+                description: "Não foi possível encontrar um e-mail de cadastro para enviar o lembrete.",
+                variant: "destructive",
+            });
+        }
     };
 
     const handlePinConfirm = async () => {
@@ -165,9 +181,18 @@ export default function SelecaoUsuarioPage() {
                             onKeyDown={(e) => e.key === 'Enter' && handlePinConfirm()}
                         />
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setPinDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={handlePinConfirm}>Confirmar</Button>
+                    <DialogFooter className="justify-between">
+                        <div>
+                             {selectedUser?.id === agentData?.id && (
+                                <Button variant="link" onClick={handleForgotPin}>
+                                    <Mail className="mr-2 h-4 w-4"/> Esqueci meu PIN
+                                </Button>
+                            )}
+                        </div>
+                        <div className="flex gap-2">
+                             <Button variant="outline" onClick={() => setPinDialogOpen(false)}>Cancelar</Button>
+                            <Button onClick={handlePinConfirm}>Confirmar</Button>
+                        </div>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
