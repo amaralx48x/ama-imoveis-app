@@ -43,6 +43,7 @@ export type Property = {
   sectionIds: string[];
   phone?: string;
   agentId?: string; 
+  createdById?: string;
   createdAt?: any;
   status: 'ativo' | 'vendido' | 'alugado';
   soldAt?: any; // ou rentedAt
@@ -87,7 +88,6 @@ export type Contact = {
 };
 
 
-
 export type SiteSettings = {
     showFinancing?: boolean;
     financingLink?: string;
@@ -99,6 +99,19 @@ export type SiteSettings = {
     termsOfUse?: string;
     theme?: 'light' | 'dark';
     faviconUrl?: string;
+}
+
+export type SubUser = {
+  id: string;
+  name: string;
+  creci?: string;
+  pin: string; // 4-digit PIN
+}
+
+export type UserSession = {
+    subUserId: string;
+    deviceId: string;
+    lastSeen: any; // serverTimestamp
 }
 
 export type Agent = {
@@ -116,6 +129,8 @@ export type Agent = {
     siteSettings?: SiteSettings;
     role?: 'corretor' | 'admin';
     plan?: 'simples' | 'essencial' | 'impulso' | 'expansao';
+    subUsers?: SubUser[];
+    sessions?: UserSession[];
 }
 
 export type LeadType = "seller" | "buyer" | "other";
@@ -377,4 +392,3 @@ export const getPropertyCities = () => ['São Paulo', 'Campinas', 'Ubatuba', 'Gu
 export const getPropertyTypes = () => ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
 
     
-

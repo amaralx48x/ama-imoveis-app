@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "Property": {
@@ -28,6 +27,7 @@
         "sectionIds": { "type": "array", "items": { "type": "string" }, "description": "Array of section IDs this property belongs to. Includes 'featured' for featured properties." },
         "phone": { "type": "string", "description": "Specific contact phone number for this property." },
         "agentId": { "type": "string", "description": "ID of the agent who listed the property." },
+        "createdById": { "type": "string", "description": "ID of the sub-user who created the property." },
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was created." },
         "status": { "type": "string", "enum": ["ativo", "vendido", "alugado"], "description": "The current status of the property.", "default": "ativo" },
         "soldAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was sold or rented." },
@@ -191,6 +191,33 @@
               "items": { "$ref": "#/entities/ManualCommissionAdjustment" }
             }
           }
+        },
+         "subUsers": {
+          "type": "array",
+          "description": "List of sub-users (corretores) managed by this agent.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "creci": { "type": "string" },
+              "pin": { "type": "string", "description": "A 4-digit PIN for sub-user login."}
+            },
+            "required": ["id", "name", "pin"]
+          }
+        },
+        "sessions": {
+            "type": "array",
+            "description": "List of active user sessions.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "subUserId": { "type": "string" },
+                    "deviceId": { "type": "string", "description": "Unique ID for the device/tab." },
+                    "lastSeen": { "type": "string", "format": "date-time" }
+                },
+                "required": ["subUserId", "deviceId", "lastSeen"]
+            }
         }
       },
       "required": ["id", "displayName", "name", "accountType", "email", "role"]
