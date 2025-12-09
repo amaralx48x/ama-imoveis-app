@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useFirestore, useUser, googleProvider, signInWithRedirect, getRedirectResult, saveUserToFirestore } from '@/firebase';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { setDoc, doc } from 'firebase/firestore';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -58,15 +58,16 @@ export default function LoginPage() {
     const auth = useAuth();
     const { user, isUserLoading } = useUser();
     const router = useRouter();
+    const pathname = usePathname();
     const [isLoading, setIsLoading] = useState(false);
-    const [isGoogleLoading, setIsGoogleLoading] = useState(true); // Start true to handle redirect
+    const [isGoogleLoading, setIsGoogleLoading] = useState(true);
 
-    // Redirect if user is already logged in
+    // Handle user state changes for redirection after login.
     useEffect(() => {
-        if (!isUserLoading && user) {
-            router.replace('/dashboard');
+        if (!isUserLoading && user && pathname === '/login') {
+            router.replace('/selecao-usuario');
         }
-    }, [user, isUserLoading, router]);
+    }, [user, isUserLoading, router, pathname]);
 
     // Handle Google Redirect Result
     useEffect(() => {
@@ -80,7 +81,7 @@ export default function LoginPage() {
                         accountType: 'corretor',
                     });
                     toast({ title: "Login bem-sucedido!" });
-                    router.push('/dashboard');
+                    // The useEffect above will handle the redirect
                 } else {
                     setIsGoogleLoading(false); // No redirect result, stop loading
                 }
@@ -89,7 +90,7 @@ export default function LoginPage() {
                 handleAuthError(error as FirebaseError);
                 setIsGoogleLoading(false);
             });
-    }, [auth, router, toast]);
+    }, [auth, toast]);
 
     const loginForm = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
@@ -186,7 +187,7 @@ export default function LoginPage() {
     }
 
 
-    if (isUserLoading || user) {
+    if (isUserLoading && !user) {
         return (
              <div className="relative min-h-screen flex items-center justify-center p-4">
                  <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>

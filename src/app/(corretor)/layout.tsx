@@ -70,7 +70,7 @@ export default function CorretorLayout({
 
 
   useEffect(() => {
-    if (isUserLoading || !agentData) return; // Aguarda dados essenciais
+    if (isUserLoading || !agentData) return;
 
     if (!user) {
       router.replace('/login');
@@ -81,8 +81,10 @@ export default function CorretorLayout({
         const hasSubUsers = agentData.subUsers && agentData.subUsers.length > 0;
         const isSessionSelected = sessionStorage.getItem('subUserId');
         const isOnSelectionPage = pathname === '/selecao-usuario';
+        const isOnLoginPage = pathname === '/login';
 
-        if (hasSubUsers && !isSessionSelected && !isOnSelectionPage) {
+        // A exceção para '/login' é a chave aqui
+        if (hasSubUsers && !isSessionSelected && !isOnSelectionPage && !isOnLoginPage) {
             router.replace('/selecao-usuario');
         }
     }
