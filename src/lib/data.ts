@@ -2,6 +2,7 @@
 
 
 
+
 export type SocialLink = {
   id: string;
   label: string;
@@ -246,7 +247,7 @@ const properties: Property[] = [
     id: '2',
     agentId: 'exemplo',
     title: 'Casa Espaçosa com Quintal',
-    description: 'Casa familiar espaçosa em bairro tranquilo, com um grande quintal perfeito para crianças e animais de estimação. Possui 4 quartos, cozinha americana и área de churrasqueira. Próxima a escolas, parques e comércios locais.',
+    description: 'Casa familiar espaçosa em bairro tranquilo, com um grande quintal perfeito para crianças e animais de estimação. Possui 4 quartos, cozinha americana e área de churrasqueira. Próxima a escolas, parques e comércios locais.',
     price: 850000,
     bedrooms: 4,
     bathrooms: 3,
