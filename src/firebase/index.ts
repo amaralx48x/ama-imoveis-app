@@ -8,10 +8,6 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signInAnonymously, 
-  GoogleAuthProvider, 
-  signInWithPopup, 
-  signInWithRedirect, 
-  getRedirectResult, 
   User 
 } from 'firebase/auth';
 import { 
@@ -38,18 +34,16 @@ export function initializeFirebase() {
   const firestore = getFirestore(firebaseApp);
   const storage = getStorage(firebaseApp); 
 
-  const googleProvider = new GoogleAuthProvider();
-
+  // GoogleAuthProvider foi removido
   return {
     firebaseApp,
     auth,
     firestore,
     storage,
-    googleProvider
   };
 }
 
-export const { auth, firestore, storage, googleProvider } = initializeFirebase();
+export const { auth, firestore, storage } = initializeFirebase();
 
 interface AdditionalAgentData {
   displayName?: string | null;
@@ -100,13 +94,9 @@ export * from './firestore/use-doc';
 export * from './errors';
 export * from './error-emitter';
 
-// Re-exporting auth functions
+// Re-exporting auth functions (sem as funções de login com Google)
 export { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signInAnonymously, 
-  GoogleAuthProvider, 
-  signInWithPopup, 
-  signInWithRedirect, 
-  getRedirectResult 
 };

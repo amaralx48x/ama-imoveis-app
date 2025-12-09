@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, googleProvider, signInWithRedirect, saveUserToFirestore, getRedirectResult } from '@/firebase';
+import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, saveUserToFirestore } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -43,28 +43,19 @@ const signUpSchema = z.object({
 });
 
 
-const GoogleIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px">
-      <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
-      <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
-      <path fill="#4CAF50" d="M24,44c5.166,0,9.6-1.977,12.674-5.238l-5.404-4.282C29.211,35.091,26.715,36,24,36c-5.222,0-9.619-3.317-11.28-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
-      <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l5.404,4.282C39.99,35.036,44,28.891,44,20C44,22.659,43.862,21.35,43.611,20.083z"/>
-    </svg>
-  );
-
 export default function LoginPage() {
     const { toast } = useToast();
     const auth = useAuth();
     const { user, isUserLoading } = useUser();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
-    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
 
     useEffect(() => {
-        if (isUserLoading) return; // Aguarde o estado de autenticação ser resolvido
+        if (isUserLoading) return; // ainda carregando
+
         if (user) {
-            router.replace('/selecao-usuario');
+            router.replace('/selecao-usuario'); // ou dashboard
         }
     }, [user, isUserLoading, router]);
 
@@ -83,9 +74,6 @@ export default function LoginPage() {
         let description = "Ocorreu um erro inesperado. Tente novamente.";
 
         switch (error.code) {
-            case 'auth/cancelled-popup-request':
-            case 'auth/popup-closed-by-user':
-                return; // Não mostrar toast para fechamento de popup
             case 'auth/user-not-found':
             case 'auth/wrong-password':
             case 'auth/invalid-credential':
@@ -145,17 +133,6 @@ export default function LoginPage() {
         }
     }
     
-    async function handleGoogleLogin() {
-        if (!auth) return;
-        setIsGoogleLoading(true);
-        try {
-            await signInWithRedirect(auth, googleProvider);
-        } catch (error) {
-            handleAuthError(error as FirebaseError);
-            setIsGoogleLoading(false);
-        }
-    }
-
     if (isUserLoading || user) {
         return (
              <div className="relative min-h-screen flex items-center justify-center p-4">
@@ -189,14 +166,6 @@ export default function LoginPage() {
                                 <CardTitle className="text-2xl font-bold font-headline">Acesse sua Conta</CardTitle>
                                 <CardDescription>Bem-vindo de volta! Insira seus dados.</CardDescription>
                             </CardHeader>
-                             <Button variant="outline" className="w-full mb-4" onClick={handleGoogleLogin} disabled={isGoogleLoading}>
-                                {isGoogleLoading ? "Aguardando..." : <><GoogleIcon /> <span className="ml-2">Entrar com Google</span></>}
-                            </Button>
-                             <div className="flex items-center my-4">
-                                <Separator className="flex-1" />
-                                <span className="px-4 text-xs text-muted-foreground">OU</span>
-                                <Separator className="flex-1" />
-                            </div>
                             <Form {...loginForm}>
                                 <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-6">
                                     <FormField control={loginForm.control} name="email" render={({ field }) => (
@@ -221,14 +190,6 @@ export default function LoginPage() {
                                 <CardTitle className="text-2xl font-bold font-headline">Crie sua Conta</CardTitle>
                                 <CardDescription>Comece a gerenciar seus imóveis hoje mesmo.</CardDescription>
                             </CardHeader>
-                             <Button variant="outline" className="w-full mb-4" onClick={handleGoogleLogin} disabled={isGoogleLoading}>
-                                {isGoogleLoading ? "Aguardando..." : <><GoogleIcon /> <span className="ml-2">Criar conta com Google</span></>}
-                            </Button>
-                             <div className="flex items-center my-4">
-                                <Separator className="flex-1" />
-                                <span className="px-4 text-xs text-muted-foreground">OU</span>
-                                <Separator className="flex-1" />
-                            </div>
                             <Form {...signUpForm}>
                                 <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4">
                                      <FormField control={signUpForm.control} name="displayName" render={({ field }) => (
@@ -274,4 +235,3 @@ export default function LoginPage() {
         </div>
     );
 }
-

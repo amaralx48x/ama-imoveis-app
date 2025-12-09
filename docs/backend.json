@@ -11,6 +11,8 @@
         "title": { "type": "string", "description": "Title of the property listing." },
         "description": { "type": "string", "description": "Detailed description of the property." },
         "price": { "type": "number", "description": "Price of the property." },
+        "condoFee": { "type": "number", "description": "Monthly condominium fee." },
+        "yearlyTax": { "type": "number", "description": "Annual property tax (IPTU)." },
         "bedrooms": { "type": "number", "description": "Number of bedrooms." },
         "bathrooms": { "type": "number", "description": "Number of bathrooms." },
         "garage": { "type": "number", "description": "Number of garage spaces." },
@@ -18,6 +20,8 @@
         "builtArea": { "type": "number", "description": "Built area in square meters." },
         "totalArea": { "type": "number", "description": "Total area in square meters." },
         "imageUrls": { "type": "array", "items": { "type": "string" }, "description": "Array of URLs for property images." },
+        "videoUrl": { "type": "string", "description": "URL of a promotional video for the property." },
+        "address": { "type": "string", "description": "Full street address of the property." },
         "city": { "type": "string", "description": "City where the property is located." },
         "neighborhood": { "type": "string", "description": "Neighborhood where the property is located." },
         "type": { "type": "string", "enum": ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"], "description": "Type of property." },
@@ -25,11 +29,48 @@
         "sectionIds": { "type": "array", "items": { "type": "string" }, "description": "Array of section IDs this property belongs to. Includes 'featured' for featured properties." },
         "phone": { "type": "string", "description": "Specific contact phone number for this property." },
         "agentId": { "type": "string", "description": "ID of the agent who listed the property." },
+        "createdById": { "type": "string", "description": "ID of the sub-user who created the property." },
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was created." },
         "status": { "type": "string", "enum": ["ativo", "vendido", "alugado"], "description": "The current status of the property.", "default": "ativo" },
         "soldAt": { "type": "string", "format": "date-time", "description": "Timestamp when the property was sold or rented." },
         "commissionValue": { "type": "number", "description": "The final commission value earned from the transaction." },
-        "ownerContactId": { "type": "string", "description": "Reference to the contact who owns this property." }
+        "ownerContactId": { "type": "string", "description": "Reference to the contact who owns this property." },
+        "tenantContactId": { "type": "string", "description": "Reference to the contact who is the tenant of this property." },
+        "portalPublish": {
+          "type": "object",
+          "description": "Flags to control which real estate portals this property is published to.",
+          "properties": {
+            "zap": { "type": "boolean", "default": false },
+            "imovelweb": { "type": "boolean", "default": false },
+            "casamineira": { "type": "boolean", "default": false },
+            "chavesnamao": { "type": "boolean", "default": false },
+            "tecimob": { "type": "boolean", "default": false }
+          }
+        },
+        "rentalDetails": {
+          "type": "object",
+          "description": "Details specific to a rental contract.",
+          "properties": {
+            "contractUrl": { "type": "string", "format": "uri", "description": "URL to the signed rental contract PDF." },
+            "startDate": { "type": "string", "format": "date-time", "description": "Start date of the rental contract." },
+            "endDate": { "type": "string", "format": "date-time", "description": "End date of the rental contract." },
+            "rentValue": { "type": "number", "description": "The monthly rent value." },
+            "igpmAdjustmentMonth": { "type": "string", "description": "The month when the IGPM adjustment is applied (e.g., 'Janeiro')." },
+            "paymentHistory": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "dueDate": { "type": "string", "format": "date-time" },
+                  "paidDate": { "type": "string", "format": "date-time" },
+                  "value": { "type": "number" },
+                  "status": { "type": "string", "enum": ["pago", "pendente", "atrasado"] }
+                },
+                "required": ["dueDate", "value", "status"]
+              }
+            }
+          }
+        }
       },
       "required": [
         "id", "title", "description", "price", "bedrooms", "bathrooms", "garage", "rooms", 
@@ -42,7 +83,7 @@
         "description": "Represents a contact, either an owner or a client.",
         "properties": {
             "id": { "type": "string" },
-            "type": { "type": "string", "enum": ["owner", "client"] },
+            "type": { "type": "string", "enum": ["owner", "client", "inquilino"] },
             "name": { "type": "string" },
             "cpf": { "type": "string" },
             "phone": { "type": "string" },
@@ -88,8 +129,10 @@
         "id": { "type": "string", "description": "Unique identifier for the agent, usually from Firebase Auth UID." },
         "displayName": { "type": "string", "description": "The full name of the agent for display in the dashboard." },
         "name": { "type": "string", "description": "Name of the agent's site or agency name." },
+        "pin": { "type": "string", "description": "A 4-digit PIN for the primary agent login.", "default": "0000" },
+        "status": { "type": "string", "enum": ["pending", "active"], "description": "The status of the agent's account.", "default": "active" },
         "accountType": { "type": "string", "enum": ["corretor", "imobiliaria"], "description": "The type of account, either an individual agent or an agency." },
-        "plan": { "type": "string", "enum": ["corretor", "imobiliaria"], "description": "The subscription plan of the user.", "default": "corretor" },
+        "plan": { "type": "string", "enum": ["simples", "essencial", "impulso", "expansao"], "description": "The subscription plan of the user.", "default": "simples" },
         "role": { "type": "string", "enum": ["corretor", "admin"], "description": "The user's role in the system.", "default": "corretor" },
         "description": { "type": "string", "description": "A public-facing description of the agent or agency." },
         "creci": { "type": "string", "description": "CRECI number of the agent." },
@@ -109,8 +152,19 @@
                 "Domingo": { "type": "boolean" }
               }
             },
-            "startTime": { "type": "string", "description": "The start time of availability, e.g., '09:00'." },
-            "endTime": { "type": "string", "description": "The end time of availability, e.g., '18:00'." }
+            "timeSlots": {
+              "type": "array",
+              "description": "Array of available time slots for the selected days.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "string" },
+                  "start": { "type": "string", "description": "The start time of the slot, e.g., '09:00'." },
+                  "end": { "type": "string", "description": "The end time of the slot, e.g., '12:00'." }
+                },
+                "required": ["id", "start", "end"]
+              }
+            }
           }
         },
         "siteSettings": {
@@ -119,6 +173,8 @@
           "properties": {
             "heroImageUrl": { "type": "string", "format": "uri", "description": "URL for the agent's custom hero image." },
             "logoUrl": { "type": "string", "format": "uri", "description": "URL for the agent's site logo." },
+            "watermarkUrl": { "type": "string", "format": "uri", "description": "URL for the watermark image to be applied to property photos." },
+            "showWatermark": { "type": "boolean", "description": "Enable or disable the watermark overlay on property images.", "default": false },
             "theme": { "type": "string", "enum": ["light", "dark"], "description": "The color theme for the site and dashboard.", "default": "dark" },
             "siteStatus": { "type": "boolean", "description": "Controls the public visibility of the agent's site.", "default": true },
             "showFinancing": { "type": "boolean", "description": "Show or hide the financing simulation button." },
@@ -141,9 +197,37 @@
               "items": { "$ref": "#/entities/ManualCommissionAdjustment" }
             }
           }
+        },
+         "subUsers": {
+          "type": "array",
+          "description": "List of sub-users (corretores) managed by this agent.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "creci": { "type": "string" },
+              "pin": { "type": "string", "description": "A 4-digit PIN for sub-user login."},
+              "level": { "type": "string", "enum": ["1", "2", "3"], "description": "Permission level (1: Basic, 2: Intermediate, 3: Managerial)."}
+            },
+            "required": ["id", "name", "pin", "level"]
+          }
+        },
+        "sessions": {
+            "type": "array",
+            "description": "List of active user sessions.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "subUserId": { "type": "string" },
+                    "deviceId": { "type": "string", "description": "Unique ID for the device/tab." },
+                    "lastSeen": { "type": "string", "format": "date-time" }
+                },
+                "required": ["subUserId", "deviceId", "lastSeen"]
+            }
         }
       },
-      "required": ["id", "displayName", "name", "accountType", "email", "role"]
+      "required": ["id", "displayName", "name", "accountType", "email", "role", "status"]
     },
     "Customer": {
         "title": "Customer",
@@ -247,6 +331,7 @@
       "properties": {
         "hero_media_url": { "type": "string", "format": "uri", "description": "URL for the main hero media (video or image)." },
         "hero_media_type": { "type": "string", "enum": ["image", "video"], "description": "Type of the hero media." },
+        "theme": { "type": "string", "enum": ["light", "dark"], "description": "The color theme for the marketing page.", "default": "dark" },
         "feature_video_url": { "type": "string", "format": "uri", "description": "URL for the feature video section." },
         "feature_video_title": { "type": "string", "description": "Title to be displayed over the feature video." },
         "ctaImageUrl": { "type": "string", "format": "uri", "description": "URL for the image next to the CTA button." },
@@ -257,12 +342,13 @@
         "section5_image1": { "type": "string", "format": "uri" },
         "section5_image2": { "type": "string", "format": "uri" },
         "section6_image": { "type": "string", "format": "uri" },
-        "supportWhatsapp": { "type": "string", "description": "WhatsApp number for priority support." }
+        "supportWhatsapp": { "type": "string", "description": "WhatsApp number for priority support." },
+        "supportEmail": { "type": "string", "description": "Email for general support." }
       }
     }
   },
   "auth": {
-    "providers": ["password", "anonymous", "google.com"]
+    "providers": ["password", "anonymous"]
   },
   "firestore": {
     "collections": [
