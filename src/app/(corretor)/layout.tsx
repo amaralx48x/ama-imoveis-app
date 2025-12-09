@@ -13,6 +13,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { usePlan } from '@/context/PlanContext';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function CorretorLayout({
   children,
@@ -26,7 +27,6 @@ export default function CorretorLayout({
   const firestore = useFirestore();
   const { plan } = usePlan();
 
-  const [activeSubUserId, setActiveSubUserId] = useState<string | null>(null);
   const [currentUserLevel, setCurrentUserLevel] = useState<SubUser['level'] | 'owner' | null>(null);
 
   const agentRef = useMemoFirebase(
@@ -36,18 +36,19 @@ export default function CorretorLayout({
   const { data: agentData } = useDoc<Agent>(agentRef);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const subUserId = sessionStorage.getItem('subUserId');
-    setActiveSubUserId(subUserId);
-
-    if (!agentData || !subUserId) return;
-
-    if (subUserId === agentData.id) {
-      setCurrentUserLevel('owner');
-    } else {
-      const subUser = agentData.subUsers?.find(u => u.id === subUserId);
-      setCurrentUserLevel(subUser?.level || null);
+    if (agentData) {
+      if (subUserId === agentData.id) {
+        setCurrentUserLevel('owner');
+      } else {
+        const subUser = agentData.subUsers?.find(u => u.id === subUserId);
+        setCurrentUserLevel(subUser?.level || null);
+      }
     }
   }, [agentData]);
+
 
   const unreadLeadsQuery = useMemoFirebase(
     () => user && firestore 
@@ -75,13 +76,15 @@ export default function CorretorLayout({
       router.replace('/login');
       return;
     }
+    
+    if (typeof window !== 'undefined') {
+        const hasSubUsers = agentData.subUsers && agentData.subUsers.length > 0;
+        const isSessionSelected = sessionStorage.getItem('subUserId');
+        const isOnSelectionPage = pathname === '/selecao-usuario';
 
-    const hasSubUsers = agentData.subUsers && agentData.subUsers.length > 0;
-    const isSessionSelected = sessionStorage.getItem('subUserId');
-    const isOnSelectionPage = pathname === '/selecao-usuario';
-
-    if (hasSubUsers && !isSessionSelected && !isOnSelectionPage) {
-      router.replace('/selecao-usuario');
+        if (hasSubUsers && !isSessionSelected && !isOnSelectionPage) {
+            router.replace('/selecao-usuario');
+        }
     }
   }, [user, isUserLoading, router, agentData, pathname]);
 
@@ -106,7 +109,9 @@ export default function CorretorLayout({
   }, [agentData]);
 
   const handleLogout = () => {
-    sessionStorage.removeItem('subUserId');
+    if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('subUserId');
+    }
     if(auth) {
       auth.signOut();
       router.push('/login');
@@ -115,43 +120,43 @@ export default function CorretorLayout({
 
   const agentSiteUrl = user ? `/corretor/${user.uid}` : '/';
   
-  const showUsersMenu = plan !== 'simples' && (currentUserLevel === 'owner' || currentUserLevel === '3');
-  const canSeeProfile = currentUserLevel === 'owner' || currentUserLevel === '3' || currentUserLevel === '2';
-  const canSeeMetrics = currentUserLevel === 'owner' || currentUserLevel === '3';
-  const canSeePolicies = currentUserLevel === 'owner' || currentUserLevel === '3';
-  const canSeeCommissions = currentUserLevel === 'owner' || currentUserLevel === '3' || currentUserLevel === '2';
+  const hasPermission = (permissionFn: (level: any) => boolean) => {
+      return permissionFn(currentUserLevel);
+  }
 
   const menuItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: Home, allowed: true },
-    { href: '/imoveis', label: 'Meus Imóveis', icon: Briefcase, allowed: true },
-    { href: '/inbox', label: 'Caixa de Entrada', icon: Mail, badgeCount: unreadCount, allowed: true },
-    { href: '/contatos', label: 'Contatos', icon: Users, allowed: true },
-    { href: '/usuarios', label: 'Usuários', icon: User, allowed: showUsersMenu },
-    { href: '/integracoes', label: 'Integrações', icon: Rss, allowed: canSeeProfile },
-    { href: '/perfil', label: 'Perfil', icon: User, allowed: canSeeProfile },
-    { href: '/avaliacoes', label: 'Avaliações', icon: Star, badgeCount: pendingReviewsCount, badgeClass: 'bg-yellow-500 text-black', allowed: true },
-    { href: '/suporte', label: 'Suporte', icon: LifeBuoy, allowed: true },
-    { href: '/meu-plano', label: 'Meu Plano', icon: Gem, allowed: currentUserLevel === 'owner' },
-    { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank', allowed: true },
-  ].filter(item => item.allowed);
+    { href: '/dashboard', label: 'Dashboard', icon: Home, permission: () => true },
+    { href: '/imoveis', label: 'Meus Imóveis', icon: Briefcase, permission: () => true },
+    { href: '/inbox', label: 'Caixa de Entrada', icon: Mail, badgeCount: unreadCount, permission: () => true },
+    { href: '/contatos', label: 'Contatos', icon: Users, permission: () => true },
+    { href: '/usuarios', label: 'Usuários', icon: User, permission: (level: any) => plan !== 'simples' && (level === 'owner' || level === '3') },
+    { href: '/integracoes', label: 'Integrações', icon: Rss, permission: (level: any) => level === 'owner' || level === '3' || level === '2' },
+    { href: '/perfil', label: 'Perfil', icon: User, permission: (level: any) => level === 'owner' || level === '3' || level === '2' },
+    { href: '/avaliacoes', label: 'Avaliações', icon: Star, badgeCount: pendingReviewsCount, badgeClass: 'bg-yellow-500 text-black', permission: () => true },
+    { href: '/suporte', label: 'Suporte', icon: LifeBuoy, permission: () => true },
+    { href: '/meu-plano', label: 'Meu Plano', icon: Gem, permission: (level: any) => level === 'owner' },
+    { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank', permission: () => true },
+  ];
   
   const adminMenuItems = [
-      { href: '/admin/dashboard', label: 'Painel Admin', icon: ShieldCheck, allowed: agentData?.role === 'admin' },
-  ].filter(item => item.allowed);
+      { href: '/admin/dashboard', label: 'Painel Admin', icon: ShieldCheck, permission: () => agentData?.role === 'admin' },
+  ];
 
   const pageSettingsItems = [
-      { href: '/configuracoes/aparencia', label: 'Aparência', icon: Palette, allowed: currentUserLevel === 'owner' || currentUserLevel === '3' },
-      { href: '/configuracoes/links', label: 'Links e Exibição', icon: LinkIcon, allowed: currentUserLevel === 'owner' || currentUserLevel === '3' },
-      { href: '/configuracoes/secoes', label: 'Gerenciar Seções', icon: Folder, allowed: true },
-  ].filter(item => item.allowed);
+      { href: '/configuracoes/aparencia', label: 'Aparência', icon: Palette, permission: (level: any) => level === 'owner' || level === '3' },
+      { href: '/configuracoes/links', label: 'Links e Exibição', icon: LinkIcon, permission: (level: any) => level === 'owner' || level === '3' },
+      { href: '/configuracoes/secoes', label: 'Gerenciar Seções', icon: Folder, permission: () => true },
+  ];
 
   const generalSettingsItems = [
-      { href: '/configuracoes/seo', label: 'SEO da Página', icon: Search, allowed: currentUserLevel === 'owner' || currentUserLevel === '3' },
-      { href: '/configuracoes/metricas', label: 'Métricas e Comissões', icon: Percent, allowed: canSeeMetrics },
-      { href: '/configuracoes/politicas', label: 'Políticas e Termos', icon: FileText, allowed: canSeePolicies },
-  ].filter(item => item.allowed);
+      { href: '/configuracoes/seo', label: 'SEO da Página', icon: Search, permission: (level: any) => level === 'owner' || level === '3' },
+      { href: '/configuracoes/metricas', label: 'Métricas e Comissões', icon: Percent, permission: (level: any) => level === 'owner' || level === '3' || level === '2' },
+      { href: '/configuracoes/politicas', label: 'Políticas e Termos', icon: FileText, permission: (level: any) => level === 'owner' || level === '3' },
+  ];
   
   const showSettings = pageSettingsItems.length > 0 || generalSettingsItems.length > 0;
+  const canSeeSettings = pageSettingsItems.some(item => hasPermission(item.permission)) || generalSettingsItems.some(item => hasPermission(item.permission));
+
 
   if (isUserLoading || !user) {
     return (
@@ -160,6 +165,23 @@ export default function CorretorLayout({
         </div>
     );
   }
+  
+  const MenuItemWrapper = ({ item, children }: { item: any, children: React.ReactNode }) => {
+    const permitted = hasPermission(item.permission);
+    if (permitted) {
+      return <>{children}</>;
+    }
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="w-full opacity-50 cursor-not-allowed">{children}</div>
+          </TooltipTrigger>
+          <TooltipContent side="right"><p>Seu usuário não tem acesso</p></TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
 
   return (
     <SidebarProvider>
@@ -176,30 +198,35 @@ export default function CorretorLayout({
           <SidebarMenu>
             {menuItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === item.href}
-                  tooltip={{
-                    children: item.label,
-                  }}
-                >
-                  <Link href={item.href} target={item.target}>
-                    <item.icon />
-                    <span className="flex-1">{item.label}</span>
-                     {item.badgeCount && item.badgeCount > 0 && (
-                        <Badge className={`h-5 group-data-[collapsible=icon]:hidden ${item.badgeClass || ''}`}>{item.badgeCount}</Badge>
-                    )}
-                  </Link>
-                </SidebarMenuButton>
+                 <MenuItemWrapper item={item}>
+                    <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.href}
+                    disabled={!hasPermission(item.permission)}
+                    tooltip={{
+                        children: item.label,
+                    }}
+                    >
+                    <Link href={item.href} target={item.target}>
+                        <item.icon />
+                        <span className="flex-1">{item.label}</span>
+                        {item.badgeCount && item.badgeCount > 0 && (
+                            <Badge className={`h-5 group-data-[collapsible=icon]:hidden ${item.badgeClass || ''}`}>{item.badgeCount}</Badge>
+                        )}
+                    </Link>
+                    </SidebarMenuButton>
+                </MenuItemWrapper>
               </SidebarMenuItem>
             ))}
             {showSettings && (
              <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="item-1" className="border-none">
-                <AccordionTrigger className="[&[data-state=open]>svg]:rotate-180 flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>svg:last-child]:ms-auto">
-                    <Settings/>
-                    <span className="group-data-[collapsible=icon]:hidden">Configurações</span>
-                </AccordionTrigger>
+                 <MenuItemWrapper item={{ permission: () => canSeeSettings }}>
+                    <AccordionTrigger disabled={!canSeeSettings} className="[&[data-state=open]>svg]:rotate-180 flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>svg:last-child]:ms-auto">
+                        <Settings/>
+                        <span className="group-data-[collapsible=icon]:hidden">Configurações</span>
+                    </AccordionTrigger>
+                </MenuItemWrapper>
                 <AccordionContent className="p-0 pl-4 space-y-2">
                     {pageSettingsItems.length > 0 && (
                     <div>
@@ -207,17 +234,20 @@ export default function CorretorLayout({
                         <SidebarMenu>
                         {pageSettingsItems.map((item) => (
                           <SidebarMenuItem key={item.href}>
-                            <SidebarMenuButton
-                              asChild
-                              size="sm"
-                              isActive={pathname.startsWith(item.href)}
-                              tooltip={{ children: item.label }}
-                            >
-                              <Link href={item.href}>
-                                <item.icon />
-                                <span>{item.label}</span>
-                              </Link>
-                            </SidebarMenuButton>
+                             <MenuItemWrapper item={item}>
+                                <SidebarMenuButton
+                                asChild
+                                size="sm"
+                                isActive={pathname.startsWith(item.href)}
+                                disabled={!hasPermission(item.permission)}
+                                tooltip={{ children: item.label }}
+                                >
+                                <Link href={item.href}>
+                                    <item.icon />
+                                    <span>{item.label}</span>
+                                </Link>
+                                </SidebarMenuButton>
+                            </MenuItemWrapper>
                           </SidebarMenuItem>
                         ))}
                       </SidebarMenu>
@@ -229,17 +259,20 @@ export default function CorretorLayout({
                         <SidebarMenu>
                         {generalSettingsItems.map((item) => (
                           <SidebarMenuItem key={item.href}>
-                            <SidebarMenuButton
-                              asChild
-                              size="sm"
-                              isActive={pathname.startsWith(item.href)}
-                              tooltip={{ children: item.label }}
-                            >
-                              <Link href={item.href}>
-                                <item.icon />
-                                <span>{item.label}</span>
-                              </Link>
-                            </SidebarMenuButton>
+                            <MenuItemWrapper item={item}>
+                                <SidebarMenuButton
+                                asChild
+                                size="sm"
+                                isActive={pathname.startsWith(item.href)}
+                                disabled={!hasPermission(item.permission)}
+                                tooltip={{ children: item.label }}
+                                >
+                                <Link href={item.href}>
+                                    <item.icon />
+                                    <span>{item.label}</span>
+                                </Link>
+                                </SidebarMenuButton>
+                            </MenuItemWrapper>
                           </SidebarMenuItem>
                         ))}
                       </SidebarMenu>
@@ -249,7 +282,7 @@ export default function CorretorLayout({
               </AccordionItem>
             </Accordion>
             )}
-            {adminMenuItems.length > 0 && (
+            {adminMenuItems.filter(item => hasPermission(item.permission)).length > 0 && (
                 <>
                     <Separator className="my-2" />
                     {adminMenuItems.map((item) => (
