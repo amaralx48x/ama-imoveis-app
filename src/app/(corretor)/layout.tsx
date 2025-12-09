@@ -33,21 +33,38 @@ export default function CorretorLayout({
     () => (user && firestore ? doc(firestore, 'agents', user.uid) : null),
     [user, firestore]
   );
-  const { data: agentData } = useDoc<Agent>(agentRef);
+  const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const subUserId = sessionStorage.getItem('subUserId');
-    if (agentData) {
-      if (subUserId === agentData.id) {
-        setCurrentUserLevel('owner');
-      } else {
-        const subUser = agentData.subUsers?.find(u => u.id === subUserId);
-        setCurrentUserLevel(subUser?.level || null);
-      }
+    // Redireciona se o usuário não estiver logado, após a verificação inicial.
+    if (!isUserLoading && !user) {
+      router.replace('/login');
     }
-  }, [agentData]);
+  }, [user, isUserLoading, router]);
+
+  useEffect(() => {
+    // Só executa lógicas de sessão e permissão após o carregamento do agente.
+    if (isAgentLoading || !agentData || typeof window === 'undefined') return;
+    
+    // Define o nível do usuário atual.
+    const subUserId = sessionStorage.getItem('subUserId');
+    if (subUserId === agentData.id) {
+      setCurrentUserLevel('owner');
+    } else {
+      const subUser = agentData.subUsers?.find(u => u.id === subUserId);
+      setCurrentUserLevel(subUser?.level || null);
+    }
+    
+    // Lógica para redirecionar para a seleção de usuário.
+    const hasSubUsers = agentData.subUsers && agentData.subUsers.length > 0;
+    const isSessionSelected = !!subUserId;
+    const isOnSelectionPage = pathname === '/selecao-usuario';
+    const isOnLoginPage = pathname === '/login';
+
+    if (hasSubUsers && !isSessionSelected && !isOnSelectionPage && !isOnLoginPage) {
+        router.replace('/selecao-usuario');
+    }
+  }, [agentData, isAgentLoading, pathname, router, user]);
 
 
   const unreadLeadsQuery = useMemoFirebase(
@@ -68,27 +85,6 @@ export default function CorretorLayout({
   const { data: pendingReviews } = useCollection<Review>(pendingReviewsQuery);
   const pendingReviewsCount = pendingReviews?.length || 0;
 
-
-  useEffect(() => {
-    if (isUserLoading || !agentData) return;
-
-    if (!user) {
-      router.replace('/login');
-      return;
-    }
-    
-    if (typeof window !== 'undefined') {
-        const hasSubUsers = agentData.subUsers && agentData.subUsers.length > 0;
-        const isSessionSelected = sessionStorage.getItem('subUserId');
-        const isOnSelectionPage = pathname === '/selecao-usuario';
-        const isOnLoginPage = pathname === '/login';
-
-        // A exceção para '/login' é a chave aqui
-        if (hasSubUsers && !isSessionSelected && !isOnSelectionPage && !isOnLoginPage) {
-            router.replace('/selecao-usuario');
-        }
-    }
-  }, [user, isUserLoading, router, agentData, pathname]);
 
   useEffect(() => {
     if (!agentData) return;
@@ -161,7 +157,7 @@ export default function CorretorLayout({
   const canSeeSettings = pageSettingsItems.some(item => hasPermission(item.permission)) || generalSettingsItems.some(item => hasPermission(item.permission));
 
 
-  if (isUserLoading || !user || !currentUserLevel) {
+  if (isUserLoading || isAgentLoading || (user && !currentUserLevel && pathname !== '/selecao-usuario')) {
     return (
         <div className="flex items-center justify-center h-screen bg-background">
             <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
