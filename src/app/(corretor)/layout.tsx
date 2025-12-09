@@ -1,7 +1,7 @@
 
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
-import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search, Rss } from 'lucide-react';
+import { Home, Briefcase, User, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Image as ImageIcon, Search, Rss } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
@@ -36,17 +36,14 @@ export default function CorretorLayout({
   const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
 
   useEffect(() => {
-    // Redireciona se o usuário não estiver logado, após a verificação inicial.
-    if (!isUserLoading && !user) {
+    if (!isUserLoading && !user && pathname !== '/login') {
       router.replace('/login');
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading, router, pathname]);
 
   useEffect(() => {
-    // Só executa lógicas de sessão e permissão após o carregamento do agente.
     if (isAgentLoading || !agentData || typeof window === 'undefined') return;
     
-    // Define o nível do usuário atual.
     const subUserId = sessionStorage.getItem('subUserId');
     if (subUserId === agentData.id) {
       setCurrentUserLevel('owner');
@@ -55,7 +52,6 @@ export default function CorretorLayout({
       setCurrentUserLevel(subUser?.level || null);
     }
     
-    // Lógica para redirecionar para a seleção de usuário.
     const hasSubUsers = agentData.subUsers && agentData.subUsers.length > 0;
     const isSessionSelected = !!subUserId;
     const isOnSelectionPage = pathname === '/selecao-usuario';
@@ -157,7 +153,7 @@ export default function CorretorLayout({
   const canSeeSettings = pageSettingsItems.some(item => hasPermission(item.permission)) || generalSettingsItems.some(item => hasPermission(item.permission));
 
 
-  if (isUserLoading || isAgentLoading || (user && !currentUserLevel && pathname !== '/selecao-usuario')) {
+  if (isUserLoading || isAgentLoading || (user && !currentUserLevel && pathname !== '/selecao-usuario' && pathname !== '/login')) {
     return (
         <div className="flex items-center justify-center h-screen bg-background">
             <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
