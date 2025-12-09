@@ -1,6 +1,8 @@
 
 'use client';
 import { AgentMetadata } from '@/components/agent-metadata';
+import { Header } from '@/components/layout/header';
+import { Footer } from "@/components/layout/footer";
 import { useParams } from 'next/navigation';
 
 export default function PublicAgentLayout({
@@ -14,7 +16,9 @@ export default function PublicAgentLayout({
     return (
         <>
             <AgentMetadata agentId={agentId} />
+            <Header agentId={agentId} />
             {children}
+            <Footer agentId={agentId} />
         </>
     );
 }

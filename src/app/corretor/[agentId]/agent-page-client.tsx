@@ -4,8 +4,6 @@
 import { useMemo, useState } from 'react';
 import type { Agent, Property, Review, CustomSection } from '@/lib/data';
 import { notFound } from 'next/navigation';
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 import { Hero } from "@/components/hero";
 import { FeaturedProperties } from '@/components/featured-properties';
 import { CustomPropertySection } from '@/components/custom-property-section';
@@ -15,7 +13,7 @@ import { FloatingContactButton } from '@/components/floating-contact-button';
 import PropertyFilters from '@/components/property-filters';
 import { getPropertyTypes } from '@/lib/data';
 import { Filters, filterProperties } from '@/lib/filter-logic';
-import SearchResultsContent from '@/app/search-results/page';
+import { SearchResultsContent } from '@/app/search-results/page';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
@@ -63,7 +61,6 @@ export default function AgentPageClient({
 
   return (
     <>
-      <Header agent={agent} agentId={agent.id} />
       <main className="min-h-screen">
         <div className="relative mb-8">
           <Hero heroImageUrl={heroImageUrl}>
@@ -128,7 +125,6 @@ export default function AgentPageClient({
 
         {whatsAppLink && <FloatingContactButton whatsAppLink={whatsAppLink} agent={agent} />}
       </main>
-      <Footer agentId={agent.id} />
     </>
   );
 }
