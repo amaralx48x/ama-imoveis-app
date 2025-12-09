@@ -1,10 +1,9 @@
-
 'use client';
 import {SidebarProvider, Sidebar, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset} from '@/components/ui/sidebar';
 import { Home, Briefcase, User, Star, LogOut, Share2, Building2, Folder, Settings, Percent, Mail, Link as LinkIcon, FileText, Gem, LifeBuoy, ShieldCheck, Palette, Users, Search, Rss, Droplet } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
+import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc, getRedirectResult, saveUserToFirestore } from '@/firebase';
 import { useEffect, useState, useMemo } from 'react';
 import { collection, query, where, doc, setDoc, updateDoc } from 'firebase/firestore';
 import type { Lead, Agent, Review, SubUser } from '@/lib/data';
@@ -36,6 +35,19 @@ export default function CorretorLayout({
     [user, firestore]
   );
   const { data: agentData, isLoading: isAgentLoading, mutate } = useDoc<Agent>(agentRef);
+
+  useEffect(() => {
+    if (!isUserLoading && auth) {
+      getRedirectResult(auth).then(async (result) => {
+        if (result?.user) {
+          await saveUserToFirestore(result.user);
+          router.replace("/selecao-usuario");
+        }
+      }).catch(error => {
+        console.error("Erro no redirecionamento do Google:", error);
+      });
+    }
+  }, [isUserLoading, auth, router]);
 
   useEffect(() => {
     if (!isUserLoading && !user && pathname !== '/login') {

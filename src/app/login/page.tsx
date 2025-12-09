@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -19,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, googleProvider, signInWithPopup, saveUserToFirestore } from '@/firebase';
+import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, googleProvider, signInWithRedirect, saveUserToFirestore } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -64,7 +63,7 @@ export default function LoginPage() {
     useEffect(() => {
         if (isUserLoading) return; // Aguarda o fim do carregamento inicial
         if (user) {
-            router.replace('/selecao-usuario'); // Se o usuário existir, redireciona
+            router.replace('/selecao-usuario');
         }
     }, [user, isUserLoading, router]);
 
@@ -149,16 +148,10 @@ export default function LoginPage() {
         if (!auth) return;
         setIsGoogleLoading(true);
         try {
-            const result = await signInWithPopup(auth, googleProvider);
-            await saveUserToFirestore(result.user, {
-                displayName: result.user.displayName,
-                name: result.user.displayName,
-                accountType: 'corretor', // Default value
-            });
-            // O useEffect cuidará do redirecionamento
+            // Usa signInWithRedirect para ambientes restritos como Cloud Workstations
+            await signInWithRedirect(auth, googleProvider);
         } catch (error) {
             handleAuthError(error as FirebaseError);
-        } finally {
             setIsGoogleLoading(false);
         }
     }
@@ -295,5 +288,3 @@ export default function LoginPage() {
         </div>
     );
 }
-
-    
