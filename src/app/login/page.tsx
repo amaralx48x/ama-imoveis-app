@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, googleProvider, signInWithPopup, saveUserToFirestore } from '@/firebase';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
@@ -57,18 +57,20 @@ export default function LoginPage() {
     const auth = useAuth();
     const { user, isUserLoading } = useUser();
     const router = useRouter();
-    const pathname = usePathname();
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
 
-    // Handle user state changes for redirection after any login method.
+    // Robust redirection effect
     useEffect(() => {
-        // If a user object exists and we're on the login page, redirect them.
-        if (!isUserLoading && user && pathname === '/login') {
+        // Do not do anything while Firebase is determining the auth state.
+        if (isUserLoading) return;
+
+        // If the user object exists, it means they are logged in. Redirect them.
+        if (user) {
             router.replace('/selecao-usuario');
         }
-    }, [user, isUserLoading, router, pathname]);
+    }, [user, isUserLoading, router]);
 
     const loginForm = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
@@ -164,7 +166,7 @@ export default function LoginPage() {
             await saveUserToFirestore(result.user, {
                 displayName: result.user.displayName,
                 name: result.user.displayName,
-                accountType: 'corretor',
+                accountType: 'corretor', // Default value
             });
             toast({ title: "Login com Google bem-sucedido!" });
             // Redirection will happen automatically via useUser hook
@@ -175,7 +177,6 @@ export default function LoginPage() {
         }
     }
 
-
     if (isUserLoading) {
         return (
              <div className="relative min-h-screen flex items-center justify-center p-4">
@@ -183,7 +184,6 @@ export default function LoginPage() {
              </div>
         )
     }
-
 
     return (
         <div className="relative min-h-screen flex items-center justify-center p-4">
