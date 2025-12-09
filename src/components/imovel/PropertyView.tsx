@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { ContactForm } from "@/components/contact-form";
 import { useState, useEffect, useCallback } from "react";
 import { SchedulingForm } from "@/components/scheduling-form";
@@ -164,6 +164,10 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                                 </div>
                             </DialogTrigger>
                              <DialogContent className="max-w-[90vw] max-h-[90vh] h-full w-full bg-transparent border-none p-2">
+                                <DialogHeader>
+                                    <DialogTitle className="sr-only">Visualização de Imagem</DialogTitle>
+                                    <DialogDescription className="sr-only">Navegue pelas imagens do imóvel em tela cheia.</DialogDescription>
+                                </DialogHeader>
                                 <Carousel className="w-full h-full" opts={{startIndex: selectedIndex}}>
                                     <CarouselContent>
                                         {images.map((imageUrl, index) => (
