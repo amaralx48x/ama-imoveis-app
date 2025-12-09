@@ -11,13 +11,15 @@ import { Search, MapPin, Home, DollarSign, BedDouble, Car, Filter } from "lucide
 import type { Agent } from '@/lib/data';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
+import { Filters } from "@/lib/filter-logic";
 
 type PropertyFiltersProps = {
     agent?: Agent | null;
     propertyTypes?: string[];
+    onSearch?: (filters: Filters) => void;
 }
 
-export default function PropertyFilters({ agent, propertyTypes = [] }: PropertyFiltersProps) {
+export default function PropertyFilters({ agent, propertyTypes = [], onSearch }: PropertyFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -32,7 +34,6 @@ export default function PropertyFilters({ agent, propertyTypes = [] }: PropertyF
   const [showMoreFilters, setShowMoreFilters] = useState(false);
 
   useEffect(() => {
-    // Expand advanced filters if any of them have a value on page load
     if (minPrice || maxPrice || bedrooms || garage) {
       setShowMoreFilters(true);
     }
@@ -40,20 +41,27 @@ export default function PropertyFilters({ agent, propertyTypes = [] }: PropertyF
 
 
   const handleSearch = () => {
-    const query = new URLSearchParams();
-    if (operation) query.set('operation', operation);
-    if (city && city !== 'outras') query.set('city', city);
-    if (type) query.set('type', type);
-    if (bedrooms) query.set('bedrooms', bedrooms);
-    if (garage) query.set('garage', garage);
-    if (keyword) query.set('keyword', keyword);
-    if (minPrice) query.set('minPrice', minPrice.replace(/\D/g, ''));
-    if (maxPrice) query.set('maxPrice', maxPrice.replace(/\D/g, ''));
-
-    if (agent?.id && agent.id !== 'global') {
-        query.set('agentId', agent.id);
+    const filters: Filters = {
+      operation: operation || undefined,
+      city: city === 'outras' ? undefined : city || undefined,
+      type: type || undefined,
+      bedrooms: bedrooms || undefined,
+      garage: garage || undefined,
+      keyword: keyword || undefined,
+      minPrice: minPrice.replace(/\D/g, '') || undefined,
+      maxPrice: maxPrice.replace(/\D/g, '') || undefined,
+      agentId: agent?.id !== 'global' ? agent?.id : undefined,
+    };
+    
+    if (onSearch) {
+        onSearch(filters);
+    } else {
+        const query = new URLSearchParams();
+        Object.entries(filters).forEach(([key, value]) => {
+            if (value) query.set(key, value);
+        });
+        router.push(`/search-results?${query.toString()}`);
     }
-    router.push(`/search-results?${query.toString()}`);
   };
 
   const handlePriceInputChange = (setter: (value: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,8 +100,8 @@ export default function PropertyFilters({ agent, propertyTypes = [] }: PropertyF
                         <SelectValue placeholder="Comprar ou Alugar" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="Comprar">Comprar</SelectItem>
-                        <SelectItem value="Alugar">Alugar</SelectItem>
+                        <SelectItem value="Venda">Venda</SelectItem>
+                        <SelectItem value="Aluguel">Aluguel</SelectItem>
                     </SelectContent>
                 </Select>
 

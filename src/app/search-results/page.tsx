@@ -3,67 +3,88 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useCallback, Suspense } from "react";
-import PropertyFilters from "@/components/property-filters";
 import { PropertyCard } from "@/components/property-card";
 import { Button } from "@/components/ui/button";
 import { useFirestore } from "@/firebase";
-import { collection, collectionGroup, query, getDocs, DocumentData, Query, where } from "firebase/firestore";
-import type { Property, Agent } from "@/lib/data";
+import { collection, collectionGroup, query, getDocs, where } from "firebase/firestore";
+import type { Property } from "@/lib/data";
 import { filterProperties, type Filters } from "@/lib/filter-logic";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Frown, ArrowLeft, ArrowDownUp } from "lucide-react";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Frown, ArrowLeft } from "lucide-react";
+import PropertyFilters from "@/components/property-filters";
+import { getPropertyTypes } from "@/lib/data";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 
 
-function SearchResults() {
+export function SearchResultsContent({ properties, isLoading }: { properties: Property[], isLoading?: boolean }) {
+    if (isLoading) {
+        return (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {[...Array(8)].map((_, i) => (
+                    <div key={i} className="flex flex-col space-y-3">
+                        <Skeleton className="h-[225px] w-full rounded-xl" />
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-3/4" />
+                            <Skeleton className="h-4 w-1/2" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+    
+    if (properties.length === 0) {
+        return (
+             <div className="text-center py-16 rounded-lg border-2 border-dashed">
+                <Frown className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h2 className="text-2xl font-bold mt-4">Nenhum imóvel encontrado</h2>
+                <p className="text-muted-foreground mt-2">
+                    Tente ajustar seus filtros ou fazer uma busca diferente.
+                </p>
+            </div>
+        )
+    }
+
+    return (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {properties.map((property) => (
+              <PropertyCard key={property.id} property={property} />
+            ))}
+        </div>
+    );
+}
+
+function SearchResultsPageContainer() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<Filters['sortBy'] | ''>(searchParams.get('sortBy') || '');
   const firestore = useFirestore();
 
   const agentId = searchParams.get('agentId');
-  const city = searchParams.get('city');
-
-  // Mock agent para popular os filtros de cidade, etc.
-  const mockAgent: Agent = {
-    id: 'global',
-    displayName: 'Global Search',
-    name: 'AMA Imóveis',
-    accountType: 'imobiliaria',
-    email: '',
-    description: '',
-    creci: '',
-    photoUrl: '',
-    cities: ['São Paulo', 'Campinas', 'Ubatuba', 'Guarujá', 'Rio de Janeiro', 'Belo Horizonte', 'Curitiba', 'Porto Alegre'],
-  }
-  const propertyTypes = ['Apartamento', 'Casa', 'Chácara', 'Galpão', 'Sala', 'Kitnet', 'Terreno', 'Lote', 'Alto Padrão'];
+  const propertyTypes = getPropertyTypes();
 
   const fetchData = useCallback(async (firestoreInstance: any, currentParams: URLSearchParams) => {
     setLoading(true);
-    const agentIdFromParams = currentParams.get('agentId');
-    const cityFromParams = currentParams.get('city');
-
+    
     const filters: Filters = {
         operation: currentParams.get('operation') || undefined,
-        city: cityFromParams === 'outras' ? undefined : cityFromParams || undefined,
+        city: currentParams.get('city') === 'outras' ? undefined : currentParams.get('city') || undefined,
         type: currentParams.get('type') || undefined,
         bedrooms: currentParams.get('bedrooms') || undefined,
         garage: currentParams.get('garage') || undefined,
         keyword: currentParams.get('keyword') || undefined,
-        agentId: agentIdFromParams || undefined,
+        agentId: currentParams.get('agentId') || undefined,
         sectionId: currentParams.get('sectionId') || undefined,
         minPrice: currentParams.get('minPrice') || undefined,
         maxPrice: currentParams.get('maxPrice') || undefined,
-        sortBy: sortBy as Filters['sortBy'] || undefined,
+        sortBy: currentParams.get('sortBy') as Filters['sortBy'] || undefined,
     };
     
     try {
-      const q = agentIdFromParams
-        ? query(collection(firestoreInstance, `agents/${agentIdFromParams}/properties`), where('status', '==', 'ativo'))
+      const q = filters.agentId
+        ? query(collection(firestoreInstance, `agents/${filters.agentId}/properties`), where('status', '==', 'ativo'))
         : query(collectionGroup(firestoreInstance, 'properties'), where('status', '==', 'ativo'));
       
       const querySnapshot = await getDocs(q);
@@ -81,7 +102,6 @@ function SearchResults() {
       });
       const allProps = Array.from(uniqueProperties.values());
       
-      // Aplicar filtros e ordenação no cliente
       const filtered = filterProperties(allProps, filters);
       setProperties(filtered);
       
@@ -90,7 +110,7 @@ function SearchResults() {
     } finally {
       setLoading(false);
     }
-  }, [sortBy]);
+  }, []);
 
   useEffect(() => {
     if (!firestore) return;
@@ -109,52 +129,13 @@ function SearchResults() {
         </div>
 
         <div className="mb-8">
-          <PropertyFilters agent={mockAgent} propertyTypes={propertyTypes}/>
+          <PropertyFilters propertyTypes={propertyTypes}/>
         </div>
         
-          <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-              <h1 className="text-3xl font-bold font-headline">Resultados da Busca</h1>
-              <div className="flex items-center gap-2">
-                  <ArrowDownUp className="h-4 w-4 text-muted-foreground" />
-                  <Select value={sortBy} onValueChange={(value) => setSortBy(value as Filters['sortBy'])}>
-                      <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Ordenar por" />
-                      </SelectTrigger>
-                      <SelectContent>
-                          <SelectItem value="price-asc">Preço: Crescente</SelectItem>
-                          <SelectItem value="price-desc">Preço: Decrescente</SelectItem>
-                      </SelectContent>
-                  </Select>
-              </div>
-        </div>
+        <h1 className="text-3xl font-bold font-headline mb-6">Resultados da Busca</h1>
+        
+        <SearchResultsContent properties={properties} isLoading={loading} />
 
-        {loading ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="flex flex-col space-y-3">
-                <Skeleton className="h-[225px] w-full rounded-xl" />
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : properties.length === 0 ? (
-          <div className="text-center py-16 rounded-lg border-2 border-dashed">
-              <Frown className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h2 className="text-2xl font-bold mt-4">Nenhum imóvel encontrado</h2>
-              <p className="text-muted-foreground mt-2">
-                  Tente ajustar seus filtros ou fazer uma busca diferente.
-              </p>
-          </div>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {properties.map((property) => (
-              <PropertyCard key={property.id} property={property} />
-            ))}
-          </div>
-        )}
       </main>
       <Footer agentId={agentId || undefined} />
     </>
@@ -168,7 +149,8 @@ export default function SearchResultsPage() {
                  <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
             </div>
         }>
-            <SearchResults />
+            <SearchResultsPageContainer />
         </Suspense>
     );
 }
+

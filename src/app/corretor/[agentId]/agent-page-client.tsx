@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Agent, Property, Review, CustomSection } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { Header } from "@/components/layout/header";
@@ -14,6 +14,11 @@ import { ClientReviews } from '@/components/client-reviews';
 import { FloatingContactButton } from '@/components/floating-contact-button';
 import PropertyFilters from '@/components/property-filters';
 import { getPropertyTypes } from '@/lib/data';
+import { Filters, filterProperties } from '@/lib/filter-logic';
+import SearchResultsContent from '@/app/search-results/page';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 
 
 export default function AgentPageClient({
@@ -28,6 +33,8 @@ export default function AgentPageClient({
   reviews: Review[];
 }) {
 
+  const [searchResults, setSearchResults] = useState<Property[] | null>(null);
+
   const citiesForFilter = useMemo(() => {
     if (!agent) return [];
     const agentCities = agent.cities || [];
@@ -35,8 +42,16 @@ export default function AgentPageClient({
     return [...new Set([...agentCities, ...propertyCities])].sort();
   }, [agent, allProperties]);
 
+  const handleSearch = (filters: Filters) => {
+      const results = filterProperties(allProperties, filters);
+      setSearchResults(results);
+  };
+
+  const clearSearch = () => {
+    setSearchResults(null);
+  }
+
   if (!agent) {
-    // Though we check in the server component, this is a safeguard.
     return notFound();
   }
 
@@ -50,37 +65,66 @@ export default function AgentPageClient({
     <>
       <Header agent={agent} agentId={agent.id} />
       <main className="min-h-screen">
-        <div className="relative mb-24 md:mb-36">
+        <div className="relative mb-8">
           <Hero heroImageUrl={heroImageUrl}>
-            <PropertyFilters agent={{...agent, cities: citiesForFilter}} propertyTypes={propertyTypes} />
+            <PropertyFilters 
+              agent={{...agent, cities: citiesForFilter}} 
+              propertyTypes={propertyTypes} 
+              onSearch={handleSearch}
+            />
           </Hero>
         </div>
 
-        {featuredProperties.length > 0 && (
-          <FeaturedProperties properties={featuredProperties} agent={agent} />
-        )}
+        <AnimatePresence>
+            {searchResults !== null && (
+                <motion.section
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.5, ease: "easeInOut" }}
+                  className="bg-muted overflow-hidden"
+                >
+                    <div className="container mx-auto px-4 py-16">
+                        <div className="flex justify-between items-center mb-8">
+                             <h2 className="text-3xl font-bold font-headline">Resultados da Busca ({searchResults.length})</h2>
+                             <Button variant="ghost" onClick={clearSearch}>
+                                 <X className="mr-2 h-4 w-4" />
+                                 Ocultar Resultados
+                             </Button>
+                        </div>
+                        <SearchResultsContent properties={searchResults} />
+                    </div>
+                </motion.section>
+            )}
+        </AnimatePresence>
 
-        {customSections.map(section => {
-          const sectionProperties = allProperties.filter(p => (p.sectionIds || []).includes(section.id) && p.status === 'ativo');
-          if (sectionProperties.length === 0) return null;
-          return (
-            <CustomPropertySection
-              key={section.id}
-              title={section.title}
-              properties={sectionProperties}
-              agent={agent}
-              sectionId={section.id}
-            />
-          );
-        })}
+        <div className={searchResults !== null ? 'pt-16' : 'pt-24 md:pt-36'}>
+            {featuredProperties.length > 0 && (
+              <FeaturedProperties properties={featuredProperties} agent={agent} />
+            )}
 
-        <AgentProfile agent={agent} />
+            {customSections.map(section => {
+              const sectionProperties = allProperties.filter(p => (p.sectionIds || []).includes(section.id) && p.status === 'ativo');
+              if (sectionProperties.length === 0) return null;
+              return (
+                <CustomPropertySection
+                  key={section.id}
+                  title={section.title}
+                  properties={sectionProperties}
+                  agent={agent}
+                  sectionId={section.id}
+                />
+              );
+            })}
 
-        {showReviews && (
-          <div className="container mx-auto px-4 py-16 sm:py-24">
-            <ClientReviews reviews={reviews} agentId={agent.id} onReviewSubmitted={()=>{}} />
-          </div>
-        )}
+            <AgentProfile agent={agent} />
+
+            {showReviews && (
+              <div className="container mx-auto px-4 py-16 sm:py-24">
+                <ClientReviews reviews={reviews} agentId={agent.id} onReviewSubmitted={()=>{}} />
+              </div>
+            )}
+        </div>
 
         {whatsAppLink && <FloatingContactButton whatsAppLink={whatsAppLink} agent={agent} />}
       </main>
@@ -88,5 +132,3 @@ export default function AgentPageClient({
     </>
   );
 }
-
-    
