@@ -129,6 +129,9 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
     const showWatermark = agent.siteSettings?.showWatermark;
     const watermarkUrl = agent.siteSettings?.watermarkUrl;
 
+    const mapQuery = encodeURIComponent(`${property.neighborhood}, ${property.city}`);
+    const mapSrc = `https://maps.google.com/maps?q=${mapQuery}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Coluna principal com detalhes */}
@@ -234,6 +237,20 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                             <p className="text-muted-foreground leading-relaxed">
                                 {property.description}
                             </p>
+                        </div>
+                        <Separator className="my-6" />
+                        <div>
+                            <h3 className="text-xl font-bold font-headline mb-4">Localização</h3>
+                            <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                                <iframe
+                                    width="100%"
+                                    height="100%"
+                                    style={{ border: 0 }}
+                                    loading="lazy"
+                                    allowFullScreen
+                                    src={mapSrc}>
+                                </iframe>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
