@@ -1,13 +1,13 @@
 
 'use client';
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, AlertTriangle, Upload, Trash2, Search, Gem } from 'lucide-react';
+import { PlusCircle, AlertTriangle, Upload, Trash2, Search, Gem, MoreHorizontal } from 'lucide-react';
 import { PropertyCard } from '@/components/property-card';
 import Link from 'next/link';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import type { Property } from '@/lib/data';
-import { collection, query, where, doc, getDocs, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, doc, writeBatch, deleteDoc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/dialog";
 import { InfoCard } from '@/components/info-card';
 import { useRouter } from 'next/navigation';
+import { Checkbox } from '@/components/ui/checkbox';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 
 
 function PropertyList({ 
@@ -34,6 +36,8 @@ function PropertyList({
     onStatusChange,
     emptyStateTitle,
     emptyStateDescription,
+    selectedIds,
+    onToggleSelect
 }: {
     properties: Property[] | null,
     isLoading: boolean,
@@ -42,6 +46,8 @@ function PropertyList({
     onStatusChange: () => void,
     emptyStateTitle: string,
     emptyStateDescription: string,
+    selectedIds: Record<string, boolean>,
+    onToggleSelect: (id: string) => void,
 }) {
      if (isLoading) {
         return (
@@ -94,7 +100,16 @@ function PropertyList({
     return (
          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-6">
             {properties && properties.map((property) => (
-                <PropertyCard key={property.id} property={property} onDelete={onDelete} onStatusChange={onStatusChange} />
+                <div key={property.id} className="relative">
+                    <PropertyCard property={property} onDelete={onDelete} onStatusChange={onStatusChange} />
+                    <div className="absolute top-2 left-2 z-10 bg-background/50 rounded-full">
+                        <Checkbox
+                            checked={!!selectedIds[property.id]}
+                            onCheckedChange={() => onToggleSelect(property.id)}
+                            className="m-1 h-5 w-5"
+                        />
+                    </div>
+                </div>
             ))}
         </div>
     )
@@ -110,9 +125,8 @@ export default function ImoveisPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [needsRefetch, setNeedsRefetch] = useState(false);
     const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+    const [selectedIds, setSelectedIds] = useState<Record<string, boolean>>({});
 
-    // This is the core optimization. Instead of fetching all documents,
-    // we create a specific query based on the active tab.
     const propertiesQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
         
@@ -128,7 +142,6 @@ export default function ImoveisPage() {
 
     const { data: properties, isLoading, error, mutate } = useCollection<Property>(propertiesQuery);
     
-    // Client-side search on the already-filtered data from Firestore
     const filteredProperties = useMemo(() => {
         if (!properties) return [];
         if (!searchTerm) return properties;
@@ -143,39 +156,49 @@ export default function ImoveisPage() {
 
     
     const handleDeleteProperty = async (id: string) => {
-        if (!firestore || !user) {
-            toast({ 
-                title: 'Erro de Autenticação',
-                description: 'Você precisa estar logado para excluir um imóvel.',
-                variant: 'destructive'
-            });
-            return;
-        };
-        
-        if (!window.confirm("Tem certeza que deseja excluir este imóvel? Esta ação não pode ser desfeita.")) {
-            return;
-        }
+        if (!firestore || !user) return;
+        if (!window.confirm("Tem certeza que deseja excluir este imóvel? Esta ação não pode ser desfeita.")) return;
 
         const docRef = doc(firestore, `agents/${user.uid}/properties`, id);
         
         try {
             await deleteDoc(docRef);
-            mutate(); // Re-trigger the useCollection hook
+            mutate();
             toast({ title: 'Imóvel excluído com sucesso!' });
         } catch (error) {
             console.error("Erro ao excluir imóvel: ", error);
-            toast({ 
-                title: 'Erro ao excluir',
-                description: 'Não foi possível remover o imóvel. Tente novamente.',
-                variant: 'destructive'
-            });
+            toast({ title: 'Erro ao excluir', variant: 'destructive' });
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        const idsToDelete = Object.keys(selectedIds).filter(id => selectedIds[id]);
+        if (idsToDelete.length === 0) {
+            toast({ title: "Nenhum imóvel selecionado", variant: "destructive" });
+            return;
+        }
+        if (!window.confirm(`Tem certeza que deseja excluir ${idsToDelete.length} imóvel(is)?`)) return;
+        if (!firestore || !user) return;
+
+        const batch = writeBatch(firestore);
+        idsToDelete.forEach(id => {
+            const docRef = doc(firestore, `agents/${user.uid}/properties`, id);
+            batch.delete(docRef);
+        });
+
+        try {
+            await batch.commit();
+            mutate();
+            setSelectedIds({});
+            toast({ title: `${idsToDelete.length} imóvel(is) excluído(s) com sucesso!` });
+        } catch (error) {
+            console.error("Erro ao excluir imóveis em massa:", error);
+            toast({ title: 'Erro ao excluir imóveis', variant: 'destructive' });
         }
     };
     
     const handleStatusChange = () => {
-        // Trigger a refetch of the current query
         mutate();
-        // A more robust way if properties move between tabs
         setNeedsRefetch(prev => !prev);
     }
     
@@ -186,7 +209,15 @@ export default function ImoveisPage() {
             setIsUpgradeModalOpen(true);
         }
     }
-
+    
+    const handleToggleSelect = (id: string) => {
+        setSelectedIds(prev => ({
+            ...prev,
+            [id]: !prev[id]
+        }));
+    };
+    
+    const numSelected = Object.keys(selectedIds).filter(id => selectedIds[id]).length;
     const canAdd = canAddNewProperty();
 
     return (
@@ -266,6 +297,25 @@ export default function ImoveisPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
+            
+            {numSelected > 0 && (
+                <div className="flex items-center justify-between p-2 bg-muted rounded-md border">
+                    <span className="text-sm font-medium">{numSelected} selecionado(s)</span>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline">
+                                Ações em Massa <MoreHorizontal className="ml-2 h-4 w-4"/>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem onClick={handleBulkDelete} className="text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Excluir Selecionados
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            )}
 
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
                 <TabsList>
@@ -282,6 +332,8 @@ export default function ImoveisPage() {
                         onStatusChange={handleStatusChange}
                         emptyStateTitle="Nenhum imóvel ativo encontrado"
                         emptyStateDescription={searchTerm ? "Tente uma busca diferente." : "Que tal adicionar seu primeiro imóvel agora?"}
+                        selectedIds={selectedIds}
+                        onToggleSelect={handleToggleSelect}
                     />
                 </TabsContent>
                 <TabsContent value="vendido">
@@ -293,6 +345,8 @@ export default function ImoveisPage() {
                         onStatusChange={handleStatusChange}
                         emptyStateTitle="Nenhum imóvel vendido"
                         emptyStateDescription="Imóveis marcados como 'vendido' aparecerão aqui."
+                        selectedIds={selectedIds}
+                        onToggleSelect={handleToggleSelect}
                     />
                 </TabsContent>
                 <TabsContent value="alugado">
@@ -304,6 +358,8 @@ export default function ImoveisPage() {
                         onStatusChange={handleStatusChange}
                         emptyStateTitle="Nenhum imóvel alugado"
                         emptyStateDescription="Imóveis marcados como 'alugado' aparecerão aqui."
+                        selectedIds={selectedIds}
+                        onToggleSelect={handleToggleSelect}
                     />
                 </TabsContent>
             </Tabs>
@@ -311,8 +367,3 @@ export default function ImoveisPage() {
         </div>
     );
 }
-
-
-    
-
-    

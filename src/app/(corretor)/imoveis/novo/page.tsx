@@ -41,9 +41,8 @@ import { usePlan } from "@/context/PlanContext";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { generatePropertyDescription, GeneratePropertyDescriptionInput } from '@/ai/flows/generate-property-description-flow';
+import { generatePropertyDescription } from '@/ai/flows/generate-property-description-flow';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-
 
 const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
 const operationTypes = ["Venda", "Aluguel"];
@@ -123,6 +122,20 @@ export default function NovoImovelPage() {
     }
   };
 
+  const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const draggedIndex = Number(e.dataTransfer.getData("text/plain"));
+    const targetIndex = Number(e.currentTarget.dataset.index);
+
+    if (draggedIndex === targetIndex) return;
+
+    setFilesToUpload(currentFiles => {
+        const newFiles = [...currentFiles];
+        const [draggedItem] = newFiles.splice(draggedIndex, 1);
+        newFiles.splice(targetIndex, 0, draggedItem);
+        return newFiles;
+    });
+  };
 
   const handlePriceChange = (fieldName: 'price' | 'condoFee' | 'yearlyTax') => (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/\D/g, '');
@@ -196,7 +209,6 @@ export default function NovoImovelPage() {
           sectionIds: ['featured'],
         };
         
-        // Remove undefined ownerContactId before saving
         if (ownerContactId) {
             newPropertyData.ownerContactId = ownerContactId;
         } else {
@@ -225,6 +237,15 @@ export default function NovoImovelPage() {
         setIsSubmitting(false);
     }
   }
+  
+  const handleFileSelect = (newFiles: File[]) => {
+    setFilesToUpload(prev => [...prev, ...newFiles]);
+  };
+
+  const handleRemoveImage = (indexToRemove: number) => {
+    setFilesToUpload(prev => prev.filter((_, index) => index !== indexToRemove));
+  };
+
 
   if (isPlanLoading) {
       return (
@@ -496,8 +517,34 @@ export default function NovoImovelPage() {
                 
                 <FormItem>
                   <FormLabel>Imagens do Imóvel</FormLabel>
-                  <FormDescription>Para uma melhor apresentação, use imagens de alta resolução.</FormDescription>
-                  <ImageUpload onFileSelect={setFilesToUpload} multiple />
+                  <FormDescription>A primeira imagem será a capa do anúncio. Arraste para reordenar.</FormDescription>
+                  <ImageUpload onFileSelect={handleFileSelect} multiple />
+                
+                  {filesToUpload.length > 0 && (
+                      <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                      {filesToUpload.map((file, index) => (
+                          <div 
+                              key={index} 
+                              className="relative aspect-square rounded-md overflow-hidden group cursor-grab"
+                              draggable
+                              onDragStart={(e) => e.dataTransfer.setData("text/plain", String(index))}
+                              onDragOver={(e) => e.preventDefault()}
+                              onDrop={onDrop}
+                              data-index={index}
+                          >
+                              <Image src={URL.createObjectURL(file)} alt={`Preview da imagem ${index + 1}`} fill sizes="150px" className="object-cover" />
+                              <button
+                                  type="button"
+                                  onClick={() => handleRemoveImage(index)}
+                                  className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  aria-label="Remover imagem"
+                              >
+                                  <X className="h-3 w-3" />
+                              </button>
+                          </div>
+                      ))}
+                      </div>
+                  )}
                 </FormItem>
                 
                  <Separator />
