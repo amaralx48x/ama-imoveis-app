@@ -69,7 +69,7 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
     };
 
     const handlePrint = () => {
-        window.print();
+        window.open(`/imoveis/imprimir/${property.id}`, '_blank');
     }
 
 

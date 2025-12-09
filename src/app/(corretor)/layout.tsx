@@ -52,13 +52,19 @@ export default function CorretorLayout({
 
 
   useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push('/login');
-    } else if (!isUserLoading && user && agentData) {
-        // Se há sub-usuários, redireciona para a seleção. Se não, vai pro dashboard.
-        if (pathname !== '/selecao-usuario' && agentData.subUsers && agentData.subUsers.length > 0 && !sessionStorage.getItem('subUserId')) {
-             router.replace('/selecao-usuario');
-        }
+    if (isUserLoading || !agentData) return; // Aguarda dados essenciais
+
+    if (!user) {
+      router.replace('/login');
+      return;
+    }
+
+    const needsUserSelection = agentData.subUsers && agentData.subUsers.length > 0;
+    const isSessionSelected = sessionStorage.getItem('subUserId');
+    const isOnSelectionPage = pathname === '/selecao-usuario';
+
+    if (needsUserSelection && !isSessionSelected && !isOnSelectionPage) {
+      router.replace('/selecao-usuario');
     }
   }, [user, isUserLoading, router, agentData, pathname]);
 
