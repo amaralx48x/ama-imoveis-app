@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import { UserPlus, Trash2, Edit, Loader2, Users } from 'lucide-react';
 import { usePlan } from '@/context/PlanContext';
 
-function SubUserForm({ onSave, existingUser }: { onSave: (user: Omit<SubUser, 'id'>) => void, existingUser?: SubUser | null }) {
+function SubUserForm({ onSave, existingUser }: { onSave: (user: SubUser) => void, existingUser?: SubUser | null }) {
     const [name, setName] = useState('');
     const [creci, setCreci] = useState('');
     const [pin, setPin] = useState('');
@@ -36,10 +36,12 @@ function SubUserForm({ onSave, existingUser }: { onSave: (user: Omit<SubUser, 'i
 
     const handleSave = () => {
         if (!name || !pin || pin.length !== 4) {
-            alert("Nome e PIN de 4 dígitos são obrigatórios.");
+            alert("Nome, CRECI e PIN de 4 dígitos são obrigatórios.");
             return;
         }
-        onSave({ name, creci, pin });
+        
+        const id = existingUser ? existingUser.id : uuidv4();
+        onSave({ id, name, creci, pin });
         setOpen(false);
     }
 
@@ -66,7 +68,7 @@ function SubUserForm({ onSave, existingUser }: { onSave: (user: Omit<SubUser, 'i
                         <Input id="name" value={name} onChange={e => setName(e.target.value)} placeholder="João Silva" />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="creci">CRECI (Opcional)</Label>
+                        <Label htmlFor="creci">CRECI</Label>
                         <Input id="creci" value={creci} onChange={e => setCreci(e.target.value)} placeholder="123456-F" />
                     </div>
                      <div className="space-y-2">
@@ -99,12 +101,11 @@ export default function UsuariosPage() {
 
   const subUsers = useMemo(() => agentData?.subUsers || [], [agentData]);
 
-  const handleAddUser = async (newUser: Omit<SubUser, 'id'>) => {
+  const handleAddUser = async (newUser: SubUser) => {
     if (!agentRef) return;
-    const userWithId = { ...newUser, id: uuidv4() };
     try {
       await updateDoc(agentRef, {
-        subUsers: arrayUnion(userWithId)
+        subUsers: arrayUnion(newUser)
       });
       mutate();
       toast({ title: 'Usuário adicionado com sucesso!' });
@@ -171,7 +172,7 @@ export default function UsuariosPage() {
                                 <p className="text-sm text-muted-foreground">CRECI: {subUser.creci || 'Não informado'}</p>
                             </div>
                             <div className="flex gap-2">
-                                <SubUserForm onSave={(data) => handleEditUser({...data, id: subUser.id})} existingUser={subUser} />
+                                <SubUserForm onSave={handleEditUser} existingUser={subUser} />
                                 <Button variant="destructive" size="icon" onClick={() => handleDeleteUser(subUser.id)}>
                                     <Trash2 className="h-4 w-4" />
                                 </Button>
