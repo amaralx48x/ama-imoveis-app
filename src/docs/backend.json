@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Property": {
@@ -202,9 +203,10 @@
               "id": { "type": "string" },
               "name": { "type": "string" },
               "creci": { "type": "string" },
-              "pin": { "type": "string", "description": "A 4-digit PIN for sub-user login."}
+              "pin": { "type": "string", "description": "A 4-digit PIN for sub-user login."},
+              "level": { "type": "string", "enum": ["1", "2", "3"], "description": "Permission level (1: Basic, 2: Intermediate, 3: Managerial)."}
             },
-            "required": ["id", "name", "pin"]
+            "required": ["id", "name", "pin", "level"]
           }
         },
         "sessions": {

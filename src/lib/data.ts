@@ -1,5 +1,6 @@
 
 
+
 export type SocialLink = {
   id: string;
   label: string;
@@ -106,6 +107,7 @@ export type SubUser = {
   name: string;
   creci?: string;
   pin: string; // 4-digit PIN
+  level: '1' | '2' | '3'; // Nível de permissão
 }
 
 export type UserSession = {
@@ -131,6 +133,7 @@ export type Agent = {
     plan?: 'simples' | 'essencial' | 'impulso' | 'expansao';
     subUsers?: SubUser[];
     sessions?: UserSession[];
+    pin?: string;
 }
 
 export type LeadType = "seller" | "buyer" | "other";
@@ -249,7 +252,7 @@ const properties: Property[] = [
     rooms: 9,
     builtArea: 250,
     totalArea: 400,
-    imageUrls: ['https://images.unsplash.com/photo-1572120360610-d971b9d7767c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzdWJ1cmJhbiUyMGhvdXNlfGVufDB8fHx8MTc2MTkwODc5N3ww&ixlib=rb-4.1.0&q=80&w=1080', 'https://images.unsplash.com/photo-1726968335694-02219ed7ce96?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxob3VzZSUyMGJhY2t5YXJkfGVufDB8fHx8MTc2MjAwOTc0Mnww&ixlib=rb-4.1.0&q=80&w=1080'],
+    imageUrls: ['https://images.unsplash.com/photo-1572120360610-d971b9d7767c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzdWJ1cmJhbiUyMGhvdXNlfGVufDB8fHx8MTc2MTkwODc5N3ww&ixlib=rb-4.1.0&q=80&w=1080', 'https://images.unsplash.com/photo-1726968335694-02219ed7ce96?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxob3VzZSUyMGJhY2t5YXJkfGVufDB8fHx8MTc2MjAwOTc0Mnww&ixlib-rb-4.1.0&q=80&w=1080'],
     city: 'Campinas',
     neighborhood: 'Taquaral',
     type: 'Casa',
@@ -269,7 +272,7 @@ const properties: Property[] = [
     rooms: 10,
     builtArea: 400,
     totalArea: 600,
-    imageUrls: ['https://images.unsplash.com/photo-1634351580440-8fcf7813367e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxiZWFjaGZyb250JTIwaG91c2V8ZW58MHx8fHwxNzYxOTQ1NTg4fDA&ixlib=rb-4.1.0&q=80&w=1080'],
+    imageUrls: ['https://images.unsplash.com/photo-1634351580440-8fcf7813367e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxiZWFjaGZyb250JTIwaG91c2V8ZW58MHx8fHwxNzYxOTQ1NTg4fDA&ixlib-rb-4.1.0&q=80&w=1080'],
     city: 'Ubatuba',
     neighborhood: 'Praia Grande',
     type: 'Casa',

@@ -14,24 +14,39 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '@/components/ui/label';
 import { UserPlus, Trash2, Edit, Loader2, Users, Crown } from 'lucide-react';
 import { usePlan } from '@/context/PlanContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+
+const permissionLevels = [
+    { value: '1', label: 'Nível 1 (Básico)' },
+    { value: '2', label: 'Nível 2 (Intermediário)' },
+    { value: '3', label: 'Nível 3 (Gerencial)' },
+];
 
 function SubUserForm({ onSave, existingUser, isMainUser = false }: { onSave: (user: Partial<SubUser> | { pin: string }) => void, existingUser?: SubUser | Agent | null, isMainUser?: boolean }) {
     const [name, setName] = useState('');
     const [creci, setCreci] = useState('');
     const [pin, setPin] = useState('');
+    const [level, setLevel] = useState<SubUser['level']>('1');
     const [open, setOpen] = useState(false);
 
     useEffect(() => {
-        if (existingUser) {
-            setName(existingUser.name || '');
-            setCreci(existingUser.creci || '');
-            if ('pin' in existingUser && existingUser.pin) {
-                setPin(existingUser.pin);
+        if (open) {
+            if (existingUser) {
+                setName(existingUser.name || '');
+                setCreci(existingUser.creci || '');
+                if ('pin' in existingUser && existingUser.pin) {
+                    setPin(existingUser.pin);
+                }
+                 if ('level' in existingUser && existingUser.level) {
+                    setLevel(existingUser.level);
+                }
+            } else {
+                setName('');
+                setCreci('');
+                setPin('');
+                setLevel('1');
             }
-        } else {
-            setName('');
-            setCreci('');
-            setPin('');
         }
     }, [existingUser, open]);
 
@@ -51,7 +66,7 @@ function SubUserForm({ onSave, existingUser, isMainUser = false }: { onSave: (us
         if (isMainUser) {
             onSave({ pin });
         } else {
-             onSave({ id, name, creci, pin });
+             onSave({ id, name, creci, pin, level });
         }
         setOpen(false);
     }
@@ -72,7 +87,7 @@ function SubUserForm({ onSave, existingUser, isMainUser = false }: { onSave: (us
                 <DialogHeader>
                     <DialogTitle>{existingUser ? 'Editar Usuário' : 'Novo Usuário'}</DialogTitle>
                     <DialogDescription>
-                        {isMainUser ? 'Altere sua senha de acesso (PIN).' : 'Preencha os dados do corretor da sua equipe.'}
+                        {isMainUser ? 'Altere sua senha de acesso (PIN).' : 'Preencha os dados e defina o nível de permissão do corretor.'}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
@@ -85,6 +100,17 @@ function SubUserForm({ onSave, existingUser, isMainUser = false }: { onSave: (us
                             <div className="space-y-2">
                                 <Label htmlFor="creci">CRECI</Label>
                                 <Input id="creci" value={creci} onChange={e => setCreci(e.target.value)} placeholder="123456-F" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="level">Nível de Permissão</Label>
+                                <Select value={level} onValueChange={(value) => setLevel(value as SubUser['level'])}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecione um nível" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {permissionLevels.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </>
                     )}
@@ -120,9 +146,13 @@ export default function UsuariosPage() {
 
   const handleAddUser = async (newUser: Partial<SubUser>) => {
     if (!agentRef) return;
+    
+    // Ensure new user has a default level if not provided
+    const userToSave = { ...newUser, level: newUser.level || '1' };
+
     try {
       await updateDoc(agentRef, {
-        subUsers: arrayUnion(newUser)
+        subUsers: arrayUnion(userToSave)
       });
       mutate();
       toast({ title: 'Usuário adicionado com sucesso!' });
@@ -175,6 +205,10 @@ export default function UsuariosPage() {
       toast({ title: 'Erro ao remover usuário', variant: 'destructive' });
     }
   };
+  
+  const getLevelLabel = (level?: SubUser['level']) => {
+    return permissionLevels.find(p => p.value === level)?.label || 'Nível não definido';
+  }
 
   return (
     <div className="space-y-6">
@@ -199,9 +233,9 @@ export default function UsuariosPage() {
                          <div className="flex items-center justify-between p-4 border-2 border-primary/50 rounded-lg bg-primary/5">
                             <div>
                                 <p className="font-semibold text-lg flex items-center gap-2">
-                                    {agentData.displayName} <Crown className="h-4 w-4 text-yellow-500"/>
+                                    {agentData.displayName} <Badge variant="secondary" className="bg-yellow-400/20 text-yellow-500 border-yellow-400/30"><Crown className="h-3 w-3 mr-1"/> Dono</Badge>
                                 </p>
-                                <p className="text-sm text-muted-foreground">Usuário Principal / Dono da Conta</p>
+                                <p className="text-sm text-muted-foreground">Usuário Principal / Administrador da Conta</p>
                             </div>
                             <div className="flex gap-2">
                                 <SubUserForm onSave={(data) => handleEditMainUser(data as {pin: string})} existingUser={agentData} isMainUser={true} />
@@ -212,7 +246,7 @@ export default function UsuariosPage() {
                     {subUsers.map(subUser => (
                         <div key={subUser.id} className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
                             <div>
-                                <p className="font-semibold text-lg">{subUser.name}</p>
+                                <p className="font-semibold text-lg flex items-center gap-2">{subUser.name} <Badge variant="outline">{getLevelLabel(subUser.level)}</Badge></p>
                                 <p className="text-sm text-muted-foreground">CRECI: {subUser.creci || 'Não informado'}</p>
                             </div>
                             <div className="flex gap-2">

@@ -5,9 +5,9 @@ import { Home, Briefcase, User, SlidersHorizontal, Star, LogOut, Share2, Buildin
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
-import { useEffect } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { collection, query, where, doc } from 'firebase/firestore';
-import type { Lead, Agent, Review } from '@/lib/data';
+import type { Lead, Agent, Review, SubUser } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
@@ -26,11 +26,28 @@ export default function CorretorLayout({
   const firestore = useFirestore();
   const { plan } = usePlan();
 
+  const [activeSubUserId, setActiveSubUserId] = useState<string | null>(null);
+  const [currentUserLevel, setCurrentUserLevel] = useState<SubUser['level'] | 'owner' | null>(null);
+
   const agentRef = useMemoFirebase(
     () => (user && firestore ? doc(firestore, 'agents', user.uid) : null),
     [user, firestore]
   );
   const { data: agentData } = useDoc<Agent>(agentRef);
+
+  useEffect(() => {
+    const subUserId = sessionStorage.getItem('subUserId');
+    setActiveSubUserId(subUserId);
+
+    if (!agentData || !subUserId) return;
+
+    if (subUserId === agentData.id) {
+      setCurrentUserLevel('owner');
+    } else {
+      const subUser = agentData.subUsers?.find(u => u.id === subUserId);
+      setCurrentUserLevel(subUser?.level || null);
+    }
+  }, [agentData]);
 
   const unreadLeadsQuery = useMemoFirebase(
     () => user && firestore 
@@ -59,11 +76,11 @@ export default function CorretorLayout({
       return;
     }
 
-    const needsUserSelection = agentData.subUsers && agentData.subUsers.length > 0;
+    const hasSubUsers = agentData.subUsers && agentData.subUsers.length > 0;
     const isSessionSelected = sessionStorage.getItem('subUserId');
     const isOnSelectionPage = pathname === '/selecao-usuario';
 
-    if (needsUserSelection && !isSessionSelected && !isOnSelectionPage) {
+    if (hasSubUsers && !isSessionSelected && !isOnSelectionPage) {
       router.replace('/selecao-usuario');
     }
   }, [user, isUserLoading, router, agentData, pathname]);
@@ -98,38 +115,44 @@ export default function CorretorLayout({
 
   const agentSiteUrl = user ? `/corretor/${user.uid}` : '/';
   
-  const showUsersMenu = plan && plan !== 'simples';
+  const showUsersMenu = plan !== 'simples' && (currentUserLevel === 'owner' || currentUserLevel === '3');
+  const canSeeProfile = currentUserLevel === 'owner' || currentUserLevel === '3' || currentUserLevel === '2';
+  const canSeeMetrics = currentUserLevel === 'owner' || currentUserLevel === '3';
+  const canSeePolicies = currentUserLevel === 'owner' || currentUserLevel === '3';
+  const canSeeCommissions = currentUserLevel === 'owner' || currentUserLevel === '3' || currentUserLevel === '2';
 
   const menuItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: Home },
-    { href: '/imoveis', label: 'Meus Imóveis', icon: Briefcase },
-    { href: '/inbox', label: 'Caixa de Entrada', icon: Mail, badgeCount: unreadCount },
-    { href: '/contatos', label: 'Contatos', icon: Users },
-    showUsersMenu && { href: '/usuarios', label: 'Usuários', icon: User },
-    { href: '/integracoes', label: 'Integrações', icon: Rss },
-    { href: '/perfil', label: 'Perfil', icon: User },
-    { href: '/avaliacoes', label: 'Avaliações', icon: Star, badgeCount: pendingReviewsCount, badgeClass: 'bg-yellow-500 text-black' },
-    { href: '/suporte', label: 'Suporte', icon: LifeBuoy },
-    { href: '/meu-plano', label: 'Meu Plano', icon: Gem },
-    { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' },
-  ].filter(Boolean);
+    { href: '/dashboard', label: 'Dashboard', icon: Home, allowed: true },
+    { href: '/imoveis', label: 'Meus Imóveis', icon: Briefcase, allowed: true },
+    { href: '/inbox', label: 'Caixa de Entrada', icon: Mail, badgeCount: unreadCount, allowed: true },
+    { href: '/contatos', label: 'Contatos', icon: Users, allowed: true },
+    { href: '/usuarios', label: 'Usuários', icon: User, allowed: showUsersMenu },
+    { href: '/integracoes', label: 'Integrações', icon: Rss, allowed: canSeeProfile },
+    { href: '/perfil', label: 'Perfil', icon: User, allowed: canSeeProfile },
+    { href: '/avaliacoes', label: 'Avaliações', icon: Star, badgeCount: pendingReviewsCount, badgeClass: 'bg-yellow-500 text-black', allowed: true },
+    { href: '/suporte', label: 'Suporte', icon: LifeBuoy, allowed: true },
+    { href: '/meu-plano', label: 'Meu Plano', icon: Gem, allowed: currentUserLevel === 'owner' },
+    { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank', allowed: true },
+  ].filter(item => item.allowed);
   
   const adminMenuItems = [
-      { href: '/admin/dashboard', label: 'Painel Admin', icon: ShieldCheck },
-  ]
+      { href: '/admin/dashboard', label: 'Painel Admin', icon: ShieldCheck, allowed: agentData?.role === 'admin' },
+  ].filter(item => item.allowed);
 
   const pageSettingsItems = [
-      { href: '/configuracoes/aparencia', label: 'Aparência', icon: Palette },
-      { href: '/configuracoes/links', label: 'Links e Exibição', icon: LinkIcon },
-      { href: '/configuracoes/secoes', label: 'Gerenciar Seções', icon: Folder },
-  ];
+      { href: '/configuracoes/aparencia', label: 'Aparência', icon: Palette, allowed: currentUserLevel === 'owner' || currentUserLevel === '3' },
+      { href: '/configuracoes/links', label: 'Links e Exibição', icon: LinkIcon, allowed: currentUserLevel === 'owner' || currentUserLevel === '3' },
+      { href: '/configuracoes/secoes', label: 'Gerenciar Seções', icon: Folder, allowed: true },
+  ].filter(item => item.allowed);
 
   const generalSettingsItems = [
-      { href: '/configuracoes/seo', label: 'SEO da Página', icon: Search },
-      { href: '/configuracoes/metricas', label: 'Métricas e Comissões', icon: Percent },
-      { href: '/configuracoes/politicas', label: 'Políticas e Termos', icon: FileText },
-  ]
+      { href: '/configuracoes/seo', label: 'SEO da Página', icon: Search, allowed: currentUserLevel === 'owner' || currentUserLevel === '3' },
+      { href: '/configuracoes/metricas', label: 'Métricas e Comissões', icon: Percent, allowed: canSeeMetrics },
+      { href: '/configuracoes/politicas', label: 'Políticas e Termos', icon: FileText, allowed: canSeePolicies },
+  ].filter(item => item.allowed);
   
+  const showSettings = pageSettingsItems.length > 0 || generalSettingsItems.length > 0;
+
   if (isUserLoading || !user) {
     return (
         <div className="flex items-center justify-center h-screen bg-background">
@@ -137,8 +160,6 @@ export default function CorretorLayout({
         </div>
     );
   }
-
-  const isAdmin = agentData?.role === 'admin';
 
   return (
     <SidebarProvider>
@@ -154,7 +175,7 @@ export default function CorretorLayout({
         <SidebarContent>
           <SidebarMenu>
             {menuItems.map((item) => (
-              item && <SidebarMenuItem key={item.href}>
+              <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
                   isActive={pathname === item.href}
@@ -172,6 +193,7 @@ export default function CorretorLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
+            {showSettings && (
              <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="item-1" className="border-none">
                 <AccordionTrigger className="[&[data-state=open]>svg]:rotate-180 flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>svg:last-child]:ms-auto">
@@ -179,6 +201,7 @@ export default function CorretorLayout({
                     <span className="group-data-[collapsible=icon]:hidden">Configurações</span>
                 </AccordionTrigger>
                 <AccordionContent className="p-0 pl-4 space-y-2">
+                    {pageSettingsItems.length > 0 && (
                     <div>
                         <p className="px-4 py-2 text-xs font-semibold text-muted-foreground">Configuração da Página</p>
                         <SidebarMenu>
@@ -199,6 +222,8 @@ export default function CorretorLayout({
                         ))}
                       </SidebarMenu>
                     </div>
+                    )}
+                    {generalSettingsItems.length > 0 && (
                     <div>
                         <p className="px-4 py-2 text-xs font-semibold text-muted-foreground">Configuração Geral</p>
                         <SidebarMenu>
@@ -219,10 +244,12 @@ export default function CorretorLayout({
                         ))}
                       </SidebarMenu>
                    </div>
+                   )}
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
-            {isAdmin && (
+            )}
+            {adminMenuItems.length > 0 && (
                 <>
                     <Separator className="my-2" />
                     {adminMenuItems.map((item) => (
