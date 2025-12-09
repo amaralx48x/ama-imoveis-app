@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Property, Agent } from "@/lib/data";
@@ -162,10 +161,10 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                                     </div>
                                 </div>
                             </DialogTrigger>
-                             <DialogContent className="max-w-[90vw] max-h-[90vh] h-full w-full bg-transparent border-none p-2">
-                                <DialogHeader>
-                                    <DialogTitle className="sr-only">Visualização de Imagem</DialogTitle>
-                                    <DialogDescription className="sr-only">Navegue pelas imagens do imóvel em tela cheia.</DialogDescription>
+                             <DialogContent className="max-w-[90vw] h-[90vh] w-full bg-transparent border-none shadow-none p-0 flex items-center justify-center">
+                                <DialogHeader className="sr-only">
+                                    <DialogTitle>Visualização de Imagem em Tela Cheia</DialogTitle>
+                                    <DialogDescription>Navegue pelas imagens do imóvel em tela cheia.</DialogDescription>
                                 </DialogHeader>
                                 <Carousel className="w-full h-full" opts={{startIndex: selectedIndex}}>
                                     <CarouselContent className="h-full">
@@ -183,8 +182,8 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                                             </CarouselItem>
                                         ))}
                                     </CarouselContent>
-                                    <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10" />
-                                    <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10" />
+                                    <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-white bg-black/50 hover:bg-black/80 hover:text-white" />
+                                    <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 text-white bg-black/50 hover:bg-black/80 hover:text-white" />
                                 </Carousel>
                             </DialogContent>
                         </Dialog>
