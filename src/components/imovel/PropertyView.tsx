@@ -126,14 +126,17 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
     const financingLink = agent.siteSettings?.financingLink || whatsappLink; 
     const isFinancingButtonActionable = showFinancingButton && !!financingLink;
 
+    const showWatermark = agent.siteSettings?.showWatermark;
+    const watermarkUrl = agent.siteSettings?.watermarkUrl;
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Coluna principal com detalhes */}
             <div className="lg:col-span-2 space-y-8">
                 <Card>
                     <CardHeader className="p-0">
-                        <div className="relative cursor-pointer group">
-                             <Carousel className="w-full" setApi={setMainApi}>
+                        <div className="relative group">
+                             <Carousel className="w-full" setApi={mainApi}>
                                 <CarouselContent>
                                     {images.map((imageUrl, index) => (
                                         <CarouselItem key={index}>
@@ -147,6 +150,15 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                                                     data-ai-hint="house interior"
                                                     priority={index === 0}
                                                 />
+                                                 {showWatermark && watermarkUrl && (
+                                                    <Image
+                                                    src={watermarkUrl}
+                                                    alt="Marca d'água"
+                                                    layout="fill"
+                                                    objectFit="contain"
+                                                    className="opacity-20 p-4 pointer-events-none"
+                                                    />
+                                                )}
                                             </div>
                                         </CarouselItem>
                                     ))}

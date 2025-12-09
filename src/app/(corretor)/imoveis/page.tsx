@@ -1,13 +1,14 @@
 
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, AlertTriangle, Upload, Trash2, Search, Gem, MoreHorizontal } from 'lucide-react';
+import { PlusCircle, AlertTriangle, Upload, Trash2, Search, Gem, MoreHorizontal, Droplet } from 'lucide-react';
 import { PropertyCard } from '@/components/property-card';
 import Link from 'next/link';
-import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import type { Property } from '@/lib/data';
-import { collection, query, where, doc, writeBatch, deleteDoc } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser, useMemoFirebase, useDoc } from '@/firebase';
+import type { Property, Agent } from '@/lib/data';
+import { collection, query, where, doc, writeBatch, deleteDoc, setDoc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
@@ -26,6 +27,107 @@ import { InfoCard } from '@/components/info-card';
 import { useRouter } from 'next/navigation';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import ImageUpload from '@/components/image-upload';
+import Image from 'next/image';
+import { Loader2 } from 'lucide-react';
+
+
+function WatermarkManager({ agent, onUpdate }: { agent: Agent, onUpdate: () => void }) {
+    const { user } = useUser();
+    const { toast } = useToast();
+    const firestore = useFirestore();
+
+    const [watermarkFile, setWatermarkFile] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [showWatermark, setShowWatermark] = useState(agent.siteSettings?.showWatermark || false);
+
+    const handleFileAndUpload = async (files: File[]) => {
+        if (!files[0] || !user || !firestore) return;
+        
+        const file = files[0];
+        setWatermarkFile(file);
+        setIsUploading(true);
+
+        try {
+            const storage = getStorage();
+            const filePath = `agents/${user.uid}/site-assets/watermark`;
+            const fileRef = ref(storage, filePath);
+            await uploadBytes(fileRef, file);
+            const watermarkUrl = await getDownloadURL(fileRef);
+
+            const agentRef = doc(firestore, 'agents', user.uid);
+            await setDoc(agentRef, { siteSettings: { watermarkUrl } }, { merge: true });
+            
+            onUpdate();
+            toast({ title: 'Marca d\'água atualizada!' });
+        } catch (error) {
+            console.error("Erro ao salvar a marca d'água:", error);
+            toast({ title: 'Erro ao salvar', variant: 'destructive' });
+        } finally {
+            setIsUploading(false);
+            setWatermarkFile(null);
+        }
+    };
+    
+    const handleToggleWatermark = async (checked: boolean) => {
+        if (!user || !firestore) return;
+        setShowWatermark(checked);
+        try {
+            const agentRef = doc(firestore, 'agents', user.uid);
+            await setDoc(agentRef, { siteSettings: { showWatermark: checked } }, { merge: true });
+            onUpdate();
+            toast({ title: `Marca d'água ${checked ? 'habilitada' : 'desabilitada'}.` });
+        } catch (error) {
+             toast({ title: 'Erro ao alterar a visibilidade', variant: 'destructive' });
+        }
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Droplet/> Marca d'água</CardTitle>
+                <CardDescription>Gerencie a imagem de marca d'água que será sobreposta nas suas fotos.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                 <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-1">
+                        <Label htmlFor="watermark-switch" className="text-base font-medium">Habilitar Marca d'água</Label>
+                        <p className="text-sm text-muted-foreground">
+                            Quando habilitado, a imagem abaixo será aplicada em suas fotos no site público.
+                        </p>
+                    </div>
+                    <Switch
+                        id="watermark-switch"
+                        checked={showWatermark}
+                        onCheckedChange={handleToggleWatermark}
+                    />
+                </div>
+                <div className="flex items-start gap-4">
+                    {agent.siteSettings?.watermarkUrl && (
+                        <div className="relative w-24 h-24 rounded-md border p-2 bg-muted/50">
+                             <Image src={agent.siteSettings.watermarkUrl} alt="Marca d'água atual" layout="fill" objectFit="contain" />
+                        </div>
+                    )}
+                    <div className="flex-grow">
+                        <ImageUpload onFileSelect={handleFileAndUpload} />
+                        <p className="text-xs text-muted-foreground mt-2">
+                           Envie um arquivo de imagem (preferencialmente .png com fundo transparente). O upload começa automaticamente.
+                        </p>
+                    </div>
+                </div>
+                 {isUploading && (
+                    <div className="flex items-center text-sm text-primary">
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                        Enviando nova imagem...
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    )
+}
 
 
 function PropertyList({ 
@@ -142,6 +244,9 @@ export default function ImoveisPage() {
 
     const { data: properties, isLoading, error, mutate } = useCollection<Property>(propertiesQuery);
     
+    const agentRef = useMemoFirebase(() => (firestore && user ? doc(firestore, 'agents', user.uid) : null), [firestore, user]);
+    const { data: agentData, mutate: mutateAgent } = useDoc<Agent>(agentRef);
+
     const filteredProperties = useMemo(() => {
         if (!properties) return [];
         if (!searchTerm) return properties;
@@ -288,6 +393,8 @@ export default function ImoveisPage() {
                 </div>
             </div>
             
+            {agentData && <WatermarkManager agent={agentData} onUpdate={mutateAgent} />}
+
              <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input

@@ -43,17 +43,17 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
   const [isSocialCardDialogOpen, setIsSocialCardDialogOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   
-  const agentRef = useMemoFirebase(() => (
-    firestore && user ? doc(firestore, `agents/${user.uid}`) : null
-  ), [firestore, user]);
+  const agentRef = useMemoFirebase(() => {
+    const agentId = property.agentId || user?.uid;
+    return firestore && agentId ? doc(firestore, `agents/${agentId}`) : null;
+  }, [firestore, user, property.agentId]);
 
-  const { contacts } = useContacts(user?.uid || null);
+  const { data: agentData } = useDoc<Agent>(agentRef);
+  const { contacts } = useContacts(agentData?.id || null);
 
   const owner = contacts.find(c => c.id === property.ownerContactId);
   const tenant = contacts.find(c => c.id === property.tenantContactId);
   
-  const { data: agentData } = useDoc<Agent>(agentRef);
-
   const formattedPrice = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
@@ -103,12 +103,15 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
   
   const CardContentTrigger = isDashboard ? 'div' : Link;
 
+  const showWatermark = agentData?.siteSettings?.showWatermark;
+  const watermarkUrl = agentData?.siteSettings?.watermarkUrl;
+
   return (
     <>
     <Card className="w-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 flex flex-col h-full bg-card">
       <CardHeader className="p-0 relative">
         <div onClick={() => isDashboard && setIsPreviewOpen(true)} className="block cursor-pointer">
-            <div className="relative w-full h-56">
+            <div className="relative w-full h-56 group">
               <Image
                 src={imageUrl}
                 alt={property.title || "Imagem do imóvel"}
@@ -117,6 +120,15 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
                 data-ai-hint={imageHint}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
+              {showWatermark && watermarkUrl && !isDashboard && (
+                <Image
+                  src={watermarkUrl}
+                  alt="Marca d'água"
+                  layout="fill"
+                  objectFit="contain"
+                  className="opacity-20 p-4 pointer-events-none"
+                />
+              )}
             </div>
         </div>
         <div className="absolute top-3 flex justify-between w-full px-3">
