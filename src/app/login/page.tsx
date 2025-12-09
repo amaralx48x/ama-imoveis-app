@@ -62,7 +62,7 @@ export default function LoginPage() {
 
 
     useEffect(() => {
-        if (isUserLoading) return;
+        if (isUserLoading) return; // Aguarde o estado de autenticação ser resolvido
         if (user) {
             router.replace('/selecao-usuario');
         }
@@ -149,7 +149,6 @@ export default function LoginPage() {
         if (!auth) return;
         setIsGoogleLoading(true);
         try {
-            // Usa signInWithRedirect para ambientes restritos como Cloud Workstations
             await signInWithRedirect(auth, googleProvider);
         } catch (error) {
             handleAuthError(error as FirebaseError);
@@ -276,4 +275,3 @@ export default function LoginPage() {
     );
 }
 
-    
