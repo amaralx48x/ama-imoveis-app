@@ -79,7 +79,7 @@ export default function AgentPageClient({
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.5, ease: "easeInOut" }}
-                  className="bg-muted overflow-hidden"
+                  className="bg-muted overflow-hidden mt-28"
                 >
                     <div className="container mx-auto px-4 py-16">
                         <div className="flex justify-between items-center mb-8">
