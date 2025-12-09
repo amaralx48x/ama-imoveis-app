@@ -193,8 +193,14 @@ export default function DashboardPage() {
     const [currentUserLevel, setCurrentUserLevel] = useState<SubUser['level'] | 'owner' | null>(null);
     const [currentUserName, setCurrentUserName] = useState<string>('');
     
-    const { user } = useUser();
+    const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
+
+    useEffect(() => {
+        if (!isUserLoading && !user) {
+            router.replace('/login');
+        }
+    }, [user, isUserLoading, router]);
 
     const agentRef = useMemoFirebase(
         () => (firestore && user ? doc(firestore, 'agents', user.uid) : null),
@@ -251,8 +257,12 @@ export default function DashboardPage() {
             return isSameMonth(soldDate, new Date());
         }).length || 0;
 
-    const isLoading = isAgentLoading || arePropertiesLoading;
+    const isLoading = isUserLoading || isAgentLoading || arePropertiesLoading;
     const activePropertiesCount = properties?.filter(p => p.status === 'ativo' || p.status === null).length || 0;
+
+    if (isLoading || !user) {
+        return <p>Carregando...</p>;
+    }
 
     return (
         <>

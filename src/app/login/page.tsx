@@ -118,10 +118,7 @@ export default function LoginPage() {
         setIsLoading(true);
         try {
             await signInWithEmailAndPassword(auth, values.email, values.password);
-            toast({
-                title: "Login bem-sucedido!",
-                description: "Redirecionando para o seu painel...",
-            });
+            // O useEffect cuidará do redirecionamento
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -140,11 +137,7 @@ export default function LoginPage() {
                 name: values.siteName,
                 accountType: values.accountType,
             });
-            
-            toast({
-                title: "Conta criada com sucesso!",
-                description: "Redirecionando para o seu painel...",
-            });
+            // O useEffect cuidará do redirecionamento
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -162,7 +155,7 @@ export default function LoginPage() {
                 name: result.user.displayName,
                 accountType: 'corretor', // Default value
             });
-            toast({ title: "Login com Google bem-sucedido!" });
+            // O useEffect cuidará do redirecionamento
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -170,7 +163,7 @@ export default function LoginPage() {
         }
     }
 
-    if (isUserLoading) {
+    if (isUserLoading || user) {
         return (
              <div className="relative min-h-screen flex items-center justify-center p-4">
                  <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
