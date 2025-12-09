@@ -64,19 +64,22 @@ export const saveUserToFirestore = async (user: User, additionalData?: Additiona
   const snapshot = await getDoc(userRef);
 
   if (!snapshot.exists()) {
+    const isGoogleSignUp = !additionalData?.name; // Heurística: se não houver nome, provavelmente é do Google.
+    
     const agentData = {
       id: user.uid,
       displayName: additionalData?.displayName || user.displayName || 'Corretor sem nome',
       name: additionalData?.name || user.displayName || 'Imóveis',
-      pin: '0000', // Default PIN for main user
+      pin: '0000',
       accountType: additionalData?.accountType || 'corretor',
       description: "Edite sua descrição na seção Perfil do seu painel.",
       email: user.email,
       creci: '000000-F',
       photoUrl: user.photoURL || '',
       role: 'corretor',
-      plan: 'simples' as const, // Default to the new base plan
+      plan: 'simples' as const,
       createdAt: serverTimestamp(),
+      status: isGoogleSignUp ? 'pending' : 'active', // Define status como 'pending' para novos cadastros Google
       siteSettings: {
         siteStatus: true,
         showFinancing: true,

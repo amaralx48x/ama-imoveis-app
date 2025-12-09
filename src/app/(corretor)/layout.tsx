@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth, useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from '@/firebase';
 import { useEffect, useState, useMemo } from 'react';
-import { collection, query, where, doc } from 'firebase/firestore';
+import { collection, query, where, doc, setDoc, updateDoc } from 'firebase/firestore';
 import type { Lead, Agent, Review, SubUser } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { usePlan } from '@/context/PlanContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ThemeToggle } from '@/components/theme-toggle';
+import WelcomeForm from '@/components/welcome-form';
 
 export default function CorretorLayout({
   children,
@@ -34,7 +35,7 @@ export default function CorretorLayout({
     () => (user && firestore ? doc(firestore, 'agents', user.uid) : null),
     [user, firestore]
   );
-  const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
+  const { data: agentData, isLoading: isAgentLoading, mutate } = useDoc<Agent>(agentRef);
 
   useEffect(() => {
     if (!isUserLoading && !user && pathname !== '/login') {
@@ -43,18 +44,15 @@ export default function CorretorLayout({
   }, [user, isUserLoading, router, pathname]);
 
   useEffect(() => {
-    // Aguarda o carregamento dos dados do agente antes de executar a lógica
     if (isAgentLoading || !agentData || typeof window === 'undefined') {
         return;
     }
     
     const subUserId = sessionStorage.getItem('subUserId');
     if (!subUserId) {
-        // This is the race condition fix: if no subUserId is set,
-        // and we have subUsers, redirect to selection.
         if (agentData.subUsers && agentData.subUsers.length > 0 && pathname !== '/selecao-usuario' && pathname !== '/login') {
             router.replace('/selecao-usuario');
-            return; // Stop further execution in this render
+            return;
         }
     }
     
@@ -88,12 +86,10 @@ export default function CorretorLayout({
 
 
   useEffect(() => {
-    // Set the theme from localStorage on initial client load
     const savedTheme = localStorage.getItem('theme') || agentData?.siteSettings?.theme || 'dark';
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(savedTheme);
 
-    // Favicon logic
     if (agentData?.siteSettings?.faviconUrl) {
       let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
       if (!link) {
@@ -115,6 +111,10 @@ export default function CorretorLayout({
       router.push('/login');
     }
   };
+  
+  const handleProfileComplete = () => {
+    mutate(); // Re-fetch agent data after profile is completed
+  }
 
   const agentSiteUrl = user ? `/corretor/${user.uid}` : '/';
   
@@ -156,8 +156,9 @@ export default function CorretorLayout({
   const showSettings = pageSettingsItems.length > 0 || generalSettingsItems.length > 0;
   const canSeeSettings = pageSettingsItems.some(item => hasPermission(item.permission)) || generalSettingsItems.some(item => hasPermission(item.permission));
 
+  const isLoading = isUserLoading || isAgentLoading;
 
-  if (isUserLoading || isAgentLoading || (user && !currentUserLevel && pathname !== '/selecao-usuario' && pathname !== '/login')) {
+  if (isLoading || (user && !currentUserLevel && pathname !== '/selecao-usuario' && pathname !== '/login')) {
     return (
         <div className="flex items-center justify-center h-screen bg-background">
             <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
@@ -165,10 +166,11 @@ export default function CorretorLayout({
     );
   }
   
+  const isProfilePending = agentData?.status === 'pending';
+
   const MenuItemWrapper = ({ item, children }: { item: any, children: React.ReactNode }) => {
     const permitted = hasPermission(item.permission);
     
-    // If not permitted, render a div with a tooltip instead of a link
     if (!permitted) {
         return (
             <TooltipProvider>
@@ -190,7 +192,6 @@ export default function CorretorLayout({
         );
     }
     
-    // If permitted, render the children (which should contain the Link)
     return <>{children}</>;
   };
 
@@ -326,7 +327,7 @@ export default function CorretorLayout({
           <ThemeToggle />
         </header>
         <main className="p-4 md:p-6 lg:p-8">
-            {children}
+            {isProfilePending ? <WelcomeForm agent={agentData} onProfileComplete={handleProfileComplete}/> : children}
         </main>
       </SidebarInset>
     </SidebarProvider>

@@ -130,6 +130,7 @@
         "displayName": { "type": "string", "description": "The full name of the agent for display in the dashboard." },
         "name": { "type": "string", "description": "Name of the agent's site or agency name." },
         "pin": { "type": "string", "description": "A 4-digit PIN for the primary agent login.", "default": "0000" },
+        "status": { "type": "string", "enum": ["pending", "active"], "description": "The status of the agent's account.", "default": "active" },
         "accountType": { "type": "string", "enum": ["corretor", "imobiliaria"], "description": "The type of account, either an individual agent or an agency." },
         "plan": { "type": "string", "enum": ["simples", "essencial", "impulso", "expansao"], "description": "The subscription plan of the user.", "default": "simples" },
         "role": { "type": "string", "enum": ["corretor", "admin"], "description": "The user's role in the system.", "default": "corretor" },
@@ -226,7 +227,7 @@
             }
         }
       },
-      "required": ["id", "displayName", "name", "accountType", "email", "role"]
+      "required": ["id", "displayName", "name", "accountType", "email", "role", "status"]
     },
     "Customer": {
         "title": "Customer",
@@ -404,5 +405,3 @@
     ]
   }
 }
-
-    
