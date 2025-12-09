@@ -253,6 +253,14 @@ export default function LoginPage() {
                                 <CardTitle className="text-2xl font-bold font-headline">Crie sua Conta</CardTitle>
                                 <CardDescription>Comece a gerenciar seus imóveis hoje mesmo.</CardDescription>
                             </CardHeader>
+                             <Button variant="outline" className="w-full mb-4" onClick={handleGoogleLogin} disabled={isGoogleLoading}>
+                                {isGoogleLoading ? "Aguardando..." : <><GoogleIcon /> <span className="ml-2">Criar conta com Google</span></>}
+                            </Button>
+                             <div className="flex items-center my-4">
+                                <Separator className="flex-1" />
+                                <span className="px-4 text-xs text-muted-foreground">OU</span>
+                                <Separator className="flex-1" />
+                            </div>
                             <Form {...signUpForm}>
                                 <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4">
                                      <FormField control={signUpForm.control} name="displayName" render={({ field }) => (
@@ -316,3 +324,5 @@ export default function LoginPage() {
         </div>
     );
 }
+
+    
