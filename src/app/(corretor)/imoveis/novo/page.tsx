@@ -94,8 +94,10 @@ export default function NovoImovelPage() {
     defaultValues: {
       title: "",
       description: "",
-      city: "",
+      city: undefined,
       neighborhood: "",
+      operation: undefined,
+      type: undefined,
       price: 0,
       bedrooms: 0,
       bathrooms: 0,
@@ -103,7 +105,7 @@ export default function NovoImovelPage() {
       rooms: 0,
       builtArea: 0,
       totalArea: 0,
-      ownerContactId: '',
+      ownerContactId: undefined,
       videoUrl: '',
       condoFee: 0,
       yearlyTax: 0
@@ -129,9 +131,9 @@ export default function NovoImovelPage() {
     try {
         const input: GeneratePropertyDescriptionInput = {
             style,
-            type: values.type,
-            operation: values.operation,
-            city: values.city,
+            type: values.type!,
+            operation: values.operation!,
+            city: values.city!,
             neighborhood: values.neighborhood,
             bedrooms: values.bedrooms,
             bathrooms: values.bathrooms,
@@ -219,7 +221,7 @@ export default function NovoImovelPage() {
 
         const ownerContactId = values.ownerContactId === 'none' ? undefined : values.ownerContactId;
 
-        const newProperty = {
+        const newProperty: Omit<Partial<Property>, 'id'> = {
           ...values,
           id: propertyId,
           agentId: user.uid,
@@ -230,6 +232,10 @@ export default function NovoImovelPage() {
           ownerContactId: ownerContactId,
         };
         
+        // Remove undefined fields before saving
+        Object.keys(newProperty).forEach(key => newProperty[key as keyof typeof newProperty] === undefined && delete newProperty[key as keyof typeof newProperty]);
+
+
         const propertyRef = doc(firestore, `agents/${user.uid}/properties`, propertyId);
         await setDoc(propertyRef, newProperty);
         
@@ -247,7 +253,7 @@ export default function NovoImovelPage() {
         router.push('/imoveis');
     } catch (error) {
         console.error("Erro ao criar imóvel:", error);
-        toast({title: "Erro ao criar imóvel", variant: "destructive"});
+        toast({title: "Erro ao criar imóvel", description: (error as Error).message, variant: "destructive"});
     } finally {
         setIsSubmitting(false);
     }

@@ -146,17 +146,19 @@ export default function EditarImovelPage() {
     defaultValues: {
       title: "",
       description: "",
-      city: "",
+      city: undefined,
       neighborhood: "",
       price: 0,
+      operation: undefined,
+      type: undefined,
       bedrooms: 0,
       bathrooms: 0,
       garage: 0,
       rooms: 0,
       builtArea: 0,
       totalArea: 0,
-      ownerContactId: '',
-      tenantContactId: '',
+      ownerContactId: undefined,
+      tenantContactId: undefined,
       portalPublish: {},
       videoUrl: '',
       condoFee: 0,
@@ -172,8 +174,8 @@ export default function EditarImovelPage() {
     if (propertyData) {
       form.reset({
         ...propertyData,
-        ownerContactId: propertyData.ownerContactId || '',
-        tenantContactId: propertyData.tenantContactId || '',
+        ownerContactId: propertyData.ownerContactId || undefined,
+        tenantContactId: propertyData.tenantContactId || undefined,
         portalPublish: propertyData.portalPublish || {},
         videoUrl: propertyData.videoUrl || '',
         condoFee: propertyData.condoFee || 0,
@@ -210,9 +212,9 @@ export default function EditarImovelPage() {
         try {
             const input: GeneratePropertyDescriptionInput = {
                 style,
-                type: values.type,
-                operation: values.operation,
-                city: values.city,
+                type: values.type!,
+                operation: values.operation!,
+                city: values.city!,
                 neighborhood: values.neighborhood,
                 bedrooms: values.bedrooms,
                 bathrooms: values.bathrooms,
@@ -296,7 +298,7 @@ export default function EditarImovelPage() {
         const newTenantContactId = values.tenantContactId === 'none' ? undefined : values.tenantContactId;
         const oldTenantContactId = propertyData?.tenantContactId;
 
-        const updatedProperty = {
+        const updatedProperty: Omit<Partial<Property>, 'id'> = {
           ...propertyData,
           ...values,
           imageUrls: allImageUrls,
@@ -304,7 +306,10 @@ export default function EditarImovelPage() {
           tenantContactId: newTenantContactId,
           portalPublish: portalPublishData,
         };
-    
+
+        // Remove undefined fields before saving
+        Object.keys(updatedProperty).forEach(key => updatedProperty[key as keyof typeof updatedProperty] === undefined && delete updatedProperty[key as keyof typeof updatedProperty]);
+
         await setDoc(propertyRef, updatedProperty, { merge: true });
 
         // Handle owner linking logic
@@ -334,7 +339,7 @@ export default function EditarImovelPage() {
         router.push('/imoveis');
     } catch (error) {
         console.error("Erro ao atualizar imóvel:", error);
-        toast({title: "Erro ao salvar", variant: "destructive"});
+        toast({title: "Erro ao salvar", description: (error as Error).message, variant: "destructive"});
     }
   }
   
