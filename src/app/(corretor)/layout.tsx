@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { usePlan } from '@/context/PlanContext';
 
 export default function CorretorLayout({
   children,
@@ -23,6 +24,7 @@ export default function CorretorLayout({
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const { plan } = usePlan();
 
   const agentRef = useMemoFirebase(
     () => (user && firestore ? doc(firestore, 'agents', user.uid) : null),
@@ -52,8 +54,13 @@ export default function CorretorLayout({
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login');
+    } else if (!isUserLoading && user && agentData) {
+        // Se há sub-usuários, redireciona para a seleção. Se não, vai pro dashboard.
+        if (pathname !== '/selecao-usuario' && agentData.subUsers && agentData.subUsers.length > 0 && !sessionStorage.getItem('subUserId')) {
+             router.replace('/selecao-usuario');
+        }
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading, router, agentData, pathname]);
 
   useEffect(() => {
     if (!agentData) return;
@@ -76,6 +83,7 @@ export default function CorretorLayout({
   }, [agentData]);
 
   const handleLogout = () => {
+    sessionStorage.removeItem('subUserId');
     if(auth) {
       auth.signOut();
       router.push('/login');
@@ -83,19 +91,22 @@ export default function CorretorLayout({
   };
 
   const agentSiteUrl = user ? `/corretor/${user.uid}` : '/';
+  
+  const showUsersMenu = plan && plan !== 'simples';
 
   const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
     { href: '/imoveis', label: 'Meus Imóveis', icon: Briefcase },
     { href: '/inbox', label: 'Caixa de Entrada', icon: Mail, badgeCount: unreadCount },
     { href: '/contatos', label: 'Contatos', icon: Users },
+    showUsersMenu && { href: '/usuarios', label: 'Usuários', icon: User },
     { href: '/integracoes', label: 'Integrações', icon: Rss },
     { href: '/perfil', label: 'Perfil', icon: User },
     { href: '/avaliacoes', label: 'Avaliações', icon: Star, badgeCount: pendingReviewsCount, badgeClass: 'bg-yellow-500 text-black' },
     { href: '/suporte', label: 'Suporte', icon: LifeBuoy },
     { href: '/meu-plano', label: 'Meu Plano', icon: Gem },
     { href: agentSiteUrl, label: 'Meu Site Público', icon: Share2, target: '_blank' },
-  ];
+  ].filter(Boolean);
   
   const adminMenuItems = [
       { href: '/admin/dashboard', label: 'Painel Admin', icon: ShieldCheck },
@@ -137,7 +148,7 @@ export default function CorretorLayout({
         <SidebarContent>
           <SidebarMenu>
             {menuItems.map((item) => (
-              <SidebarMenuItem key={item.href}>
+              item && <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
                   isActive={pathname === item.href}
