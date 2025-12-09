@@ -37,15 +37,18 @@ export function filterProperties(properties: Property[], filters: Filters): Prop
       minPrice, maxPrice, bedrooms, garage, keyword, sectionId, sortBy
     } = filters;
     
-  // Primary keyword search on title, city, neighborhood, description
+  // Keyword search: Treat the keyword input as a set of terms that must ALL be present.
   if (keyword) {
-    const normalizedKeyword = normalizeString(keyword);
-    filtered = filtered.filter(p => 
-        normalizeString(p.title).includes(normalizedKeyword) ||
-        normalizeString(p.city).includes(normalizedKeyword) ||
-        normalizeString(p.neighborhood).includes(normalizedKeyword) ||
-        normalizeString(p.description).includes(normalizedKeyword)
-    );
+    const searchTerms = normalizeString(keyword).split(' ').filter(Boolean); // Split into words and remove empty ones
+    
+    filtered = filtered.filter(p => {
+        // Concatenate all searchable text fields of a property into one string
+        const propertyText = normalizeString(
+            `${p.title} ${p.description} ${p.city} ${p.neighborhood} ${p.type} ${p.operation}`
+        );
+        // Check if all search terms are present in the property's text
+        return searchTerms.every(term => propertyText.includes(term));
+    });
   }
 
   // Apply structured filters with normalization for text fields
@@ -65,6 +68,8 @@ export function filterProperties(properties: Property[], filters: Filters): Prop
       const normalizedOperation = normalizeString(operation);
       filtered = filtered.filter(p => normalizeString(p.operation) === normalizedOperation);
   }
+
+  // Numerical and other filters
   if (minPrice) {
     filtered = filtered.filter(p => p.price >= Number(minPrice));
   }
