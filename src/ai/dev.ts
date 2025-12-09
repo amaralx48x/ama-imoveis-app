@@ -1,3 +1,2 @@
-// Flows will be imported for their side effects in this file.
-import './flows/generate-property-description-flow';
-import './flows/generate-social-card-flow';
+// Arquivo mantido para estrutura, mas intencionalmente vazio.
+// A funcionalidade de IA foi desativada temporariamente.

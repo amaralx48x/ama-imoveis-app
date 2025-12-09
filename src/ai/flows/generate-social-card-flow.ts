@@ -8,8 +8,7 @@
  * - GenerateSocialCardPostOutput - The return type for the function.
  */
 
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 
 const GenerateSocialCardPostInputSchema = z.object({
   description: z.string().describe('The full description of the property.'),
@@ -24,44 +23,7 @@ const GenerateSocialCardPostOutputSchema = z.object({
 export type GenerateSocialCardPostOutput = z.infer<typeof GenerateSocialCardPostOutputSchema>;
 
 
-const generateSocialCardPostFlow = ai.defineFlow(
-  {
-    name: 'generateSocialCardPostFlow',
-    inputSchema: GenerateSocialCardPostInputSchema,
-    outputSchema: GenerateSocialCardPostOutputSchema,
-  },
-  async (input) => {
-    
-    const prompt = `
-        Você é um especialista em marketing de redes sociais para o mercado imobiliário.
-        Sua tarefa é pegar a descrição de um imóvel e transformá-la em uma legenda curta, atraente e eficaz para um post no Instagram ou Facebook.
-
-        Instruções:
-        1. Comece com uma frase de impacto que capture a atenção.
-        2. Destaque 2 ou 3 das características mais importantes do imóvel de forma concisa.
-        3. Inclua o preço de forma clara: "${input.price}" ${input.operation === 'Aluguel' ? '/mês' : ''}.
-        4. Use 3 a 5 hashtags relevantes e populares no final (ex: #imoveis #casapropria #investimentoimobiliario).
-        5. Termine com uma chamada para ação clara, incentivando o contato ou clique no link da bio.
-        6. A legenda inteira deve ser curta e fácil de ler. Não use mais que 4 parágrafos pequenos ou itens de lista.
-
-        Descrição original do imóvel para se basear:
-        ---
-        ${input.description}
-        ---
-
-        Gere apenas o texto da legenda para o campo 'postText' do JSON de saída.
-    `;
-
-    const { text } = await ai.generate({
-        prompt: prompt,
-        model: 'googleai/gemini-2.5-flash',
-    });
-
-    return { postText: text };
-  }
-);
-
-
 export async function generateSocialCardPost(input: GenerateSocialCardPostInput): Promise<GenerateSocialCardPostOutput> {
-  return generateSocialCardPostFlow(input);
+  // Funcionalidade de IA desativada temporariamente.
+  return Promise.reject(new Error("A funcionalidade de geração de post por IA está em construção."));
 }

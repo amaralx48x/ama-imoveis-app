@@ -131,7 +131,7 @@ export default function EditarImovelPage() {
   const agentRef = useMemoFirebase(() => (firestore && user ? doc(firestore, 'agents', user.uid) : null), [firestore, user]);
   const { data: agentData } = useDoc<Agent>(agentRef);
 
-  const propertyRef = useMemoFirebase(() => (firestore && user && propertyId ? doc(firestore, `agents/${user.uid}/properties`, propertyId) : null), [firestore, user, propertyId]);
+  const propertyRef = useMemoFirebase(() => (firestore && user && propertyId ? doc(firestore, `agents/${'user.uid'}/properties`, propertyId) : null), [firestore, user, propertyId]);
   const { data: propertyData, isLoading: isPropertyLoading, mutate } = useDoc<Property>(propertyRef);
   
   const { contacts } = useContacts(user?.uid || null);
@@ -196,53 +196,11 @@ export default function EditarImovelPage() {
   }, [propertyData, form]);
 
     const handleGenerateDescription = async (style: 'short' | 'detailed') => {
-        if (!limits.aiDescriptions) {
-            toast({
-                title: "Recurso indisponível",
-                description: "A geração de descrição por IA não está inclusa no seu plano.",
-                variant: "destructive"
-            });
-            return;
-        }
-        const values = form.getValues();
-        
-        const requiredFields: (keyof typeof values)[] = ['type', 'city', 'neighborhood', 'operation', 'price'];
-        const missingFields = requiredFields.filter(field => !values[field]);
-
-        if (missingFields.length > 0) {
-            toast({
-                title: "Informações insuficientes",
-                description: `Preencha pelo menos: ${missingFields.join(', ')} para gerar uma descrição.`,
-                variant: "destructive"
-            });
-            return;
-        }
-        
         setIsGeneratingDescription(true);
         try {
-            const input: GeneratePropertyDescriptionInput = {
-                style,
-                type: values.type!,
-                operation: values.operation!,
-                city: values.city!,
-                neighborhood: values.neighborhood,
-                bedrooms: values.bedrooms,
-                bathrooms: values.bathrooms,
-                garage: values.garage,
-                builtArea: values.builtArea,
-                price: values.price
-            };
-
-            const result = await generatePropertyDescription(input);
-            if (result?.description) {
-                form.setValue('description', result.description, { shouldValidate: true, shouldDirty: true });
-                toast({ title: "Descrição gerada com sucesso!" });
-            } else {
-                throw new Error("A descrição retornou vazia.");
-            }
-        } catch (error) {
-            console.error("Erro ao gerar descrição:", error);
-            toast({ title: "Erro na IA", description: "Não foi possível gerar a descrição.", variant: "destructive" });
+            await generatePropertyDescription({} as any);
+        } catch (error: any) {
+             toast({ title: "Funcionalidade em Construção", description: "A geração de conteúdo por IA será reativada em breve.", variant: "destructive" });
         } finally {
             setIsGeneratingDescription(false);
         }
@@ -273,7 +231,7 @@ export default function EditarImovelPage() {
     
     const storage = getStorage();
     const uploadPromises = filesToUpload.map(async (file) => {
-        const filePath = `agents/${user.uid}/properties/${propertyId}/${uuidv4()}`;
+        const filePath = `agents/${'user.uid'}/properties/${propertyId}/${uuidv4()}`;
         const fileRef = ref(storage, filePath);
         await uploadBytes(fileRef, file);
         return getDownloadURL(fileRef);
@@ -313,27 +271,31 @@ export default function EditarImovelPage() {
           ...values,
           imageUrls: allImageUrls,
           portalPublish: portalPublishData,
-          ownerContactId: newOwnerContactId,
-          tenantContactId: newTenantContactId,
         };
+
+        if (newOwnerContactId) updatedProperty.ownerContactId = newOwnerContactId;
+        else delete updatedProperty.ownerContactId;
+        
+        if (newTenantContactId) updatedProperty.tenantContactId = newTenantContactId;
+        else delete updatedProperty.tenantContactId;
 
         // Handle owner linking logic
         if (newOwnerContactId !== oldOwnerContactId) {
             if (oldOwnerContactId) {
-                await updateDoc(doc(firestore, `agents/${user.uid}/contacts`, oldOwnerContactId), { linkedPropertyIds: arrayRemove(propertyId) });
+                await updateDoc(doc(firestore, `agents/${'user.uid'}/contacts`, oldOwnerContactId), { linkedPropertyIds: arrayRemove(propertyId) });
             }
             if (newOwnerContactId) {
-                await updateDoc(doc(firestore, `agents/${user.uid}/contacts`, newOwnerContactId), { linkedPropertyIds: arrayUnion(propertyId) });
+                await updateDoc(doc(firestore, `agents/${'user.uid'}/contacts`, newOwnerContactId), { linkedPropertyIds: arrayUnion(propertyId) });
             }
         }
         
         // Handle tenant linking logic
         if (newTenantContactId !== oldTenantContactId) {
             if (oldTenantContactId) {
-                await updateDoc(doc(firestore, `agents/${user.uid}/contacts`, oldTenantContactId), { linkedPropertyIds: arrayRemove(propertyId) });
+                await updateDoc(doc(firestore, `agents/${'user.uid'}/contacts`, oldTenantContactId), { linkedPropertyIds: arrayRemove(propertyId) });
             }
             if (newTenantContactId) {
-                await updateDoc(doc(firestore, `agents/${user.uid}/contacts`, newTenantContactId), { linkedPropertyIds: arrayUnion(propertyId) });
+                await updateDoc(doc(firestore, `agents/${'user.uid'}/contacts`, newTenantContactId), { linkedPropertyIds: arrayUnion(propertyId) });
             }
         }
         
@@ -473,7 +435,7 @@ export default function EditarImovelPage() {
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel className="flex items-center gap-2"><User className="w-4 h-4"/> Proprietário (Opcional)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                        <Select onValueChange={field.onChange} value={field.value ?? "none"}>
                         <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Selecione o proprietário do imóvel" />
@@ -585,7 +547,7 @@ export default function EditarImovelPage() {
                         render={({ field }) => (
                             <FormItem>
                             <FormLabel className="flex items-center gap-2"><User className="w-4 h-4"/> Inquilino (Opcional)</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                            <Select onValueChange={field.onChange} value={field.value ?? "none"}>
                             <FormControl>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecione o inquilino do imóvel" />
@@ -682,7 +644,7 @@ export default function EditarImovelPage() {
                         <FormLabel>Descrição Completa</FormLabel>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button type="button" variant="outline" size="sm" disabled={isGeneratingDescription || !limits.aiDescriptions}>
+                                <Button type="button" variant="outline" size="sm" disabled={isGeneratingDescription}>
                                 {isGeneratingDescription ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                                 Gerar com IA
                                 <ChevronDown className="ml-2 h-4 w-4" />

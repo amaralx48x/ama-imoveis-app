@@ -53,8 +53,8 @@ const formSchema = z.object({
   description: z.string().min(20, "A descrição deve ter pelo menos 20 caracteres."),
   city: z.string().min(1, "A cidade é obrigatória."),
   neighborhood: z.string().min(2, "O bairro deve ter pelo menos 2 caracteres."),
-  type: z.enum(propertyTypes as [string, ...string[]]),
-  operation: z.enum(operationTypes as [string, ...string[]]),
+  type: z.enum(propertyTypes as [string, ...string[]], { required_error: "Selecione um tipo."}),
+  operation: z.enum(operationTypes as [string, ...string[]], { required_error: "Selecione uma operação."}),
   price: z.coerce.number().positive("O preço deve ser um número positivo."),
   condoFee: z.coerce.number().min(0).optional(),
   yearlyTax: z.coerce.number().min(0).optional(),
@@ -113,53 +113,11 @@ export default function NovoImovelPage() {
   });
 
   const handleGenerateDescription = async (style: 'short' | 'detailed') => {
-    if (!limits.aiDescriptions) {
-        toast({
-            title: "Recurso indisponível",
-            description: "A geração de descrição por IA não está inclusa no seu plano.",
-            variant: "destructive"
-        });
-        return;
-    }
-    const values = form.getValues();
-    
-    const requiredFields: (keyof typeof values)[] = ['type', 'city', 'neighborhood', 'operation', 'price'];
-    const missingFields = requiredFields.filter(field => !values[field]);
-
-    if (missingFields.length > 0) {
-        toast({
-            title: "Informações insuficientes",
-            description: `Preencha pelo menos: ${missingFields.join(', ')} para gerar uma descrição.`,
-            variant: "destructive"
-        });
-        return;
-    }
-    
     setIsGeneratingDescription(true);
     try {
-        const input: GeneratePropertyDescriptionInput = {
-            style,
-            type: values.type!,
-            operation: values.operation!,
-            city: values.city!,
-            neighborhood: values.neighborhood,
-            bedrooms: values.bedrooms,
-            bathrooms: values.bathrooms,
-            garage: values.garage,
-            builtArea: values.builtArea,
-            price: values.price
-        };
-
-        const result = await generatePropertyDescription(input);
-        if (result?.description) {
-            form.setValue('description', result.description, { shouldValidate: true, shouldDirty: true });
-            toast({ title: "Descrição gerada com sucesso!" });
-        } else {
-            throw new Error("A descrição retornou vazia.");
-        }
-    } catch (error) {
-        console.error("Erro ao gerar descrição:", error);
-        toast({ title: "Erro na IA", description: "Não foi possível gerar a descrição.", variant: "destructive" });
+        await generatePropertyDescription({} as any); // Stubbed call
+    } catch (error: any) {
+        toast({ title: "Funcionalidade em Construção", description: "A geração de conteúdo por IA será reativada em breve.", variant: "destructive" });
     } finally {
         setIsGeneratingDescription(false);
     }
@@ -226,10 +184,9 @@ export default function NovoImovelPage() {
 
     try {
         const uploadedImageUrls = await uploadImages();
-
         const ownerContactId = values.ownerContactId === 'none' ? undefined : values.ownerContactId;
 
-        const newPropertyData = {
+        const newPropertyData: Partial<Property> = {
           ...values,
           id: propertyId,
           agentId: user.uid,
@@ -241,9 +198,9 @@ export default function NovoImovelPage() {
         
         // Remove undefined ownerContactId before saving
         if (ownerContactId) {
-            (newPropertyData as Partial<Property>).ownerContactId = ownerContactId;
+            newPropertyData.ownerContactId = ownerContactId;
         } else {
-            delete (newPropertyData as Partial<Property>).ownerContactId;
+            delete newPropertyData.ownerContactId;
         }
 
         const propertyRef = doc(firestore, `agents/${user.uid}/properties`, propertyId);
@@ -422,7 +379,7 @@ export default function NovoImovelPage() {
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel className="flex items-center gap-2"><User className="w-4 h-4"/> Proprietário (Opcional)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value ?? "none"}>
                         <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Selecione o proprietário do imóvel" />
@@ -511,7 +468,7 @@ export default function NovoImovelPage() {
                         <FormLabel>Descrição Completa</FormLabel>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button type="button" variant="outline" size="sm" disabled={isGeneratingDescription || !limits.aiDescriptions}>
+                                <Button type="button" variant="outline" size="sm" disabled={isGeneratingDescription}>
                                 {isGeneratingDescription ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                                 Gerar com IA
                                 <ChevronDown className="ml-2 h-4 w-4" />

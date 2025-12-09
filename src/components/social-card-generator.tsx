@@ -27,25 +27,11 @@ export function SocialCardGeneratorDialog({ isOpen, onOpenChange, property, agen
     setIsLoading(true);
     setGeneratedPostText(null);
     try {
-        const input = {
-            description: property.description,
-            price: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(property.price),
-            operation: property.operation,
-        };
-
-      const result = await generateSocialCardPost(input);
-      
-      if (result?.postText) {
-        setGeneratedPostText(result.postText);
-        toast({ title: 'Texto do post gerado com sucesso!' });
-      } else {
-        throw new Error('A IA não retornou um texto.');
-      }
+      await generateSocialCardPost({} as any);
     } catch (error: any) {
-      console.error('Erro ao gerar texto do post:', error);
       toast({
-        title: 'Erro ao Gerar Texto',
-        description: error.message || 'Não foi possível se comunicar com a IA.',
+        title: 'Funcionalidade em Construção',
+        description: "A geração de post por IA será reativada em breve.",
         variant: 'destructive',
       });
     } finally {
