@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import type { Agent, SubUser } from '@/lib/data';
@@ -194,15 +194,7 @@ export default function SelecaoUsuarioPage() {
                             onKeyDown={(e) => e.key === 'Enter' && handlePinConfirm()}
                         />
                     </div>
-                    <DialogFooter className="justify-between">
-                        <div>
-                             {selectedUser?.id === agentData?.id && (
-                                <Button variant="link" onClick={handleForgotPin} disabled={isSendingPin}>
-                                    {isSendingPin ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Mail className="mr-2 h-4 w-4"/>}
-                                    Esqueci meu PIN
-                                </Button>
-                            )}
-                        </div>
+                    <DialogFooter className="justify-end">
                         <div className="flex gap-2">
                              <Button variant="outline" onClick={() => setPinDialogOpen(false)}>Cancelar</Button>
                             <Button onClick={handlePinConfirm}>Confirmar</Button>
