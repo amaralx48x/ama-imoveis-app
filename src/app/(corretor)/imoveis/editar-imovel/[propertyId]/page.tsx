@@ -266,11 +266,17 @@ export default function EditarImovelPage() {
         const newTenantContactId = values.tenantContactId === 'none' ? null : values.tenantContactId;
         const oldTenantContactId = propertyData?.tenantContactId;
 
+        const rentalDetailsToSave = {
+            startDate: values.rentalDetails?.startDate || null,
+            endDate: values.rentalDetails?.endDate || null,
+        };
+
         const updatedProperty: Omit<Partial<Property>, 'id'> = {
           ...propertyData,
           ...values,
           imageUrls: allImageUrls,
           portalPublish: portalPublishData,
+          rentalDetails: rentalDetailsToSave,
         };
 
         if (newOwnerContactId) updatedProperty.ownerContactId = newOwnerContactId;
