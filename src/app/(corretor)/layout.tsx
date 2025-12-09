@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { usePlan } from '@/context/PlanContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function CorretorLayout({
   children,
@@ -87,22 +88,21 @@ export default function CorretorLayout({
 
 
   useEffect(() => {
-    if (!agentData) return;
-
-    // Theme logic
-    const theme = agentData.siteSettings?.theme || 'dark';
+    // Set the theme from localStorage on initial client load
+    const savedTheme = localStorage.getItem('theme') || agentData?.siteSettings?.theme || 'dark';
     document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(theme);
+    document.documentElement.classList.add(savedTheme);
 
     // Favicon logic
-    const faviconUrl = agentData.siteSettings?.faviconUrl;
-    let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
-    if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        document.head.appendChild(link);
+    if (agentData?.siteSettings?.faviconUrl) {
+      let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
+      if (!link) {
+          link = document.createElement('link');
+          link.rel = 'icon';
+          document.head.appendChild(link);
+      }
+      link.href = agentData.siteSettings.faviconUrl;
     }
-    link.href = faviconUrl || '/favicon.ico'; // Fallback to a default favicon
 
   }, [agentData]);
 
@@ -322,8 +322,8 @@ export default function CorretorLayout({
       </Sidebar>
       <SidebarInset>
         <header className="flex items-center justify-between p-4 border-b">
-            <SidebarTrigger />
-            {/* User menu can go here */}
+          <SidebarTrigger />
+          <ThemeToggle />
         </header>
         <main className="p-4 md:p-6 lg:p-8">
             {children}
