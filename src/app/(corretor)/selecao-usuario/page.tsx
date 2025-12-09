@@ -44,6 +44,7 @@ export default function SelecaoUsuarioPage() {
     const [selectedUser, setSelectedUser] = useState<any>(null);
     const [pin, setPin] = useState('');
     const [pinDialogOpen, setPinDialogOpen] = useState(false);
+    const [isSendingPin, setIsSendingPin] = useState(false);
     const [deviceId] = useState(() => {
         if (typeof window === 'undefined') return '';
         let id = sessionStorage.getItem('deviceId');
@@ -62,9 +63,8 @@ export default function SelecaoUsuarioPage() {
     const { data: agentData, isLoading: isAgentLoading } = useDoc<Agent>(agentRef);
 
     useEffect(() => {
-        // Redireciona se não houver sub-usuários, pois esta página não seria necessária.
         if (!isAgentLoading && agentData && (!agentData.subUsers || agentData.subUsers.length === 0)) {
-            sessionStorage.setItem('subUserId', agentData.id); // Define a sessão para o usuário principal
+            sessionStorage.setItem('subUserId', agentData.id);
             router.replace('/dashboard');
         }
     }, [agentData, isAgentLoading, router]);
@@ -74,19 +74,34 @@ export default function SelecaoUsuarioPage() {
         setPinDialogOpen(true);
     };
 
-    const handleForgotPin = () => {
-        // Simula o envio do email. A implementação real dependeria de um serviço de backend/API.
-        if (agentData?.email) {
+    const handleForgotPin = async () => {
+        if (!agentData?.id) return;
+        setIsSendingPin(true);
+        try {
+            const response = await fetch('/api/forgot-pin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ agentId: agentData.id }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Falha ao enviar o lembrete de PIN.');
+            }
+            
             toast({
                 title: "Lembrete Enviado!",
-                description: `Um lembrete do seu PIN foi enviado para ${agentData.email}.`,
+                description: result.message,
             });
-        } else {
+        } catch (error: any) {
             toast({
-                title: "E-mail não encontrado",
-                description: "Não foi possível encontrar um e-mail de cadastro para enviar o lembrete.",
+                title: "Erro",
+                description: error.message,
                 variant: "destructive",
             });
+        } finally {
+            setIsSendingPin(false);
         }
     };
 
@@ -94,11 +109,10 @@ export default function SelecaoUsuarioPage() {
         if (!selectedUser || !agentRef || !agentData) return;
         
         let isValid = false;
-        if (selectedUser.id === agentData.id) { // Usuário Principal
-            // Use o PIN do agente ou o padrão '0000' se não estiver definido
+        if (selectedUser.id === agentData.id) {
             const agentPin = agentData.pin || '0000';
             isValid = agentPin === pin;
-        } else { // Sub-usuário
+        } else {
             isValid = selectedUser.pin === pin;
         }
 
@@ -106,7 +120,6 @@ export default function SelecaoUsuarioPage() {
             sessionStorage.setItem('subUserId', selectedUser.id);
             sessionStorage.setItem('deviceId', deviceId);
 
-            // Registrar sessão no Firestore
             try {
                 const newSession = { subUserId: selectedUser.id, deviceId, lastSeen: serverTimestamp() };
                 const existingSessions = agentData?.sessions || [];
@@ -184,8 +197,9 @@ export default function SelecaoUsuarioPage() {
                     <DialogFooter className="justify-between">
                         <div>
                              {selectedUser?.id === agentData?.id && (
-                                <Button variant="link" onClick={handleForgotPin}>
-                                    <Mail className="mr-2 h-4 w-4"/> Esqueci meu PIN
+                                <Button variant="link" onClick={handleForgotPin} disabled={isSendingPin}>
+                                    {isSendingPin ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Mail className="mr-2 h-4 w-4"/>}
+                                    Esqueci meu PIN
                                 </Button>
                             )}
                         </div>
