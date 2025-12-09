@@ -143,7 +143,6 @@ export default function CorretorLayout({
 
   const pageSettingsItems = [
       { href: '/configuracoes/aparencia', label: 'Aparência', icon: Palette, permission: (level: any) => level === 'owner' || level === '3' },
-      { href: '/configuracoes/aparencia/marcadagua', label: 'Marca d\'água', icon: Droplet, permission: (level: any) => level === 'owner' || level === '3' },
       { href: '/configuracoes/links', label: 'Links e Exibição', icon: LinkIcon, permission: (level: any) => level === 'owner' || level === '3' },
       { href: '/configuracoes/secoes', label: 'Gerenciar Seções', icon: Folder, permission: () => true },
   ];

@@ -88,15 +88,15 @@ function WatermarkManager({ agent, onUpdate }: { agent: Agent, onUpdate: () => v
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Droplet/> Marca d'água</CardTitle>
-                <CardDescription>Gerencie a imagem de marca d'água que será sobreposta nas suas fotos.</CardDescription>
+                <CardTitle className="flex items-center gap-2"><Droplet/> Gerenciar Marca d'água</CardTitle>
+                <CardDescription>Ative e envie a imagem de marca d'água que será sobreposta em suas fotos.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                  <div className="flex items-center justify-between rounded-lg border p-4">
                     <div className="space-y-1">
                         <Label htmlFor="watermark-switch" className="text-base font-medium">Habilitar Marca d'água</Label>
                         <p className="text-sm text-muted-foreground">
-                            Quando habilitado, a imagem abaixo será aplicada em suas fotos no site público.
+                            Quando habilitado, sua marca d'água será aplicada em suas fotos no site público.
                         </p>
                     </div>
                     <Switch
@@ -227,6 +227,7 @@ export default function ImoveisPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [needsRefetch, setNeedsRefetch] = useState(false);
     const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+    const [isWatermarkModalOpen, setIsWatermarkModalOpen] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Record<string, boolean>>({});
 
     const propertiesQuery = useMemoFirebase(() => {
@@ -342,6 +343,18 @@ export default function ImoveisPage() {
                     <p className="text-muted-foreground">Gerencie seu portfólio de imóveis.</p>
                 </div>
                  <div className="flex gap-2">
+                     <Dialog open={isWatermarkModalOpen} onOpenChange={setIsWatermarkModalOpen}>
+                        <DialogTrigger asChild>
+                           <Button variant="outline">
+                                <Droplet className="mr-2 h-4 w-4" />
+                                Gerenciar Marca d'água
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            {agentData && <WatermarkManager agent={agentData} onUpdate={mutateAgent} />}
+                        </DialogContent>
+                    </Dialog>
+
                     <Button variant="outline" onClick={handleImportClick}>
                         <Upload className="mr-2 h-4 w-4" />
                         Importar
@@ -393,8 +406,6 @@ export default function ImoveisPage() {
                 </div>
             </div>
             
-            {agentData && <WatermarkManager agent={agentData} onUpdate={mutateAgent} />}
-
              <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
