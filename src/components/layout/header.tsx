@@ -22,7 +22,9 @@ export function Header({ agentName, agentId, agent }: HeaderProps) {
   const logoUrl = agent?.siteSettings?.logoUrl;
   const [isProprietarioFormOpen, setIsProprietarioFormOpen] = useState(false);
   
-  const agentBaseUrl = agentId ? `/corretor/${agentId}` : '#';
+  // Se houver um agentId, a URL base é a página do corretor.
+  // Caso contrário, a URL base é a página de marketing principal.
+  const agentBaseUrl = agentId ? `/corretor/${agentId}` : '/';
 
   
   const navItems = [
