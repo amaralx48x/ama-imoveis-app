@@ -108,7 +108,7 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
 
     const defaultImage = `https://picsum.photos/seed/${property.id}/1280/720`;
     
-    const images = property.imageUrls && property.imageUrls.length > 0 && property.imageUrls.every(isValidUrl)
+    const images = property.imageUrls && property.imageUrls.length > 0 && property.imageUrls.every(isValidUrl) 
         ? property.imageUrls 
         : [defaultImage];
 
@@ -133,7 +133,6 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
             <div className="lg:col-span-2 space-y-8">
                 <Card>
                     <CardHeader className="p-0">
-                         {/* Fullscreen Dialog */}
                         <Dialog open={isFullscreenOpen} onOpenChange={setIsFullscreenOpen}>
                             <DialogTrigger asChild>
                                 <div className="relative cursor-pointer group">
@@ -169,15 +168,16 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                                     <DialogDescription className="sr-only">Navegue pelas imagens do imóvel em tela cheia.</DialogDescription>
                                 </DialogHeader>
                                 <Carousel className="w-full h-full" opts={{startIndex: selectedIndex}}>
-                                    <CarouselContent>
+                                    <CarouselContent className="h-full">
                                         {images.map((imageUrl, index) => (
                                             <CarouselItem key={index} className="flex items-center justify-center">
-                                                <div className="relative w-full h-full max-w-full max-h-full">
+                                                <div className="relative w-full h-full">
                                                     <Image
                                                         src={imageUrl}
                                                         alt={`${property.title} - Imagem ${index + 1}`}
                                                         fill
                                                         className="object-contain"
+                                                        sizes="90vw"
                                                     />
                                                 </div>
                                             </CarouselItem>
@@ -189,7 +189,6 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                             </DialogContent>
                         </Dialog>
                        
-                        {/* Thumbnail Carousel */}
                         {images.length > 1 && (
                             <div className="p-4">
                                 <Carousel setApi={setThumbApi} opts={{ align: "start", slidesToScroll: 1, dragFree: true }} className="w-full">
