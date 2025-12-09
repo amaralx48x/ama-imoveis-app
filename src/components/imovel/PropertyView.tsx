@@ -163,7 +163,7 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                                     </div>
                                 </div>
                             </DialogTrigger>
-                             <DialogContent className="max-w-[90vw] max-h-[90vh] h-full w-full bg-background/80 backdrop-blur-sm border-none p-2">
+                             <DialogContent className="max-w-[90vw] max-h-[90vh] h-full w-full bg-transparent border-none p-2">
                                 <Carousel className="w-full h-full" opts={{startIndex: selectedIndex}}>
                                     <CarouselContent>
                                         {images.map((imageUrl, index) => (
