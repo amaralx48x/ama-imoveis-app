@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import type { Agent, SubUser } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, UserCheck } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -75,12 +75,13 @@ export default function SelecaoUsuarioPage() {
     };
 
     const handlePinConfirm = async () => {
-        if (!selectedUser || !agentRef) return;
+        if (!selectedUser || !agentRef || !agentData) return;
         
         let isValid = false;
-        if (selectedUser.id === agentData?.id) { // Usuário Principal
-            isValid = true; // Dono da conta não precisa de PIN, mas vamos simular por consistência
-            // Em um cenário real, você poderia pular a verificação de PIN para o dono.
+        if (selectedUser.id === agentData.id) { // Usuário Principal
+            // Use o PIN do agente ou o padrão '0000' se não estiver definido
+            const agentPin = agentData.pin || '0000';
+            isValid = agentPin === pin;
         } else { // Sub-usuário
             isValid = selectedUser.pin === pin;
         }
@@ -173,4 +174,3 @@ export default function SelecaoUsuarioPage() {
         </div>
     );
 }
-

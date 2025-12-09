@@ -68,6 +68,7 @@ export const saveUserToFirestore = async (user: User, additionalData?: Additiona
       id: user.uid,
       displayName: additionalData?.displayName || user.displayName || 'Corretor sem nome',
       name: additionalData?.name || user.displayName || 'Imóveis',
+      pin: '0000', // Default PIN for main user
       accountType: additionalData?.accountType || 'corretor',
       description: "Edite sua descrição na seção Perfil do seu painel.",
       email: user.email,
