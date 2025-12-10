@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -18,7 +19,8 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, saveUserToFirestore, sendPasswordResetEmail } from '@/firebase';
+import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, saveUserToFirestore, sendPasswordResetEmail } from '@/firebase';
+import { useUser } from '@/firebase/provider';
 import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -134,7 +136,7 @@ export default function LoginPage() {
 
 
     useEffect(() => {
-        if (isUserLoading) return; // ainda carregando
+        if (isUserLoading) return; 
 
         if (user) {
             router.replace('/selecao-usuario');
@@ -188,7 +190,6 @@ export default function LoginPage() {
         setIsLoading(true);
         try {
             await signInWithEmailAndPassword(auth, values.email, values.password);
-            // O useEffect cuidará do redirecionamento
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {
@@ -207,7 +208,6 @@ export default function LoginPage() {
                 name: values.siteName,
                 accountType: values.accountType,
             });
-            // O useEffect cuidará do redirecionamento
         } catch (error) {
             handleAuthError(error as FirebaseError);
         } finally {

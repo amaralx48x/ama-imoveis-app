@@ -4,6 +4,8 @@ import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firesto
 import { NextResponse } from 'next/server';
 import type { Property } from '@/lib/data';
 
+export const dynamic = 'force-dynamic';
+
 function escapeXml(unsafe: string): string {
     if (typeof unsafe !== 'string' || !unsafe) return '';
     return unsafe.replace(/[<>&'"]/g, (c) => {
@@ -92,5 +94,3 @@ export async function GET(request: Request) {
         return new NextResponse("Erro interno ao gerar feed XML", { status: 500 });
     }
 }
-
-    
