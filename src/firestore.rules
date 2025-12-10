@@ -23,10 +23,13 @@ service cloud.firestore {
     // Coleção de Agentes/Imobiliárias
     // =========================
     match /agents/{agentId} {
-      // Qualquer um pode ler os dados públicos de um agente (para a página pública).
+      // QUALQUER UM pode ler os dados de um agente específico.
+      // Isso é necessário para as páginas públicas dos corretores.
       allow get: if true;
-      // Apenas admins podem listar todos os agentes.
+
+      // Apenas admins podem LISTAR todos os agentes.
       allow list: if isAdmin();
+      
       // O próprio agente ou um admin podem escrever/atualizar seu perfil.
       allow write: if isOwner(agentId) || isAdmin();
 

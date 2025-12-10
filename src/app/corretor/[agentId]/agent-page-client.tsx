@@ -49,7 +49,9 @@ export default function AgentPageClient({
     setSearchResults(null);
   }
 
-  if (!agent) {
+  // Se o agente não for encontrado ou o site estiver inativo (exceto para o dono logado), mostra 404
+  if (!agent || (agent.siteSettings?.siteStatus === false)) {
+    // Adicionar uma lógica futura para permitir que o dono do site veja a página mesmo offline
     return notFound();
   }
 
