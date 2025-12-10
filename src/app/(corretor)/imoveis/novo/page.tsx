@@ -369,10 +369,7 @@ export default function NovoImovelPage() {
                                 <SelectTrigger><SelectValue placeholder="Selecione a cidade de atuação" /></SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                {agentData?.cities?.length ? 
-                                    agentData.cities.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>) :
-                                    <SelectItem value="none" disabled>Adicione cidades no seu perfil</SelectItem>
-                                }
+                                {(agentData?.cities || []).filter(city => city).map(city => <SelectItem key={city} value={city}>{city}</SelectItem>)}
                             </SelectContent>
                             </Select>
                             <FormMessage />
