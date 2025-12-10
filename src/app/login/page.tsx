@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -20,10 +19,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, saveUserToFirestore } from '@/firebase';
+import { sendPasswordResetEmail } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um email válido." }),
@@ -43,6 +45,78 @@ const signUpSchema = z.object({
 });
 
 
+function ForgotPasswordDialog() {
+    const { toast } = useToast();
+    const auth = useAuth();
+    const [email, setEmail] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [open, setOpen] = useState(false);
+
+    const handlePasswordReset = async () => {
+        if (!auth || !email) {
+            toast({ title: "Por favor, insira seu e-mail.", variant: "destructive"});
+            return;
+        }
+        setIsLoading(true);
+        try {
+            await sendPasswordResetEmail(auth, email);
+            toast({
+                title: "Link Enviado!",
+                description: "Se seu e-mail estiver cadastrado, você receberá um link para redefinir sua senha.",
+            });
+            setOpen(false);
+            setEmail('');
+        } catch (error) {
+            console.error("Password reset error:", error);
+            toast({
+                title: "Erro ao enviar e-mail",
+                description: "Não foi possível processar sua solicitação. Verifique o e-mail digitado.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button variant="link" type="button" className="p-0 h-auto text-xs">Esqueci minha senha</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Redefinir Senha</DialogTitle>
+                    <DialogDescription>
+                        Digite seu e-mail de cadastro. Enviaremos um link para você criar uma nova senha.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="email-reset" className="text-right">
+                            Email
+                        </Label>
+                        <Input
+                            id="email-reset"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="col-span-3"
+                            placeholder="seu.email@exemplo.com"
+                        />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+                    <Button onClick={handlePasswordReset} disabled={isLoading}>
+                         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Enviar Link
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+
 export default function LoginPage() {
     const { toast } = useToast();
     const auth = useAuth();
@@ -55,7 +129,7 @@ export default function LoginPage() {
         if (isUserLoading) return; // ainda carregando
 
         if (user) {
-            router.replace('/selecao-usuario'); // ou dashboard
+            router.replace('/selecao-usuario');
         }
     }, [user, isUserLoading, router]);
 
@@ -175,7 +249,7 @@ export default function LoginPage() {
                                         <FormItem>
                                             <div className="flex justify-between items-center">
                                                 <FormLabel>Senha</FormLabel>
-                                                <Button variant="link" type="button" className="p-0 h-auto text-xs">Esqueci minha senha</Button>
+                                                <ForgotPasswordDialog />
                                             </div>
                                             <FormControl><Input type="password" placeholder="********" {...field} /></FormControl><FormMessage /></FormItem>
                                     )} />

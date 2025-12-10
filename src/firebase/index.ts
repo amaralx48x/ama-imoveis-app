@@ -1,4 +1,3 @@
-
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
@@ -8,6 +7,7 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signInAnonymously, 
+  sendPasswordResetEmail,
   User 
 } from 'firebase/auth';
 import { 
@@ -34,7 +34,6 @@ export function initializeFirebase() {
   const firestore = getFirestore(firebaseApp);
   const storage = getStorage(firebaseApp); 
 
-  // GoogleAuthProvider foi removido
   return {
     firebaseApp,
     auth,
@@ -94,9 +93,10 @@ export * from './firestore/use-doc';
 export * from './errors';
 export * from './error-emitter';
 
-// Re-exporting auth functions (sem as funções de login com Google)
+// Re-exporting auth functions
 export { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
-  signInAnonymously, 
+  signInAnonymously,
+  sendPasswordResetEmail,
 };
