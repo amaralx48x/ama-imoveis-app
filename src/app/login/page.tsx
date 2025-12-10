@@ -19,7 +19,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, useUser, saveUserToFirestore } from '@/firebase';
-import { sendPasswordResetEmail } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -47,30 +46,41 @@ const signUpSchema = z.object({
 
 function ForgotPasswordDialog() {
     const { toast } = useToast();
-    const auth = useAuth();
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [open, setOpen] = useState(false);
 
     const handlePasswordReset = async () => {
-        if (!auth || !email) {
+        if (!email) {
             toast({ title: "Por favor, insira seu e-mail.", variant: "destructive"});
             return;
         }
         setIsLoading(true);
         try {
-            await sendPasswordResetEmail(auth, email);
+            // A chamada agora é para a nossa API interna
+            const response = await fetch('/api/forgot-pin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }), // Assumindo que a API pode encontrar o agentId pelo email
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Falha ao enviar o lembrete de PIN.');
+            }
+
             toast({
-                title: "Link Enviado!",
-                description: "Se seu e-mail estiver cadastrado, você receberá um link para redefinir sua senha.",
+                title: "Lembrete Enviado!",
+                description: result.message,
             });
             setOpen(false);
             setEmail('');
-        } catch (error) {
+        } catch (error: any) {
             console.error("Password reset error:", error);
             toast({
                 title: "Erro ao enviar e-mail",
-                description: "Não foi possível processar sua solicitação. Verifique o e-mail digitado.",
+                description: error.message || "Não foi possível processar sua solicitação. Verifique o e-mail digitado.",
                 variant: "destructive",
             });
         } finally {
@@ -85,9 +95,9 @@ function ForgotPasswordDialog() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Redefinir Senha</DialogTitle>
+                    <DialogTitle>Lembrar PIN de Acesso</DialogTitle>
                     <DialogDescription>
-                        Digite seu e-mail de cadastro. Enviaremos um link para você criar uma nova senha.
+                        Digite seu e-mail de cadastro. Enviaremos um lembrete do seu PIN de 4 dígitos.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -108,7 +118,7 @@ function ForgotPasswordDialog() {
                     <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
                     <Button onClick={handlePasswordReset} disabled={isLoading}>
                          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Enviar Link
+                        Enviar Lembrete
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -309,3 +319,5 @@ export default function LoginPage() {
         </div>
     );
 }
+
+    
