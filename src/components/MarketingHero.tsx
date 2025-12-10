@@ -70,7 +70,7 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
         >
           <motion.h1 variants={fadeUpItem} className="text-3xl md:text-5xl font-extrabold leading-tight">
             A plataforma completa para{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-indigo-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2]">
               corretores e imobiliárias
             </span>
           </motion.h1>
@@ -82,7 +82,7 @@ export default function MarketingHero({ content, maxWidthClass = 'max-w-3xl' }: 
           <motion.div variants={fadeUpItem} className="mt-8 flex gap-3 justify-center md:justify-start flex-wrap">
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-semibold shadow-lg"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] text-white font-semibold shadow-lg hover:opacity-90 transition-opacity"
             >
               Iniciar 7 dias grátis
             </Link>

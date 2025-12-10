@@ -308,7 +308,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
                         Um click diz mais que mil palavras
                     </motion.h3>
                     <motion.div variants={fadeUpItem} className="mt-4">
-                        <a href="https://amaimobi.com.br/corretor/exemplo" className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white text-lg shadow-lg hover:scale-105 transition-transform`}>
+                        <a href="https://amaimobi.com.br/corretor/exemplo" className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] text-white text-lg shadow-lg hover:scale-105 transition-transform`}>
                             Clique aqui <ArrowRight className="w-5 h-5" />
                         </a>
                     </motion.div>
@@ -468,7 +468,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
                                 </ul>
                             </div>
                             <div className="mt-8">
-                                <Link href="/login" className="inline-flex items-center justify-center w-full bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-4 py-3 rounded-md font-semibold hover:opacity-90 transition-opacity">
+                                <Link href="/login" className="inline-flex items-center justify-center w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] text-white px-4 py-3 rounded-md font-semibold hover:opacity-90 transition-opacity">
                                     TESTE GRÁTIS
                                 </Link>
                             </div>
@@ -483,7 +483,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
                 <h3 className="text-2xl font-bold">Teste AMA Imobi por 7 dias — grátis</h3>
                 <p className="mt-2 text-foreground/70">Sem cartão no teste — experimente e veja o impacto nas suas vendas.</p>
                 <div className="mt-6 flex justify-center gap-4">
-                  <Link href="/login" className={`inline-flex bg-gradient-to-r from-primary via-accent to-[#B794F4] text-white px-6 py-3 rounded-lg font-semibold`}>Começar 7 dias grátis</Link>
+                  <Link href="/login" className={`inline-flex bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] text-white px-6 py-3 rounded-lg font-semibold`}>Começar 7 dias grátis</Link>
                   <a href="#plans" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-border/10">Ver planos</a>
                 </div>
               </div>
