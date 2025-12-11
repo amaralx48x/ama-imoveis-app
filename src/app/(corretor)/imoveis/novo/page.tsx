@@ -43,6 +43,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { generatePropertyDescription } from '@/ai/flows/generate-property-description-flow';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { BackToDashboardButton } from "@/components/back-to-dashboard-button";
 
 const propertyTypes = ["Apartamento", "Casa", "Chácara", "Galpão", "Sala", "Kitnet", "Terreno", "Lote", "Alto Padrão"];
 const operationTypes = ["Venda", "Aluguel"];
@@ -259,12 +260,7 @@ export default function NovoImovelPage() {
   if (!canAddNewProperty()) {
     return (
       <div className="space-y-4 max-w-2xl mx-auto">
-        <Button variant="outline" asChild>
-            <Link href="/imoveis">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Voltar para Meus Imóveis
-            </Link>
-        </Button>
+        <BackToDashboardButton />
         <Alert variant="destructive" className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30 text-foreground">
             <Gem className="h-4 w-4 text-primary" />
             <AlertTitle className="text-xl text-primary font-bold">Limite de Imóveis Atingido!</AlertTitle>
@@ -282,12 +278,7 @@ export default function NovoImovelPage() {
 
   return (
     <div className="space-y-4">
-        <Button variant="outline" asChild>
-            <Link href="/imoveis">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Voltar para Meus Imóveis
-            </Link>
-        </Button>
+        <BackToDashboardButton />
         <Card className="max-w-4xl mx-auto">
         <CardHeader>
             <div className="flex justify-between items-center">

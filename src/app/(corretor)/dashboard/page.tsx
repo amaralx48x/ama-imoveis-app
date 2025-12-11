@@ -45,9 +45,9 @@ function formatCurrency(value: number): string {
 }
 
 const allShortcuts = [
-    { id: 'add-property', href: '/imoveis/novo', icon: PlusCircle, title: 'Adicionar Imóvel', description: 'Cadastre um novo imóvel no seu portfólio.', permission: true },
-    { id: 'view-leads', href: '/inbox', icon: Mail, title: 'Ver Leads', description: 'Acesse sua caixa de entrada de novos contatos.', permission: true },
-    { id: 'add-contact', href: '/contatos', icon: Users, title: 'Adicionar Contato', description: 'Gerencie sua agenda de clientes e proprietários.', permission: true },
+    { id: 'add-property', href: '/imoveis/novo?from=dashboard', icon: PlusCircle, title: 'Adicionar Imóvel', description: 'Cadastre um novo imóvel no seu portfólio.', permission: true },
+    { id: 'view-leads', href: '/inbox?from=dashboard', icon: Mail, title: 'Ver Leads', description: 'Acesse sua caixa de entrada de novos contatos.', permission: true },
+    { id: 'add-contact', href: '/contatos?from=dashboard', icon: Users, title: 'Adicionar Contato', description: 'Gerencie sua agenda de clientes e proprietários.', permission: true },
     { id: 'customize-site', href: '/configuracoes/aparencia', icon: Palette, title: 'Personalizar Site', description: 'Altere o tema e a aparência da sua página pública.', permission: (level: any) => level === 'owner' || level === '3' },
     { id: 'manage-reviews', href: '/avaliacoes', icon: Star, title: 'Gerenciar Avaliações', description: 'Aprove ou remova avaliações de clientes.', permission: true },
     { id: 'manage-properties', href: '/imoveis', icon: Briefcase, title: 'Ver Meus Imóveis', description: 'Visualize e edite seu portfólio de imóveis.', permission: true },

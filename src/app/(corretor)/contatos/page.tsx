@@ -13,6 +13,7 @@ import type { Contact } from "@/lib/data";
 import { InfoCard } from '@/components/info-card';
 import { Skeleton } from "@/components/ui/skeleton";
 import { ContactDetailModal } from "@/components/contacts/ContactDetailModal";
+import { BackToDashboardButton } from "@/components/back-to-dashboard-button";
 
 function ContactsPageSkeleton() {
     return (
@@ -55,6 +56,7 @@ export default function ContactsPage() {
 
   return (
     <div className="space-y-6">
+       <BackToDashboardButton />
        <InfoCard cardId="contatos-info" title="Gerenciamento de Contatos">
           <p>
             Esta é sua agenda central. Cadastre e organize seus contatos (proprietários e clientes).
