@@ -260,6 +260,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
             tenant={tenant}
             open={isPreviewOpen}
             onOpenChange={setIsPreviewOpen}
+            isPublicView={!isDashboard}
         />
     )}
     </>

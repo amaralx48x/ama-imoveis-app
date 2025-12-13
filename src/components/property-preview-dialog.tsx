@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useRef, useState } from "react";
@@ -19,9 +20,10 @@ interface PropertyPreviewDialogProps {
   agent: Agent;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isPublicView?: boolean;
 }
 
-export function PropertyPreviewDialog({ property, owner, tenant, agent, open, onOpenChange }: PropertyPreviewDialogProps) {
+export function PropertyPreviewDialog({ property, owner, tenant, agent, open, onOpenChange, isPublicView = false }: PropertyPreviewDialogProps) {
   const printRef = useRef<HTMLDivElement>(null);
   
   const handlePrint = () => {
@@ -46,9 +48,11 @@ export function PropertyPreviewDialog({ property, owner, tenant, agent, open, on
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="truncate">{property.title}</DialogTitle>
-          <DialogDescription>
-            ID do Imóvel: {property.id}
-          </DialogDescription>
+          {!isPublicView && (
+            <DialogDescription>
+              ID do Imóvel: {property.id}
+            </DialogDescription>
+          )}
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto pr-4" ref={printRef}>
@@ -122,7 +126,7 @@ export function PropertyPreviewDialog({ property, owner, tenant, agent, open, on
                 </div>
                 <Separator className="my-4" />
                 
-                {property.status === 'alugado' && (
+                {!isPublicView && property.status === 'alugado' && (
                     <RentalManagementCard property={property} tenant={tenant}/>
                 )}
                 
@@ -133,31 +137,39 @@ export function PropertyPreviewDialog({ property, owner, tenant, agent, open, on
                     </p>
                 </div>
 
-                <Separator className="my-6" />
+                {!isPublicView && (
+                    <>
+                        <Separator className="my-6" />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {owner && (
-                        <div className="p-4 rounded-lg bg-muted/50">
-                            <h4 className="font-semibold text-sm mb-2">Proprietário</h4>
-                            <p className="text-lg font-bold">{owner.name}</p>
-                            <p className="text-xs text-muted-foreground">{owner.phone}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {owner && (
+                                <div className="p-4 rounded-lg bg-muted/50">
+                                    <h4 className="font-semibold text-sm mb-2">Proprietário</h4>
+                                    <p className="text-lg font-bold">{owner.name}</p>
+                                    <p className="text-xs text-muted-foreground">{owner.phone}</p>
+                                </div>
+                            )}
                         </div>
-                    )}
-                </div>
+                    </>
+                )}
             </div>
         </div>
 
         <DialogFooter className="mt-auto pt-4 border-t">
-          <Button variant="ghost" asChild>
-            <Link href={detailUrl} target="_blank">
-                <LinkIcon className="mr-2"/>
-                Ver Página Pública
-            </Link>
-          </Button>
-          <Button variant="outline" onClick={handlePrint}>
-            <Printer className="mr-2" />
-            Exportar Ficha
-          </Button>
+          {!isPublicView && (
+            <>
+                <Button variant="ghost" asChild>
+                    <Link href={detailUrl} target="_blank">
+                        <LinkIcon className="mr-2"/>
+                        Ver Página Pública
+                    </Link>
+                </Button>
+                <Button variant="outline" onClick={handlePrint}>
+                    <Printer className="mr-2" />
+                    Exportar Ficha
+                </Button>
+            </>
+          )}
           <Button onClick={() => onOpenChange(false)}>Fechar</Button>
         </DialogFooter>
       </DialogContent>
