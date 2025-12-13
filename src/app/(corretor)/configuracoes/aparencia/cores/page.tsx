@@ -196,11 +196,16 @@ export default function CoresPage() {
                       <FormLabel>Cor Sólida Personalizada</FormLabel>
                       <FormControl>
                         <div className="flex items-center gap-4">
-                          <Input placeholder="Ex: #8A2BE2" {...field} />
-                          <div className="w-10 h-10 rounded-md border" style={{ backgroundColor: field.value }} />
+                           <Input type="color" {...field} className="p-1 h-10 w-14 cursor-pointer" />
+                           <Input 
+                              placeholder="Ex: #8A2BE2" 
+                              value={field.value}
+                              onChange={field.onChange}
+                              className="w-32"
+                            />
                         </div>
                       </FormControl>
-                      <FormDescription>Insira uma cor no formato hexadecimal (ex: #FF69B4).</FormDescription>
+                      <FormDescription>Escolha uma cor visualmente ou insira o código hexadecimal.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
