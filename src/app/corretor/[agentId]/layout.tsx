@@ -17,6 +17,36 @@ const gradients = [
     { name: 'Vibrante (Rosa/Laranja)', from: 'hsl(340 90% 60%)', to: 'hsl(20 95% 55%)' },
 ];
 
+function hexToHsl(hex: string): { h: number, s: number, l: number } | null {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return null;
+
+    let r = parseInt(result[1], 16) / 255;
+    let g = parseInt(result[2], 16) / 255;
+    let b = parseInt(result[3], 16) / 255;
+
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h = 0, s = 0, l = (max + min) / 2;
+
+    if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+
+    return {
+        h: Math.round(h * 360),
+        s: Math.round(s * 100),
+        l: Math.round(l * 100)
+    };
+}
+
+
 function DynamicStyles() {
     const params = useParams();
     const agentId = params.agentId as string;
@@ -34,20 +64,12 @@ function DynamicStyles() {
         const themeColors = agentData?.siteSettings?.themeColors;
 
         if (themeColors?.mode === 'solid' && themeColors.solid) {
-            // No modo sólido, usamos regex para extrair os valores HSL da cor hexadecimal.
-            // Isso não é perfeito mas funciona para a maioria dos casos.
-            // Idealmente, precisaríamos de uma lib de conversão de cores.
-            const hex = themeColors.solid.replace('#', '');
-            const bigint = parseInt(hex, 16);
-            const r = (bigint >> 16) & 255;
-            const g = (bigint >> 8) & 255;
-            const b = bigint & 255;
-            
-            // Apenas para simplificar, vamos usar a mesma cor para primário e accent.
-            // Para um efeito mais sofisticado, poderíamos calcular variações.
-            root.style.setProperty('--primary', `${r} ${g} ${b}`);
-            root.style.setProperty('--accent', `${r} ${g} ${b}`);
-
+            const hsl = hexToHsl(themeColors.solid);
+            if (hsl) {
+                // Para a cor sólida, usamos a mesma cor para primário e accent para consistência
+                root.style.setProperty('--primary', `${hsl.h} ${hsl.s}% ${hsl.l}%`);
+                root.style.setProperty('--accent', `${hsl.h} ${hsl.s}% ${hsl.l}%`);
+            }
         } else {
             const selectedGradientName = themeColors?.gradientName || 'Padrão (Roxo/Rosa)';
             const selectedGradient = gradients.find(g => g.name === selectedGradientName) || gradients[0];
