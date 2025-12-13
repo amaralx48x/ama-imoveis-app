@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -95,7 +96,7 @@ function SubUserForm({ onSave, existingUser, isMainUser = false }: { onSave: (us
                         <>
                             <div className="space-y-2">
                                 <Label htmlFor="name">Nome do Corretor</Label>
-                                <Input id="name" value={name} onChange={e => setName(e.target.value)} placeholder="João Silva" />
+                                <Input id="name" value={name} onChange={e => setName(e.target.value)} placeholder="Carlos Andrade" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="creci">CRECI</Label>
@@ -271,3 +272,4 @@ export default function UsuariosPage() {
     </div>
   );
 }
+

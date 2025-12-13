@@ -1,4 +1,5 @@
 
+
 'use client';
 import type { Review } from "@/lib/data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -283,7 +283,7 @@ export function ReviewFormDialog({ agentId, onReviewSubmitted }: ReviewFormDialo
                         render={({ field }) => (
                             <FormItem>
                             <FormLabel>Seu Nome</FormLabel>
-                            <FormControl><Input placeholder="Ex: João Silva" {...field} /></FormControl>
+                            <FormControl><Input placeholder="Seu nome" {...field} /></FormControl>
                             <FormMessage />
                             </FormItem>
                         )}
