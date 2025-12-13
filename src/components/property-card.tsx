@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Property, Agent } from "@/lib/data";
@@ -228,7 +227,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
       <CardFooter className="p-4 pt-0">
         <Button asChild className="w-full" variant="outline">
           <Link href={detailUrl}>
-            Ver Detalhes
+            Ver Detalhes e Contatos
           </Link>
         </Button>
       </CardFooter>
