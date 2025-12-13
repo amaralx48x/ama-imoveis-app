@@ -120,7 +120,7 @@ export default function AgentPublicPage() {
         setClientData({
             agent,
             allProperties: finalProperties,
-            customSections,
+            customSections: customSections || [],
             reviews: finalReviews,
         });
     } else if (!isAgentLoading && !agent) {

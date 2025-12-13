@@ -21,14 +21,22 @@ import { Separator } from '@/components/ui/separator';
 function PageSkeleton() {
     return (
         <div className="animate-pulse">
-            <Skeleton className="h-[60vh] w-full" />
-            <div className="container -mt-20 relative z-10">
-                <Skeleton className="h-48 w-full rounded-xl" />
-            </div>
-            <div className="container py-12 space-y-10">
-                <Skeleton className="h-96 w-full rounded-xl" />
-                <Skeleton className="h-64 w-full rounded-xl" />
-            </div>
+            <header className="sticky top-0 z-50 h-14 border-b bg-background/95">
+                <div className="container flex items-center justify-between h-full">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-10 w-24" />
+                </div>
+            </header>
+            <main>
+                <Skeleton className="h-[60vh] w-full" />
+                <div className="container -mt-20 relative z-10">
+                    <Skeleton className="h-48 w-full rounded-xl" />
+                </div>
+                <div className="container py-12 space-y-10">
+                    <Skeleton className="h-96 w-full rounded-xl" />
+                    <Skeleton className="h-64 w-full rounded-xl" />
+                </div>
+            </main>
         </div>
     )
 }
