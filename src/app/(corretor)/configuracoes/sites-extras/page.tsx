@@ -2,7 +2,7 @@
 'use client';
 import { useState } from 'react';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, doc, writeBatch, serverTimestamp, setDoc } from 'firebase/firestore';
+import { collection, doc, writeBatch, serverTimestamp, setDoc, deleteDoc } from 'firebase/firestore';
 import type { CatalogPage } from '@/lib/data';
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from '@/components/ui/button';
@@ -56,8 +56,9 @@ export default function GerenciarSitesExtrasPage() {
         try {
             await setDoc(docRef, { ...newPage, id: pageId });
             mutate();
-            toast({ title: 'Página criada!', description: `A página "${newPageName}" foi adicionada.` });
+            toast({ title: 'Página criada!', description: `A página "${newPageName}" foi adicionada. Você será redirecionado para editá-la.` });
             setNewPageName('');
+            router.push(`/configuracoes/sites-extras/editar/${pageId}`);
         } catch (err) {
             console.error(err);
             toast({ title: 'Erro ao criar página', variant: 'destructive' });
@@ -70,7 +71,7 @@ export default function GerenciarSitesExtrasPage() {
         const docRef = doc(firestore, `agents/${user.uid}/catalogPages`, pageId);
 
         try {
-            await writeBatch(firestore).delete(docRef).commit();
+            await deleteDoc(docRef);
             mutate();
             toast({ title: 'Página excluída com sucesso!' });
         } catch (err) {
@@ -80,9 +81,7 @@ export default function GerenciarSitesExtrasPage() {
     };
     
     const handleEditPage = (pageId: string) => {
-        // Futuramente, irá para a página de edição detalhada.
-        // router.push(`/configuracoes/sites-extras/editar/${pageId}`);
-        toast({ title: 'Em breve!', description: 'A edição detalhada desta página estará disponível em breve.' });
+        router.push(`/configuracoes/sites-extras/editar/${pageId}`);
     };
 
     return (
@@ -92,7 +91,7 @@ export default function GerenciarSitesExtrasPage() {
                     "Sites Extras" são páginas de aterrissagem (landing pages) independentes, focadas na conversão para um único imóvel ou empreendimento. Use-as como o destino para suas campanhas de marketing, links no Instagram ou QR codes.
                 </p>
                 <p>
-                    Crie uma nova página aqui, dê um nome para ela (ex: "Lançamento Residencial Sol Nascente") e, em breve, você poderá editar todo o seu conteúdo, como fotos, textos e diferenciais.
+                    Crie uma nova página aqui, dê um nome para ela (ex: "Lançamento Residencial Sol Nascente") e, em seguida, edite todo o seu conteúdo, como fotos, textos e diferenciais.
                 </p>
             </InfoCard>
 
