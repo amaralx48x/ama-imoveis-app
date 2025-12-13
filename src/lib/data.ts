@@ -4,6 +4,7 @@
 
 
 
+
 export type SocialLink = {
   id: string;
   label: string;
@@ -312,12 +313,12 @@ const properties: Property[] = [
 ];
 
 const staticReviews: Review[] = [
-  { id: '1', name: 'Carlos Silva', rating: 5, comment: 'Atendimento excepcional e muito profissionalismo. Encontrei o imóvel dos meus sonhos em poucas semanas. Recomendo fortemente!', approved: true },
-  { id: '2', name: 'Mariana Oliveira', rating: 5, comment: 'Processo de compra muito tranquilo e transparente. A equipe foi muito atenciosa e tirou todas as minhas dúvidas.', approved: true },
-  { id: '3', name: 'Pedro Martins', rating: 4, comment: 'Gostei muito da variedade de imóveis disponíveis. O corretor foi paciente e me ajudou a encontrar a melhor opção para minha família.', approved: true },
-  { id: '4', name: 'Juliana Costa', rating: 5, comment: 'Experiência fantástica! Venderam meu apartamento antigo e me ajudaram a encontrar um novo lar. Super eficientes!', approved: true },
-  { id: '5', name: 'Fernanda Lima', rating: 5, comment: 'Ótimo suporte durante todo o processo de locação. Me senti segura e bem assessorada.', approved: true },
-  { id: '6', name: 'Ricardo Alves', rating: 5, comment: 'A melhor imobiliária da região! Encontrei exatamente o que procurava e o atendimento foi impecável.', approved: true }
+  { id: '1', name: 'Matheus Antunes', rating: 5, comment: 'Atendimento excepcional e muito profissionalismo. Encontrei o imóvel dos meus sonhos em poucas semanas. Recomendo fortemente!', approved: true },
+  { id: '2', name: 'Vivian Brunence', rating: 5, comment: 'Processo de compra muito tranquilo e transparente. A equipe foi muito atenciosa e tirou todas as minhas dúvidas.', approved: true },
+  { id: '3', name: 'Guilherme Gavit', rating: 4, comment: 'Gostei muito da variedade de imóveis disponíveis. O corretor foi paciente e me ajudou a encontrar a melhor opção para minha família.', approved: true },
+  { id: '4', name: 'Diego Monteiro', rating: 5, comment: 'Experiência fantástica! Venderam meu apartamento antigo e me ajudaram a encontrar um novo lar. Super eficientes!', approved: true },
+  { id: '5', name: 'Isabela Ribeiro', rating: 5, comment: 'Ótimo suporte durante todo o processo de locação. Me senti segura e bem assessorada.', approved: true },
+  { id: '6', name: 'Leonardo Farias', rating: 5, comment: 'A melhor imobiliária da região! Encontrei exatamente o que procurava e o atendimento foi impecável.', approved: true }
 ];
 
 export const defaultPrivacyPolicy = `
