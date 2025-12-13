@@ -34,13 +34,30 @@ function DynamicStyles() {
         const themeColors = agentData?.siteSettings?.themeColors;
 
         if (themeColors?.mode === 'solid' && themeColors.solid) {
-            root.style.setProperty('--primary', themeColors.solid);
-            root.style.setProperty('--accent', themeColors.solid);
+            // No modo sólido, usamos regex para extrair os valores HSL da cor hexadecimal.
+            // Isso não é perfeito mas funciona para a maioria dos casos.
+            // Idealmente, precisaríamos de uma lib de conversão de cores.
+            const hex = themeColors.solid.replace('#', '');
+            const bigint = parseInt(hex, 16);
+            const r = (bigint >> 16) & 255;
+            const g = (bigint >> 8) & 255;
+            const b = bigint & 255;
+            
+            // Apenas para simplificar, vamos usar a mesma cor para primário e accent.
+            // Para um efeito mais sofisticado, poderíamos calcular variações.
+            root.style.setProperty('--primary', `${r} ${g} ${b}`);
+            root.style.setProperty('--accent', `${r} ${g} ${b}`);
+
         } else {
             const selectedGradientName = themeColors?.gradientName || 'Padrão (Roxo/Rosa)';
             const selectedGradient = gradients.find(g => g.name === selectedGradientName) || gradients[0];
-            root.style.setProperty('--primary', selectedGradient.from);
-            root.style.setProperty('--accent', selectedGradient.to);
+            
+            // Extrai apenas os números HSL da string 'hsl(H S% L%)'
+            const primaryColor = selectedGradient.from.match(/\(([^)]+)\)/)?.[1] || '262 86% 56%';
+            const accentColor = selectedGradient.to.match(/\(([^)]+)\)/)?.[1] || '330 86% 56%';
+
+            root.style.setProperty('--primary', primaryColor);
+            root.style.setProperty('--accent', accentColor);
         }
 
     }, [agentData]);
