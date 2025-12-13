@@ -103,12 +103,14 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
   const showWatermark = agentData?.siteSettings?.showWatermark;
   const watermarkUrl = agentData?.siteSettings?.watermarkUrl;
   const watermarkOpacity = (agentData?.siteSettings?.watermarkOpacity || 30) / 100;
+  
+  const CardContentWrapper = isDashboard ? 'div' : Link;
 
   return (
     <>
     <Card className="w-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 flex flex-col h-full bg-card">
       <CardHeader className="p-0 relative">
-        <div onClick={() => setIsPreviewOpen(true)} className="block cursor-pointer">
+        <CardContentWrapper href={isDashboard ? '#' : detailUrl} className="block cursor-pointer">
             <div className="relative w-full h-56 group">
               <Image
                 src={imageUrl}
@@ -129,7 +131,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
                 />
               )}
             </div>
-        </div>
+        </CardContentWrapper>
         <div className="absolute top-3 flex justify-between w-full px-3">
           <Badge className="bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] text-primary-foreground border-none">
             {property.operation}
