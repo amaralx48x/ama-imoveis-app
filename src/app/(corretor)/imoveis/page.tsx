@@ -33,6 +33,7 @@ import { Label } from '@/components/ui/label';
 import ImageUpload from '@/components/image-upload';
 import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
 
 
 function WatermarkManager({ agent, onUpdate }: { agent: Agent, onUpdate: () => void }) {
@@ -43,6 +44,7 @@ function WatermarkManager({ agent, onUpdate }: { agent: Agent, onUpdate: () => v
     const [watermarkFile, setWatermarkFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [showWatermark, setShowWatermark] = useState(agent.siteSettings?.showWatermark || false);
+    const [opacity, setOpacity] = useState(agent.siteSettings?.watermarkOpacity || 30);
 
     const handleFileAndUpload = async (files: File[]) => {
         if (!files[0] || !user || !firestore) return;
@@ -85,18 +87,31 @@ function WatermarkManager({ agent, onUpdate }: { agent: Agent, onUpdate: () => v
         }
     }
 
+     const handleOpacityChange = async (newOpacity: number[]) => {
+        if (!user || !firestore) return;
+        const opacityValue = newOpacity[0];
+        setOpacity(opacityValue);
+        try {
+            const agentRef = doc(firestore, 'agents', user.uid);
+            await setDoc(agentRef, { siteSettings: { watermarkOpacity: opacityValue } }, { merge: true });
+            onUpdate();
+        } catch (error) {
+             toast({ title: 'Erro ao alterar a opacidade', variant: 'destructive' });
+        }
+    }
+
     return (
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Droplet/> Gerenciar Marca d'água</CardTitle>
-                <CardDescription>Ative e envie a imagem de marca d'água que será sobreposta em suas fotos.</CardDescription>
+                <CardDescription>Ative, envie e ajuste a opacidade da imagem que será sobreposta em suas fotos.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
                  <div className="flex items-center justify-between rounded-lg border p-4">
                     <div className="space-y-1">
                         <Label htmlFor="watermark-switch" className="text-base font-medium">Habilitar Marca d'água</Label>
                         <p className="text-sm text-muted-foreground">
-                            Quando habilitado, sua marca d'água será aplicada em suas fotos no site público.
+                            Ative para aplicar a marca d'água nas fotos do site público.
                         </p>
                     </div>
                     <Switch
@@ -105,6 +120,20 @@ function WatermarkManager({ agent, onUpdate }: { agent: Agent, onUpdate: () => v
                         onCheckedChange={handleToggleWatermark}
                     />
                 </div>
+
+                <div className="space-y-4">
+                    <Label>Opacidade da Marca d'água ({opacity}%)</Label>
+                     <Slider
+                        defaultValue={[opacity]}
+                        max={100}
+                        step={5}
+                        onValueChange={(value) => setOpacity(value[0])}
+                        onValueCommit={handleOpacityChange}
+                        disabled={!showWatermark}
+                    />
+                </div>
+
+
                 <div className="flex items-start gap-4">
                     {agent.siteSettings?.watermarkUrl && (
                         <div className="relative w-24 h-24 rounded-md border p-2 bg-muted/50">
@@ -114,7 +143,7 @@ function WatermarkManager({ agent, onUpdate }: { agent: Agent, onUpdate: () => v
                     <div className="flex-grow">
                         <ImageUpload onFileSelect={handleFileAndUpload} />
                         <p className="text-xs text-muted-foreground mt-2">
-                           Envie um arquivo de imagem (preferencialmente .png com fundo transparente). O upload começa automaticamente.
+                           Envie um arquivo de imagem (.png com fundo transparente é recomendado).
                         </p>
                     </div>
                 </div>
@@ -394,7 +423,7 @@ export default function ImoveisPage() {
                                 <DialogHeader>
                                     <DialogTitle className="text-2xl font-bold text-destructive">Limite de Imóveis Atingido!</DialogTitle>
                                     <DialogDescription className="pt-2">
-                                         Você atingiu o limite de {limits.maxProperties} imóveis para o seu plano atual. Para continuar adicionando, por favor, faça o upgrade do seu plano.
+                                         Você atingiu o limite de ${limits.maxProperties} imóveis para o seu plano atual. Para continuar adicionando, por favor, faça o upgrade do seu plano.
                                     </DialogDescription>
                                 </DialogHeader>
                                 <Button asChild>

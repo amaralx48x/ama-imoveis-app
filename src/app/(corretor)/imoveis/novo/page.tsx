@@ -265,7 +265,7 @@ export default function NovoImovelPage() {
             <Gem className="h-4 w-4 text-primary" />
             <AlertTitle className="text-xl text-primary font-bold">Limite de Imóveis Atingido!</AlertTitle>
             <AlertDescription>
-                Você atingiu o limite de {limits.maxProperties} imóveis para o seu plano atual. Para continuar adicionando, por favor, faça o upgrade do seu plano.
+                Você atingiu o limite de ${limits.maxProperties} imóveis para o seu plano atual. Para continuar adicionando, por favor, faça o upgrade do seu plano.
                 <Button asChild variant="link" className="p-0 h-auto ml-1 text-primary">
                     <Link href="/meu-plano">Fazer Upgrade</Link>
                 </Button>

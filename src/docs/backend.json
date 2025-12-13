@@ -175,6 +175,7 @@
             "logoUrl": { "type": "string", "format": "uri", "description": "URL for the agent's site logo." },
             "watermarkUrl": { "type": "string", "format": "uri", "description": "URL for the watermark image to be applied to property photos." },
             "showWatermark": { "type": "boolean", "description": "Enable or disable the watermark overlay on property images.", "default": false },
+            "watermarkOpacity": { "type": "number", "description": "Opacity of the watermark from 0 to 100.", "default": 30 },
             "theme": { "type": "string", "enum": ["light", "dark"], "description": "The color theme for the site and dashboard.", "default": "dark" },
             "siteStatus": { "type": "boolean", "description": "Controls the public visibility of the agent's site.", "default": true },
             "showFinancing": { "type": "boolean", "description": "Show or hide the financing simulation button." },
@@ -348,7 +349,7 @@
     }
   },
   "auth": {
-    "providers": ["password", "anonymous", "google.com"]
+    "providers": ["password", "anonymous"]
   },
   "firestore": {
     "collections": [

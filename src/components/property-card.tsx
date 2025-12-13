@@ -105,6 +105,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
 
   const showWatermark = agentData?.siteSettings?.showWatermark;
   const watermarkUrl = agentData?.siteSettings?.watermarkUrl;
+  const watermarkOpacity = (agentData?.siteSettings?.watermarkOpacity || 30) / 100;
 
   return (
     <>
@@ -126,7 +127,8 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
                   alt="Marca d'água"
                   layout="fill"
                   objectFit="contain"
-                  className="opacity-20 p-4 pointer-events-none"
+                  className="p-4 pointer-events-none"
+                  style={{ opacity: watermarkOpacity }}
                 />
               )}
             </div>
@@ -185,7 +187,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
                             const feedUrl = `${window.location.origin}/api/feed/${portal.id}?agentId=${property.agentId}&propertyId=${property.id}`;
                             return (
                                 <DropdownMenuItem key={portal.id} onClick={() => handleCopyToClipboard(feedUrl, portal.name)}>
-                                    Copiar link para {portal.name}
+                                    Copiar link para ${portal.name}
                                 </DropdownMenuItem>
                             )
                         })}
@@ -205,23 +207,23 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
             <h3 className="font-headline font-bold text-lg truncate hover:text-primary transition-colors">{property.title}</h3>
             <div className="flex items-center text-muted-foreground text-sm mt-1">
               <MapPin className="w-4 h-4 mr-1.5" />
-              <span>{property.neighborhood}, {property.city}</span>
+              <span>${property.neighborhood}, ${property.city}</span>
             </div>
             <p className="text-2xl font-bold text-primary my-4">
-              {property.operation === 'Venda' ? formattedPrice : `${formattedPrice} /mês`}
+              ${property.operation === 'Venda' ? formattedPrice : `${formattedPrice} /mês`}
             </p>
             <div className="flex justify-around text-muted-foreground border-t border-b border-border py-3 text-sm">
               <div className="flex items-center gap-2">
                 <BedDouble className="w-5 h-5 text-primary/70" />
-                <span>{property.bedrooms}</span>
+                <span>${property.bedrooms}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Bath className="w-5 h-5 text-primary/70" />
-                <span>{property.bathrooms}</span>
+                <span>${property.bathrooms}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Ruler className="w-5 h-5 text-primary/70" />
-                <span>{property.builtArea} m²</span>
+                <span>${property.builtArea} m²</span>
               </div>
             </div>
       </div>
