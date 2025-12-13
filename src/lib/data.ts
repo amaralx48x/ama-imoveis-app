@@ -5,6 +5,7 @@
 
 
 
+
 export type SocialLink = {
   id: string;
   label: string;
@@ -259,7 +260,7 @@ const properties: Property[] = [
     rooms: 9,
     builtArea: 250,
     totalArea: 400,
-    imageUrls: ['https://images.unsplash.com/photo-1572120360610-d971b9d7767c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzdWJ1cmJhbiUyMGhvdXNlfGVufDB8fHx8MTc2MTkwODc5N3ww&ixlib=rb-4.1.0&q=80&w=1080', 'https://images.unsplash.com/photo-1726968335694-02219ed7ce96?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxob3VzZSUyMGJhY2t5YXJkfGVufDB8fHx8MTc2MjAwOTc0Mnww&ixlib=rb-4.1.0&q=80&w=1080'],
+    imageUrls: ['https://images.unsplash.com/photo-1572120360610-d971b9d7767c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzdWJ1cmJhbiUyMGhvdXNlfGVufDB8fHx8MTc2MTkwODc5N3ww&ixlib-rb-4.1.0&q=80&w=1080', 'https://images.unsplash.com/photo-1726968335694-02219ed7ce96?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxob3VzZSUyMGJhY2t5YXJkfGVufDB8fHx8MTc2MjAwOTc0Mnww&ixlib=rb-4.1.0&q=80&w=1080'],
     city: 'Campinas',
     neighborhood: 'Taquaral',
     address: 'Rua das Camélias, 123',
@@ -314,8 +315,8 @@ const properties: Property[] = [
 
 const staticReviews: Review[] = [
   { id: '1', name: 'Matheus Antunes', rating: 5, comment: 'Atendimento excepcional e muito profissionalismo. Encontrei o imóvel dos meus sonhos em poucas semanas. Recomendo fortemente!', approved: true },
-  { id: '2', name: 'Vivian Brunence', rating: 5, comment: 'Processo de compra muito tranquilo e transparente. A equipe foi muito atenciosa e tirou todas as minhas dúvidas.', approved: true },
-  { id: '3', name: 'Guilherme Gavit', rating: 4, comment: 'Gostei muito da variedade de imóveis disponíveis. O corretor foi paciente e me ajudou a encontrar a melhor opção para minha família.', approved: true },
+  { id: '2', name: 'Guilherme Gavit', rating: 5, comment: 'Processo de compra muito tranquilo e transparente. A equipe foi muito atenciosa e tirou todas as minhas dúvidas.', approved: true },
+  { id: '3', name: 'Vivian Brunence', rating: 4, comment: 'Gostei muito da variedade de imóveis disponíveis. O corretor foi paciente e me ajudou a encontrar a melhor opção para minha família.', approved: true },
   { id: '4', name: 'Diego Monteiro', rating: 5, comment: 'Experiência fantástica! Venderam meu apartamento antigo e me ajudaram a encontrar um novo lar. Super eficientes!', approved: true },
   { id: '5', name: 'Isabela Ribeiro', rating: 5, comment: 'Ótimo suporte durante todo o processo de locação. Me senti segura e bem assessorada.', approved: true },
   { id: '6', name: 'Leonardo Farias', rating: 5, comment: 'A melhor imobiliária da região! Encontrei exatamente o que procurava e o atendimento foi impecável.', approved: true }
