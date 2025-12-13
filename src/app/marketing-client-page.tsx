@@ -293,7 +293,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
 
                              <div className="pt-4">
                                 <h4 className="font-bold text-lg">Quais são os gastos mensais com a AMA?</h4>
-                                <p className="text-sm text-foreground/70">Apenas a mensalidade e nada mais!, AMA possui dominio base para todos os uuario sem dor de cabeça e gastos desnecessários com dominios</p>
+                                <p className="text-sm text-foreground/70">Apenas a mensalidade e nada mais! A AMA possui domínio base para todos os usuários, sem dor de cabeça e gastos desnecessários com domínios.</p>
                             </div>
                         </div>
                     </motion.div>
