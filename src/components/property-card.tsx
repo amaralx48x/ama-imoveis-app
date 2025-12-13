@@ -101,8 +101,6 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
   const isDashboard = !!onDelete;
   const isForSale = property.operation === 'Venda';
   
-  const CardContentTrigger = isDashboard ? 'div' : Link;
-
   const showWatermark = agentData?.siteSettings?.showWatermark;
   const watermarkUrl = agentData?.siteSettings?.watermarkUrl;
   const watermarkOpacity = (agentData?.siteSettings?.watermarkOpacity || 30) / 100;
@@ -111,7 +109,7 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
     <>
     <Card className="w-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 flex flex-col h-full bg-card">
       <CardHeader className="p-0 relative">
-        <div onClick={() => isDashboard && setIsPreviewOpen(true)} className="block cursor-pointer">
+        <div onClick={() => setIsPreviewOpen(true)} className="block cursor-pointer">
             <div className="relative w-full h-56 group">
               <Image
                 src={imageUrl}
@@ -203,8 +201,8 @@ export function PropertyCard({ property, onDelete, onStatusChange }: PropertyCar
            )}
         </div>
       </CardHeader>
-      <div onClick={() => isDashboard && setIsPreviewOpen(true)} className="p-4 flex-grow cursor-pointer">
-            <h3 className="font-headline font-bold text-lg truncate hover:text-primary transition-colors">{property.title}</h3>
+      <div className="p-4 flex-grow">
+            <h3 className="font-headline font-bold text-lg truncate">{property.title}</h3>
             <div className="flex items-center text-muted-foreground text-sm mt-1">
               <MapPin className="w-4 h-4 mr-1.5" />
               <span>${property.neighborhood}, ${property.city}</span>
