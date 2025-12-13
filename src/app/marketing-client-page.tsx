@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import type { MarketingContent } from "@/lib/data";
 import { defaultPrivacyPolicy, defaultTermsOfUse } from "@/lib/data";
-import { Search, Share2, Video, Check, X, Mail, Filter, User, Home, ArrowRight, Rss, FileText, CheckCircle } from "lucide-react";
+import { Search, Share2, Video, Check, X, Mail, Filter, User, Home, ArrowRight, Rss, FileText, CheckCircle, Zap } from "lucide-react";
 import Image from 'next/image';
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
@@ -430,6 +430,35 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
                         width={1200} height={630} 
                         className="object-cover w-full h-full" 
                         data-ai-hint="search engine optimization" />
+                </div>
+            </section>
+
+            {/* New Value Proposition Section */}
+            <section className="mt-20 py-10">
+                <div className="text-center max-w-3xl mx-auto">
+                    <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUpContainer}>
+                        <motion.h3 variants={fadeUpItem} className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Sua Equipe de TI por um Preço Imbatível</motion.h3>
+                        <motion.p variants={fadeUpItem} className="mt-4 text-lg text-foreground/70">
+                            Foco no que importa: vender. Deixe a tecnologia com a gente. Nosso sistema é uma ferramenta completa de gestão com um site profissional, desenhado para ser ridiculamente fácil de usar.
+                        </motion.p>
+                    </motion.div>
+                </div>
+                <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+                     <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.5 }} variants={fadeUpItem} className="p-6 rounded-lg bg-card/50 border border-border/10 text-center">
+                        <Zap className="mx-auto h-10 w-10 text-primary mb-4" />
+                        <h4 className="font-semibold text-lg">Simplicidade é o Diferencial</h4>
+                        <p className="mt-2 text-sm text-foreground/70">Nossa plataforma é limpa, intuitiva e validada. Sem menus complicados ou configurações demoradas. Você entra e usa.</p>
+                    </motion.div>
+                     <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.5, delay: 0.2 }} variants={fadeUpItem} className="p-6 rounded-lg bg-card/50 border border-border/10 text-center">
+                        <User className="mx-auto h-10 w-10 text-primary mb-4" />
+                        <h4 className="font-semibold text-lg">Suporte que Configura para Você</h4>
+                        <p className="mt-2 text-sm text-foreground/70">Não quer configurar nada? Sem problemas. Fale com nosso especialista no WhatsApp e ele deixa seu site pronto para você.</p>
+                    </motion.div>
+                    <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.5, delay: 0.4 }} variants={fadeUpItem} className="p-6 rounded-lg bg-card/50 border border-border/10 text-center">
+                        <FileText className="mx-auto h-10 w-10 text-primary mb-4" />
+                        <h4 className="font-semibold text-lg">Tudo Incluso, Sem Surpresas</h4>
+                        <p className="mt-2 text-sm text-foreground/70">Por apenas R$39,90/mês você tem hospedagem, manutenção, consultoria e armazenamento. É como ter uma equipe de TI dedicada. Pode pesquisar, não temos concorrência.</p>
+                    </motion.div>
                 </div>
             </section>
 
