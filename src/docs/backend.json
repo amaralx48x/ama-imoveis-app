@@ -240,6 +240,46 @@
       },
       "required": ["id", "displayName", "name", "accountType", "email", "role", "status"]
     },
+    "CatalogPage": {
+      "title": "Catalog Page",
+      "type": "object",
+      "description": "Represents a dedicated landing page for a property or development.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "description": "Internal name for the catalog page." },
+        "slug": { "type": "string", "description": "URL-friendly slug for the page." },
+        "heroImageUrl": { "type": "string", "format": "uri" },
+        "title": { "type": "string", "description": "Main title of the page (e.g., 'Residencial X')." },
+        "subtitle": { "type": "string", "description": "Short value proposition (e.g., 'Lotes a partir de 250m²')." },
+        "ctaButtonText": { "type": "string", "default": "Falar com um corretor" },
+        "technicalDetails": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": { "label": { "type": "string" }, "value": { "type": "string" } }
+          }
+        },
+        "galleryImages": { "type": "array", "items": { "type": "string", "format": "uri" } },
+        "plantImages": { "type": "array", "items": { "type": "string", "format": "uri" } },
+        "videoUrl": { "type": "string", "format": "uri" },
+        "fullDescription": { "type": "string" },
+        "differentials": {
+          "type": "array",
+          "items": { "type": "object", "properties": { "label": { "type": "string" }, "icon": { "type": "string" } } }
+        },
+        "mapLocationQuery": { "type": "string", "description": "Address or coordinates for Google Maps embed." },
+        "socialProofText": { "type": "string", "description": "e.g., 'Mais de 120 unidades vendidas'." },
+        "testimonials": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": { "author": { "type": "string" }, "text": { "type": "string" } }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "slug", "createdAt"]
+    },
     "Customer": {
         "title": "Customer",
         "type": "object",
@@ -387,6 +427,11 @@
         "path": "/agents/{agentId}/customSections/{sectionId}",
         "schema": { "$ref": "#/entities/CustomSection" },
         "description": "Stores custom property sections for the agent's public site."
+      },
+      {
+        "path": "/agents/{agentId}/catalogPages/{catalogPageId}",
+        "schema": { "$ref": "#/entities/CatalogPage" },
+        "description": "Stores dedicated landing pages for properties or developments."
       },
       {
         "path": "/agents/{agentId}/leads/{leadId}",

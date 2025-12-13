@@ -109,8 +109,6 @@ export default function CoresPage() {
     }
   }
 
-  const selectedGradientName = form.watch('selectedGradient');
-
   return (
     <div className="space-y-6">
       <InfoCard cardId="cores-info" title="Personalize o Esquema de Cores">

@@ -10,6 +10,7 @@ const tabs = [
     { path: '/configuracoes/aparencia/cores', label: 'Cores' },
     { path: '/configuracoes/links', label: 'Links e Exibição' },
     { path: '/configuracoes/secoes', label: 'Seções' },
+    { path: '/configuracoes/sites-extras', label: 'Sites Extras' },
     { path: '/configuracoes/seo', label: 'SEO' },
     { path: '/configuracoes/metricas', label: 'Métricas' },
     { path: '/configuracoes/politicas', label: 'Políticas' },
@@ -42,7 +43,7 @@ export default function ConfiguracoesLayout({ children }: { children: React.Reac
             </div>
             
             <Tabs value={getActiveTab()} onValueChange={(value) => router.push(value)} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-7 h-auto">
+                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 h-auto">
                     {tabs.map(tab => (
                          <TabsTrigger key={tab.path} value={tab.path} asChild>
                             <Link href={tab.path}>{tab.label}</Link>

@@ -1,10 +1,24 @@
 
 
-
-
-
-
-
+export type CatalogPage = {
+  id: string;
+  name: string; // Internal name
+  slug: string; // URL-friendly slug
+  heroImageUrl?: string;
+  title?: string;
+  subtitle?: string;
+  ctaButtonText?: string;
+  technicalDetails?: { label: string; value: string }[];
+  galleryImages?: string[];
+  plantImages?: string[];
+  videoUrl?: string;
+  fullDescription?: string;
+  differentials?: { label: string; icon?: string }[];
+  mapLocationQuery?: string;
+  socialProofText?: string;
+  testimonials?: { author: string; text: string }[];
+  createdAt: any;
+};
 
 export type SocialLink = {
   id: string;
@@ -260,7 +274,7 @@ const properties: Property[] = [
     rooms: 9,
     builtArea: 250,
     totalArea: 400,
-    imageUrls: ['https://images.unsplash.com/photo-1572120360610-d971b9d7767c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzdWJ1cmJhbiUyMGhvdXNlfGVufDB8fHx8MTc2MTkwODc5N3ww&ixlib-rb-4.1.0&q=80&w=1080', 'https://images.unsplash.com/photo-1726968335694-02219ed7ce96?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxob3VzZSUyMGJhY2t5YXJkfGVufDB8fHx8MTc2MjAwOTc0Mnww&ixlib=rb-4.1.0&q=80&w=1080'],
+    imageUrls: ['https://images.unsplash.com/photo-1572120360610-d971b9d7767c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzdWJ1cmJhbiUyMGhvdXNlfGVufDB8fHx8MTc2MTkwODc5N3ww&ixlib-rb-4.1.0&q=80&w=1080', 'https://images.unsplash.com/photo-1726968335694-02219ed7ce96?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxob3VzZSUyMGJhY2t5YXJkfGVufDB8fHx8MTc2MjAwOTc0Mnww&ixlib-rb-4.1.0&q=80&w=1080'],
     city: 'Campinas',
     neighborhood: 'Taquaral',
     address: 'Rua das Camélias, 123',
@@ -281,7 +295,7 @@ const properties: Property[] = [
     rooms: 10,
     builtArea: 400,
     totalArea: 600,
-    imageUrls: ['https://images.unsplash.com/photo-1634351580440-8fcf7813367e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxiZWFjaGZyb250JTIwaG91c2V8ZW58MHx8fHwxNzYxOTQ1NTg4fDA&ixlib=rb-4.1.0&q=80&w=1080'],
+    imageUrls: ['https://images.unsplash.com/photo-1634351580440-8fcf7813367e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxiZWFjaGZyb250JTIwaG91c2V8ZW58MHx8fHwxNzYxOTQ1NTg4fDA&ixlib-rb-4.1.0&q=80&w=1080'],
     city: 'Ubatuba',
     neighborhood: 'Praia Grande',
     address: 'Av. Atlântica, 500',
@@ -394,7 +408,7 @@ O Prestador não se responsabiliza por quaisquer danos diretos, indiretos, incid
 O site pode conter links para websites de terceiros. A existência desses links não implica em relação de endosso, patrocínio ou afiliação do Prestador para com esses sites. O Prestador não exerce controle sobre o conteúdo de sites de terceiros e não se responsabiliza por suas políticas ou práticas. O acesso a tais sites se dará por conta e risco do Usuário.
 
 **6. MODIFICAÇÕES DOS TERMOS**
-O Prestador reserva-se o direito de modificar os presentes Termos a qualquer tempo, sem necessidade de aviso prévio. A versão atualizada estará sempre disponível no site. Recomenda-se a leitura periódica destes Termos. A continuidade do uso do site pelo Usuário após quaisquer alterações constituirá sua aceitação tácita.
+O Prestador reserva-se o direito de modificar os presentes Termos a qualquer tempo, sem necessidade de aviso prévio. A continuidade do uso do site pelo Usuário após quaisquer alterações constituirá sua aceitação tácita.
 
 **7. LEGISLAÇÃO APLICÁVEL E FORO**
 Estes Termos são regidos e interpretados segundo as leis da República Federativa do Brasil. Fica eleito o foro da Comarca do domicílio do Prestador para dirimir quaisquer controvérsias oriundas destes Termos, com renúncia expressa a qualquer outro, por mais privilegiado que seja.

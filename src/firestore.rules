@@ -65,6 +65,14 @@ service cloud.firestore {
         // Escrita restrita ao dono ou admin.
         allow write: if isOwner(agentId) || isAdmin();
       }
+      
+      // Páginas de catálogo
+      match /catalogPages/{catalogPageId} {
+        // Leitura pública.
+        allow list, get: if true;
+        // Escrita restrita ao dono ou admin.
+        allow write: if isOwner(agentId) || isAdmin();
+      }
 
       // Leads de um agente
       match /leads/{leadId} {
