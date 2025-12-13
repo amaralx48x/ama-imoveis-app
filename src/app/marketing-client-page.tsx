@@ -269,17 +269,16 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
                     {/* Right Side: Price Badge and Details */}
                      <motion.div variants={fadeUpItem} className="flex flex-col items-center lg:items-start">
                         <div className="relative mb-6">
-                            <svg className="w-48 h-auto text-yellow-400" viewBox="0 0 160 140" fill="currentColor">
-                                <path d="M80 0 L160 35 V105 L80 140 L0 105 V35 Z" />
-                            </svg>
-                            <div className="absolute inset-0 flex flex-col items-center justify-center text-black">
-                                <p className="text-sm font-bold">POR APENAS</p>
-                                <p className="font-extrabold">
-                                    <span className="text-xl align-top">R$</span>
-                                    <span className="text-5xl">39</span>
-                                    <span className="text-2xl align-top">,99</span>
-                                </p>
-                                <p className="text-sm font-bold">/MÊS</p>
+                            <div className="w-40 h-40 rounded-2xl bg-yellow-400 flex items-center justify-center p-2">
+                                <div className="text-center text-black">
+                                    <p className="text-sm font-bold leading-tight">POR APENAS</p>
+                                    <p className="font-extrabold leading-none">
+                                        <span className="text-lg align-top">R$</span>
+                                        <span className="text-5xl">39</span>
+                                        <span className="text-xl align-top">,99</span>
+                                    </p>
+                                    <p className="text-sm font-bold leading-tight">/MÊS</p>
+                                </div>
                             </div>
                         </div>
                          <div className="space-y-4 text-center lg:text-left">
