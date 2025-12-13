@@ -89,7 +89,7 @@ export function FloatingContactButton({ whatsAppLink, agent }: FloatingContactBu
         <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
           <Button
             onClick={() => setIsOpen(!isOpen)}
-            className="rounded-full w-16 h-16 shadow-2xl bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90"
+            className="rounded-full w-16 h-16 shadow-2xl bg-gradient-to-r from-primary to-accent hover:opacity-90"
             aria-label={isOpen ? 'Fechar contato' : 'Abrir contato'}
           >
             <AnimatePresence initial={false} mode="wait">
@@ -109,7 +109,3 @@ export function FloatingContactButton({ whatsAppLink, agent }: FloatingContactBu
     </>
   );
 }
-
-    
-
-    

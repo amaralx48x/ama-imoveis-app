@@ -195,7 +195,7 @@ export default function PropertyFilters({ agent, propertyTypes = [], onSearch }:
                             {showMoreFilters ? 'Menos Filtros' : 'Mais Filtros'}
                        </Button>
                     </CollapsibleTrigger>
-                    <Button onClick={handleSearch} className="h-12 text-base font-bold bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
+                    <Button onClick={handleSearch} className="h-12 text-base font-bold bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity">
                         <Search className="mr-2 h-5 w-5" />
                         Buscar Imóveis
                     </Button>

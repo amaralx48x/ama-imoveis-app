@@ -193,15 +193,15 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                         <div className="flex justify-between items-start mb-4">
                             <div>
                                 <Badge className="mb-2">{property.operation}</Badge>
-                                <CardTitle className="text-3xl font-headline">${property.title}</CardTitle>
+                                <CardTitle className="text-3xl font-headline">{property.title}</CardTitle>
                                 <div className="flex items-center text-muted-foreground text-md mt-2">
                                     <MapPin className="w-5 h-5 mr-2" />
-                                    <span>${property.neighborhood}, ${property.city}</span>
+                                    <span>{property.neighborhood}, {property.city}</span>
                                 </div>
                             </div>
                             <div className="text-right flex-shrink-0">
                                 <p className="text-3xl font-bold text-primary">
-                                    ${property.operation === 'Venda' ? formattedPrice(property.price) : `${formattedPrice(property.price)} /mês`}
+                                    {property.operation === 'Venda' ? formattedPrice(property.price) : `${formattedPrice(property.price)} /mês`}
                                 </p>
                             </div>
                         </div>
@@ -209,27 +209,27 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 text-center">
                             <div className="flex flex-col items-center gap-2 p-2 rounded-lg bg-muted/50">
                                 <BedDouble className="w-7 h-7 text-primary" />
-                                <span className="font-semibold">${property.bedrooms}</span>
+                                <span className="font-semibold">{property.bedrooms}</span>
                                 <span className="text-xs text-muted-foreground">Quartos</span>
                             </div>
                             <div className="flex flex-col items-center gap-2 p-2 rounded-lg bg-muted/50">
                                 <Bath className="w-7 h-7 text-primary" />
-                                <span className="font-semibold">${property.bathrooms}</span>
+                                <span className="font-semibold">{property.bathrooms}</span>
                                 <span className="text-xs text-muted-foreground">Banheiros</span>
                             </div>
                             <div className="flex flex-col items-center gap-2 p-2 rounded-lg bg-muted/50">
                                 <Car className="w-7 h-7 text-primary" />
-                                <span className="font-semibold">${property.garage}</span>
+                                <span className="font-semibold">{property.garage}</span>
                                 <span className="text-xs text-muted-foreground">Vagas</span>
                             </div>
                             <div className="flex flex-col items-center gap-2 p-2 rounded-lg bg-muted/50">
                                 <Home className="w-7 h-7 text-primary" />
-                                <span className="font-semibold">${property.rooms}</span>
+                                <span className="font-semibold">{property.rooms}</span>
                                 <span className="text-xs text-muted-foreground">Cômodos</span>
                             </div>
                              <div className="flex flex-col items-center gap-2 p-2 rounded-lg bg-muted/50">
                                 <Ruler className="w-7 h-7 text-primary" />
-                                <span className="font-semibold">${property.builtArea} m²</span>
+                                <span className="font-semibold">{property.builtArea} m²</span>
                                 <span className="text-xs text-muted-foreground">Área</span>
                             </div>
                         </div>
@@ -237,7 +237,7 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                         <div>
                             <h3 className="text-xl font-bold font-headline mb-4">Descrição</h3>
                             <p className="text-muted-foreground leading-relaxed">
-                                ${property.description}
+                                {property.description}
                             </p>
                         </div>
                         <Separator className="my-6" />
@@ -264,8 +264,8 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                     <CardContent className="pt-6 space-y-3">
                          <div className="space-y-2 text-sm">
                             <div className="flex justify-between font-bold text-lg">
-                                <span>${property.operation === 'Alugar' ? 'Valor do Aluguel' : 'Preço do Imóvel'}</span>
-                                <span>${formattedPrice(property.price)}</span>
+                                <span>{property.operation === 'Alugar' ? 'Valor do Aluguel' : 'Preço do Imóvel'}</span>
+                                <span>{formattedPrice(property.price)}</span>
                             </div>
                         </div>
 
