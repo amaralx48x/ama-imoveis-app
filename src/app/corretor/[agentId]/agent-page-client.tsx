@@ -54,18 +54,26 @@ export default function AgentPageClient({
     // Adicionar uma lógica futura para permitir que o dono do site veja a página mesmo offline
     return notFound();
   }
+  
+  const siteSettings = agent.siteSettings;
+  const heroImageUrl = siteSettings?.heroImageUrl;
+  const heroHeadline = siteSettings?.heroHeadline;
+  const heroSubtext = siteSettings?.heroSubtext;
 
-  const heroImageUrl = agent.siteSettings?.heroImageUrl;
   const featuredProperties = allProperties.filter(p => (p.sectionIds || []).includes('featured') && p.status === 'ativo');
   const propertyTypes = getPropertyTypes();
-  const showReviews = agent.siteSettings?.showReviews ?? true;
-  const whatsAppLink = agent.siteSettings?.socialLinks?.find(link => link.icon === 'whatsapp');
+  const showReviews = siteSettings?.showReviews ?? true;
+  const whatsAppLink = siteSettings?.socialLinks?.find(link => link.icon === 'whatsapp');
 
   return (
     <>
       <main className="min-h-screen">
         <div className="relative mb-8">
-          <Hero heroImageUrl={heroImageUrl}>
+          <Hero 
+            heroImageUrl={heroImageUrl}
+            heroHeadline={heroHeadline}
+            heroSubtext={heroSubtext}
+          >
             <PropertyFilters 
               agent={{...agent, cities: citiesForFilter}} 
               propertyTypes={propertyTypes} 

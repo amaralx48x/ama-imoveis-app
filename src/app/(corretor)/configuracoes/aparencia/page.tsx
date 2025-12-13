@@ -21,7 +21,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import type { Agent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Palette, Sun, Moon, Loader2, Image as ImageIcon, View } from 'lucide-react';
+import { Palette, Sun, Moon, Loader2, Image as ImageIcon, View, MessageSquare } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { InfoCard } from '@/components/info-card';
@@ -30,9 +30,13 @@ import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
 import { Slider } from '@/components/ui/slider';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 const appearanceFormSchema = z.object({
   theme: z.enum(['light', 'dark'], { required_error: 'Por favor, selecione um tema.' }),
+  heroHeadline: z.string().optional(),
+  heroSubtext: z.string().optional(),
   heroImageUrl: z.string().url("URL inválida").optional().or(z.literal('')),
   logoUrl: z.string().url("URL inválida").optional().or(z.literal('')),
   faviconUrl: z.string().url("URL inválida").optional().or(z.literal('')),
@@ -85,6 +89,8 @@ export default function AparenciaPage() {
     resolver: zodResolver(appearanceFormSchema),
     defaultValues: {
       theme: 'dark',
+      heroHeadline: '',
+      heroSubtext: '',
       heroImageUrl: '',
       logoUrl: '',
       faviconUrl: '',
@@ -96,6 +102,8 @@ export default function AparenciaPage() {
     if (agentData?.siteSettings) {
       form.reset({
         theme: agentData.siteSettings.theme || 'dark',
+        heroHeadline: agentData.siteSettings.heroHeadline || '',
+        heroSubtext: agentData.siteSettings.heroSubtext || '',
         heroImageUrl: agentData.siteSettings.heroImageUrl || '',
         logoUrl: agentData.siteSettings.logoUrl || '',
         faviconUrl: agentData.siteSettings.faviconUrl || '',
@@ -232,6 +240,42 @@ export default function AparenciaPage() {
                     </FormItem>
                 )}
                 />
+                
+                <Separator />
+
+                <div className="space-y-6">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <MessageSquare /> Mensagem de Boas-Vindas
+                    </h3>
+                    <FormField
+                      control={form.control}
+                      name="heroHeadline"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Chamada Principal</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Encontre o Imóvel dos Seus Sonhos" {...field} />
+                          </FormControl>
+                           <FormDescription>O título principal que aparece no topo do seu site.</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="heroSubtext"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Subtítulo</FormLabel>
+                          <FormControl>
+                            <Textarea placeholder="As melhores oportunidades do mercado imobiliário para você." {...field} />
+                          </FormControl>
+                           <FormDescription>O texto de apoio que aparece abaixo do título principal.</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                </div>
                 
                 <Separator />
 

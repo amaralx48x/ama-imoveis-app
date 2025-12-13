@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from "next/image";
@@ -7,12 +8,18 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 interface HeroProps {
   children?: ReactNode;
   heroImageUrl?: string | null;
+  heroHeadline?: string | null;
+  heroSubtext?: string | null;
 }
 
-export function Hero({ children, heroImageUrl }: HeroProps) {
+export function Hero({ children, heroImageUrl, heroHeadline, heroSubtext }: HeroProps) {
   // Garante que sempre haverá uma imagem, usando o fallback se a URL não for fornecida.
   const fallbackImage = PlaceHolderImages.find(img => img.id === 'hero-background');
   const finalImageUrl = heroImageUrl || fallbackImage?.imageUrl || 'https://picsum.photos/seed/hero/1920/1080';
+
+  const headline = heroHeadline || "Encontre o Imóvel dos Seus Sonhos";
+  const subtext = heroSubtext || "As melhores oportunidades do mercado imobiliário para você.";
+
 
   return (
     <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center text-white">
@@ -33,10 +40,10 @@ export function Hero({ children, heroImageUrl }: HeroProps) {
       <div className="relative z-10 container mx-auto px-4 text-center">
         <div className="animate-fade-in-up">
             <h1 className="text-4xl md:text-6xl font-extrabold font-headline mb-4">
-            Encontre o <span className="text-gradient">Imóvel</span> dos Seus Sonhos
+              <span className="text-gradient">{headline}</span>
             </h1>
             <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-8">
-            As melhores oportunidades do mercado imobiliário para você.
+              {subtext}
             </p>
         </div>
       </div>
