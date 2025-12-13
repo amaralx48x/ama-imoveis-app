@@ -136,14 +136,14 @@ export default function GerenciarSitesExtrasPage() {
                         {!isLoading && !error && catalogPages?.length === 0 && (
                             <p className="text-muted-foreground text-sm text-center border-dashed border-2 p-8">Nenhuma página criada ainda.</p>
                         )}
-                        {!isLoading && catalogPages && (
+                        {!isLoading && catalogPages && user && (
                             <div className="space-y-2">
                                 {catalogPages.map(page => (
                                     <div key={page.id} className="flex items-center justify-between p-3 border rounded-md bg-muted/50">
                                         <div className="flex flex-col">
                                             <span className="font-medium">{page.name}</span>
                                             <a 
-                                                href={`/catalog/${page.slug}`} 
+                                                href={`/catalog/${page.slug}?agentId=${user.uid}`} 
                                                 target="_blank" 
                                                 rel="noopener noreferrer"
                                                 className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
