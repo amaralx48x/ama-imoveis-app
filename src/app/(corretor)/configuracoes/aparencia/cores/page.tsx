@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -22,28 +21,30 @@ import { doc, setDoc } from 'firebase/firestore';
 import { useEffect } from 'react';
 import type { Agent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, Palette } from 'lucide-react';
+import { Loader2, Palette, Check } from 'lucide-react';
 import { InfoCard } from '@/components/info-card';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { cn } from '@/lib/utils';
 
-const colorSchema = z.string().regex(/^(\d{1,3})\s(\d{1,3})%\s(\d{1,3})%$/, {
-    message: "Formato inválido. Use HSL (ex: 262 86% 56%)"
-}).optional().or(z.literal(''));
+const gradients = [
+    { name: 'Padrão (Roxo/Rosa)', from: 'hsl(262 86% 56%)', to: 'hsl(330 86% 56%)' },
+    { name: 'Oceano (Azul/Verde)', from: 'hsl(210 90% 50%)', to: 'hsl(160 80% 40%)' },
+    { name: 'Pôr do Sol (Laranja/Amarelo)', from: 'hsl(30 90% 55%)', to: 'hsl(50 100% 50%)' },
+    { name: 'Esmeralda (Verde/Ciano)', from: 'hsl(145 70% 45%)', to: 'hsl(175 80% 40%)' },
+    { name: 'Vibrante (Rosa/Laranja)', from: 'hsl(340 90% 60%)', to: 'hsl(20 95% 55%)' },
+];
 
 const colorsFormSchema = z.object({
-  primary: colorSchema,
-  accent: colorSchema,
+  colorMode: z.enum(['gradient', 'solid']),
+  selectedGradient: z.string().optional(),
+  solidColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Formato de cor inválido. Use o formato hexadecimal (ex: #RRGGBB).").optional().or(z.literal('')),
 });
 
 function ColorsFormSkeleton() {
     return (
         <div className="space-y-8">
-            {[...Array(2)].map((_, i) => (
-                <div key={i} className="space-y-2">
-                    <Skeleton className="h-5 w-1/4" />
-                    <Skeleton className="h-4 w-2/3" />
-                    <Skeleton className="h-10 w-full" />
-                </div>
-            ))}
+            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-24 w-full" />
             <Skeleton className="h-12 w-full" />
         </div>
     )
@@ -64,16 +65,18 @@ export default function CoresPage() {
   const form = useForm<z.infer<typeof colorsFormSchema>>({
     resolver: zodResolver(colorsFormSchema),
     defaultValues: {
-      primary: '262 86% 56%',
-      accent: '282 86% 51%',
+      colorMode: 'gradient',
+      selectedGradient: 'Padrão (Roxo/Rosa)',
+      solidColor: '#8A2BE2',
     },
   });
 
   useEffect(() => {
     if (agentData?.siteSettings?.themeColors) {
       form.reset({
-        primary: agentData.siteSettings.themeColors.primary || '262 86% 56%',
-        accent: agentData.siteSettings.themeColors.accent || '282 86% 51%',
+        colorMode: agentData.siteSettings.themeColors.mode || 'gradient',
+        selectedGradient: agentData.siteSettings.themeColors.gradientName || 'Padrão (Roxo/Rosa)',
+        solidColor: agentData.siteSettings.themeColors.solid || '#8A2BE2',
       });
     }
   }, [agentData, form]);
@@ -84,8 +87,9 @@ export default function CoresPage() {
     const settingsToUpdate = {
         siteSettings: {
             themeColors: {
-                primary: values.primary,
-                accent: values.accent,
+                mode: values.colorMode,
+                gradientName: values.selectedGradient,
+                solid: values.solidColor,
             }
         }
     };
@@ -104,17 +108,13 @@ export default function CoresPage() {
     }
   }
 
-  const primaryColor = form.watch('primary');
-  const accentColor = form.watch('accent');
+  const selectedGradientName = form.watch('selectedGradient');
 
   return (
     <div className="space-y-6">
       <InfoCard cardId="cores-info" title="Personalize o Esquema de Cores">
         <p>
-          Defina aqui as cores principais que darão identidade ao seu site. A "Cor Primária" e a "Cor de Destaque" são usadas para criar o gradiente em títulos e outros elementos importantes.
-        </p>
-        <p>
-          As cores devem ser inseridas no formato HSL (Hue, Saturation, Lightness), sem o "hsl()". Por exemplo: <strong>262 86% 56%</strong>. Você pode usar um seletor de cores online para encontrar os valores HSL desejados.
+          Escolha uma das nossas paletas de gradiente pré-definidas para dar um toque profissional ao seu site, ou selecione uma única cor sólida para uma aparência mais minimalista.
         </p>
       </InfoCard>
 
@@ -124,7 +124,7 @@ export default function CoresPage() {
             <Palette /> Cores do Site
           </CardTitle>
           <CardDescription>
-            Personalize as cores primária e de destaque do seu site público.
+            Escolha entre gradientes pré-definidos ou uma cor sólida para os destaques do seu site.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -133,51 +133,79 @@ export default function CoresPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <FormField
                 control={form.control}
-                name="primary"
+                name="colorMode"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cor Primária (HSL)</FormLabel>
+                  <FormItem className="space-y-3">
+                    <FormLabel>Modo de Cor</FormLabel>
                     <FormControl>
-                      <div className="flex items-center gap-4">
-                        <Input placeholder="Ex: 262 86% 56%" {...field} />
-                        <div className="w-10 h-10 rounded-md border" style={{ backgroundColor: `hsl(${field.value})` }} />
-                      </div>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        className="flex gap-4"
+                      >
+                        <FormItem className="flex items-center space-x-2">
+                          <FormControl><RadioGroupItem value="gradient" /></FormControl>
+                          <FormLabel className="font-normal">Gradiente</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2">
+                          <FormControl><RadioGroupItem value="solid" /></FormControl>
+                          <FormLabel className="font-normal">Cor Sólida</FormLabel>
+                        </FormItem>
+                      </RadioGroup>
                     </FormControl>
-                    <FormDescription>Esta é a cor principal do gradiente em destaque.</FormDescription>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="accent"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cor de Destaque (HSL)</FormLabel>
-                    <FormControl>
+              {form.watch('colorMode') === 'gradient' && (
+                 <FormField
+                  control={form.control}
+                  name="selectedGradient"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Selecione um Gradiente</FormLabel>
+                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {gradients.map(gradient => (
+                                <div key={gradient.name}
+                                    onClick={() => field.onChange(gradient.name)}
+                                    className={cn("p-4 rounded-md cursor-pointer border-2 flex items-center justify-between transition-all",
+                                        field.value === gradient.name ? "border-primary" : "border-muted"
+                                    )}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-8 w-8 rounded-full" style={{ background: `linear-gradient(to right, ${gradient.from}, ${gradient.to})` }}/>
+                                        <span className="font-medium">{gradient.name}</span>
+                                    </div>
+                                    {field.value === gradient.name && <Check className="h-5 w-5 text-primary"/>}
+                                </div>
+                            ))}
+                       </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {form.watch('colorMode') === 'solid' && (
+                <FormField
+                  control={form.control}
+                  name="solidColor"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cor Sólida Personalizada</FormLabel>
+                      <FormControl>
                         <div className="flex items-center gap-4">
-                            <Input placeholder="Ex: 282 86% 51%" {...field} />
-                             <div className="w-10 h-10 rounded-md border" style={{ backgroundColor: `hsl(${field.value})` }} />
+                          <Input placeholder="Ex: #8A2BE2" {...field} />
+                          <div className="w-10 h-10 rounded-md border" style={{ backgroundColor: field.value }} />
                         </div>
-                    </FormControl>
-                    <FormDescription>Esta é a cor secundária do gradiente em destaque.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Pré-visualização do Gradiente:</p>
-                <div 
-                    className="p-4 rounded-md text-center font-bold text-2xl" 
-                    style={{ background: `linear-gradient(to right, hsl(${primaryColor}), hsl(${accentColor}))`, color: 'white' }}
-                >
-                    Texto em Destaque
-                </div>
-              </div>
-
-
+                      </FormControl>
+                      <FormDescription>Insira uma cor no formato hexadecimal (ex: #FF69B4).</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+              
               <Button type="submit" size="lg" disabled={form.formState.isSubmitting || !form.formState.isDirty} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
                 {form.formState.isSubmitting ? (
                   <>

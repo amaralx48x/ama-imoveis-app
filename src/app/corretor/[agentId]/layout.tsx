@@ -9,6 +9,14 @@ import { doc } from 'firebase/firestore';
 import type { Agent } from '@/lib/data';
 import { useEffect } from 'react';
 
+const gradients = [
+    { name: 'Padrão (Roxo/Rosa)', from: 'hsl(262 86% 56%)', to: 'hsl(330 86% 56%)' },
+    { name: 'Oceano (Azul/Verde)', from: 'hsl(210 90% 50%)', to: 'hsl(160 80% 40%)' },
+    { name: 'Pôr do Sol (Laranja/Amarelo)', from: 'hsl(30 90% 55%)', to: 'hsl(50 100% 50%)' },
+    { name: 'Esmeralda (Verde/Ciano)', from: 'hsl(145 70% 45%)', to: 'hsl(175 80% 40%)' },
+    { name: 'Vibrante (Rosa/Laranja)', from: 'hsl(340 90% 60%)', to: 'hsl(20 95% 55%)' },
+];
+
 function DynamicStyles() {
     const params = useParams();
     const agentId = params.agentId as string;
@@ -22,19 +30,17 @@ function DynamicStyles() {
     const { data: agentData } = useDoc<Agent>(agentRef);
 
     useEffect(() => {
-        const primaryColor = agentData?.siteSettings?.themeColors?.primary;
-        const accentColor = agentData?.siteSettings?.themeColors?.accent;
         const root = document.documentElement;
+        const themeColors = agentData?.siteSettings?.themeColors;
 
-        if (primaryColor) {
-            root.style.setProperty('--primary', primaryColor);
+        if (themeColors?.mode === 'solid' && themeColors.solid) {
+            root.style.setProperty('--primary', themeColors.solid);
+            root.style.setProperty('--accent', themeColors.solid);
         } else {
-            root.style.removeProperty('--primary');
-        }
-        if (accentColor) {
-            root.style.setProperty('--accent', accentColor);
-        } else {
-            root.style.removeProperty('--accent');
+            const selectedGradientName = themeColors?.gradientName || 'Padrão (Roxo/Rosa)';
+            const selectedGradient = gradients.find(g => g.name === selectedGradientName) || gradients[0];
+            root.style.setProperty('--primary', selectedGradient.from);
+            root.style.setProperty('--accent', selectedGradient.to);
         }
 
     }, [agentData]);

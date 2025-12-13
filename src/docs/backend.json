@@ -182,8 +182,9 @@
             "themeColors": {
               "type": "object",
               "properties": {
-                "primary": { "type": "string", "description": "Primary color in HSL format (e.g., '262 86% 56%')." },
-                "accent": { "type": "string", "description": "Accent color in HSL format (e.g., '282 86% 51%')." }
+                "mode": { "type": "string", "enum": ["gradient", "solid"], "default": "gradient" },
+                "gradientName": { "type": "string" },
+                "solid": { "type": "string" }
               }
             },
             "siteStatus": { "type": "boolean", "description": "Controls the public visibility of the agent's site.", "default": true },
@@ -415,4 +416,3 @@
     ]
   }
 }
-
