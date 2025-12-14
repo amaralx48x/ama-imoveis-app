@@ -1,4 +1,3 @@
-
 'use client'
 
 import React, { useEffect, useState } from "react";
@@ -158,7 +157,7 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
         { text: 'Usuário único do Sistema', included: true },
         { text: 'Inteligência Artificial', included: false },
         { text: 'Esteira de Leads', included: false },
-        { text: 'Certificado SSL', included: false },
+        { text: 'Certificado SSL', included: true },
         { text: 'Exportação CSV', included: false },
       ],
     },
