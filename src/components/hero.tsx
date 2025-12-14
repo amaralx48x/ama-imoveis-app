@@ -27,7 +27,7 @@ export function Hero({ children, heroImageUrl, heroImageUrlMobile, heroHeadline,
       {/* Camada da Imagem de Fundo */}
       <div className="absolute inset-0">
          {/* Imagem para Desktop */}
-        <div className="hidden md:block w-full h-full">
+        <div className="hidden md:block w-full h-full relative">
             <Image
                 src={desktopImage}
                 alt="Imagem principal do site para desktop"
@@ -39,7 +39,7 @@ export function Hero({ children, heroImageUrl, heroImageUrlMobile, heroHeadline,
             />
         </div>
         {/* Imagem para Mobile */}
-        <div className="block md:hidden w-full h-full">
+        <div className="block md:hidden w-full h-full relative">
              <Image
                 src={mobileImage}
                 alt="Imagem principal do site para mobile"
