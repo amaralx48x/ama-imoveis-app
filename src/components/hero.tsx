@@ -4,7 +4,7 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface HeroProps {
   children?: ReactNode;
@@ -15,32 +15,42 @@ interface HeroProps {
 }
 
 export function Hero({ children, heroImageUrl, heroImageUrlMobile, heroHeadline, heroSubtext }: HeroProps) {
-  const isMobile = useIsMobile();
   
   const fallbackImage = PlaceHolderImages.find(img => img.id === 'hero-background');
   
-  // Escolhe a imagem com base no dispositivo, com fallbacks
+  // Define as URLs das imagens com fallbacks
   const desktopImage = heroImageUrl || fallbackImage?.imageUrl || 'https://picsum.photos/seed/hero-desktop/1920/1080';
-  const mobileImage = heroImageUrlMobile || desktopImage; // Usa a de desktop se a mobile não existir
-
-  const finalImageUrl = isMobile ? mobileImage : desktopImage;
+  const mobileImage = heroImageUrlMobile || desktopImage; 
 
   const headline = heroHeadline || "Encontre o Imóvel dos Seus Sonhos";
   const subtext = heroSubtext || "As melhores oportunidades do mercado imobiliário para você.";
 
   return (
     <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center text-white">
-      {/* Camada da Imagem de Fundo */}
-      <Image
-        key={finalImageUrl} // Adiciona uma key para forçar o re-render no cliente quando a URL muda
-        src={finalImageUrl}
-        alt="Imagem principal do site"
-        fill
-        sizes="100vw"
-        className="object-cover"
-        data-ai-hint="real estate hero"
-        priority // Garante que a imagem principal carregue primeiro
-      />
+      {/* Camada das Imagens de Fundo - Renderiza ambas e usa CSS para alternar */}
+      <div className="absolute inset-0">
+          {/* Imagem para Mobile (visível em telas pequenas) */}
+          <Image
+              src={mobileImage}
+              alt="Imagem principal do site para mobile"
+              fill
+              sizes="100vw"
+              className="object-cover md:hidden"
+              data-ai-hint="real estate hero mobile"
+              priority
+          />
+          {/* Imagem para Desktop (visível a partir do breakpoint 'md') */}
+          <Image
+              src={desktopImage}
+              alt="Imagem principal do site para desktop"
+              fill
+              sizes="100vw"
+              className="object-cover hidden md:block"
+              data-ai-hint="real estate hero desktop"
+              priority
+          />
+      </div>
+
       {/* Camada de Sobreposição para Legibilidade */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/0" />
 
