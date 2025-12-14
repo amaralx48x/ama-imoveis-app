@@ -1,10 +1,8 @@
-
 'use client';
 
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { useState, useEffect } from 'react';
 
 interface HeroProps {
   children?: ReactNode;
@@ -16,28 +14,10 @@ interface HeroProps {
 
 export function Hero({ children, heroImageUrl, heroImageUrlMobile, heroHeadline, heroSubtext }: HeroProps) {
   
-  const [isMobile, setIsMobile] = useState(false);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768); // Tailwind's 'md' breakpoint
-    };
-
-    // Run on initial client-side render
-    checkScreenSize();
-    setIsClient(true);
-
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, []);
-  
   const fallbackImage = PlaceHolderImages.find(img => img.id === 'hero-background');
   
   const desktopImage = heroImageUrl || fallbackImage?.imageUrl || 'https://picsum.photos/seed/hero-desktop/1920/1080';
   const mobileImage = heroImageUrlMobile || desktopImage; 
-
-  const finalImageUrl = isMobile ? mobileImage : desktopImage;
 
   const headline = heroHeadline || "Encontre o Imóvel dos Seus Sonhos";
   const subtext = heroSubtext || "As melhores oportunidades do mercado imobiliário para você.";
@@ -46,17 +26,30 @@ export function Hero({ children, heroImageUrl, heroImageUrlMobile, heroHeadline,
     <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center text-white">
       {/* Camada da Imagem de Fundo */}
       <div className="absolute inset-0">
-        {isClient && (
+         {/* Imagem para Desktop */}
+        <div className="hidden md:block w-full h-full">
             <Image
-                src={finalImageUrl}
-                alt="Imagem principal do site"
+                src={desktopImage}
+                alt="Imagem principal do site para desktop"
                 fill
                 sizes="100vw"
                 className="object-cover"
                 data-ai-hint="real estate hero"
                 priority
             />
-        )}
+        </div>
+        {/* Imagem para Mobile */}
+        <div className="block md:hidden w-full h-full">
+             <Image
+                src={mobileImage}
+                alt="Imagem principal do site para mobile"
+                fill
+                sizes="100vw"
+                className="object-cover"
+                data-ai-hint="real estate hero"
+                priority
+            />
+        </div>
       </div>
 
       {/* Camada de Sobreposição para Legibilidade */}
