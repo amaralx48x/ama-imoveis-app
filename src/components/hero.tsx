@@ -33,10 +33,9 @@ export function Hero({ children, heroImageUrl, heroImageUrlMobile, heroHeadline,
                 src={desktopImage}
                 alt="Imagem principal do site para desktop"
                 fill
-                sizes="100vw"
-                className="object-cover"
-                data-ai-hint="real estate hero"
                 priority
+                className="object-cover"
+                sizes="100vw"
             />
         </div>
         {/* Imagem para Mobile */}
@@ -45,10 +44,9 @@ export function Hero({ children, heroImageUrl, heroImageUrlMobile, heroHeadline,
                 src={mobileImage}
                 alt="Imagem principal do site para mobile"
                 fill
-                sizes="100vw"
-                className="object-cover"
-                data-ai-hint="real estate hero"
                 priority
+                className="object-cover"
+                sizes="100vw"
             />
         </div>
       </div>
