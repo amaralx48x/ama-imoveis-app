@@ -292,7 +292,14 @@ export default function AparenciaPage() {
                         )} />
 
                         {currentHeroImageMobile && (
-                            <div className="space-y-2"><p className="text-sm font-medium">Pré-visualização (Mobile):</p><div className="relative aspect-[9/16] h-64 w-auto rounded-md overflow-hidden border"><Image src={currentHeroImageMobile} alt="Preview da Imagem Hero Mobile" layout="fill" objectFit="cover" /></div></div>
+                            <div className="space-y-2">
+                                <p className="text-sm font-medium">Pré-visualização (Mobile):</p>
+                                <div className="w-48 mx-auto bg-slate-800 rounded-[24px] p-2 border-4 border-slate-700">
+                                    <div className="relative aspect-[9/19.5] w-full rounded-[16px] overflow-hidden bg-black">
+                                        <Image src={currentHeroImageMobile} alt="Preview da Imagem Hero Mobile" layout="fill" objectFit="cover" />
+                                    </div>
+                                </div>
+                            </div>
                         )}
 
                         <Separator />
