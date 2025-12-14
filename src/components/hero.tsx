@@ -4,27 +4,35 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface HeroProps {
   children?: ReactNode;
   heroImageUrl?: string | null;
+  heroImageUrlMobile?: string | null;
   heroHeadline?: string | null;
   heroSubtext?: string | null;
 }
 
-export function Hero({ children, heroImageUrl, heroHeadline, heroSubtext }: HeroProps) {
-  // Garante que sempre haverá uma imagem, usando o fallback se a URL não for fornecida.
+export function Hero({ children, heroImageUrl, heroImageUrlMobile, heroHeadline, heroSubtext }: HeroProps) {
+  const isMobile = useIsMobile();
+  
   const fallbackImage = PlaceHolderImages.find(img => img.id === 'hero-background');
-  const finalImageUrl = heroImageUrl || fallbackImage?.imageUrl || 'https://picsum.photos/seed/hero/1920/1080';
+  
+  // Escolhe a imagem com base no dispositivo, com fallbacks
+  const desktopImage = heroImageUrl || fallbackImage?.imageUrl || 'https://picsum.photos/seed/hero-desktop/1920/1080';
+  const mobileImage = heroImageUrlMobile || desktopImage; // Usa a de desktop se a mobile não existir
+
+  const finalImageUrl = isMobile ? mobileImage : desktopImage;
 
   const headline = heroHeadline || "Encontre o Imóvel dos Seus Sonhos";
   const subtext = heroSubtext || "As melhores oportunidades do mercado imobiliário para você.";
-
 
   return (
     <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center text-white">
       {/* Camada da Imagem de Fundo */}
       <Image
+        key={finalImageUrl} // Adiciona uma key para forçar o re-render no cliente quando a URL muda
         src={finalImageUrl}
         alt="Imagem principal do site"
         fill

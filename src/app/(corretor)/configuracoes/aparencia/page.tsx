@@ -21,7 +21,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import type { Agent } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Palette, Sun, Moon, Loader2, Image as ImageIcon, View, MessageSquare } from 'lucide-react';
+import { Palette, Sun, Moon, Loader2, Image as ImageIcon, View, MessageSquare, Smartphone } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { InfoCard } from '@/components/info-card';
@@ -38,6 +38,7 @@ const appearanceFormSchema = z.object({
   heroHeadline: z.string().optional(),
   heroSubtext: z.string().optional(),
   heroImageUrl: z.string().url("URL inválida").optional().or(z.literal('')),
+  heroImageUrlMobile: z.string().url("URL inválida").optional().or(z.literal('')),
   logoUrl: z.string().url("URL inválida").optional().or(z.literal('')),
   faviconUrl: z.string().url("URL inválida").optional().or(z.literal('')),
   propertiesPerSection: z.coerce.number().min(3).max(5).default(4),
@@ -82,6 +83,7 @@ export default function AparenciaPage() {
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [heroFile, setHeroFile] = useState<File | null>(null);
+  const [heroFileMobile, setHeroFileMobile] = useState<File | null>(null);
   const [faviconFile, setFaviconFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -92,6 +94,7 @@ export default function AparenciaPage() {
       heroHeadline: '',
       heroSubtext: '',
       heroImageUrl: '',
+      heroImageUrlMobile: '',
       logoUrl: '',
       faviconUrl: '',
       propertiesPerSection: 4,
@@ -105,6 +108,7 @@ export default function AparenciaPage() {
         heroHeadline: agentData.siteSettings.heroHeadline || '',
         heroSubtext: agentData.siteSettings.heroSubtext || '',
         heroImageUrl: agentData.siteSettings.heroImageUrl || '',
+        heroImageUrlMobile: agentData.siteSettings.heroImageUrlMobile || '',
         logoUrl: agentData.siteSettings.logoUrl || '',
         faviconUrl: agentData.siteSettings.faviconUrl || '',
         propertiesPerSection: agentData.siteSettings.propertiesPerSection || 4,
@@ -127,7 +131,7 @@ export default function AparenciaPage() {
     if (!agentRef || !user) return;
     setIsUploading(true);
     
-    let { logoUrl, heroImageUrl, faviconUrl } = values;
+    let { logoUrl, heroImageUrl, heroImageUrlMobile, faviconUrl } = values;
 
     try {
         if (logoFile) {
@@ -137,6 +141,10 @@ export default function AparenciaPage() {
         if (heroFile) {
             heroImageUrl = await uploadFile(heroFile, `agents/${user.uid}/site-assets/hero-image`);
             form.setValue('heroImageUrl', heroImageUrl);
+        }
+        if (heroFileMobile) {
+            heroImageUrlMobile = await uploadFile(heroFileMobile, `agents/${user.uid}/site-assets/hero-image-mobile`);
+            form.setValue('heroImageUrlMobile', heroImageUrlMobile);
         }
         if (faviconFile) {
             faviconUrl = await uploadFile(faviconFile, `agents/${user.uid}/site-assets/favicon`);
@@ -148,6 +156,7 @@ export default function AparenciaPage() {
             ...values,
             logoUrl,
             heroImageUrl,
+            heroImageUrlMobile,
             faviconUrl,
         };
     
@@ -155,6 +164,7 @@ export default function AparenciaPage() {
         mutate();
         setLogoFile(null);
         setHeroFile(null);
+        setHeroFileMobile(null);
         setFaviconFile(null);
 
         toast({
@@ -174,6 +184,7 @@ export default function AparenciaPage() {
   }
   
   const currentHeroImage = form.watch('heroImageUrl');
+  const currentHeroImageMobile = form.watch('heroImageUrlMobile');
   const currentLogo = form.watch('logoUrl');
   const currentFavicon = form.watch('faviconUrl');
   const propertiesPerSection = form.watch('propertiesPerSection');
@@ -269,13 +280,21 @@ export default function AparenciaPage() {
                     {/* Coluna da Direita */}
                     <div className="space-y-8">
                          <FormField control={form.control} name="heroImageUrl" render={() => (
-                            <FormItem><FormLabel className="text-lg font-semibold flex items-center gap-2"><ImageIcon /> Imagem de Fundo (Hero)</FormLabel><FormControl><ImageUpload onFileSelect={(files) => setHeroFile(files[0])} /></FormControl><FormDescription>Esta é a imagem principal que aparece no topo do seu site. Tamanho recomendado: 1920x1080 pixels.</FormDescription><FormMessage /></FormItem>
+                            <FormItem><FormLabel className="text-lg font-semibold flex items-center gap-2"><ImageIcon /> Imagem de Fundo (Desktop)</FormLabel><FormControl><ImageUpload onFileSelect={(files) => setHeroFile(files[0])} /></FormControl><FormDescription>Esta é a imagem principal para telas grandes. Tamanho recomendado: 1920x1080 pixels.</FormDescription><FormMessage /></FormItem>
                         )} />
 
                         {currentHeroImage && (
-                            <div className="space-y-2"><p className="text-sm font-medium">Pré-visualização da Imagem Hero:</p><div className="relative aspect-video rounded-md overflow-hidden border max-w-sm"><Image src={currentHeroImage} alt="Preview da Imagem Hero" layout="fill" objectFit="cover" /></div></div>
+                            <div className="space-y-2"><p className="text-sm font-medium">Pré-visualização (Desktop):</p><div className="relative aspect-video rounded-md overflow-hidden border max-w-sm"><Image src={currentHeroImage} alt="Preview da Imagem Hero" layout="fill" objectFit="cover" /></div></div>
                         )}
                         
+                         <FormField control={form.control} name="heroImageUrlMobile" render={() => (
+                            <FormItem><FormLabel className="text-lg font-semibold flex items-center gap-2"><Smartphone /> Imagem de Fundo (Mobile)</FormLabel><FormControl><ImageUpload onFileSelect={(files) => setHeroFileMobile(files[0])} /></FormControl><FormDescription>Versão vertical da imagem para celulares. Tamanho recomendado: 720x1280 pixels.</FormDescription><FormMessage /></FormItem>
+                        )} />
+
+                        {currentHeroImageMobile && (
+                            <div className="space-y-2"><p className="text-sm font-medium">Pré-visualização (Mobile):</p><div className="relative aspect-[9/16] h-64 w-auto rounded-md overflow-hidden border"><Image src={currentHeroImageMobile} alt="Preview da Imagem Hero Mobile" layout="fill" objectFit="cover" /></div></div>
+                        )}
+
                         <Separator />
                         
                         <FormField control={form.control} name="propertiesPerSection" render={({ field }) => (
@@ -286,7 +305,7 @@ export default function AparenciaPage() {
 
                 <Separator />
                 
-                <Button type="submit" size="lg" disabled={isUploading || form.formState.isSubmitting || !form.formState.isDirty && !logoFile && !heroFile && !faviconFile} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
+                <Button type="submit" size="lg" disabled={isUploading || form.formState.isSubmitting || !form.formState.isDirty && !logoFile && !heroFile && !heroFileMobile && !faviconFile} className="w-full bg-gradient-to-r from-[#FF69B4] to-[#8A2BE2] hover:opacity-90 transition-opacity">
                 {isUploading || form.formState.isSubmitting ? (
                     <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

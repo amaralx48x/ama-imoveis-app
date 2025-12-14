@@ -174,6 +174,7 @@
             "heroHeadline": { "type": "string", "description": "The main headline for the hero section." },
             "heroSubtext": { "type": "string", "description": "The subtext for the hero section." },
             "heroImageUrl": { "type": "string", "format": "uri", "description": "URL for the agent's custom hero image." },
+            "heroImageUrlMobile": { "type": "string", "format": "uri", "description": "URL for the agent's custom hero image on mobile devices." },
             "logoUrl": { "type": "string", "format": "uri", "description": "URL for the agent's site logo." },
             "watermarkUrl": { "type": "string", "format": "uri", "description": "URL for the watermark image to be applied to property photos." },
             "showWatermark": { "type": "boolean", "description": "Enable or disable the watermark overlay on property images.", "default": false },
