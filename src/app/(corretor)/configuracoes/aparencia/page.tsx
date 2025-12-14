@@ -284,19 +284,22 @@ export default function AparenciaPage() {
                         )} />
 
                         {currentHeroImage && (
-                            <div className="space-y-2"><p className="text-sm font-medium">Pré-visualização (Desktop):</p><div className="relative aspect-video rounded-md overflow-hidden border max-w-sm"><Image src={currentHeroImage} alt="Preview da Imagem Hero" layout="fill" objectFit="cover" /></div></div>
+                            <div className="space-y-2"><p className="text-sm font-medium">Pré-visualização (Desktop):</p><div className="relative aspect-video rounded-md overflow-hidden border max-w-sm"><Image src={currentHeroImage} alt="Preview da Imagem Hero" fill sizes="100vw" className="object-cover" /></div></div>
                         )}
                         
                          <FormField control={form.control} name="heroImageUrlMobile" render={() => (
-                            <FormItem><FormLabel className="text-lg font-semibold flex items-center gap-2"><Smartphone /> Imagem de Fundo (Mobile)</FormLabel><FormControl><ImageUpload onFileSelect={(files) => setHeroFileMobile(files[0])} /></FormControl><FormDescription>Versão vertical da imagem para celulares. Tamanho recomendado: 720x1280 pixels.</FormDescription><FormMessage /></FormItem>
-                        )} />
+                            <FormItem>
+                                <FormLabel className="text-lg font-semibold flex items-center gap-2"><Smartphone /> Imagem de Fundo (Mobile)</FormLabel>
+                                <FormDescription>A imagem para mobile será a mesma da versão desktop. Para usar uma imagem diferente, faça o upload no campo acima e solicite a alteração ao suporte.</FormDescription>
+                            </FormItem>
+                         )} />
 
                         {currentHeroImageMobile && (
                             <div className="space-y-2">
                                 <p className="text-sm font-medium">Pré-visualização (Mobile):</p>
                                 <div className="w-48 mx-auto bg-slate-800 rounded-[24px] p-2 border-4 border-slate-700">
                                     <div className="relative aspect-[9/19.5] w-full rounded-[16px] overflow-hidden bg-black">
-                                        <Image src={currentHeroImageMobile} alt="Preview da Imagem Hero Mobile" layout="fill" objectFit="cover" />
+                                        <Image src={currentHeroImageMobile} alt="Preview da Imagem Hero Mobile" fill sizes="100vw" className="object-cover" />
                                     </div>
                                 </div>
                             </div>
@@ -328,5 +331,3 @@ export default function AparenciaPage() {
     </div>
   );
 }
-
-    
