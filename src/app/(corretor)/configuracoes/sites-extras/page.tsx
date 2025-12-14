@@ -8,12 +8,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Layers, Plus, Trash2, Edit, AlertTriangle, Globe } from 'lucide-react';
+import { Layers, Plus, Trash2, Edit, AlertTriangle, Globe, Gem } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { InfoCard } from '@/components/info-card';
 import { useRouter } from 'next/navigation';
+import { usePlan } from '@/context/PlanContext';
+import Link from 'next/link';
 
 function slugify(text: string) {
   return text
@@ -32,6 +34,7 @@ export default function GerenciarSitesExtrasPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
     const router = useRouter();
+    const { limits, canAddNewCatalogPage, currentCatalogPagesCount } = usePlan();
 
     const catalogCollection = useMemoFirebase(
         () => (user && firestore ? collection(firestore, `agents/${user.uid}/catalogPages`) : null),
@@ -44,6 +47,15 @@ export default function GerenciarSitesExtrasPage() {
 
     const handleCreatePage = async () => {
         if (!newPageName.trim() || !user || !firestore) return;
+        
+        if (!canAddNewCatalogPage()) {
+            toast({
+                title: "Limite de Sites Extras Atingido!",
+                description: `Você já tem ${limits.maxCatalogPages} páginas. Faça upgrade para adicionar mais.`,
+                variant: "destructive"
+            });
+            return;
+        }
 
         const newPage: Omit<CatalogPage, 'id'> = {
             name: newPageName,
@@ -95,6 +107,19 @@ export default function GerenciarSitesExtrasPage() {
                 </p>
             </InfoCard>
 
+            {!canAddNewCatalogPage() && (
+                 <Alert variant="destructive" className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30 text-foreground">
+                    <Gem className="h-4 w-4 text-primary" />
+                    <AlertTitle className="text-lg text-primary font-bold">Limite de Sites Extras Atingido</AlertTitle>
+                    <AlertDescription>
+                        Você atingiu o limite de {limits.maxCatalogPages} páginas para o seu plano. Para criar mais, por favor, faça o upgrade.
+                        <Button asChild variant="link" className="p-0 h-auto ml-1 text-primary">
+                            <Link href="/meu-plano">Fazer Upgrade</Link>
+                        </Button>
+                    </AlertDescription>
+                </Alert>
+            )}
+
             <Card>
                 <CardHeader>
                     <CardTitle className="text-3xl font-bold font-headline flex items-center gap-2">
@@ -112,15 +137,16 @@ export default function GerenciarSitesExtrasPage() {
                                 placeholder="Ex: Lançamento AlphaVille"
                                 value={newPageName}
                                 onChange={(e) => setNewPageName(e.target.value)}
+                                disabled={!canAddNewCatalogPage()}
                             />
-                            <Button onClick={handleCreatePage} disabled={!newPageName.trim()}>
+                            <Button onClick={handleCreatePage} disabled={!newPageName.trim() || !canAddNewCatalogPage()}>
                                 <Plus className="mr-2 h-4 w-4" /> Criar Página
                             </Button>
                         </div>
                     </div>
 
                     <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">Minhas Páginas</h3>
+                        <h3 className="text-lg font-semibold">Minhas Páginas ({currentCatalogPagesCount} / {limits.maxCatalogPages})</h3>
                         {isLoading && (
                             <div className="space-y-3">
                                 {[...Array(2)].map((_, i) => <Skeleton key={i} className="h-12 w-full rounded-md" />)}

@@ -21,14 +21,17 @@ interface PlanLimits {
     maxProperties: number;
     canImportCSV: boolean;
     storageGB: number;
+    maxCatalogPages: number;
 }
 
 interface PlanContextProps {
   plan: PlanType;
   limits: PlanLimits;
   currentPropertiesCount: number;
+  currentCatalogPagesCount: number;
   isLoading: boolean;
   canAddNewProperty: () => boolean;
+  canAddNewCatalogPage: () => boolean;
   planSettings: Record<PlanType, PlanLimits & { name: string; priceId: string }>;
 }
 
@@ -39,6 +42,7 @@ const planSettings: Record<PlanType, PlanLimits & { name: string; priceId: strin
         maxProperties: 30,
         canImportCSV: false,
         storageGB: 2,
+        maxCatalogPages: 5,
     },
     'essencial': {
         name: 'Essencial',
@@ -46,6 +50,7 @@ const planSettings: Record<PlanType, PlanLimits & { name: string; priceId: strin
         maxProperties: 350,
         canImportCSV: true,
         storageGB: 5,
+        maxCatalogPages: 10,
     },
     'impulso': {
         name: 'Impulso',
@@ -53,6 +58,7 @@ const planSettings: Record<PlanType, PlanLimits & { name: string; priceId: strin
         maxProperties: 1000,
         canImportCSV: true,
         storageGB: 10,
+        maxCatalogPages: 20,
     },
     'expansao': {
         name: 'Expansão',
@@ -60,6 +66,7 @@ const planSettings: Record<PlanType, PlanLimits & { name: string; priceId: strin
         maxProperties: 3000,
         canImportCSV: true,
         storageGB: 20,
+        maxCatalogPages: 40,
     }
 };
 
@@ -67,8 +74,10 @@ const defaultPlanContext: PlanContextProps = {
   plan: 'simples',
   limits: planSettings.simples,
   currentPropertiesCount: 0,
+  currentCatalogPagesCount: 0,
   isLoading: true,
   canAddNewProperty: () => false,
+  canAddNewCatalogPage: () => false,
   planSettings: planSettings,
 };
 
@@ -78,6 +87,7 @@ export const PlanProvider = ({ children, agentId }: { children: ReactNode, agent
   const firestore = useFirestore();
   const [agentData, setAgentData] = useState<Agent | null>(null);
   const [currentPropertiesCount, setCurrentPropertiesCount] = useState(0);
+  const [currentCatalogPagesCount, setCurrentCatalogPagesCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch agent data (including plan)
@@ -102,25 +112,42 @@ export const PlanProvider = ({ children, agentId }: { children: ReactNode, agent
     }
   }, [agentId, firestore]);
 
-  // Fetch current properties count in real-time
+  // Fetch current properties and catalog pages count in real-time
   useEffect(() => {
     if (agentId && firestore) {
       setIsLoading(true);
+      
       const propertiesRef = collection(firestore, `agents/${agentId}/properties`);
-      const unsubscribe = onSnapshot(
-        propertiesRef,
-        (snapshot) => {
+      const catalogPagesRef = collection(firestore, `agents/${agentId}/catalogPages`);
+
+      const unsubProperties = onSnapshot(propertiesRef, (snapshot) => {
           setCurrentPropertiesCount(snapshot.size);
+      }, (error) => {
+          console.error("Error fetching properties count:", error);
+      });
+      
+      const unsubCatalogPages = onSnapshot(catalogPagesRef, (snapshot) => {
+          setCurrentCatalogPagesCount(snapshot.size);
+      }, (error) => {
+          console.error("Error fetching catalog pages count:", error);
+      });
+
+      // Combine loading state logic
+      const checkLoading = async () => {
+          await Promise.all([
+              getDoc(doc(firestore, `agents/${agentId}`)),
+          ]);
           setIsLoading(false);
-        },
-        (error) => {
-          console.error("Error fetching properties count in PlanContext:", error);
-          setIsLoading(false);
-        }
-      );
-      return () => unsubscribe();
+      }
+      checkLoading();
+
+      return () => {
+          unsubProperties();
+          unsubCatalogPages();
+      };
     } else {
       setCurrentPropertiesCount(0);
+      setCurrentCatalogPagesCount(0);
       setIsLoading(false);
     }
   }, [agentId, firestore]);
@@ -138,13 +165,19 @@ export const PlanProvider = ({ children, agentId }: { children: ReactNode, agent
     return currentPropertiesCount < limits.maxProperties;
   }, [isLoading, currentPropertiesCount, limits.maxProperties]);
 
+  const canAddNewCatalogPage = useCallback(() => {
+    if (isLoading) return false;
+    return currentCatalogPagesCount < limits.maxCatalogPages;
+  }, [isLoading, currentCatalogPagesCount, limits.maxCatalogPages]);
+
   const value = {
     plan,
-    setPlan: () => {}, // setPlan is not implemented for clients
     limits,
     currentPropertiesCount,
+    currentCatalogPagesCount,
     isLoading,
     canAddNewProperty,
+    canAddNewCatalogPage,
     planSettings,
   };
 
