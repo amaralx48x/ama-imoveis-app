@@ -41,6 +41,7 @@ interface PropertyViewProps {
 export function PropertyView({ property, agent }: PropertyViewProps) {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     const [currentUrl, setCurrentUrl] = useState('');
     
     const [mainApi, setMainApi] = useState<CarouselApi>();
@@ -134,6 +135,7 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
     const mapSrc = `https://maps.google.com/maps?q=${mapQuery}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 
     return (
+        <>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Coluna principal com detalhes */}
             <div className="lg:col-span-2 space-y-8">
@@ -143,7 +145,7 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                              <Carousel className="w-full" setApi={mainApi}>
                                 <CarouselContent>
                                     {images.map((imageUrl, index) => (
-                                        <CarouselItem key={index}>
+                                        <CarouselItem key={index} onClick={() => setIsLightboxOpen(true)} className="cursor-pointer">
                                             <div className="aspect-video relative rounded-lg overflow-hidden">
                                                 <Image
                                                     src={imageUrl}
@@ -170,6 +172,10 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                                 </CarouselContent>
                                 <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex" />
                                 <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex" />
+                                 <div className="absolute bottom-4 right-4 bg-black/50 p-2 rounded-full text-white cursor-pointer hover:bg-black/70 transition-colors" onClick={() => setIsLightboxOpen(true)}>
+                                    <Expand className="w-5 h-5"/>
+                                    <span className="sr-only">Ver em tela cheia</span>
+                                </div>
                             </Carousel>
                         </div>
                        
@@ -338,5 +344,29 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                 </Card>
             </div>
         </div>
+        <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
+            <DialogContent className="max-w-5xl h-[90vh] bg-transparent border-none shadow-none text-white">
+                 <Carousel className="w-full h-full" setApi={setMainApi} opts={{startIndex: selectedIndex}}>
+                    <CarouselContent>
+                        {images.map((imageUrl, index) => (
+                            <CarouselItem key={index}>
+                                <div className="w-full h-[90vh] relative flex items-center justify-center">
+                                    <Image
+                                        src={imageUrl}
+                                        alt={`${property.title || 'Imagem do imóvel'} - Imagem ${index + 1}`}
+                                        fill
+                                        sizes="100vw"
+                                        className="object-contain"
+                                    />
+                                </div>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex text-white bg-black/30 hover:bg-black/50 border-white/50" />
+                    <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex text-white bg-black/30 hover:bg-black/50 border-white/50" />
+                </Carousel>
+            </DialogContent>
+        </Dialog>
+     </>
     );
 }
