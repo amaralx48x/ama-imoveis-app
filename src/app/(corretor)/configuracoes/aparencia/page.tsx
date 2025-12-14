@@ -294,12 +294,12 @@ export default function AparenciaPage() {
                             </FormItem>
                          )} />
 
-                        {currentHeroImageMobile && (
+                        {(currentHeroImageMobile || currentHeroImage) && (
                             <div className="space-y-2">
                                 <p className="text-sm font-medium">Pré-visualização (Mobile):</p>
                                 <div className="w-48 mx-auto bg-slate-800 rounded-[24px] p-2 border-4 border-slate-700">
                                     <div className="relative aspect-[9/19.5] w-full rounded-[16px] overflow-hidden bg-black">
-                                        <Image src={currentHeroImageMobile} alt="Preview da Imagem Hero Mobile" fill sizes="100vw" className="object-cover" />
+                                        <Image src={currentHeroImageMobile || currentHeroImage || ''} alt="Preview da Imagem Hero Mobile" fill sizes="100vw" className="object-cover" />
                                     </div>
                                 </div>
                             </div>
