@@ -46,6 +46,7 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
     
     const [mainApi, setMainApi] = useState<CarouselApi>();
     const [thumbApi, setThumbApi] = useState<CarouselApi>();
+    const [lightboxApi, setLightboxApi] = useState<CarouselApi>();
     const [selectedIndex, setSelectedIndex] = useState(0);
 
 
@@ -98,7 +99,9 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
     };
 
     const handlePrint = () => {
-        window.open(`/imoveis/imprimir/${property.id}`, '_blank');
+        if (property?.id) {
+            window.open(`/imoveis/imprimir/${property.id}`, '_blank');
+        }
     }
 
 
@@ -142,7 +145,7 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
                 <Card>
                     <CardHeader className="p-0">
                         <div className="relative group">
-                             <Carousel className="w-full" setApi={mainApi}>
+                             <Carousel className="w-full" setApi={setMainApi}>
                                 <CarouselContent>
                                     {images.map((imageUrl, index) => (
                                         <CarouselItem key={index} onClick={() => setIsLightboxOpen(true)} className="cursor-pointer">
@@ -346,7 +349,7 @@ export function PropertyView({ property, agent }: PropertyViewProps) {
         </div>
         <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
             <DialogContent className="max-w-5xl h-[90vh] bg-transparent border-none shadow-none text-white">
-                 <Carousel className="w-full h-full" setApi={setMainApi} opts={{startIndex: selectedIndex}}>
+                 <Carousel className="w-full h-full" setApi={setLightboxApi} opts={{startIndex: selectedIndex}}>
                     <CarouselContent>
                         {images.map((imageUrl, index) => (
                             <CarouselItem key={index}>
