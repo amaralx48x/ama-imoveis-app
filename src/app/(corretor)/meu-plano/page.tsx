@@ -145,7 +145,7 @@ export default function MeuPlanoPage() {
         { text: 'Usuário único do Sistema', included: true },
         { text: 'Inteligência Artificial', included: planSettings.simples.aiDescriptions },
         { text: 'Esteira de Leads', included: false },
-        { text: 'Certificado SSL', included: false },
+        { text: 'Certificado SSL', included: true },
         { text: 'Exportação CSV', included: planSettings.simples.canImportCSV },
       ],
       action: () => handlePlanChange('simples'),
