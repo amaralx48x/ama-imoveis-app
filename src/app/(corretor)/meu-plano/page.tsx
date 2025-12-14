@@ -39,7 +39,7 @@ function PlanActionButton({ planName, priceId, isCurrent, isAdmin, onAdminChange
             priceId={priceId}
             email={user?.email}
             userId={user?.uid}
-            className={cn("w-full", recommended && "bg-yellow-500 text-black hover:bg-yellow-600")}
+            className={cn("w-full", recommended && "bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black shadow-lg hover:opacity-90")}
         >
             {children}
         </SubscribeButton>
@@ -69,16 +69,16 @@ function PlanCard({ planDetail, isAdmin }: { planDetail: any, isAdmin: boolean }
                     <span className="text-lg font-normal text-muted-foreground">/mês</span>
                 </p>
                  <ul className="space-y-3 text-sm">
-                    {planDetail.features.slice(0, featuresToShow).map((feat: any) => (
-                        <PlanFeature key={feat.text} included={feat.included}>{feat.text}</PlanFeature>
+                    {planDetail.features.slice(0, featuresToShow).map((feat: any, index: number) => (
+                        <PlanFeature key={index} included={feat.included}>{feat.text}</PlanFeature>
                     ))}
                 </ul>
 
                 {planDetail.features.length > featuresToShow && (
                     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
                         <CollapsibleContent className="space-y-3 text-sm animate-accordion-down">
-                             {planDetail.features.slice(featuresToShow).map((feat: any) => (
-                                <PlanFeature key={feat.text} included={feat.included}>{feat.text}</PlanFeature>
+                             {planDetail.features.slice(featuresToShow).map((feat: any, index: number) => (
+                                <PlanFeature key={index} included={feat.included}>{feat.text}</PlanFeature>
                             ))}
                         </CollapsibleContent>
                         <CollapsibleTrigger asChild>
@@ -99,7 +99,7 @@ function PlanCard({ planDetail, isAdmin }: { planDetail: any, isAdmin: boolean }
                     onAdminChange={planDetail.action}
                     recommended={planDetail.recommended}
                 >
-                    {planDetail.isCurrent ? "Plano Atual" : 'TESTE GRÁTIS'}
+                    {planDetail.isCurrent ? "Plano Atual" : 'Contratar Plano'}
                 </PlanActionButton>
             </CardFooter>
         </Card>
@@ -134,14 +134,14 @@ export default function MeuPlanoPage() {
 
   const planDetails = {
     simples: {
-      name: 'Simples',
+      name: planSettings.simples.name,
       description: 'Serviço inicial para o seu orçamento',
       price: '39,99',
       features: [
         { text: 'Site Próprio Personalizável', included: true },
         { text: `Cadastro de até ${planSettings.simples.maxProperties} imóveis`, included: true },
         { text: '32 Fotos por imóvel', included: true },
-        { text: '5 Catálogos de Imóveis (sites extras)', included: true },
+        { text: `${planSettings.simples.maxCatalogPages} Catálogos de Imóveis (sites extras)`, included: true },
         { text: 'Usuário único do Sistema', included: true },
         { text: 'Esteira de Leads', included: false },
         { text: 'Certificado SSL', included: true },
@@ -152,14 +152,14 @@ export default function MeuPlanoPage() {
       priceId: planSettings.simples.priceId,
     },
      essencial: {
-      name: 'Essencial',
+      name: planSettings.essencial.name,
       description: 'Para quem está em constante evolução',
       price: '59,99',
       features: [
         { text: 'Site Próprio Personalizável', included: true },
         { text: `Cadastro de até ${planSettings.essencial.maxProperties} imóveis`, included: true },
         { text: '50 Fotos por Imóvel', included: true },
-        { text: '10 Catálogos de Imóveis (sites extras)', included: true },
+        { text: `${planSettings.essencial.maxCatalogPages} Catálogos de Imóveis (sites extras)`, included: true },
         { text: '3 Usuários do Sistema', included: true },
         { text: 'Esteira de Leads', included: true },
         { text: 'Certificado SSL', included: true },
@@ -170,7 +170,7 @@ export default function MeuPlanoPage() {
       priceId: planSettings.essencial.priceId,
     },
      impulso: {
-      name: 'Impulso',
+      name: planSettings.impulso.name,
       description: 'Eleve sua jornada para o próximo patamar',
       price: '89,99',
       recommended: true,
@@ -178,7 +178,7 @@ export default function MeuPlanoPage() {
         { text: 'Site Próprio Personalizável', included: true },
         { text: `Cadastro de até ${planSettings.impulso.maxProperties} imóveis`, included: true },
         { text: '64 Fotos por Imóvel', included: true },
-        { text: '20 Catálogos de Imóveis (sites extras)', included: true },
+        { text: `${planSettings.impulso.maxCatalogPages} Catálogos de Imóveis (sites extras)`, included: true },
         { text: '5 Usuários do Sistema', included: true },
         { text: 'Esteira de Leads', included: true },
         { text: 'Certificado SSL', included: true },
@@ -189,14 +189,14 @@ export default function MeuPlanoPage() {
       priceId: planSettings.impulso.priceId,
     },
     expansao: {
-      name: 'Expansão',
+      name: planSettings.expansao.name,
       description: 'Para negócios que exigem a mais alta perfomance',
       price: '149,99',
       features: [
         { text: 'Site Próprio Personalizável', included: true },
         { text: `Cadastro de até ${planSettings.expansao.maxProperties} imóveis`, included: true },
         { text: '64 Fotos por Imóvel', included: true },
-        { text: '40 Catálogos de Imóveis (sites extras)', included: true },
+        { text: `${planSettings.expansao.maxCatalogPages} Catálogos de Imóveis (sites extras)`, included: true },
         { text: '15 Usuários do Sistema', included: true },
         { text: 'Esteira de Leads', included: true },
         { text: 'Certificado SSL', included: true },

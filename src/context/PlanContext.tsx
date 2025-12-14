@@ -38,7 +38,7 @@ interface PlanContextProps {
 const planSettings: Record<PlanType, PlanLimits & { name: string; priceId: string }> = {
     'simples': {
         name: 'Simples',
-        priceId: process.env.NEXT_PUBLIC_STRIPE_PLANO1_PRICE_ID || 'price_simples',
+        priceId: process.env.NEXT_PUBLIC_STRIPE_PLANO1_PRICE_ID || 'price_1PgK6DRxpY85Bq4JAE3sC2N6',
         maxProperties: 30,
         canImportCSV: false,
         storageGB: 2,
@@ -46,7 +46,7 @@ const planSettings: Record<PlanType, PlanLimits & { name: string; priceId: strin
     },
     'essencial': {
         name: 'Essencial',
-        priceId: process.env.NEXT_PUBLIC_STRIPE_PLANO2_PRICE_ID || 'price_essencial',
+        priceId: process.env.NEXT_PUBLIC_STRIPE_PLANO2_PRICE_ID || 'price_1PgK6mRxpY85Bq4J00b2k5uP',
         maxProperties: 350,
         canImportCSV: true,
         storageGB: 5,
@@ -54,7 +54,7 @@ const planSettings: Record<PlanType, PlanLimits & { name: string; priceId: strin
     },
     'impulso': {
         name: 'Impulso',
-        priceId: process.env.NEXT_PUBLIC_STRIPE_PLANO3_PRICE_ID || 'price_impulso',
+        priceId: process.env.NEXT_PUBLIC_STRIPE_PLANO3_PRICE_ID || 'price_1PgK7BRxpY85Bq4JLbKxWk5K',
         maxProperties: 1000,
         canImportCSV: true,
         storageGB: 10,
@@ -62,7 +62,7 @@ const planSettings: Record<PlanType, PlanLimits & { name: string; priceId: strin
     },
     'expansao': {
         name: 'Expansão',
-        priceId: process.env.NEXT_PUBLIC_STRIPE_PLANO4_PRICE_ID || 'price_expansao',
+        priceId: process.env.NEXT_PUBLIC_STRIPE_PLANO4_PRICE_ID || 'price_1PgK7YRxpY85Bq4J4vPqQ0Kk',
         maxProperties: 3000,
         canImportCSV: true,
         storageGB: 20,

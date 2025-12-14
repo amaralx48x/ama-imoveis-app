@@ -50,7 +50,7 @@ const manageSubscriptionChange = async (subscriptionId: string, customerId: stri
         return; // Early exit if we can't find the user
     }
     
-    const userId = customerDocSnap.data().userId;
+    const userId = customerDocSnap.data()?.userId;
     if (!userId) {
         console.error(`Webhook Error: userId not found in customer document for Stripe customer ID: ${customerId}`);
         return;
@@ -61,14 +61,13 @@ const manageSubscriptionChange = async (subscriptionId: string, customerId: stri
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     const priceId = subscription.items.data[0].price.id;
 
-    let plan: 'corretor' | 'imobiliaria' = 'corretor'; // Default to basic plan
-    if (priceId === process.env.NEXT_PUBLIC_STRIPE_BASIC_PRICE_ID) {
-        plan = 'corretor';
-    } else if (priceId === process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID) {
-        plan = 'imobiliaria';
-    } else {
+    let plan: 'simples' | 'essencial' | 'impulso' | 'expansao' = 'simples'; // Default to basic plan
+    if (priceId === process.env.NEXT_PUBLIC_STRIPE_PLANO1_PRICE_ID) plan = 'simples';
+    else if (priceId === process.env.NEXT_PUBLIC_STRIPE_PLANO2_PRICE_ID) plan = 'essencial';
+    else if (priceId === process.env.NEXT_PUBLIC_STRIPE_PLANO3_PRICE_ID) plan = 'impulso';
+    else if (priceId === process.env.NEXT_PUBLIC_STRIPE_PLANO4_PRICE_ID) plan = 'expansao';
+    else {
         console.error(`Webhook Error: Unrecognized priceId ${priceId} for userId ${userId}`);
-        // Não atualiza se o ID do preço for desconhecido
         return; 
     }
     
