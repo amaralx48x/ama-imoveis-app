@@ -1,3 +1,4 @@
+
 'use client'
 
 import React, { useEffect, useState } from "react";
@@ -155,7 +156,6 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
         { text: '32 Fotos por imóvel', included: true },
         { text: '5 Catálogos de Imóveis (sites extras)', included: true },
         { text: 'Usuário único do Sistema', included: true },
-        { text: 'Inteligência Artificial', included: false },
         { text: 'Esteira de Leads', included: false },
         { text: 'Certificado SSL', included: true },
         { text: 'Exportação CSV', included: false },
@@ -170,7 +170,6 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
         { text: '50 Fotos por Imóvel', included: true },
         { text: '10 Catálogos de Imóveis (sites extras)', included: true },
         { text: '3 Usuários do Sistema', included: true },
-        { text: 'Inteligência Artificial', included: true },
         { text: 'Esteira de Leads', included: true },
         { text: 'Certificado SSL', included: true },
         { text: 'Exportação CSV', included: true },
@@ -186,7 +185,6 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
         { text: '64 Fotos por Imóvel', included: true },
         { text: '20 Catálogos de Imóveis (sites extras)', included: true },
         { text: '5 Usuários do Sistema', included: true },
-        { text: 'Inteligência Artificial', included: true },
         { text: 'Esteira de Leads', included: true },
         { text: 'Certificado SSL', included: true },
         { text: 'Exportação CSV e XML', included: true },
@@ -201,7 +199,6 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
         { text: '64 Fotos por Imóvel', included: true },
         { text: '40 Catálogos de Imóveis (sites extras)', included: true },
         { text: '15 Usuários do Sistema', included: true },
-        { text: 'Inteligência Artificial', included: true },
         { text: 'Esteira de Leads', included: true },
         { text: 'Certificado SSL', included: true },
         { text: 'Exportação CSV e XML', included: true },
