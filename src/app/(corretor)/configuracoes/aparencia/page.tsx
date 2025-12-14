@@ -248,7 +248,7 @@ export default function AparenciaPage() {
                             </FormItem>
                         )}
                         />
-
+                        <Separator />
                         <div className="space-y-6">
                             <h3 className="text-lg font-semibold flex items-center gap-2">
                                 <MessageSquare /> Mensagem de Boas-Vindas
@@ -260,14 +260,14 @@ export default function AparenciaPage() {
                                 <FormItem><FormLabel>Subtítulo</FormLabel><FormControl><Textarea placeholder="As melhores oportunidades do mercado imobiliário para você." {...field} /></FormControl><FormDescription>O texto de apoio que aparece abaixo do título principal.</FormDescription><FormMessage /></FormItem>
                             )} />
                         </div>
-                        
+                        <Separator />
                         <FormField control={form.control} name="logoUrl" render={() => (
                             <FormItem><FormLabel className="text-lg font-semibold flex items-center gap-2"><ImageIcon /> Logotipo do Site</FormLabel><FormControl><ImageUpload onFileSelect={(files) => setLogoFile(files[0])} /></FormControl><FormDescription>Recomendado: 128x128 pixels, fundo transparente (.png).</FormDescription><FormMessage /></FormItem>
                         )} />
                         {currentLogo && (
                             <div className="space-y-2"><p className="text-sm font-medium">Pré-visualização do Logotipo:</p><div className="flex items-center gap-4 p-4 border rounded-md bg-muted/50"><Image src={currentLogo} alt="Preview do Logotipo" width={48} height={48} className="rounded-md"/><span className="font-bold text-lg">{agentData?.name || "Nome do Site"}</span></div></div>
                         )}
-                        
+                        <Separator />
                         <FormField control={form.control} name="faviconUrl" render={() => (
                             <FormItem><FormLabel className="text-lg font-semibold flex items-center gap-2"><ImageIcon /> Favicon do Site</FormLabel><FormControl><ImageUpload onFileSelect={(files) => setFaviconFile(files[0])} /></FormControl><FormDescription>Ícone da aba do navegador. Recomenda-se uma imagem quadrada.</FormDescription><FormMessage /></FormItem>
                         )} />
@@ -328,3 +328,5 @@ export default function AparenciaPage() {
     </div>
   );
 }
+
+    
