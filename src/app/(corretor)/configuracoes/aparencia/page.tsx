@@ -290,7 +290,7 @@ export default function AparenciaPage() {
                          <FormField control={form.control} name="heroImageUrlMobile" render={() => (
                             <FormItem>
                                 <FormLabel className="text-lg font-semibold flex items-center gap-2"><Smartphone /> Imagem de Fundo (Mobile)</FormLabel>
-                                <FormDescription>A imagem para mobile será a mesma da versão desktop. Para usar uma imagem diferente, faça o upload no campo acima e solicite a alteração ao suporte.</FormDescription>
+                                <FormDescription>A imagem para mobile será a mesma da versão desktop.</FormDescription>
                             </FormItem>
                          )} />
 
