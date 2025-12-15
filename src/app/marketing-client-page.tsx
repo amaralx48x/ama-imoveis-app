@@ -147,8 +147,8 @@ export default function MarketingClientPage({ serverContent }: { serverContent: 
   }
 
   const planDetails = {
-    simples: {
-      name: 'Simples',
+    início: {
+      name: 'Início',
       price: '39,99',
       features: [
         { text: 'Site Próprio Personalizável', included: true },

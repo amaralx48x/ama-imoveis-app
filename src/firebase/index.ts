@@ -1,3 +1,4 @@
+
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
@@ -71,7 +72,7 @@ export const saveUserToFirestore = async (user: User, additionalData?: Additiona
       creci: '',
       photoUrl: user.photoURL || '',
       role: 'corretor',
-      plan: 'simples' as const,
+      plan: 'início' as const,
       createdAt: serverTimestamp(),
       status: 'pending', // Always set to 'pending' for new users
       siteSettings: {
