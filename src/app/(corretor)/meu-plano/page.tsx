@@ -133,23 +133,23 @@ export default function MeuPlanoPage() {
   };
 
   const planDetails = {
-    início: {
-      name: planSettings.início.name,
+    simples: {
+      name: planSettings.simples.name,
       description: 'Serviço inicial para o seu orçamento',
       price: '39,99',
       features: [
         { text: 'Site Próprio Personalizável', included: true },
-        { text: `Cadastro de até ${planSettings.início.maxProperties} imóveis`, included: true },
+        { text: `Cadastro de até ${planSettings.simples.maxProperties} imóveis`, included: true },
         { text: '32 Fotos por imóvel', included: true },
-        { text: `${planSettings.início.maxCatalogPages} Catálogos de Imóveis (sites extras)`, included: true },
+        { text: `${planSettings.simples.maxCatalogPages} Catálogos de Imóveis (sites extras)`, included: true },
         { text: 'Usuário único do Sistema', included: true },
         { text: 'Esteira de Leads', included: false },
         { text: 'Certificado SSL', included: true },
-        { text: 'Exportação CSV', included: planSettings.início.canImportCSV },
+        { text: 'Exportação CSV', included: planSettings.simples.canImportCSV },
       ],
-      action: () => handlePlanChange('início'),
-      isCurrent: plan === 'início',
-      priceId: planSettings.início.priceId,
+      action: () => handlePlanChange('simples'),
+      isCurrent: plan === 'simples',
+      priceId: planSettings.simples.priceId,
     },
      essencial: {
       name: planSettings.essencial.name,

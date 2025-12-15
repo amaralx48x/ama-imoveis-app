@@ -72,7 +72,7 @@ export const saveUserToFirestore = async (user: User, additionalData?: Additiona
       creci: '',
       photoUrl: user.photoURL || '',
       role: 'corretor',
-      plan: 'início' as const,
+      plan: 'simples' as const,
       createdAt: serverTimestamp(),
       status: 'pending', // Always set to 'pending' for new users
       siteSettings: {
