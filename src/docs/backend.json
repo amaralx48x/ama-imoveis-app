@@ -132,7 +132,7 @@
         "pin": { "type": "string", "description": "A 4-digit PIN for the primary agent login.", "default": "0000" },
         "status": { "type": "string", "enum": ["pending", "active"], "description": "The status of the agent's account.", "default": "active" },
         "accountType": { "type": "string", "enum": ["corretor", "imobiliaria"], "description": "The type of account, either an individual agent or an agency." },
-        "plan": { "type": "string", "enum": ["início", "essencial", "impulso", "expansao"], "description": "The subscription plan of the user.", "default": "início" },
+        "plan": { "type": "string", "enum": ["simples", "essencial", "impulso", "expansao"], "description": "The subscription plan of the user.", "default": "simples" },
         "role": { "type": "string", "enum": ["corretor", "admin"], "description": "The user's role in the system.", "default": "corretor" },
         "description": { "type": "string", "description": "A public-facing description of the agent or agency." },
         "creci": { "type": "string", "description": "CRECI number of the agent." },
@@ -296,14 +296,19 @@
         "type": "object",
         "description": "Represents a user's subscription.",
         "properties": {
+            "id": { "type": "string" },
             "userId": { "type": "string" },
-            "stripeSubscriptionId": { "type": "string" },
             "status": { "type": "string" },
+            "metadata": { "type": "object" },
             "priceId": { "type": "string" },
-            "createdAt": { "type": "string", "format": "date-time" },
-            "currentPeriodEnd": { "type": "string", "format": "date-time" }
+            "cancel_at_period_end": { "type": "boolean" },
+            "created": { "type": "number", "format": "utc-millisec" },
+            "current_period_start": { "type": "number", "format": "utc-millisec" },
+            "current_period_end": { "type": "number", "format": "utc-millisec" },
+            "ended_at": { "type": "number", "format": "utc-millisec", "nullable": true },
+            "canceled_at": { "type": "number", "format": "utc-millisec", "nullable": true }
         },
-        "required": ["userId", "stripeSubscriptionId", "status", "priceId"]
+        "required": ["id", "userId", "status", "priceId", "created", "current_period_start", "current_period_end"]
     },
     "Lead": {
       "$schema": "http://json-schema.org/draft-07/schema#",

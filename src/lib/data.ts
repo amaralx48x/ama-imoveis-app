@@ -229,12 +229,17 @@ export type Customer = {
 }
 
 export type Subscription = {
+  id: string;
   userId: string;
-  stripeSubscriptionId: string;
-  status: 'active' | 'canceled' | 'past_due' | 'unpaid';
+  status: 'active' | 'canceled' | 'past_due' | 'unpaid' | 'incomplete';
+  metadata: Record<string, any>;
   priceId: string;
-  createdAt?: any;
-  currentPeriodEnd?: any;
+  cancel_at_period_end: boolean;
+  created: number;
+  current_period_start: number;
+  current_period_end: number;
+  ended_at: number | null;
+  canceled_at: number | null;
 }
 
 
@@ -274,7 +279,7 @@ const properties: Property[] = [
     rooms: 9,
     builtArea: 250,
     totalArea: 400,
-    imageUrls: ['https://images.unsplash.com/photo-1572120360610-d971b9d7767c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzdWJ1cmJhbiUyMGhvdXNlfGVufDB8fHx8MTc2MTkwODc5N3ww&ixlib-rb-4.1.0&q=80&w=1080', 'https://images.unsplash.com/photo-1726968335694-02219ed7ce96?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxob3VzZSUyMGJhY2t5YXJkfGVufDB8fHx8MTc2MjAwOTc0Mnww&ixlib-rb-4.1.0&q=80&w=1080'],
+    imageUrls: ['https://images.unsplash.com/photo-1572120360610-d971b9d7767c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzdWJ1cmJhbiUyMGhvdXNlfGVufDB8fHx8MTc2MTkwODc5N3ww&ixlib=rb-4.1.0&q=80&w=1080', 'https://images.unsplash.com/photo-1726968335694-02219ed7ce96?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxob3VzZSUyMGJhY2t5YXJkfGVufDB8fHx8MTc2MjAwOTc0Mnww&ixlib=rb-4.1.0&q=80&w=1080'],
     city: 'Campinas',
     neighborhood: 'Taquaral',
     address: 'Rua das Camélias, 123',
@@ -295,7 +300,7 @@ const properties: Property[] = [
     rooms: 10,
     builtArea: 400,
     totalArea: 600,
-    imageUrls: ['https://images.unsplash.com/photo-1634351580440-8fcf7813367e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxiZWFjaGZyb250JTIwaG91c2V8ZW58MHx8fHwxNzYxOTQ1NTg4fDA&ixlib-rb-4.1.0&q=80&w=1080'],
+    imageUrls: ['https://images.unsplash.com/photo-1634351580440-8fcf7813367e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxiZWFjaGZyb250JTIwaG91c2V8ZW58MHx8fHwxNzYxOTQ1NTg4fDA&ixlib=rb-4.1.0&q=80&w=1080'],
     city: 'Ubatuba',
     neighborhood: 'Praia Grande',
     address: 'Av. Atlântica, 500',

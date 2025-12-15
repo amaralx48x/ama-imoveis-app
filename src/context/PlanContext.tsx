@@ -15,7 +15,7 @@ import { useFirestore } from '@/firebase';
 import type { Agent } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 
-export type PlanType = 'início' | 'essencial' | 'impulso' | 'expansao';
+export type PlanType = 'simples' | 'essencial' | 'impulso' | 'expansao';
 
 interface PlanLimits {
     maxProperties: number;
@@ -36,7 +36,7 @@ interface PlanContextProps {
 }
 
 const planSettings: Record<PlanType, PlanLimits & { name: string; priceId: string }> = {
-    'início': {
+    'simples': {
         name: 'Início',
         priceId: process.env.NEXT_PUBLIC_STRIPE_PLANO1_PRICE_ID || '',
         maxProperties: 30,
@@ -71,8 +71,8 @@ const planSettings: Record<PlanType, PlanLimits & { name: string; priceId: strin
 };
 
 const defaultPlanContext: PlanContextProps = {
-  plan: 'início',
-  limits: planSettings.início,
+  plan: 'simples',
+  limits: planSettings.simples,
   currentPropertiesCount: 0,
   currentCatalogPagesCount: 0,
   isLoading: true,
@@ -98,7 +98,7 @@ export const PlanProvider = ({ children, agentId }: { children: ReactNode, agent
         if (docSnap.exists()) {
           const data = docSnap.data() as Agent;
           if (data.plan && !Object.keys(planSettings).includes(data.plan)) {
-              data.plan = 'início'; 
+              data.plan = 'simples'; 
           }
           setAgentData(data);
         }
@@ -154,7 +154,7 @@ export const PlanProvider = ({ children, agentId }: { children: ReactNode, agent
   
   const plan = agentData?.plan && Object.keys(planSettings).includes(agentData.plan) 
     ? agentData.plan as PlanType 
-    : 'início';
+    : 'simples';
 
   const limits = useMemo(() => {
     return planSettings[plan];

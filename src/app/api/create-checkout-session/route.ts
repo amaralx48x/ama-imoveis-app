@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     }
 
     // Use o domínio de produção real.
-    const productionUrl = 'https://amaimobi.com.br';
+    const productionUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://amaimobi.com.br';
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       line_items: [{ price: priceId, quantity: 1 }],
       customer_email: customerEmail,
       success_url: `${productionUrl}/assinatura/sucesso?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${productionUrl}/assinatura/cancelado`,
+      cancel_url: `${productionUrl}/meu-plano`,
       metadata: { 
           userId: userId // Pass the userId to the webhook
       }, 
