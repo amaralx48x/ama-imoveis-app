@@ -27,16 +27,19 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'userId é obrigatório' }, { status: 400 });
     }
 
-    // Use o domínio de produção real.
-    const productionUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://amaimobi.com.br';
+    // Dynamically determine the base URL from the request headers
+    const headers = req.headers;
+    const protocol = headers.get('x-forwarded-proto') || 'http';
+    const host = headers.get('host');
+    const baseUrl = `${protocol}://${host}`;
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
       customer_email: customerEmail,
-      success_url: `${productionUrl}/assinatura/sucesso?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${productionUrl}/meu-plano`,
+      success_url: `${baseUrl}/assinatura/sucesso?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/meu-plano`,
       metadata: { 
           userId: userId // Pass the userId to the webhook
       }, 
