@@ -14,31 +14,15 @@ if (!stripeSecretKey || !webhookSecret) {
 
 const stripe = new Stripe(stripeSecretKey!, { apiVersion: '2024-06-20' });
 
-// Define o runtime como nodejs para maior compatibilidade com streams
+export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const relevantEvents = new Set([
   'checkout.session.completed',
   'customer.subscription.deleted',
   'customer.subscription.updated',
-  'customer.subscription.created', // Adicionado para lidar com upgrades/downgrades
+  'customer.subscription.created',
 ]);
-
-
-async function getRawBody(req: Request): Promise<Buffer> {
-    const reader = req.body?.getReader();
-    if (!reader) {
-        throw new Error('Could not get reader from request body');
-    }
-    const chunks: Uint8Array[] = [];
-    while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (value) chunks.push(value);
-    }
-    return Buffer.concat(chunks);
-}
-
 
 const manageSubscriptionChange = async (subscription: Stripe.Subscription) => {
     const { firestore } = getFirebaseServer();
@@ -103,15 +87,21 @@ const manageSubscriptionChange = async (subscription: Stripe.Subscription) => {
     console.log(`✅ Webhook: Updated plan for user ${userId} to ${plan} with status ${subscription.status}`);
 };
 
-
 export async function POST(req: Request) {
   if (!stripeSecretKey || !webhookSecret) {
     return new NextResponse('Stripe keys not configured on the server.', { status: 500 });
   }
 
   const sig = req.headers.get('stripe-signature')!;
-  const body = await getRawBody(req);
-
+  let body;
+  try {
+    // Use req.text() and Buffer.from() for robust raw body parsing
+    const rawBody = await req.text();
+    body = Buffer.from(rawBody, 'utf8');
+  } catch (err) {
+    return new NextResponse('Could not read request body.', { status: 400 });
+  }
+  
   let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
