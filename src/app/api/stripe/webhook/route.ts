@@ -2,7 +2,7 @@
 import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
 import { getFirebaseServer } from '@/firebase/server-init';
-import { doc, updateDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -26,9 +26,9 @@ async function manageSubscriptionChange(subscription: Stripe.Subscription) {
   const { firestore } = getFirebaseServer();
   const customerId = subscription.customer as string;
 
-  const customersRef = collection(firestore, 'customers');
-  const q = query(customersRef, where('stripeCustomerId', '==', customerId));
-  const querySnapshot = await getDocs(q);
+  const customersRef = firestore.collection('customers');
+  const q = customersRef.where('stripeCustomerId', '==', customerId);
+  const querySnapshot = await q.get();
 
   if (querySnapshot.empty) {
     console.error(`Customer not found for Stripe customer ID: ${customerId}`);
@@ -43,7 +43,7 @@ async function manageSubscriptionChange(subscription: Stripe.Subscription) {
     return;
   }
 
-  const agentRef = doc(firestore, 'agents', userId);
+  const agentRef = firestore.collection('agents').doc(userId);
   const priceId = subscription.items.data[0].price.id;
 
   let plan: 'simples' | 'essencial' | 'impulso' | 'expansao' = 'simples';
@@ -57,7 +57,7 @@ async function manageSubscriptionChange(subscription: Stripe.Subscription) {
     return;
   }
 
-  await updateDoc(agentRef, {
+  await agentRef.update({
     plan,
     stripeSubscriptionId: subscription.id,
     stripeCustomerId: customerId,
@@ -65,10 +65,9 @@ async function manageSubscriptionChange(subscription: Stripe.Subscription) {
     stripeSubscriptionStatus: subscription.status,
   });
 
-  const userSubscriptionRef = doc(firestore, `customers/${userId}/subscriptions`, subscription.id);
+  const userSubscriptionRef = firestore.collection(`customers/${userId}/subscriptions`).doc(subscription.id);
 
-  await setDoc(
-    userSubscriptionRef,
+  await userSubscriptionRef.set(
     {
       id: subscription.id,
       userId,
@@ -131,10 +130,9 @@ export async function POST(req: Request) {
         }
 
         const { firestore } = getFirebaseServer();
-        const customerRef = doc(firestore, 'customers', userId);
+        const customerRef = firestore.collection('customers').doc(userId);
 
-        await setDoc(
-          customerRef,
+        await customerRef.set(
           { userId, stripeCustomerId: customerId },
           { merge: true }
         );
