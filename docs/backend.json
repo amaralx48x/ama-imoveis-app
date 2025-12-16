@@ -140,6 +140,9 @@
         "phone": { "type": "string", "description": "The agent's primary contact phone number." },
         "email": { "type": "string", "description": "Contact email for the agent." },
         "cities": { "type": "array", "items": { "type": "string" }, "description": "List of cities the agent operates in." },
+        "stripeCustomerId": { "type": "string", "description": "The ID of the customer object in Stripe, used for billing." },
+        "stripeSubscriptionId": { "type": "string", "description": "The ID of the active Stripe subscription." },
+        "stripeSubscriptionStatus": { "type": "string", "description": "The current status of the Stripe subscription (e.g., 'active', 'canceled')." },
         "availability": {
           "type": "object",
           "description": "Defines the agent's availability for property viewings.",

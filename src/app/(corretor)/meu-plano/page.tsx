@@ -4,34 +4,24 @@
 import { usePlan, PlanType } from '@/context/PlanContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Gem, X, Loader2, Star, ChevronDown } from 'lucide-react';
+import { Check, Gem, X, Loader2, Star, ChevronDown, Settings } from 'lucide-react';
 import { InfoCard } from '@/components/info-card';
 import { useUser, useDoc, useFirestore } from '@/firebase';
 import type { Agent } from '@/lib/data';
-import { doc, updateDoc } from 'firebase/firestore';
-import { useToast } from '@/hooks/use-toast';
+import { useMemo } from 'react';
+import { doc } from 'firebase/firestore';
 import SubscribeButton from '@/components/SubscribeButton';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
 
-
-const PlanFeature = ({ children, included }: { children: React.ReactNode, included: boolean }) => (
-    <li className={`flex items-start gap-3 ${!included ? 'text-muted-foreground' : ''}`}>
-        {included ? <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" /> : <X className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />}
-        <span>{children}</span>
-    </li>
-);
-
-function PlanActionButton({ planName, priceId, isCurrent, isAdmin, onAdminChange, children, recommended }: { planName: string, priceId: string, isCurrent: boolean, isAdmin: boolean, onAdminChange: () => void, children: React.ReactNode, recommended?: boolean }) {
+function PlanActionButton({ planName, priceId, isCurrent, children, recommended }: { planName: string, priceId: string, isCurrent: boolean, children: React.ReactNode, recommended?: boolean }) {
     const { user } = useUser();
     
     if (isCurrent) {
       return <Button disabled className="w-full" variant="outline">Plano Atual</Button>;
-    }
-
-    if (isAdmin) {
-        return <Button onClick={onAdminChange} className={cn("w-full", recommended && "bg-yellow-500 text-black hover:bg-yellow-600")}>{children}</Button>;
     }
 
     return (
@@ -46,7 +36,7 @@ function PlanActionButton({ planName, priceId, isCurrent, isAdmin, onAdminChange
     )
 }
 
-function PlanCard({ planDetail, isAdmin }: { planDetail: any, isAdmin: boolean }) {
+function PlanCard({ planDetail }: { planDetail: any }) {
     const [isOpen, setIsOpen] = useState(false);
     const featuresToShow = 5;
 
@@ -95,8 +85,6 @@ function PlanCard({ planDetail, isAdmin }: { planDetail: any, isAdmin: boolean }
                     planName={planDetail.name}
                     priceId={planDetail.priceId}
                     isCurrent={planDetail.isCurrent}
-                    isAdmin={isAdmin}
-                    onAdminChange={planDetail.action}
                     recommended={planDetail.recommended}
                 >
                     {planDetail.isCurrent ? "Plano Atual" : 'Contratar Plano'}
@@ -106,6 +94,60 @@ function PlanCard({ planDetail, isAdmin }: { planDetail: any, isAdmin: boolean }
     )
 }
 
+const PlanFeature = ({ children, included }: { children: React.ReactNode, included: boolean }) => (
+    <li className={`flex items-start gap-3 ${!included ? 'text-muted-foreground' : ''}`}>
+        {included ? <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" /> : <X className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />}
+        <span>{children}</span>
+    </li>
+);
+
+function SubscriptionStatus({ agentData }: { agentData: Agent | null }) {
+    const [isRedirecting, setIsRedirecting] = useState(false);
+    const { toast } = useToast();
+
+    const handleManageSubscription = async () => {
+        if (!agentData?.stripeCustomerId) return;
+        setIsRedirecting(true);
+        try {
+            const res = await fetch('/api/create-portal-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ customerId: agentData.stripeCustomerId }),
+            });
+            if (!res.ok) throw new Error('Falha ao criar sessão do portal.');
+            const { url } = await res.json();
+            window.location.href = url;
+        } catch (error: any) {
+            toast({ title: "Erro", description: error.message, variant: "destructive" });
+            setIsRedirecting(false);
+        }
+    };
+    
+    if (!agentData?.stripeSubscriptionId) {
+        return null;
+    }
+
+    return (
+         <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">Sua Assinatura</CardTitle>
+                <CardDescription>Gerencie os detalhes do seu plano e pagamento.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="flex justify-between items-center p-4 border rounded-lg bg-muted/50">
+                    <div>
+                        <p className="text-sm text-muted-foreground">Status da Assinatura</p>
+                        <p className="font-bold text-lg capitalize">{agentData.stripeSubscriptionStatus || 'Desconhecido'}</p>
+                    </div>
+                     <Button onClick={handleManageSubscription} disabled={isRedirecting}>
+                        {isRedirecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Settings className="mr-2 h-4 w-4" />}
+                        Gerenciar Assinatura
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
 
 export default function MeuPlanoPage() {
   const { user } = useUser();
@@ -115,19 +157,6 @@ export default function MeuPlanoPage() {
 
    const agentRef = useMemo(() => (user && firestore ? doc(firestore, 'agents', user.uid) : null), [user, firestore]);
   const { data: agentData } = useDoc<Agent>(agentRef);
-  const isAdmin = agentData?.role === 'admin';
-
-
-  const handlePlanChange = async (newPlan: PlanType) => {
-    if (isAdmin && agentRef) {
-      try {
-        await updateDoc(agentRef, { plan: newPlan });
-        toast({ title: "Plano alterado com sucesso (Admin)"});
-      } catch (error) {
-         toast({ title: "Erro ao alterar plano", variant: "destructive"});
-      }
-    }
-  };
 
   const planDetails = {
     simples: {
@@ -144,7 +173,6 @@ export default function MeuPlanoPage() {
         { text: 'Certificado SSL', included: true },
         { text: 'Exportação CSV', included: planSettings.simples.canImportCSV },
       ],
-      action: () => handlePlanChange('simples'),
       isCurrent: plan === 'simples',
       priceId: planSettings.simples.priceId,
     },
@@ -162,7 +190,6 @@ export default function MeuPlanoPage() {
         { text: 'Certificado SSL', included: true },
         { text: 'Exportação CSV', included: planSettings.essencial.canImportCSV },
       ],
-      action: () => handlePlanChange('essencial'),
       isCurrent: plan === 'essencial',
       priceId: planSettings.essencial.priceId,
     },
@@ -181,7 +208,6 @@ export default function MeuPlanoPage() {
         { text: 'Certificado SSL', included: true },
         { text: 'Exportação CSV e XML', included: planSettings.impulso.canImportCSV },
       ],
-      action: () => handlePlanChange('impulso'),
       isCurrent: plan === 'impulso',
       priceId: planSettings.impulso.priceId,
     },
@@ -199,7 +225,6 @@ export default function MeuPlanoPage() {
         { text: 'Certificado SSL', included: true },
         { text: 'Exportação CSV e XML', included: planSettings.expansao.canImportCSV },
       ],
-      action: () => handlePlanChange('expansao'),
       isCurrent: plan === 'expansao',
       priceId: planSettings.expansao.priceId,
     },
@@ -213,17 +238,14 @@ export default function MeuPlanoPage() {
             <p>
                 Aqui você pode visualizar os recursos do seu plano atual e seus limites de uso. Para fazer upgrade ou downgrade do seu plano, basta escolher o plano desejado e prosseguir para o pagamento.
             </p>
-             {isAdmin && (
-                <p className="mt-2 text-primary font-semibold">
-                    Você é um administrador. Os botões de troca de plano estão ativos para fins de teste.
-                </p>
-             )}
         </InfoCard>
 
         <div>
             <h1 className="text-3xl font-bold font-headline flex items-center gap-2"><Gem /> Meu Plano e Assinatura</h1>
             <p className="text-muted-foreground">Gerencie sua assinatura, veja seus limites e faça upgrade.</p>
         </div>
+
+        <SubscriptionStatus agentData={agentData} />
 
         <Card>
             <CardHeader>
@@ -245,9 +267,16 @@ export default function MeuPlanoPage() {
             </CardContent>
         </Card>
 
+        <Separator />
+        
+        <div className="text-center">
+             <h2 className="text-2xl font-bold font-headline">Escolha o Plano Ideal para Você</h2>
+             <p className="text-muted-foreground">Todos os planos incluem um período de teste de 7 dias.</p>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {Object.values(planDetails).map((p) => (
-            <PlanCard key={p.name} planDetail={p} isAdmin={isAdmin} />
+            <PlanCard key={p.name} planDetail={p} />
           ))}
         </div>
     </div>
