@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import SubscribeButton from '@/components/SubscribeButton';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 
 const PlanFeature = ({ children, included }: { children: React.ReactNode, included: boolean }) => (
@@ -113,10 +113,7 @@ export default function MeuPlanoPage() {
   const { toast } = useToast();
   const { plan, limits, currentPropertiesCount, isLoading, planSettings } = usePlan();
 
-   const agentRef = useMemoFirebase(
-    () => (user && firestore ? doc(firestore, 'agents', user.uid) : null),
-    [user, firestore]
-  );
+   const agentRef = useMemo(() => (user && firestore ? doc(firestore, 'agents', user.uid) : null), [user, firestore]);
   const { data: agentData } = useDoc<Agent>(agentRef);
   const isAdmin = agentData?.role === 'admin';
 

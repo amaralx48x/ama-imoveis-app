@@ -174,11 +174,20 @@
             "heroHeadline": { "type": "string", "description": "The main headline for the hero section." },
             "heroSubtext": { "type": "string", "description": "The subtext for the hero section." },
             "heroImageUrl": { "type": "string", "format": "uri", "description": "URL for the agent's custom hero image." },
+            "heroImageUrlMobile": { "type": "string", "format": "uri", "description": "URL for the agent's custom hero image on mobile devices." },
             "logoUrl": { "type": "string", "format": "uri", "description": "URL for the agent's site logo." },
             "watermarkUrl": { "type": "string", "format": "uri", "description": "URL for the watermark image to be applied to property photos." },
             "showWatermark": { "type": "boolean", "description": "Enable or disable the watermark overlay on property images.", "default": false },
             "watermarkOpacity": { "type": "number", "description": "Opacity of the watermark from 0 to 100.", "default": 30 },
             "theme": { "type": "string", "enum": ["light", "dark"], "description": "The color theme for the site and dashboard.", "default": "dark" },
+            "themeColors": {
+              "type": "object",
+              "properties": {
+                "mode": { "type": "string", "enum": ["gradient", "solid"], "default": "gradient" },
+                "gradientName": { "type": "string" },
+                "solid": { "type": "string" }
+              }
+            },
             "siteStatus": { "type": "boolean", "description": "Controls the public visibility of the agent's site.", "default": true },
             "showFinancing": { "type": "boolean", "description": "Show or hide the financing simulation button." },
             "financingLink": { "type": "string", "description": "Custom URL for the financing button." },
@@ -232,6 +241,46 @@
       },
       "required": ["id", "displayName", "name", "accountType", "email", "role", "status"]
     },
+    "CatalogPage": {
+      "title": "Catalog Page",
+      "type": "object",
+      "description": "Represents a dedicated landing page for a property or development.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "description": "Internal name for the catalog page." },
+        "slug": { "type": "string", "description": "URL-friendly slug for the page." },
+        "heroImageUrl": { "type": "string", "format": "uri" },
+        "title": { "type": "string", "description": "Main title of the page (e.g., 'Residencial X')." },
+        "subtitle": { "type": "string", "description": "Short value proposition (e.g., 'Lotes a partir de 250m²')." },
+        "ctaButtonText": { "type": "string", "default": "Falar com um corretor" },
+        "technicalDetails": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": { "label": { "type": "string" }, "value": { "type": "string" } }
+          }
+        },
+        "galleryImages": { "type": "array", "items": { "type": "string", "format": "uri" } },
+        "plantImages": { "type": "array", "items": { "type": "string", "format": "uri" } },
+        "videoUrl": { "type": "string", "format": "uri" },
+        "fullDescription": { "type": "string" },
+        "differentials": {
+          "type": "array",
+          "items": { "type": "object", "properties": { "label": { "type": "string" }, "icon": { "type": "string" } } }
+        },
+        "mapLocationQuery": { "type": "string", "description": "Address or coordinates for Google Maps embed." },
+        "socialProofText": { "type": "string", "description": "e.g., 'Mais de 120 unidades vendidas'." },
+        "testimonials": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": { "author": { "type": "string" }, "text": { "type": "string" } }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "slug", "createdAt"]
+    },
     "Customer": {
         "title": "Customer",
         "type": "object",
@@ -247,14 +296,19 @@
         "type": "object",
         "description": "Represents a user's subscription.",
         "properties": {
+            "id": { "type": "string" },
             "userId": { "type": "string" },
-            "stripeSubscriptionId": { "type": "string" },
             "status": { "type": "string" },
+            "metadata": { "type": "object" },
             "priceId": { "type": "string" },
-            "createdAt": { "type": "string", "format": "date-time" },
-            "currentPeriodEnd": { "type": "string", "format": "date-time" }
+            "cancel_at_period_end": { "type": "boolean" },
+            "created": { "type": "number", "format": "utc-millisec" },
+            "current_period_start": { "type": "number", "format": "utc-millisec" },
+            "current_period_end": { "type": "number", "format": "utc-millisec" },
+            "ended_at": { "type": "number", "format": "utc-millisec", "nullable": true },
+            "canceled_at": { "type": "number", "format": "utc-millisec", "nullable": true }
         },
-        "required": ["userId", "stripeSubscriptionId", "status", "priceId"]
+        "required": ["id", "userId", "status", "priceId", "created", "current_period_start", "current_period_end"]
     },
     "Lead": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -379,6 +433,11 @@
         "path": "/agents/{agentId}/customSections/{sectionId}",
         "schema": { "$ref": "#/entities/CustomSection" },
         "description": "Stores custom property sections for the agent's public site."
+      },
+      {
+        "path": "/agents/{agentId}/catalogPages/{catalogPageId}",
+        "schema": { "$ref": "#/entities/CatalogPage" },
+        "description": "Stores dedicated landing pages for properties or developments."
       },
       {
         "path": "/agents/{agentId}/leads/{leadId}",
