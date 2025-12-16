@@ -1,8 +1,18 @@
 
 import Stripe from 'stripe';
 import { NextResponse } from 'next/server';
-import { getFirebaseServer } from '@/firebase/server-init';
-import { FieldValue } from 'firebase-admin/firestore';
+import { initializeApp, getApps, App } from 'firebase-admin/app';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { adminConfig } from '@/firebase/server-config';
+
+// Initialize Firebase Admin SDK
+let adminApp: App;
+if (!getApps().length) {
+  adminApp = initializeApp(adminConfig);
+} else {
+  adminApp = getApps()[0];
+}
+const adminDb = getFirestore(adminApp);
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -24,10 +34,9 @@ const relevantEvents = new Set([
 ]);
 
 async function manageSubscriptionChange(subscription: Stripe.Subscription) {
-  const { firestore } = getFirebaseServer();
   const customerId = subscription.customer as string;
 
-  const customersRef = firestore.collection('customers');
+  const customersRef = adminDb.collection('customers');
   const q = customersRef.where('stripeCustomerId', '==', customerId);
   const querySnapshot = await q.get();
 
@@ -44,7 +53,7 @@ async function manageSubscriptionChange(subscription: Stripe.Subscription) {
     return;
   }
 
-  const agentRef = firestore.collection('agents').doc(userId);
+  const agentRef = adminDb.collection('agents').doc(userId);
   const priceId = subscription.items.data[0].price.id;
 
   let plan: 'simples' | 'essencial' | 'impulso' | 'expansao' = 'simples';
@@ -66,7 +75,7 @@ async function manageSubscriptionChange(subscription: Stripe.Subscription) {
     stripeSubscriptionStatus: subscription.status,
   });
 
-  const userSubscriptionRef = firestore.collection(`customers/${userId}/subscriptions`).doc(subscription.id);
+  const userSubscriptionRef = adminDb.collection(`customers/${userId}/subscriptions`).doc(subscription.id);
 
   await userSubscriptionRef.set(
     {
@@ -129,9 +138,8 @@ export async function POST(req: Request) {
           console.error('Missing userId in checkout session metadata.');
           break;
         }
-
-        const { firestore } = getFirebaseServer();
-        const customerRef = firestore.collection('customers').doc(userId);
+        
+        const customerRef = adminDb.collection('customers').doc(userId);
 
         await customerRef.set(
           { userId, stripeCustomerId: customerId },
