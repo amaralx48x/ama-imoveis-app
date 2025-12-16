@@ -13,7 +13,6 @@ if (!stripeSecretKey || !webhookSecret) {
 
 const stripe = new Stripe(stripeSecretKey!, { apiVersion: '2024-06-20' });
 
-export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const relevantEvents = new Set([
