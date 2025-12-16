@@ -6,14 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check, Gem, X, Loader2, Star, ChevronDown } from 'lucide-react';
 import { InfoCard } from '@/components/info-card';
-import { useUser, useDoc, useMemoFirebase, useFirestore } from '@/firebase';
+import { useUser, useDoc, useMemo, useFirestore } from '@/firebase';
 import type { Agent } from '@/lib/data';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import SubscribeButton from '@/components/SubscribeButton';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 
 
 const PlanFeature = ({ children, included }: { children: React.ReactNode, included: boolean }) => (
