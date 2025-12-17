@@ -10,30 +10,12 @@ import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import type { Agent } from '@/lib/data';
 import { useMemo, useState } from 'react';
 import { doc } from 'firebase/firestore';
-import SubscribeButton from '@/components/SubscribeButton';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import Link from 'next/link';
 
-function PlanActionButton({ planName, priceId, isCurrent, children, recommended }: { planName: string, priceId: string, isCurrent: boolean, children: React.ReactNode, recommended?: boolean }) {
-    const { user } = useUser();
-    
-    if (isCurrent) {
-      return <Button disabled className="w-full" variant="outline">Plano Atual</Button>;
-    }
-
-    return (
-        <SubscribeButton
-            priceId={priceId}
-            email={user?.email}
-            userId={user?.uid}
-            className={cn("w-full", recommended && "bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black shadow-lg hover:opacity-90")}
-        >
-            {children}
-        </SubscribeButton>
-    )
-}
 
 function PlanCard({ planDetail }: { planDetail: any }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -80,14 +62,9 @@ function PlanCard({ planDetail }: { planDetail: any }) {
                 )}
             </CardContent>
             <CardFooter>
-                <PlanActionButton
-                    planName={planDetail.name}
-                    priceId={planDetail.priceId}
-                    isCurrent={planDetail.isCurrent}
-                    recommended={planDetail.recommended}
-                >
-                    {planDetail.isCurrent ? "Plano Atual" : 'Contratar Plano'}
-                </PlanActionButton>
+                 <Button disabled className="w-full" variant={planDetail.isCurrent ? "outline" : "default"}>
+                    {planDetail.isCurrent ? 'Plano Atual' : 'Contratar (Em Breve)'}
+                </Button>
             </CardFooter>
         </Card>
     )
@@ -99,54 +76,6 @@ const PlanFeature = ({ children, included }: { children: React.ReactNode, includ
         <span>{children}</span>
     </li>
 );
-
-function SubscriptionStatus({ agentData }: { agentData: Agent | null }) {
-    const [isRedirecting, setIsRedirecting] = useState(false);
-    const { toast } = useToast();
-
-    const handleManageSubscription = async () => {
-        if (!agentData?.stripeCustomerId) return;
-        setIsRedirecting(true);
-        try {
-            const res = await fetch('/api/create-portal-session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ customerId: agentData.stripeCustomerId }),
-            });
-            if (!res.ok) throw new Error('Falha ao criar sessão do portal.');
-            const { url } = await res.json();
-            window.location.href = url;
-        } catch (error: any) {
-            toast({ title: "Erro", description: error.message, variant: "destructive" });
-            setIsRedirecting(false);
-        }
-    };
-    
-    if (!agentData?.stripeSubscriptionId) {
-        return null;
-    }
-
-    return (
-         <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">Sua Assinatura</CardTitle>
-                <CardDescription>Gerencie os detalhes do seu plano e pagamento.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="flex justify-between items-center p-4 border rounded-lg bg-muted/50">
-                    <div>
-                        <p className="text-sm text-muted-foreground">Status da Assinatura</p>
-                        <p className="font-bold text-lg capitalize">{agentData.stripeSubscriptionStatus || 'Desconhecido'}</p>
-                    </div>
-                     <Button onClick={handleManageSubscription} disabled={isRedirecting}>
-                        {isRedirecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Settings className="mr-2 h-4 w-4" />}
-                        Gerenciar Assinatura
-                    </Button>
-                </div>
-            </CardContent>
-        </Card>
-    )
-}
 
 export default function MeuPlanoPage() {
   const { user } = useUser();
@@ -190,7 +119,7 @@ export default function MeuPlanoPage() {
         { text: 'Exportação CSV', included: planSettings.essencial.canImportCSV },
       ],
       isCurrent: plan === 'essencial',
-      priceId: 'price_1Sebec2K7btqnPDwEKKBa5nG',
+      priceId: planSettings.essencial.priceId,
     },
      impulso: {
       name: planSettings.impulso.name,
@@ -243,8 +172,6 @@ export default function MeuPlanoPage() {
             <h1 className="text-3xl font-bold font-headline flex items-center gap-2"><Gem /> Meu Plano e Assinatura</h1>
             <p className="text-muted-foreground">Gerencie sua assinatura, veja seus limites e faça upgrade.</p>
         </div>
-
-        <SubscriptionStatus agentData={agentData} />
 
         <Card>
             <CardHeader>

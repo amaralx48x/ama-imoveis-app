@@ -281,35 +281,6 @@
       },
       "required": ["id", "name", "slug", "createdAt"]
     },
-    "Customer": {
-        "title": "Customer",
-        "type": "object",
-        "description": "Represents a Stripe customer linked to a Firebase user.",
-        "properties": {
-            "userId": { "type": "string", "description": "The Firebase UID of the user." },
-            "stripeCustomerId": { "type": "string", "description": "The ID of the customer object in Stripe." }
-        },
-        "required": ["userId", "stripeCustomerId"]
-    },
-    "Subscription": {
-        "title": "Subscription",
-        "type": "object",
-        "description": "Represents a user's subscription.",
-        "properties": {
-            "id": { "type": "string" },
-            "userId": { "type": "string" },
-            "status": { "type": "string" },
-            "metadata": { "type": "object" },
-            "priceId": { "type": "string" },
-            "cancel_at_period_end": { "type": "boolean" },
-            "created": { "type": "number", "format": "utc-millisec" },
-            "current_period_start": { "type": "number", "format": "utc-millisec" },
-            "current_period_end": { "type": "number", "format": "utc-millisec" },
-            "ended_at": { "type": "number", "format": "utc-millisec", "nullable": true },
-            "canceled_at": { "type": "number", "format": "utc-millisec", "nullable": true }
-        },
-        "required": ["id", "userId", "status", "priceId", "created", "current_period_start", "current_period_end"]
-    },
     "Lead": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Lead",
@@ -453,16 +424,6 @@
         "path": "/marketing/content",
         "schema": { "$ref": "#/entities/MarketingContent" },
         "description": "Stores content for the public marketing page. This is a single-document collection."
-      },
-      {
-        "path": "/customers/{userId}",
-        "schema": { "$ref": "#/entities/Customer" },
-        "description": "Stores Stripe customer information linked to a Firebase user."
-      },
-      {
-        "path": "/customers/{userId}/subscriptions/{subscriptionId}",
-        "schema": { "$ref": "#/entities/Subscription" },
-        "description": "Stores the user's subscription details."
       }
     ]
   }
