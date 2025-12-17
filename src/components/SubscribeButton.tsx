@@ -20,6 +20,16 @@ export default function SubscribeButton({ priceId, email, userId, children, vari
 
   const handleSubscribe = async () => {
     setIsLoading(true);
+    if (!priceId) {
+        toast({
+            title: 'Erro de Configuração',
+            description: 'O ID do plano não foi fornecido.',
+            variant: 'destructive',
+        });
+        setIsLoading(false);
+        return;
+    }
+    
     try {
       const res = await fetch('/api/create-checkout-session', {
         method: 'POST',
@@ -27,9 +37,7 @@ export default function SubscribeButton({ priceId, email, userId, children, vari
         body: JSON.stringify({ priceId, customerEmail: email, userId }),
       });
 
-      // Check if the response is successful, not just if it exists
       if (!res.ok) {
-        // Try to parse the error message from the server
         const errorData = await res.json().catch(() => ({ error: 'O servidor retornou uma resposta inválida.' }));
         throw new Error(errorData.error || `Erro do servidor: ${res.statusText}`);
       }
@@ -39,7 +47,6 @@ export default function SubscribeButton({ priceId, email, userId, children, vari
       if (data?.url) {
         window.location.href = data.url;
       } else {
-        // This case handles a successful response but with missing URL
         throw new Error('A resposta do servidor não continha a URL de checkout.');
       }
     } catch (err: any) {

@@ -6,14 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check, Gem, X, Loader2, Star, ChevronDown, Settings } from 'lucide-react';
 import { InfoCard } from '@/components/info-card';
-import { useUser, useDoc, useFirestore } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import type { Agent } from '@/lib/data';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { doc } from 'firebase/firestore';
 import SubscribeButton from '@/components/SubscribeButton';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 
@@ -155,7 +154,7 @@ export default function MeuPlanoPage() {
   const { toast } = useToast();
   const { plan, limits, currentPropertiesCount, isLoading, planSettings } = usePlan();
 
-   const agentRef = useMemo(() => (user && firestore ? doc(firestore, 'agents', user.uid) : null), [user, firestore]);
+   const agentRef = useMemoFirebase(() => (user && firestore ? doc(firestore, 'agents', user.uid) : null), [user, firestore]);
   const { data: agentData } = useDoc<Agent>(agentRef);
 
   const planDetails = {
@@ -191,7 +190,7 @@ export default function MeuPlanoPage() {
         { text: 'Exportação CSV', included: planSettings.essencial.canImportCSV },
       ],
       isCurrent: plan === 'essencial',
-      priceId: planSettings.essencial.priceId,
+      priceId: 'price_1Sebec2K7btqnPDwEKKBa5nG',
     },
      impulso: {
       name: planSettings.impulso.name,
