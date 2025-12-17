@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
       customer_email: customerEmail,
-      success_url: `${baseUrl}/assinatura/sucesso?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${baseUrl}/dashboard`,
       cancel_url: `${baseUrl}/meu-plano`,
       metadata: { 
           userId: userId // Pass the userId to the webhook
