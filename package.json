@@ -43,6 +43,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.6.0",
+    "fast-xml-parser": "^5.3.3",
     "file-saver": "^2.0.5",
     "firebase": "^12.6.0",
     "framer-motion": "^11.3.19",
